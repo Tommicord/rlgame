@@ -210,12 +210,20 @@ private:
     DeviceInputReceiver();
     ~DeviceInputReceiver();
     void InputThread();
+    void PollWindowsInput();
+    void PollLinuxInput();
+    void PollMacInput();
+    void PollAndroidInput();
+    void PollIOSInput();
     std::vector<InputObserver*> observers;
     std::mutex observersMutex;
     std::thread inputThread;
     std::atomic<bool> running{false};
     std::condition_variable cv;
     std::mutex cvMutex;
+#if defined(__linux__)
+    void* display;
+#endif
 };
 
 } // namespace Input

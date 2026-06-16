@@ -25,7 +25,7 @@ public:
 };
 
 class CameraInputReceiver : public Input::DeviceInputReceiver {
-public:
+public:g
 
 };
 
