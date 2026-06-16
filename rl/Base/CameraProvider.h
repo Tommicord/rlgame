@@ -92,15 +92,20 @@ private:
 };
 
 // Just for data interchange between classes
-class CameraStateDrawableResources : StateDrawableResources<Camera> {
+struct CameraStateDrawableResource : StateResource {
+    Camera &cam_;
+    explicit CameraStateDrawableResource(Camera& cam) :
+        cam_(cam)
+    {
+    }
 };
 
-struct CameraStateDrawable : public StateDrawable<CameraStateDrawableResources>
+struct CameraStateDrawable : StateDrawable<CameraStateDrawableResource>
 {
     void OnDraw() override;
     void OnUpdate() override;
-    void OnCreate(StateDrawableResources<CameraStateDrawableResources>& resources) override;
-    void OnDestroy(StateDrawableResources<CameraStateDrawableResources>& resources) override;
+    void OnCreate(CameraStateDrawableResource resources) override;
+    void OnDestroy(CameraStateDrawableResource resources) override;
     void OnPause() override;
     void OnResume() override;
 };

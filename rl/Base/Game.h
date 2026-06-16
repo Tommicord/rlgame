@@ -7,6 +7,9 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+#include "rl/Base/CameraProvider.h"
+#include "rl/Base/DeviceInputReceiver.h"
+
 namespace Rl::Game {
 
 struct VulkanContext
@@ -41,12 +44,16 @@ struct VulkanContext
     QueueFamilyIndices queueFamilyIndices;
 };
 
-class Game {
+class Game : public Input::InputObserver {
+    std::shared_ptr<Providers::CameraStateDrawable> cameraDrawable_;
+    std::unique_ptr<Providers::Camera> camera_;
+    Input::DeviceInputReceiver& inputReceiver_;
 public:
     void Run();
     void Tick();
     void Render();
     void CleanupGraphics() const;
+    void InitInputReceiverObserver();
     void InitGraphics();
     void InitWindow();
     void GetDeltaTime();
@@ -60,17 +67,22 @@ public:
     void UpdateRender();
     static Game& GetInstance();
     VulkanContext& GetVulkanContext();
-    ~Game();
+    void OnKeyEvent(const Input::KeyEvent& event) override;
+    void OnMouseButtonEvent(const Input::MouseButtonEvent& event) override;
+    void OnMouseMoveEvent(const Input::MouseMoveEvent& event) override;
+    void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override;
+    ~Game() override;
 private:
     using Window = GLFWwindow;
     using Context = VulkanContext;
-    Game() = default;
+    Game();
     Window* vkWindow = nullptr;
     Context vkContext;
     static constexpr int width = 1800;
     static constexpr int height = 900;
     void CreateInstance();
     void CreateSurface();
+    void CreateResources();
     void PickPhysicalDevice();
     void CreateLogicalDevice();
     void CreateSwapChain();

@@ -20,12 +20,19 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-Game::~Game() { CleanupGraphics(); }
+Game::Game() : inputReceiver_(Input::DeviceInputReceiver::GetInstance()) {}
+
+Game::~Game() { 
+    inputReceiver_.Unsubscribe(this);
+    inputReceiver_.Stop();
+    CleanupGraphics(); 
+}
 
 void Game::Run()
 {
     InitWindow();
     InitGraphics();
+    InitInputReceiverObserver();
     while (!glfwWindowShouldClose(vkWindow))
     {
         glfwPollEvents();
@@ -62,6 +69,45 @@ void Game::CleanupGraphics() const
     vkDestroyInstance(vkContext.instance, nullptr);
     glfwDestroyWindow(vkWindow);
     glfwTerminate();
+}
+void Game::InitInputReceiverObserver()
+{
+    inputReceiver_.Subscribe(this);
+    inputReceiver_.Start();
+}
+
+void Game::OnKeyEvent(const Input::KeyEvent& event)
+{
+    std::cerr <<
+        "Game received key event: " <<
+            static_cast<int>(event.key) <<
+        ", action: " <<
+            static_cast<int>(event.action)
+    << std::endl;
+    if (camera_) {
+        camera_->OnKeyEvent(event);
+    }
+}
+
+void Game::OnMouseButtonEvent(const Input::MouseButtonEvent& event)
+{
+    if (camera_) {
+        camera_->OnMouseButtonEvent(event);
+    }
+}
+
+void Game::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
+{
+    if (camera_) {
+        camera_->OnMouseMoveEvent(event);
+    }
+}
+
+void Game::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
+{
+    if (camera_) {
+        camera_->OnMouseScrollEvent(event);
+    }
 }
 
 void Game::InitGraphics()
@@ -171,6 +217,15 @@ void Game::CreateSurface()
     {
         throw std::runtime_error("Failed to create window surface");
     }
+}
+void Game::CreateResources()
+{
+    // Create camera
+    camera_ = std::make_unique<Camera>();
+    cameraDrawable_ = std::make_shared<CameraStateDrawable>();
+    cameraDrawable_->OnCreate(
+        CameraStateDrawableResource(*camera_)
+        );
 }
 
 void Game::PickPhysicalDevice()
@@ -698,7 +753,7 @@ std::vector<const char*> Game::GetRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
     if (enableValidationLayers)
     {
@@ -712,7 +767,7 @@ std::vector<const char*> Game::GetRequiredExtensions()
 
 int main()
 {
-    Rl::Game::Game game = Rl::Game::Game::GetInstance();
+    Rl::Game::Game& game = Rl::Game::Game::GetInstance();
     try
     {
         game.Run();

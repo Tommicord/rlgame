@@ -1,6 +1,7 @@
 #include "rl/Base/CameraProvider.h"
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -78,27 +79,27 @@ void Camera::SetEyePosition(const Eye& position)
     UpdateMatrices();
 }
 
-void Camera::SetFar(double far) { 
+void Camera::SetFar(const double far) {
     this->far = far; 
     UpdateMatrices();
 }
 
-void Camera::SetNear(double near) { 
+void Camera::SetNear(const double near) {
     this->near = near; 
     UpdateMatrices();
 }
 
-void Camera::SetAspectRatio(float aspectRatio) { 
+void Camera::SetAspectRatio(const float aspectRatio) {
     this->aspectRatio = aspectRatio; 
     UpdateMatrices();
 }
 
-void Camera::SetFov(float fov) { 
+void Camera::SetFov(const float fov) {
     this->fov = fov; 
     UpdateMatrices();
 }
 
-void Camera::SetZoom(float zoom) { 
+void Camera::SetZoom(const float zoom) {
     this->zoom = zoom; 
     UpdateMatrices();
 }
@@ -185,6 +186,7 @@ void Camera::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
 
 void Camera::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 {
+    std::cout << "Mouse scroll" << std::endl;
     // Handle mouse scroll for zoom
     zoom -= static_cast<float>(event.yoffset);
     zoom = std::clamp(zoom, 0.1f, 10.0f);

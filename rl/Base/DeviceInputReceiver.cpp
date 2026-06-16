@@ -43,19 +43,20 @@ DeviceInputReceiver& DeviceInputReceiver::GetInstance()
 
 void DeviceInputReceiver::Subscribe(InputObserver* observer)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::scoped_lock lock(observersMutex);
     observers.push_back(observer);
 }
 
 void DeviceInputReceiver::Unsubscribe(InputObserver* observer)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::scoped_lock lock(observersMutex);
     observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
 }
 
 void DeviceInputReceiver::NotifyKeyEvent(const KeyEvent& event)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::cerr << "Key event: " << static_cast<int>(event.key) << ", action: " << static_cast<int>(event.action) << std::endl;
+    std::scoped_lock lock(observersMutex);
     for (auto* observer : observers)
     {
         observer->OnKeyEvent(event);
@@ -64,7 +65,7 @@ void DeviceInputReceiver::NotifyKeyEvent(const KeyEvent& event)
 
 void DeviceInputReceiver::NotifyMouseButtonEvent(const MouseButtonEvent& event)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::scoped_lock lock(observersMutex);
     for (auto* observer : observers)
     {
         observer->OnMouseButtonEvent(event);
@@ -73,7 +74,7 @@ void DeviceInputReceiver::NotifyMouseButtonEvent(const MouseButtonEvent& event)
 
 void DeviceInputReceiver::NotifyMouseMoveEvent(const MouseMoveEvent& event)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::scoped_lock lock(observersMutex);
     for (auto* observer : observers)
     {
         observer->OnMouseMoveEvent(event);
@@ -82,7 +83,7 @@ void DeviceInputReceiver::NotifyMouseMoveEvent(const MouseMoveEvent& event)
 
 void DeviceInputReceiver::NotifyMouseScrollEvent(const MouseScrollEvent& event)
 {
-    std::lock_guard<std::mutex> lock(observersMutex);
+    std::scoped_lock lock(observersMutex);
     for (auto* observer : observers)
     {
         observer->OnMouseScrollEvent(event);
@@ -98,6 +99,7 @@ void DeviceInputReceiver::Start()
 
     running.store(true);
     inputThread = std::thread(&DeviceInputReceiver::InputThread, this);
+    std::cerr << "DeviceInputReceiver started" << std::endl;
 }
 
 void DeviceInputReceiver::Stop()

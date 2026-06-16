@@ -13,7 +13,7 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\CameraProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Ui\UiCamera.cpp">
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Ui\GuiCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
