@@ -1,6 +1,9 @@
 #include "rl/Base/CameraProvider.h"
 #include <algorithm>
 #include <cmath>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Rl::Providers {
 
@@ -13,26 +16,58 @@ Camera::Camera()
     aspectRatio = 16.0f / 9.0f;
     zoom = 1.0f, pitch = 0.0f;
     yaw = 0.0f;
+    modelMatrix = glm::mat4(1.0f);
+    viewMatrix = glm::mat4(1.0f);
+    projectionMatrix = glm::mat4(1.0f);
+    pvmMatrix = glm::mat4(1.0f);
 }
 
 Camera::~Camera() {}
 
 void Camera::Update()
 {
+    UpdateMatrices();
+}
 
+void Camera::UpdateMatrices()
+{
+    // Calculate front vector from pitch and yaw
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    glm::vec3 cameraFront = glm::normalize(front);
+    
+    // Calculate right and up vectors
+    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f, 1.0f, 0.0f)));
+    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
+    
+    // View matrix, look at position + front
+    glm::vec3 cameraPos = glm::vec3(eye.x, eye.y, eye.z);
+    viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    
+    // Projection matrix
+    float adjustedFov = fov / zoom;
+    projectionMatrix = glm::perspective(glm::radians(adjustedFov), aspectRatio, static_cast<float>(near), static_cast<float>(far));
+    
+    // Model matrix (identity for now, can be used for transformations)
+    modelMatrix = glm::mat4(1.0f);
+    
+    // PVM matrix
+    pvmMatrix = projectionMatrix * viewMatrix * modelMatrix;
 }
 
 void Camera::SetPVMMatrix(const PVMMatrix& mvp)
 {
-    // Store the PVM matrix
-    // In a real implementation, this would be used for rendering
+    glm::mat4 glmMatrix = glm::make_mat4(mvp.matrix.data());
+    pvmMatrix = glmMatrix;
 }
 
 void Camera::SetRotateXYZ(const Eye& rotation)
 {
     pitch = static_cast<float>(rotation.x);
     yaw = static_cast<float>(rotation.y);
-    // rotation.z could be used for roll if needed
+    UpdateMatrices();
 }
 
 void Camera::SetEyePosition(const Eye& position)
@@ -40,19 +75,43 @@ void Camera::SetEyePosition(const Eye& position)
     eye.x = position.x;
     eye.y = position.y;
     eye.z = position.z;
+    UpdateMatrices();
 }
 
-void Camera::SetFar(double far) { this->far = far; }
+void Camera::SetFar(double far) { 
+    this->far = far; 
+    UpdateMatrices();
+}
 
-void Camera::SetNear(double near) { this->near = near; }
+void Camera::SetNear(double near) { 
+    this->near = near; 
+    UpdateMatrices();
+}
 
-void Camera::SetAspectRatio(float aspectRatio) { this->aspectRatio = aspectRatio; }
+void Camera::SetAspectRatio(float aspectRatio) { 
+    this->aspectRatio = aspectRatio; 
+    UpdateMatrices();
+}
 
-void Camera::SetFov(float fov) { this->fov = fov; }
+void Camera::SetFov(float fov) { 
+    this->fov = fov; 
+    UpdateMatrices();
+}
 
-void Camera::SetZoom(float zoom) { this->zoom = zoom; }
+void Camera::SetZoom(float zoom) { 
+    this->zoom = zoom; 
+    UpdateMatrices();
+}
 
 float Camera::GetAspectRatio() const { return aspectRatio; }
+
+glm::mat4 Camera::GetViewMatrix() const { return viewMatrix; }
+
+glm::mat4 Camera::GetProjectionMatrix() const { return projectionMatrix; }
+
+glm::mat4 Camera::GetModelMatrix() const { return modelMatrix; }
+
+glm::mat4 Camera::GetPVMMatrix() const { return pvmMatrix; }
 
 void Camera::OnKeyEvent(const Input::KeyEvent& event)
 {
@@ -83,6 +142,7 @@ void Camera::OnKeyEvent(const Input::KeyEvent& event)
         default:
             break;
         }
+        UpdateMatrices();
     }
 }
 
@@ -120,6 +180,7 @@ void Camera::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
     yaw += static_cast<float>(xOffset) * sensitivity;
     pitch += static_cast<float>(yOffset) * sensitivity;
     pitch = std::clamp(pitch, -89.0f, 89.0f);
+    UpdateMatrices();
 }
 
 void Camera::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
@@ -127,6 +188,37 @@ void Camera::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
     // Handle mouse scroll for zoom
     zoom -= static_cast<float>(event.yoffset);
     zoom = std::clamp(zoom, 0.1f, 10.0f);
+    UpdateMatrices();
+}
+
+void CameraStateDrawable::OnDraw()
+{
+    // Draw camera-related visuals if needed
+}
+
+void CameraStateDrawable::OnUpdate()
+{
+    // Update camera state
+}
+
+void CameraStateDrawable::OnCreate(StateDrawableResources<CameraStateDrawableResources>& resources)
+{
+    // Initialize camera resources
+}
+
+void CameraStateDrawable::OnDestroy()
+{
+    // Cleanup camera resources
+}
+
+void CameraStateDrawable::OnPause()
+{
+    // Pause camera updates
+}
+
+void CameraStateDrawable::OnResume()
+{
+    // Resume camera updates
 }
 
 } // namespace Rl::Providers

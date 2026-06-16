@@ -1,12 +1,14 @@
 #pragma once
 
-#include "StateDrawable.h"
+#include "rl/Base/StateDrawable.h"
 #include "rl/Base/DeviceInputReceiver.h"
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Rl::Providers {
 
@@ -39,6 +41,10 @@ public:
     virtual void SetFov(float fov) = 0;
     virtual void SetZoom(float zoom) = 0;
     virtual float GetAspectRatio() const = 0;
+    virtual glm::mat4 GetViewMatrix() const = 0;
+    virtual glm::mat4 GetProjectionMatrix() const = 0;
+    virtual glm::mat4 GetModelMatrix() const = 0;
+    virtual glm::mat4 GetPVMMatrix() const = 0;
 };
 
 struct CameraInputReceiver : public virtual Input::InputObserver {
@@ -63,11 +69,26 @@ public:
     void SetAspectRatio(float aspectRatio) override;
     void SetFov(float fov) override;
     void SetZoom(float zoom) override;
+    [[nodiscard]]
     float GetAspectRatio() const override;
+    [[nodiscard]]
+    glm::mat4 GetViewMatrix() const override;
+    [[nodiscard]]
+    glm::mat4 GetProjectionMatrix() const override;
+    [[nodiscard]]
+    glm::mat4 GetModelMatrix() const override;
+    [[nodiscard]]
+    glm::mat4 GetPVMMatrix() const override;
     void OnKeyEvent(const Input::KeyEvent& event) override;
     void OnMouseButtonEvent(const Input::MouseButtonEvent& event) override;
     void OnMouseMoveEvent(const Input::MouseMoveEvent& event) override;
     void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override;
+private:
+    glm::mat4 modelMatrix;
+    glm::mat4 viewMatrix;
+    glm::mat4 projectionMatrix;
+    glm::mat4 pvmMatrix;
+    void UpdateMatrices();
 };
 
 // Just for data interchange between classes

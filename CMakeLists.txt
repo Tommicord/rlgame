@@ -7,6 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
+
+include(FetchContent)
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY	https://github.com/g-truc/glm.git
+  GIT_TAG 	      0af55ccecd98d4e5a8d1fad7de25ba429d60e863 #refs/tags/1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
 add_subdirectory(Deps/glfw)
 add_executable(
   rlgame
@@ -31,6 +40,7 @@ target_link_libraries(
   PRIVATE
   Vulkan::Vulkan
   glfw
+  glm::glm
 )
 
 # Platform-specific libraries for input polling
@@ -80,4 +90,6 @@ target_compile_shaders(
   rlgame
   Public/Shaders/shader.frag
   Public/Shaders/shader.vert
+  Public/Shaders/cam.frag
+  Public/Shaders/cam.vert
 )
