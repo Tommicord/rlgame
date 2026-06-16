@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <string>
 #include <vector>
 
 struct VulkanContext
@@ -80,11 +81,11 @@ private:
     void CreateCommandPool();
     void CreateCommandBuffers();
     void CreateSyncObjects();
-    void DrawFrame();
+    void DrawFrame() const;
     void RecreateSwapChain();
-    void CleanupSwapChain();
+    void CleanupSwapChain() const;
 
-    VulkanContext::QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+    VulkanContext::QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) const;
     bool IsDeviceSuitable(VkPhysicalDevice device);
     bool CheckValidationLayerSupport();
     std::vector<const char*> GetRequiredExtensions();
