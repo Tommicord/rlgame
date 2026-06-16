@@ -28,7 +28,7 @@ add_executable(
   rl/Base/CameraProvider.h
   rl/Base/CameraProvider.cpp
   rl/Ui/UiCamera.cpp
-  rl/Ui/UiCamera.cpp
+  rl/Base/StateDrawableArray.cpp
 )
 target_include_directories(
   rlgame

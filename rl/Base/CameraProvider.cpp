@@ -191,34 +191,5 @@ void Camera::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
     UpdateMatrices();
 }
 
-void CameraStateDrawable::OnDraw()
-{
-    // Draw camera-related visuals if needed
-}
-
-void CameraStateDrawable::OnUpdate()
-{
-    // Update camera state
-}
-
-void CameraStateDrawable::OnCreate(StateDrawableResources<CameraStateDrawableResources>& resources)
-{
-    // Initialize camera resources
-}
-
-void CameraStateDrawable::OnDestroy()
-{
-    // Cleanup camera resources
-}
-
-void CameraStateDrawable::OnPause()
-{
-    // Pause camera updates
-}
-
-void CameraStateDrawable::OnResume()
-{
-    // Resume camera updates
-}
 
 } // namespace Rl::Providers

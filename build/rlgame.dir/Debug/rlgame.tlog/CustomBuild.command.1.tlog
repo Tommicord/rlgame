@@ -1,0 +1,58 @@
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SHADER.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/shader.frag -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/shader.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SHADER.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/shader.vert -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/shader.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\CAM.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/cam.frag -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/cam.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\CAM.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/cam.vert -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/cam.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/USUARIO/IdeaProjects/RL -BC:/Users/USUARIO/IdeaProjects/RL/build --check-stamp-file C:/Users/USUARIO/IdeaProjects/RL/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

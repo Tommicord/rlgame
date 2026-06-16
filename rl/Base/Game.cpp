@@ -1,18 +1,18 @@
 #include "rl/Base/Game.h"
+#include "rl/Base/ShaderFactory.h"
+#include "rl/Base/CameraProvider.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <set>
 #include <stdexcept>
-#include "rl/Base/ShaderFactory.h"
-
-#include "CameraProvider.h"
 
 namespace Rl::Game {
+
 using namespace Rl::Providers;
 
-const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+const std::vector validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -20,11 +20,9 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-GameLauncher::GameLauncher() {}
+Game::~Game() { CleanupGraphics(); }
 
-GameLauncher::~GameLauncher() { CleanupGraphics(); }
-
-void GameLauncher::Run()
+void Game::Run()
 {
     InitWindow();
     InitGraphics();
@@ -36,25 +34,37 @@ void GameLauncher::Run()
     vkDeviceWaitIdle(vkContext.device);
 }
 
-void GameLauncher::Tick() {}
+void Game::Tick() {}
 
-void GameLauncher::Render() {}
+void Game::Render() {}
 
-void GameLauncher::CleanupGraphics()
+void Game::CleanupGraphics() const
 {
-    CleanupSwapChain();
+
     vkDestroySemaphore(vkContext.device, vkContext.renderFinishedSemaphore, nullptr);
     vkDestroySemaphore(vkContext.device, vkContext.imageAvailableSemaphore, nullptr);
     vkDestroyFence(vkContext.device, vkContext.inFlightFence, nullptr);
     vkDestroyCommandPool(vkContext.device, vkContext.commandPool, nullptr);
-    vkDestroyDevice(vkContext.device, nullptr);
+    vkDestroyPipelineLayout(vkContext.device, vkContext.pipelineLayout, nullptr);
+    vkDestroyPipeline(vkContext.device, vkContext.graphicsPipeline, nullptr);
     vkDestroySurfaceKHR(vkContext.instance, vkContext.surface, nullptr);
+    vkDestroyRenderPass(vkContext.device, vkContext.renderPass, nullptr);
+    for (const auto framebuffer : vkContext.swapChainFramebuffers)
+    {
+        vkDestroyFramebuffer(vkContext.device, framebuffer, nullptr);
+    }
+    for (const auto imageView : vkContext.swapChainImageViews)
+    {
+        vkDestroyImageView(vkContext.device, imageView, nullptr);
+    }
+    vkDestroySwapchainKHR(vkContext.device, vkContext.swapChain, nullptr);
+    vkDestroyDevice(vkContext.device, nullptr);
     vkDestroyInstance(vkContext.instance, nullptr);
     glfwDestroyWindow(vkWindow);
     glfwTerminate();
 }
 
-void GameLauncher::InitGraphics()
+void Game::InitGraphics()
 {
     CreateInstance();
     CreateSurface();
@@ -70,33 +80,51 @@ void GameLauncher::InitGraphics()
     CreateSyncObjects();
 }
 
-void GameLauncher::InitWindow()
+void Game::InitWindow()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     vkWindow = glfwCreateWindow(width, height, "RL", nullptr, nullptr);
+    // Configure monitor and window
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    glfwSetWindowPos(
+        vkWindow,
+        (mode->width - width) / 2,
+        (mode->height - height) / 2
+        );
 }
 
-void GameLauncher::GetDeltaTime() {}
+void Game::GetDeltaTime() {}
 
-void GameLauncher::InputHandle() {}
+void Game::InputHandle() {}
 
-void GameLauncher::UpdateEntities() {}
+void Game::UpdateEntities() {}
 
-void GameLauncher::UpdateCamera() {}
+void Game::UpdateCamera() {}
 
-void GameLauncher::UpdatePhysics() {}
+void Game::UpdatePhysics() {}
 
-void GameLauncher::UpdateAudio() {}
+void Game::UpdateAudio() {}
 
-void GameLauncher::UpdateUI() {}
+void Game::UpdateUI() {}
 
-void GameLauncher::UpdateLogic() {}
+void Game::UpdateLogic() {}
 
-void GameLauncher::UpdateRender() {}
+void Game::UpdateRender() {}
 
-void GameLauncher::CreateInstance()
+Game& Game::GetInstance() {
+    static Game game;
+    return game;
+}
+
+VulkanContext& Game::GetVulkanContext()
+{
+    return this->vkContext;
+}
+
+void Game::CreateInstance()
 {
     if (enableValidationLayers && !CheckValidationLayerSupport())
     {
@@ -119,7 +147,7 @@ void GameLauncher::CreateInstance()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo { };
     if (enableValidationLayers)
     {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -136,9 +164,7 @@ void GameLauncher::CreateInstance()
     }
 }
 
-void GameLauncher::SetupDebugMessenger() {}
-
-void GameLauncher::CreateSurface()
+void Game::CreateSurface()
 {
     if (glfwCreateWindowSurface(vkContext.instance, vkWindow, nullptr, &vkContext.surface) !=
         VK_SUCCESS)
@@ -147,7 +173,7 @@ void GameLauncher::CreateSurface()
     }
 }
 
-void GameLauncher::PickPhysicalDevice()
+void Game::PickPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vkContext.instance, &deviceCount, nullptr);
@@ -175,7 +201,7 @@ void GameLauncher::PickPhysicalDevice()
     }
 }
 
-void GameLauncher::CreateLogicalDevice()
+void Game::CreateLogicalDevice()
 {
     vkContext.queueFamilyIndices = FindQueueFamilies(vkContext.physicalDevice);
 
@@ -229,7 +255,7 @@ void GameLauncher::CreateLogicalDevice()
                      &vkContext.presentQueue);
 }
 
-void GameLauncher::CreateSwapChain()
+void Game::CreateSwapChain()
 {
     VulkanContext::QueueFamilyIndices indices = FindQueueFamilies(vkContext.physicalDevice);
 
@@ -278,7 +304,7 @@ void GameLauncher::CreateSwapChain()
     vkContext.swapChainExtent = extent;
 }
 
-void GameLauncher::CreateImageViews()
+void Game::CreateImageViews()
 {
     vkContext.swapChainImageViews.resize(vkContext.swapChainImages.size());
 
@@ -307,7 +333,7 @@ void GameLauncher::CreateImageViews()
     }
 }
 
-void GameLauncher::CreateRenderPass()
+void Game::CreateRenderPass()
 {
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = vkContext.swapChainImageFormat;
@@ -342,7 +368,7 @@ void GameLauncher::CreateRenderPass()
     }
 }
 
-void GameLauncher::CreateGraphicsPipeline()
+void Game::CreateGraphicsPipeline()
 {
     auto vertShaderCode = ShaderObject::ReadShaderFile("Shaders/shader.vert.spv");
     auto fragShaderCode = ShaderObject::ReadShaderFile("Shaders/shader.frag.spv");
@@ -450,7 +476,7 @@ void GameLauncher::CreateGraphicsPipeline()
     vkDestroyShaderModule(vkContext.device, vertShaderModule.module, nullptr);
 }
 
-void GameLauncher::CreateFramebuffers()
+void Game::CreateFramebuffers()
 {
     vkContext.swapChainFramebuffers.resize(vkContext.swapChainImageViews.size());
 
@@ -475,7 +501,7 @@ void GameLauncher::CreateFramebuffers()
     }
 }
 
-void GameLauncher::CreateCommandPool()
+void Game::CreateCommandPool()
 {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -489,7 +515,7 @@ void GameLauncher::CreateCommandPool()
     }
 }
 
-void GameLauncher::CreateCommandBuffers()
+void Game::CreateCommandBuffers()
 {
     vkContext.commandBuffers.resize(1);
     VkCommandBufferAllocateInfo allocInfo{};
@@ -505,7 +531,7 @@ void GameLauncher::CreateCommandBuffers()
     }
 }
 
-void GameLauncher::CreateSyncObjects()
+void Game::CreateSyncObjects()
 {
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -525,7 +551,7 @@ void GameLauncher::CreateSyncObjects()
     }
 }
 
-void GameLauncher::DrawFrame() const
+void Game::DrawFrame() const
 {
     vkWaitForFences(vkContext.device, 1, &vkContext.inFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(vkContext.device, 1, &vkContext.inFlightFence);
@@ -595,26 +621,12 @@ void GameLauncher::DrawFrame() const
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
-
     vkQueuePresentKHR(vkContext.presentQueue, &presentInfo);
 }
 
-void GameLauncher::RecreateSwapChain() {}
+void Game::RecreateSwapChain() {}
 
-void GameLauncher::CleanupSwapChain() const
-{
-    for (const auto framebuffer : vkContext.swapChainFramebuffers)
-    {
-        vkDestroyFramebuffer(vkContext.device, framebuffer, nullptr);
-    }
-    for (const auto imageView : vkContext.swapChainImageViews)
-    {
-        vkDestroyImageView(vkContext.device, imageView, nullptr);
-    }
-    vkDestroySwapchainKHR(vkContext.device, vkContext.swapChain, nullptr);
-}
-
-VulkanContext::QueueFamilyIndices GameLauncher::FindQueueFamilies(VkPhysicalDevice device) const
+VulkanContext::QueueFamilyIndices Game::FindQueueFamilies(VkPhysicalDevice device) const
 {
     VulkanContext::QueueFamilyIndices indices;
 
@@ -647,14 +659,14 @@ VulkanContext::QueueFamilyIndices GameLauncher::FindQueueFamilies(VkPhysicalDevi
     return indices;
 }
 
-bool GameLauncher::IsDeviceSuitable(VkPhysicalDevice device)
+bool Game::IsDeviceSuitable(VkPhysicalDevice device)
 {
     VulkanContext::QueueFamilyIndices indices = FindQueueFamilies(device);
 
     return indices.isComplete();
 }
 
-bool GameLauncher::CheckValidationLayerSupport()
+bool Game::CheckValidationLayerSupport()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -682,7 +694,7 @@ bool GameLauncher::CheckValidationLayerSupport()
     return true;
 }
 
-std::vector<const char*> GameLauncher::GetRequiredExtensions()
+std::vector<const char*> Game::GetRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -700,7 +712,7 @@ std::vector<const char*> GameLauncher::GetRequiredExtensions()
 
 int main()
 {
-    Rl::Game::GameLauncher game;
+    Rl::Game::Game game = Rl::Game::Game::GetInstance();
     try
     {
         game.Run();

@@ -1,0 +1,15 @@
+C:/Users/USUARIO/IdeaProjects/RL/build/CMakeFiles/rlgame.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/CMakeFiles/INSTALL.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/CMakeFiles/INSTALL.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/CMakeFiles/ALL_BUILD.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/glm/CMakeFiles/glm.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/glm/CMakeFiles/INSTALL.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/CMakeFiles/uninstall.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/CMakeFiles/INSTALL.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/CMakeFiles/ALL_BUILD.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/src/CMakeFiles/glfw.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/src/CMakeFiles/update_mappings.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/src/CMakeFiles/INSTALL.dir
+C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/docs/CMakeFiles/INSTALL.dir

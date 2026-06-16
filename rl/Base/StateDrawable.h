@@ -22,7 +22,7 @@ public:
     virtual void OnDraw() = 0;
     virtual void OnUpdate() = 0;
     virtual void OnCreate(StateDrawableResources<value_type>& resources) = 0;
-    virtual void OnDestroy() = 0;
+    virtual void OnDestroy(StateDrawableResources<value_type>& resources) = 0;
     virtual void OnPause() = 0;
     virtual void OnResume() = 0;
 private:

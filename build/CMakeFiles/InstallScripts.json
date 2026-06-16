@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/USUARIO/IdeaProjects/RL/build/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/glm/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/src/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/docs/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

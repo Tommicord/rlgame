@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\ShaderFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\DeviceInputReceiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\CameraProvider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Ui\UiCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\ShaderFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\DeviceInputReceiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\CameraProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\shader.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\shader.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\cam.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\cam.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\shader.frag.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\shader.vert.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\cam.frag.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\cam.vert.spv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{02D9E7CA-8EAB-3690-8F59-4C18A547D09E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{FE92B526-8E02-3DA0-AB54-37EE9B9A9948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{71921DF5-ACCA-3023-9605-690776144191}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -35,19 +35,18 @@ struct VulkanContext
     {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily;
+        [[nodiscard]]
         bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
     };
     QueueFamilyIndices queueFamilyIndices;
 };
 
-class GameLauncher {
+class Game {
 public:
-    GameLauncher();
-    ~GameLauncher();
     void Run();
     void Tick();
     void Render();
-    void CleanupGraphics();
+    void CleanupGraphics() const;
     void InitGraphics();
     void InitWindow();
     void GetDeltaTime();
@@ -59,15 +58,18 @@ public:
     void UpdateUI();
     void UpdateLogic();
     void UpdateRender();
-
+    static Game& GetInstance();
+    VulkanContext& GetVulkanContext();
+    ~Game();
 private:
-    GLFWwindow* vkWindow = nullptr;
-    VulkanContext vkContext;
-
+    using Window = GLFWwindow;
+    using Context = VulkanContext;
+    Game() = default;
+    Window* vkWindow = nullptr;
+    Context vkContext;
     static constexpr int width = 1800;
-    static constexpr int height = 1000;
+    static constexpr int height = 900;
     void CreateInstance();
-    void SetupDebugMessenger();
     void CreateSurface();
     void PickPhysicalDevice();
     void CreateLogicalDevice();
@@ -81,8 +83,6 @@ private:
     void CreateSyncObjects();
     void DrawFrame() const;
     void RecreateSwapChain();
-    void CleanupSwapChain() const;
-
     VulkanContext::QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) const;
     bool IsDeviceSuitable(VkPhysicalDevice device);
     bool CheckValidationLayerSupport();

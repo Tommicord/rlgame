@@ -1,0 +1,10 @@
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\05A71EA5EF68C4E9E0EC8C948A123C61\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/USUARIO/IdeaProjects/RL -BC:/Users/USUARIO/IdeaProjects/RL/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/USUARIO/IdeaProjects/RL/build/rl.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

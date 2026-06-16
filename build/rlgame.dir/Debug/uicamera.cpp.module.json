@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "rlgame.dir\\Debug\\UiCamera.obj",
+            "outputs": [
+                "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\vc145.pdb",
+                "rlgame.dir\\Debug\\"
+            ],
+            "requires": []
+        }
+    ]
+}

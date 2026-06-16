@@ -100,7 +100,7 @@ struct CameraStateDrawable : public StateDrawable<CameraStateDrawableResources>
     void OnDraw() override;
     void OnUpdate() override;
     void OnCreate(StateDrawableResources<CameraStateDrawableResources>& resources) override;
-    void OnDestroy() override;
+    void OnDestroy(StateDrawableResources<CameraStateDrawableResources>& resources) override;
     void OnPause() override;
     void OnResume() override;
 };
