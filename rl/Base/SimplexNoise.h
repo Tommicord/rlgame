@@ -18,12 +18,15 @@ class OpenSimplexNoiseGen :
     public AbstractOpenSimplexNoise
 {
 public:
-    float eval(float x, float y) const override;
-    float eval(float x, float y, float z) const override;
-    float eval(float x, float y, float z, float w ) const override;
-private:
     OpenSimplexNoiseGen();
     OpenSimplexNoiseGen(int64_t seed);
+    [[nodiscard]]
+    float eval(float x, float y) const override;
+    [[nodiscard]]
+    float eval(float x, float y, float z) const override;
+    [[nodiscard]]
+    float eval(float x, float y, float z, float w ) const override;
+private:
     const double m_stretch2d;
     const double m_squish2d;
     const double m_stretch3d;

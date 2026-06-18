@@ -43,6 +43,8 @@ add_executable(
   rl/Base/Texture2.h
   rl/World/Unit/UnitGrass.cpp
   rl/World/Unit/UnitGrass.h
+  rl/World/Unit/Dyn/UnitDynamicTexture.cpp
+  rl/World/Unit/Dyn/UnitDynamicTexture.h
 )
 target_include_directories(
   rlgame
