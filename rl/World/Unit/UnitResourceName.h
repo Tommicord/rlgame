@@ -14,7 +14,7 @@ protected:
     size_t nameLen;
 public:
     /* Creates a basic unit resource name for registry identifiers */
-    explicit UnitResourceName(const std::vector<const char*>& name) noexcept;
+    UnitResourceName(const std::vector<const char*>& name) noexcept;
 
     /* Destroys a basic resource name object */
     ~UnitResourceName();

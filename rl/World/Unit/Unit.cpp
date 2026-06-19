@@ -1,9 +1,10 @@
-#include "Unit.h"
+#include "rl/World/Unit/Unit.h"
+#include "rl/World/Unit/UnitResourceName.h"
+
 #include <algorithm>
 #include <cstring>
 #include <memory>
 #include <vector>
-#include "UnitResourceName.h"
 
 namespace Rl::World {
 
@@ -144,7 +145,7 @@ void UnitRegistryKVPair<K, V>::Register(int id, K& key, V& value)
 }
 
 template <class K, class V>
-K UnitRegistryKVPair<K, V>::GetNameForObject(V& value)
+std::optional<K> UnitRegistryKVPair<K, V>::GetNameForObject(V& value)
 {
     // Access the static registry through UnitRegisters
     auto& registry = UnitRegisters<K, V>::GetRegistry();
@@ -156,12 +157,11 @@ K UnitRegistryKVPair<K, V>::GetNameForObject(V& value)
             return pair.regKey;
         }
     }
-    
-    return K(); // Return default if not found
+    return;
 }
 
 template <class K, class V>
-K UnitRegistryKVPair<K, V>::GetObject(K name)
+std::optional<K> UnitRegistryKVPair<K, V>::GetObject(K name)
 {
     // Access the static registry through UnitRegisters
     auto& registry = UnitRegisters<K, V>::GetRegistry();
@@ -173,12 +173,11 @@ K UnitRegistryKVPair<K, V>::GetObject(K name)
             return pair.regValue;
         }
     }
-    
-    return K(); // Return default if not found
+    return;
 }
 
 template <class K, class V>
-V UnitRegistryKVPair<K, V>::GetObjectById(int id)
+std::optional<V> UnitRegistryKVPair<K, V>::GetObjectById(int id)
 {
     // Access the static registry through UnitRegisters
     auto& registry = UnitRegisters<K, V>::GetRegistry();
@@ -186,7 +185,103 @@ V UnitRegistryKVPair<K, V>::GetObjectById(int id)
     {
         return registry[id].regValue;
     }
-    return V(); // Return default if id is invalid
+    return;
+}
+
+UnitTexture2::~UnitTexture2()
+{
+    top.release(), down.release();
+    left.release(), right.release();
+    front.release(), back.release();
+}
+
+template<typename T>
+    requires(std::is_base_of_v<AbstractUnit, T>)
+AbstractUnit::AbstractUnit(AbstractUnit *type) noexcept
+{
+    int id = 1;
+    if (registry
+        .GetObjectById(id)
+        .has_value())
+    {
+        while (
+            registry
+                .GetObjectById(id)
+                .has_value()
+            )
+        {
+            id++;
+        }
+    }
+    if (
+        !registry
+            .GetObjectById(id)
+            .has_value())
+    {
+        std::vector<const char*> v;
+        v.reserve(1);
+        v.push_back(typeid(T).name());
+        UnitResourceName resourceName(v);
+        registry.Register(id, resourceName, type);
+    }
+    AbstractUnit();
+}
+
+AbstractUnit::~AbstractUnit()
+{
+    textures.reset();
+}
+
+void AbstractUnit::SetResistance(const float resistance)
+{
+    this->unitResistance = resistance;
+}
+
+void AbstractUnit::SetLightEmit(const float emit)
+{
+    this->lightEmit = emit;
+}
+
+void AbstractUnit::SetLightOpacity(const float opacity)
+{
+    this->lightOpacity = opacity;
+}
+
+void AbstractUnit::SetUnitHardness(const float resistance)
+{
+    this->unitResistance = resistance;
+}
+
+void AbstractUnit::SetPolFenceRight(PolFence& fence)
+{
+    // Copies start from polTr address
+    std::memcpy(&polTr, &fence, sizeof(fence));
+}
+
+void AbstractUnit::SetPolFenceLeft(PolFence& fence)
+{
+    // Copies start from polTl address
+    std::memcpy(&polTl, &fence, sizeof(fence));
+}
+
+void AbstractUnit::EnableCollision()
+{
+    mustCollide = true;
+}
+
+void AbstractUnit::DisableCollision()
+{
+    mustCollide = false;
+}
+
+bool AbstractUnit::IsCollisionEnabled()
+{
+    return mustCollide;
+}
+
+bool AbstractUnit::IsVisible()
+{
+    return mustVisible;
 }
 
 } // namespace Rl::World

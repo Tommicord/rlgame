@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 
+#include "UnitDynamicTexture.h"
 #include "UnitResourceName.h"
 #include "rl/Base/Texture2.h"
 
@@ -11,7 +12,7 @@ namespace Rl::World {
 
 using namespace Rl::Providers;
 
-enum class WorldUnitType
+enum class UnitType
 {
     Visible,    // Unit Visible
     NoVisible,  // Unit No Visible
@@ -19,17 +20,22 @@ enum class WorldUnitType
     Liquid,     // Is Unit Solid
 };
 
+struct UnitRenderAXIS
+{
+    double minX, maxX, minY, maxY, minZ, maxZ;
+};
+
 template<class K, class V>
 class UnitRegistryKVPair;
 
-struct WorldUnitTexture2 : Texture2
+struct UnitTexture2
 {
-    Texture2 *top,
-              down,
-              left, right,
-              front, back;
-    WorldUnitTexture2();
-    ~WorldUnitTexture2();
+    std::unique_ptr<Texture2>
+             top,
+             down,
+             left, right,
+             front, back;
+    ~UnitTexture2();
 };
 
 class AbstractUnit
@@ -45,7 +51,9 @@ public:
     } props;
 
     /* Creates a basic WorldUnit, automatically registers the unit */
-    AbstractUnit();
+    template<typename T>
+        requires(std::is_base_of_v<AbstractUnit, T>)
+    AbstractUnit(AbstractUnit* type) noexcept;
 
     struct PolFence
     {
@@ -55,17 +63,14 @@ public:
     /* Delete a world unit */
     virtual ~AbstractUnit();
 
-    /* Inits by default al units */
-    virtual void InitRegistryUnits();
-
     /* Sets the resistance against TNT of the unit */
     virtual void SetResistance(float resistance);
 
     /* Sets the light quantity that emits the unit */
-    virtual void SetLightEmit(float resistance);
+    virtual void SetLightEmit(float emit);
 
     /* Sets the light quantity substraction for going the unit */
-    virtual void SetLightOpacity(float resistance);
+    virtual void SetLightOpacity(float opacity);
 
     /* Sets the unit hardness, how many times wait to break the unit */
     virtual void SetUnitHardness(float resistance);
@@ -84,9 +89,12 @@ public:
 
     /* Returns true if the collision is enabled for this unit */
     virtual bool IsCollisionEnabled();
+
+    /* Returns true if the unit is visible */
+    virtual bool IsVisible();
 protected:
     /* Texture of the unit, back, front, left, right, bottom, top */
-    std::unique_ptr<WorldUnitTexture2> texture;
+    std::unique_ptr<UnitTexture2> textures;
 
     /* Width, Height, Depth of the unit */
     float inWidth, inHeight, inDepth;
@@ -125,6 +133,8 @@ protected:
     /* Indicates how much this block can resist explosions */
     float unitResistance;
     bool translucent;
+private:
+    AbstractUnit() = default;
 };
 
 template<class K, class V>
@@ -164,15 +174,15 @@ public:
 
     /* Gets the name we use to identify the object */
     [[nodiscard]]
-    static K GetNameForObject(V& value);
+    static std::optional<K> GetNameForObject(V& value);
 
     /* Gets the object from the name identifier */
     [[nodiscard]]
-    static K GetObject(K name);
+    static std::optional<K> GetObject(K name);
 
     /* Gets the object from the id identifier */
     [[nodiscard]]
-    static V GetObjectById(int id);
+    static std::optional<V> GetObjectById(int id);
 };
 
 } // namespace Rl::World

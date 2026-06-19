@@ -1,14 +1,9 @@
-#include <string>
-#include <vector>
-#include "Unit.h"
-#include "rl/World/UnitResourceName.h"
+#include "rl/World/Unit/UnitResourceName.h"#in
 
 namespace Rl::World {
 
 void AbstractUnit::InitRegistryUnits()
 {
-
-registry.Register(1, {{"block", "grass"}}, new );
 
 }
 
