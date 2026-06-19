@@ -7,6 +7,7 @@
 #include <map>
 
 namespace Rl::World {
+
 using namespace Rl::Providers;
 
 UnitDynamicTexture::UnitDynamicTexture(Texture2& base, const Seed seed, DynamicOptions& options) :
@@ -173,8 +174,9 @@ void UnitDynamicTexture::ApplyNoiseVar(
     if (index < noiseMap.size())
     {
         const float noise = noiseMap[index];
-        const float variation =
-            (noise - 0.5f) * 2.0f * options.colorVar * 255.0f;
+        // Use symmetric noise variation around 0 to preserve overall brightness
+        const float variation = (noise - 0.5f) * 2.0f * options.colorVar * 255.0f;
+        // Apply variation symmetrically to avoid darkening bias
         r = ClampNoiseVar(r, variation);
         g = ClampNoiseVar(g, variation);
         b = ClampNoiseVar(b, variation);
@@ -189,10 +191,11 @@ void UnitDynamicTexture::BlendsBaseColorWithPalette(uint8_t& r, uint8_t& g, uint
         uint8_t pr = (paletteColor >> 16) & 0xFF;
         uint8_t pg = (paletteColor >> 8) & 0xFF;
         uint8_t pb = paletteColor & 0xFF;
-        // Blend base color with palette color
-        r = static_cast<uint8_t>((r + pr) / 2);
-        g = static_cast<uint8_t>((g + pg) / 2);
-        b = static_cast<uint8_t>((b + pb) / 2);
+        // Blend base color with palette color using configurable blend ratio
+        float blend = options.paletteBlend;
+        r = static_cast<uint8_t>(r * (1.0f - blend) + pr * blend);
+        g = static_cast<uint8_t>(g * (1.0f - blend) + pg * blend);
+        b = static_cast<uint8_t>(b * (1.0f - blend) + pb * blend);
     }
 }
 

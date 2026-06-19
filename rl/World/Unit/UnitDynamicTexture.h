@@ -21,9 +21,11 @@ public:
     struct DynamicOptions
     {
         /* Stores the noise scale */
-        float noiseSc = 0.1f;
+        float noiseSc = 0.2f;
         /* Stores the color variation */
-        float colorVar = 0.15f;
+        float colorVar = 0.05f;
+        /* Stores the palette blend ratio (0.0 = no blending, 1.0 = full blend) */
+        float paletteBlend = 0.3f;
     };
     /* Describes a 64-bit seed value for the randomize texture process */
     using Seed = long long;
