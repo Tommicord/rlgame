@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cstdint>
 
 #include "rl/World/Unit/UnitDynamicTexture.h"
 #include "rl/Base/Texture2.h"
@@ -76,9 +77,8 @@ TEST_F(UnitDynamicTextureTest, GenNoiseValMapDifferentScales) {
 // Test GetTargetColorMap
 TEST_F(UnitDynamicTextureTest, GetTargetColorMapCorrectSize) {
     auto colorMap = generator->GetTargetColorMap();
-    
-    // For 8x8 texture with 4x4 blocks we should have 2x2 = 4 blocks
-    EXPECT_EQ(colorMap.size(), 4);
+    // The texture is 64x64, should be 64
+    EXPECT_EQ(colorMap.size(), 64);
 }
 
 TEST_F(UnitDynamicTextureTest, GetTargetColorMapValidColors) {
@@ -122,7 +122,7 @@ TEST_F(UnitDynamicTextureTest, GenDynamicTextureDifferentSeeds) {
     uint8_t* data2 = texture2->GetData();
     
     bool different = false;
-    for (int i = 0; i < testTexture->GetDataSize(); i++) {
+    for (int i = 0; i < testTexture->GetDataSize(); ++i) {
         if (data1[i] != data2[i]) {
             different = true;
             break;

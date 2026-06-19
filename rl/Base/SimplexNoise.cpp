@@ -55,7 +55,7 @@ OpenSimplexNoiseGen::OpenSimplexNoiseGen(int64_t seed) :
     seed = seed * 6364136223846793005l + 1442695040888963407l;
     seed = seed * 6364136223846793005l + 1442695040888963407l;
     seed = seed * 6364136223846793005l + 1442695040888963407l;
-    for (int i = 255; i >= 0; i--)
+    for (int i = 255; i >= 0; --i)
     {
         seed = seed * 6364136223846793005l + 1442695040888963407l;
         int r = static_cast<int>((seed + 31) % (i + 1));

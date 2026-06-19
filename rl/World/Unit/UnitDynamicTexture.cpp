@@ -4,19 +4,13 @@
 
 #include <algorithm>
 #include <vector>
+#include <map>
 
 namespace Rl::World {
-
 using namespace Rl::Providers;
 
-UnitDynamicTexture::ColorFreqKV UnitDynamicTexture::ColorFreqKV::operator++()
-{
-    ++freq;
-    return *this;
-}
-
 UnitDynamicTexture::UnitDynamicTexture(Texture2& base, const Seed seed, DynamicOptions& options) :
-    options(options), noiseGen { seed }, baseTexture(&base), seed(seed)
+    options(options), noiseGen{seed}, baseTexture(&base), seed(seed)
 {
 }
 
@@ -25,7 +19,7 @@ std::vector<float> UnitDynamicTexture::GenNoiseValMap(const float scale) const
     std::vector<float> map;
     int width = baseTexture->GetWidth();
     int height = baseTexture->GetHeight();
-    map.reserve(width * height);
+    map.resize(width * height);
     for (int y = 0; y < height; ++y)
     {
         for (int x = 0; x < width; ++x)
@@ -55,7 +49,7 @@ std::vector<int> UnitDynamicTexture::GetTargetColorMap() const
     {
         for (int blockX = 0; blockX < blocksX; ++blockX)
         {
-            std::vector<ColorFreqKV> colorFreq;
+            std::map<uint32_t, int> colorFreq;
             for (int y = 0; y < blockSize; ++y)
             {
                 for (int x = 0; x < blockSize; ++x)
@@ -68,8 +62,8 @@ std::vector<int> UnitDynamicTexture::GetTargetColorMap() const
                     uint8_t r = data[index];
                     uint8_t g = data[index + 1];
                     uint8_t b = data[index + 2];
-                    uint32_t colorKey = (r << 16) | (g << 8) | b;
-                    ++colorFreq[colorKey];
+                    uint32_t colorKey = (r << 16) | (g << 8) | b;;
+                    colorFreq[colorKey]++;
                 }
             }
             ProcessColorFreqMap(colorFreq, clMap);
@@ -77,7 +71,7 @@ std::vector<int> UnitDynamicTexture::GetTargetColorMap() const
     }
     return clMap;
 }
-void UnitDynamicTexture::ProcessColorFreqMap(const std::vector<ColorFreqKV>& colorFreq,
+void UnitDynamicTexture::ProcessColorFreqMap(const std::map<uint32_t, int>& colorFreq,
                                              std::vector<int>& outMap)
 {
     if (!colorFreq.empty())
@@ -86,10 +80,10 @@ void UnitDynamicTexture::ProcessColorFreqMap(const std::vector<ColorFreqKV>& col
             std::ranges::max_element(colorFreq,
                 [](const auto& a, const auto& b)
                 {
-                    return a.key < b.freq;
+                    return a.second < b.second;
                 }
             );
-        const int colorKey = mostCommon->key;
+        const int colorKey = mostCommon->first;
         outMap.push_back(colorKey);
         return;
     }
@@ -101,6 +95,10 @@ Providers::Texture2 *UnitDynamicTexture::GenDynamicTexture(Seed seed)
     {
         return nullptr;
     }
+    // Update noise generator with new seed
+    noiseGen.~OpenSimplexNoiseGen();
+    new (&noiseGen)
+        OpenSimplexNoiseGen(seed);
     // Get color palette from base texture
     const std::vector<int> colorMap = GetTargetColorMap();
     // Generate noise map
@@ -117,7 +115,7 @@ Providers::Texture2 *UnitDynamicTexture::GenDynamicTexture(Seed seed)
     {
         for (int x = 0; x < width; ++x)
         {
-            int index = (y * width + x) * channels;
+            const int index = (y * width + x) * channels;
             // Get base color
             uint8_t r = baseData[index];
             uint8_t g = baseData[index + 1];

@@ -136,6 +136,10 @@ target_include_directories(
   ${stb_SOURCE_DIR}
 )
 
+target_compile_options(rlgame_tests PRIVATE /EHsc)
+set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD 20)
+set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD_REQUIRED ON)
+
 target_link_libraries(
   rlgame_tests
   PRIVATE
@@ -146,4 +150,12 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(rlgame_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_custom_command(
+  TARGET rlgame_tests POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  "${CMAKE_CURRENT_SOURCE_DIR}/Public/Resources/Textures/"
+  "$<TARGET_FILE_DIR:rlgame_tests>/"
+  COMMENT "Copying test assets to the build directory"
+)
+gtest_discover_tests(rlgame_tests)

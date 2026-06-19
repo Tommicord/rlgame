@@ -6,6 +6,9 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include <map>
+#include <cstddef>
+#include <cstdint>
 
 namespace Rl::World {
 
@@ -31,15 +34,8 @@ public:
 
 class UnitDynamicTexture : public AbstractUnitDynamicTexture
 {
-    struct ColorFreqKV {
-        int key;
-        int freq;
-        ColorFreqKV() = default;
-        /* Increments the frequency count of the color */
-        ColorFreqKV operator++();
-    };
     /* Stores the color frequency map */
-    std::vector<ColorFreqKV> clFreqMap;
+    std::map<uint32_t, int> clFreqMap;
 public:
     /* Options for randomizing the texture adding noise */
     DynamicOptions& options;
@@ -73,7 +69,7 @@ public:
     std::vector<int> GetTargetColorMap() const;
     /* Processes the color frequency map and returns the most frequent color */
     static void ProcessColorFreqMap(
-        const std::vector<ColorFreqKV>& colorFreq,
+        const std::map<uint32_t, int>& colorFreq,
         std::vector<int>& outMap);
     /* Generates the dynamic texture from the base texture */
     [[nodiscard]]
