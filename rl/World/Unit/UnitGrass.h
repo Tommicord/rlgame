@@ -10,7 +10,7 @@ public:
     virtual ~IUnitGrowable() = default;
 
     /* Returns if the Grass unit can grow */
-    virtual bool IsGrowState() = 0;
+    virtual bool InGrowState() = 0;
 
     /* Returns if the Grass unit can grow */
     virtual void Grow() = 0;
@@ -19,9 +19,9 @@ public:
 class UnitGrass : public AbstractUnit, public IUnitGrowable
 {
 public:
-    UnitGrass();
+    UnitGrass() noexcept;
 protected:
-    bool IsGrowState() override;
+    bool InGrowState() override;
     void Grow() override;
 };
 

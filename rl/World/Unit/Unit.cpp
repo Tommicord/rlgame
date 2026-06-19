@@ -188,7 +188,7 @@ std::optional<V> UnitRegistryKVPair<K, V>::GetObjectById(int id)
     return;
 }
 
-UnitTexture2::~UnitTexture2()
+UnitTextureMaterial::~UnitTextureMaterial()
 {
     top.release(), down.release();
     left.release(), right.release();
@@ -196,26 +196,26 @@ UnitTexture2::~UnitTexture2()
 }
 
 template<typename T>
-    requires(std::is_base_of_v<AbstractUnit, T>)
-AbstractUnit::AbstractUnit(AbstractUnit *type) noexcept
+    requires(std::is_base_of_v<AbstractUnit, std::decay_t<T>>)
+AbstractUnit::AbstractUnit(T *type) noexcept : AbstractUnit()
 {
+    using pair = UnitRegistryKVPair<
+        UnitResourceName, AbstractUnit*
+    >;
     int id = 1;
-    if (registry
-        .GetObjectById(id)
+    if (pair::GetObjectById(id)
         .has_value())
     {
         while (
-            registry
-                .GetObjectById(id)
+            pair::GetObjectById(id)
                 .has_value()
             )
         {
             id++;
         }
     }
-    if (
-        !registry
-            .GetObjectById(id)
+    if (!
+        pair::GetObjectById(id)
             .has_value())
     {
         std::vector<const char*> v;
@@ -223,8 +223,7 @@ AbstractUnit::AbstractUnit(AbstractUnit *type) noexcept
         v.push_back(typeid(T).name());
         UnitResourceName resourceName(v);
         registry.Register(id, resourceName, type);
-    }
-    AbstractUnit();
+    };
 }
 
 AbstractUnit::~AbstractUnit()

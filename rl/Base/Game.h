@@ -64,7 +64,6 @@ public:
     using Context = VulkanContext;
     void Run();
     void Tick();
-    void Render();
     void CleanupGraphics();
     void CleanupResources();
     void InitInputReceiverObserver();

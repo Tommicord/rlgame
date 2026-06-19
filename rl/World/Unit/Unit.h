@@ -20,23 +20,18 @@ enum class UnitType
     Liquid,     // Is Unit Solid
 };
 
-struct UnitRenderAXIS
-{
-    double minX, maxX, minY, maxY, minZ, maxZ;
-};
-
-template<class K, class V>
-class UnitRegistryKVPair;
-
-struct UnitTexture2
+struct UnitTextureMaterial
 {
     std::unique_ptr<Texture2>
              top,
              down,
              left, right,
              front, back;
-    ~UnitTexture2();
+    ~UnitTextureMaterial();
 };
+
+template<class K, class V>
+class UnitRegistryKVPair;
 
 class AbstractUnit
 {
@@ -52,16 +47,16 @@ public:
 
     /* Creates a basic WorldUnit, automatically registers the unit */
     template<typename T>
-        requires(std::is_base_of_v<AbstractUnit, T>)
-    AbstractUnit(AbstractUnit* type) noexcept;
+        requires(std::is_base_of_v<AbstractUnit, std::decay_t<T>>)
+    explicit AbstractUnit(T* type) noexcept;
+
+    /* Delete a world unit */
+    virtual ~AbstractUnit();
 
     struct PolFence
     {
         float t, d, b, f; // Top, Down, Back, Front
     };
-
-    /* Delete a world unit */
-    virtual ~AbstractUnit();
 
     /* Sets the resistance against TNT of the unit */
     virtual void SetResistance(float resistance);
@@ -94,7 +89,7 @@ public:
     virtual bool IsVisible();
 protected:
     /* Texture of the unit, back, front, left, right, bottom, top */
-    std::unique_ptr<UnitTexture2> textures;
+    std::unique_ptr<UnitTextureMaterial> textures;
 
     /* Width, Height, Depth of the unit */
     float inWidth, inHeight, inDepth;

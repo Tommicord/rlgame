@@ -43,9 +43,10 @@ void Game::Run()
     vkDeviceWaitIdle(vkContext.device);
 }
 
-void Game::Tick() {}
+void Game::Tick()
+{
 
-void Game::Render() {}
+}
 
 void Game::CleanupGraphics()
 {

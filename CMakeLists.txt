@@ -62,7 +62,9 @@ set(SOURCES
   rl/World/Unit/UnitGrass.cpp
   rl/World/Unit/UnitGrass.h
   rl/World/Unit/UnitDynamicTexture.cpp
-  rl/World/Unit/UnitDynamicTexture.h)
+  rl/World/Unit/UnitDynamicTexture.h
+  rl/Client/Render/Unit/UnitRenderer.cpp
+  rl/Client/Render/Unit/UnitRenderer.h)
 
 add_subdirectory(Deps/glfw)
 add_executable(rlgame ${SOURCES})
