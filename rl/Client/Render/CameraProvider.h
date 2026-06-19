@@ -14,7 +14,8 @@
 
 namespace Rl::Providers {
 
-class AbstractCamera {
+class AbstractCamera
+{
 public:
     struct Eye
     {
@@ -41,10 +42,15 @@ public:
     virtual void SetAspectRatio(float aspectRatio) = 0;
     virtual void SetFov(float fov) = 0;
     virtual void SetZoom(float zoom) = 0;
+    [[nodiscard]]
     virtual float GetAspectRatio() const = 0;
+    [[nodiscard]]
     virtual glm::mat4 GetViewMatrix() const = 0;
+    [[nodiscard]]
     virtual glm::mat4 GetProjectionMatrix() const = 0;
+    [[nodiscard]]
     virtual glm::mat4 GetModelMatrix() const = 0;
+    [[nodiscard]]
     virtual glm::mat4 GetPVMMatrix() const = 0;
 };
 

@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vulkan/vulkan.h>
-#include "rl/Base/CameraProvider.h"
+#include "CameraProvider.h"
 #include "rl/Base/Game.h"
 #include "rl/Base/ShaderFactory.h"
 

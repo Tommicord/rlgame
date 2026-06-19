@@ -1,12 +1,12 @@
 #include "rl/Base/Game.h"
-#include "rl/Base/ShaderFactory.h"
-#include "rl/Base/CameraProvider.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <set>
 #include <stdexcept>
+#include "../Client/Render/CameraProvider.h"
+#include "rl/Base/ShaderFactory.h"
 
 namespace Rl::Game {
 using namespace Rl::Providers;

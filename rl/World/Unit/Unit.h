@@ -125,8 +125,10 @@ protected:
     /* Property to make the unit visible */
     bool mustVisible;
 
-    /* Indicates how much this block can resist explosions */
+    /* Indicates how much this unit can resist explosions */
     float unitResistance;
+
+    /* Indicates if the unit is translucent */
     bool translucent;
 private:
     AbstractUnit() = default;
