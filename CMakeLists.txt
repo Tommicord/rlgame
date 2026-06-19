@@ -10,21 +10,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
   add_compile_definitions(ARM_)
   message(STATUS "Target architecture ARM - NEON SIMD enabled")
-  # Enable NEON for ARM
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame PRIVATE -mfpu=neon)
-    target_compile_options(rlgame PRIVATE -mfloat-abi=hard)
-  endif()
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
   add_compile_definitions(X86_)
   message(STATUS "Target architecture x86/x86-64 - SSE/AVX SIMD enabled")
-  # Enable SSE/AVX for x86/x86-64
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame PRIVATE -msse4.2)
-    target_compile_options(rlgame PRIVATE -mavx2)
-  elseif(MSVC)
-    target_compile_options(rlgame PRIVATE /arch:AVX2)
-  endif()
 else()
   message(WARNING "Unknown target architecture ${CMAKE_SYSTEM_PROCESSOR} - SIMD optimizations disabled")
 endif()
@@ -91,6 +79,21 @@ target_link_libraries(
   glfw
   glm::glm
 )
+
+# Enable SIMD instructions based on architecture
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(rlgame PRIVATE -mfpu=neon)
+    target_compile_options(rlgame PRIVATE -mfloat-abi=hard)
+  endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(rlgame PRIVATE -msse4.2)
+    target_compile_options(rlgame PRIVATE -mavx2)
+  elseif(MSVC)
+    target_compile_options(rlgame PRIVATE /arch:AVX2)
+  endif()
+endif()
 
 # Platform-specific libraries for input polling
 if(WIN32)
@@ -171,6 +174,21 @@ target_link_libraries(
   glm::glm
   glfw
 )
+
+# Enable SIMD instructions based on architecture for tests
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(rlgame_tests PRIVATE -mfpu=neon)
+    target_compile_options(rlgame_tests PRIVATE -mfloat-abi=hard)
+  endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(rlgame_tests PRIVATE -msse4.2)
+    target_compile_options(rlgame_tests PRIVATE -mavx2)
+  elseif(MSVC)
+    target_compile_options(rlgame_tests PRIVATE /arch:AVX2)
+  endif()
+endif()
 
 include(GoogleTest)
 
