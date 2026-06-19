@@ -3,6 +3,8 @@
 #include "rl/Base/SimplexNoise.h"
 #include "rl/Base/Texture2.h"
 
+#include <memory>
+#include <optional>
 #include <vector>
 
 namespace Rl::World {
@@ -12,22 +14,23 @@ class AbstractUnitDynamicTexture
 public:
     virtual ~AbstractUnitDynamicTexture() = default;
 
-    struct DynamicOptions : Providers::Texture2
+    /* Options for the texture */
+    struct DynamicOptions
     {
-        int octave = 8;
-        float persistence = 0.5f;
-        float lacunarity = 1.25f;
+        /* Stores the noise scale */
+        float noiseSc = 0.1f;
+        /* Stores the color variation */
+        float colorVar = 0.15f;
     };
     /* Describes a 64-bit seed value for the randomize texture process */
     using Seed = long long;
 
     /* Generates a randomized texture from the base texture */
-    virtual void GenDynamicTexture(Seed seed);
+    virtual Providers::Texture2 *GenDynamicTexture(Seed seed) = 0;
 };
 
 class UnitDynamicTexture : public AbstractUnitDynamicTexture
 {
-private:
     struct ColorFreqKV {
         int key;
         int freq;
@@ -45,7 +48,7 @@ public:
     Providers::OpenSimplexNoiseGen noiseGen;
 
     /* The base texture that will help to generate the random texture */
-    Providers::Texture2& baseTexture;
+    std::unique_ptr<Providers::Texture2> baseTexture;
 
     /* The seed for randomness */
     Seed seed;
@@ -62,12 +65,43 @@ public:
      */
     [[nodiscard]]
     std::vector<float> GenNoiseValMap(float scale) const;
-    /* Gets the color frequency map
-     *
+    /* Gets the color frequency map of the base texture
+     * It divides the texture into blocks of 4x4 pixels
+     * and counts the frequency of each color in each block
      */
     [[nodiscard]]
-    std::vector<int> GetTargetColorMap();
-    void ProcessColorFreqMap(const std::vector<ColorFreqKV>& colorFreq, std::vector<int>& outMap);
+    std::vector<int> GetTargetColorMap() const;
+    /* Processes the color frequency map and returns the most frequent color */
+    static void ProcessColorFreqMap(
+        const std::vector<ColorFreqKV>& colorFreq,
+        std::vector<int>& outMap);
+    /* Generates the dynamic texture from the base texture */
+    [[nodiscard]]
+    Providers::Texture2 *GenDynamicTexture(Seed seed) override;
+protected:
+    /* Creates a texture for the new data of the new generated texture bytes */
+    [[nodiscard]]
+    static
+    Providers::Texture2 *GenTexture(uint8_t* data,
+                                    size_t width, size_t height,
+                                    size_t channels);
+    /* Clamps the noise variation to a range of 0-255 */
+    [[nodiscard]]
+    static
+    uint8_t ClampNoiseVar(int v, float variation);
+
+    /* Applies the Noise variation to RGB color */
+    void ApplyNoiseVar(
+        uint8_t& r, uint8_t& g, uint8_t& b,
+        int index,
+        const std::vector<float>& noiseMap
+        ) const;
+    /* Blends the base color with the most common palette color */
+    void BlendsPaseColorWithPalette(
+        uint8_t& r, uint8_t& g, uint8_t& b,
+        int index,
+        const std::vector<int>& colorMap
+        ) const;
 };
 
 }

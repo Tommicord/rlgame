@@ -61,25 +61,34 @@ public:
     Texture2(const std::string& filepath, const TextureProperties& properties);
     ~Texture2();
     // Texture data access
+    [[nodiscard]]
     uint8_t* GetData() const { return m_data; }
+    [[nodiscard]]
     size_t GetDataSize() const { return m_dataSize; }
     // Texture properties
+    [[nodiscard]]
     int GetWidth() const { return m_width; }
+    [[nodiscard]]
     int GetHeight() const { return m_height; }
+    [[nodiscard]]
     int GetChannels() const { return m_channels; }
+    [[nodiscard]]
     TextureFormat GetFormat() const { return m_properties.format; }
+    [[nodiscard]]
     int GetMipmapLevels() const { return m_mipmapLevels; }
     // Texture configuration
     void SetProperties(const TextureProperties& properties) { m_properties = properties; }
+    [[nodiscard]]
     const TextureProperties& GetProperties() const { return m_properties; }
     // Texture state
+    [[nodiscard]]
     bool IsLoaded() const { return m_loaded; }
+    [[nodiscard]]
     bool HasMipmaps() const { return m_mipmapLevels > 1; }
     // Utility functions
     static bool IsFormatSupported(TextureFormat format);
     static int GetFormatSize(TextureFormat format);
     static std::string GetFormatName(TextureFormat format);
-protected:
     // Loading functions
     bool LoadFromFile(const std::string& filepath);
     bool LoadFromFile(const std::string& filepath, const TextureProperties& properties);
