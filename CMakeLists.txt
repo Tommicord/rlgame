@@ -59,6 +59,8 @@ set(SOURCES
   rl/Client/Render/CameraRenderer.cpp
   rl/Client/State/CameraState.cpp
   rl/Client/State/CameraState.h
+  rl/Client/State/UnitState.cpp
+  rl/Client/State/UnitState.h
   rl/World/Camera.h
   rl/World/Camera.cpp
   rl/World/Unit/Unit.cpp
@@ -150,6 +152,10 @@ target_compile_shaders(
   rlgame
   Public/Shaders/shader.frag
   Public/Shaders/shader.vert
+  Public/Shaders/unit.face.geom
+  Public/Shaders/unit.lightning.frag
+  Public/Shaders/unit.frag
+  Public/Shaders/unit.vert
 )
 enable_testing()
 

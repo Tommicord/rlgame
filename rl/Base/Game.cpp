@@ -431,8 +431,8 @@ void Game::CreateRenderPass()
 
 void Game::CreateGraphicsPipeline()
 {
-    auto vertShaderCode = ShaderObject::Shader("Shaders/shader.vert.spv");
-    auto fragShaderCode = ShaderObject::Shader("Shaders/shader.frag.spv");
+    auto vertShaderCode = ShaderObject::Shader("shader.vert.spv");
+    auto fragShaderCode = ShaderObject::Shader("shader.frag.spv");
     auto vertShaderModule = ShaderObject::CreateShaderModule(vkContext.device, vertShaderCode);
     auto fragShaderModule = ShaderObject::CreateShaderModule(vkContext.device, fragShaderCode);
 

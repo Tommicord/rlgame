@@ -7,7 +7,7 @@
 namespace Rl::World {
 
 // Some forward references
-class AbstractUnit;
+class BaseUnit;
 template<class K, class V>
 class UnitRegistryKVPair;
 class UnitResourceName;
@@ -60,6 +60,6 @@ public:
     [[nodiscard]]
     static std::optional<V> GetObjectById(int id);
 };
-template class UnitRegistryKVPair<UnitResourceName, AbstractUnit *>;
+template class UnitRegistryKVPair<UnitResourceName, BaseUnit *>;
 
 } // namespace Rl::World

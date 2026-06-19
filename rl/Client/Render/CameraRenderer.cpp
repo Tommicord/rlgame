@@ -30,12 +30,4 @@ void CameraStateDrawable::OnDestroy(CameraStateResource& resource, CameraStateDr
 {
 }
 
-void CameraStateDrawable::OnPause()
-{
-}
-
-void CameraStateDrawable::OnResume()
-{
-}
-
 } // namespace Rl::Providers

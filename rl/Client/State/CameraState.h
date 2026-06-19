@@ -1,8 +1,6 @@
 #pragma once
 
-#include "rl/Base/InputReceiver.h"
 #include "rl/Base/StateDrawable.h"
-#include "rl/Base/IUpdatable.h"
 #include "rl/Base/StateModel.h"
 #include "rl/World/Camera.h"
 
@@ -51,8 +49,8 @@ public:
     void OnDestroy(CameraStateResource& resource,
                    CameraStateDrawableVulkan& vk,
                    Game::VulkanContext& context) override;
-    void OnPause() override;
-    void OnResume() override;
+    void OnPause() override = 0;
+    void OnResume() override = 0;
 };
 
 class CameraModel :

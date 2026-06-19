@@ -32,11 +32,11 @@ void ShaderObject::DestroyShaderModule(VkDevice device, ShaderModule& shaderModu
 
 std::vector<char> ShaderObject::Shader(const std::string& filename)
 {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
+    std::string base = "Shaders/";
+    std::ifstream file(base + filename, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open shader file " + filename);
+        throw std::runtime_error("Failed to open shader file " + base + filename);
     }
     const size_t fileSize = static_cast<size_t>(file.tellg());
     std::vector<char> buffer(fileSize);

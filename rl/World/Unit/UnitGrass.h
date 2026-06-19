@@ -17,7 +17,7 @@ public:
     virtual void Grow() = 0;
 };
 
-class UnitGrass : public AbstractUnit, public IUnitGrowable
+class UnitGrass : public BaseUnit, public IUnitGrowable
 {
 public:
     UnitGrass() noexcept;

@@ -31,10 +31,10 @@ struct UnitTextureMaterial
     ~UnitTextureMaterial();
 };
 
-class AbstractUnit
+class BaseUnit
 {
     /* Internal Field: Stores the count of registered world units */
-    using Registry = UnitRegistryKVPair<UnitResourceName, AbstractUnit*>;
+    using Registry = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
     inline static auto
         defaultName = std::vector( { "Unknown" } );
     inline static auto
@@ -49,10 +49,10 @@ public:
 
     /* Creates a basic WorldUnit, automatically registers the unit */
     template<typename T>
-        requires(std::is_base_of_v<AbstractUnit, std::decay_t<T>>)
-    AbstractUnit(T* type) noexcept : AbstractUnit()
+        requires(std::is_base_of_v<BaseUnit, std::decay_t<T>>)
+    BaseUnit(T* type) noexcept : BaseUnit()
     {
-        using pair = UnitRegistryKVPair<UnitResourceName, AbstractUnit*>;
+        using pair = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
         int id = 1;
         if (pair::GetObjectById(id)
             .has_value())
@@ -73,13 +73,13 @@ public:
             v.reserve(1);
             v.push_back(typeid(T).name());
             UnitResourceName resourceName(v);
-            AbstractUnit* base = type;
+            BaseUnit* base = type;
             registry.Register(id, resourceName, base);
         };
     }
 
     /* Delete a world unit */
-    virtual ~AbstractUnit();
+    virtual ~BaseUnit();
 
     struct PolFence
     {
@@ -87,34 +87,34 @@ public:
     };
 
     /* Sets the resistance against TNT of the unit */
-    virtual void SetResistance(float resistance);
+    void SetResistance(float resistance);
 
     /* Sets the light quantity that emits the unit */
-    virtual void SetLightEmit(float emit);
+    void SetLightEmit(float emit);
 
     /* Sets the light quantity substraction for going the unit */
-    virtual void SetLightOpacity(float opacity);
+    void SetLightOpacity(float opacity);
 
     /* Sets the unit hardness, how many times wait to break the unit */
-    virtual void SetUnitHardness(float resistance);
+    void SetUnitHardness(float resistance);
 
     /* Sets the right Polygon Fence, the polygons for the rendering of the Unit */
-    virtual void SetPolFenceRight(PolFence& fence);
+    void SetPolFenceRight(PolFence& fence);
 
     /* Sets the left Polygon Fence, the polygons for the rendering of the Unit */
-    virtual void SetPolFenceLeft(PolFence& fence);
+    void SetPolFenceLeft(PolFence& fence);
 
     /* Enables the collision of this unit */
-    virtual void EnableCollision();
+    void EnableCollision();
 
     /* Disable the collision of this unit */
-    virtual void DisableCollision();
+    void DisableCollision();
 
     /* Returns true if the collision is enabled for this unit */
-    virtual bool IsCollisionEnabled();
+    bool IsCollisionEnabled();
 
     /* Returns true if the unit is visible */
-    virtual bool IsVisible();
+    bool IsVisible();
 protected:
     /* Texture of the unit, back, front, left, right, bottom, top */
     std::unique_ptr<UnitTextureMaterial> textures;
@@ -159,7 +159,7 @@ protected:
     /* Indicates if the unit is translucent */
     bool translucent;
 private:
-    AbstractUnit() = default;
+    BaseUnit() = default;
 };
 
 } // namespace Rl::World

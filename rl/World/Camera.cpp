@@ -40,9 +40,9 @@ void Camera::Update()
     if (pressedKeys.count(Input::Key::D))
         eye.x += moveSpeed;
     if (pressedKeys.count(Input::Key::Space))
-        eye.y += moveSpeed;
-    if (pressedKeys.count(Input::Key::LeftShift))
         eye.y -= moveSpeed;
+    if (pressedKeys.count(Input::Key::LeftShift))
+        eye.y += moveSpeed;
     UpdateMatrices();
 }
 

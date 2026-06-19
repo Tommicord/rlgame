@@ -3,7 +3,7 @@
 
 namespace Rl::World {
 
-UnitGrass::UnitGrass() noexcept : AbstractUnit(this)
+UnitGrass::UnitGrass() noexcept : BaseUnit(this)
 {
 }
 
@@ -17,6 +17,6 @@ void UnitGrass::Grow()
 }
 
 // Explicit template instantiation
-template AbstractUnit::AbstractUnit(UnitGrass*) noexcept;
+template BaseUnit::BaseUnit(UnitGrass*) noexcept;
 
 } // namespace Rl::World

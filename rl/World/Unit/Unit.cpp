@@ -196,59 +196,59 @@ UnitTextureMaterial::~UnitTextureMaterial()
     front.release(), back.release();
 }
 
-AbstractUnit::~AbstractUnit()
+BaseUnit::~BaseUnit()
 {
     textures.reset();
 }
 
-void AbstractUnit::SetResistance(const float resistance)
+void BaseUnit::SetResistance(const float resistance)
 {
     this->unitResistance = resistance;
 }
 
-void AbstractUnit::SetLightEmit(const float emit)
+void BaseUnit::SetLightEmit(const float emit)
 {
     this->lightEmit = emit;
 }
 
-void AbstractUnit::SetLightOpacity(const float opacity)
+void BaseUnit::SetLightOpacity(const float opacity)
 {
     this->lightOpacity = opacity;
 }
 
-void AbstractUnit::SetUnitHardness(const float resistance)
+void BaseUnit::SetUnitHardness(const float resistance)
 {
     this->unitResistance = resistance;
 }
 
-void AbstractUnit::SetPolFenceRight(PolFence& fence)
+void BaseUnit::SetPolFenceRight(PolFence& fence)
 {
     // Copies start from polTr address
     std::memcpy(&polTr, &fence, sizeof(fence));
 }
 
-void AbstractUnit::SetPolFenceLeft(PolFence& fence)
+void BaseUnit::SetPolFenceLeft(PolFence& fence)
 {
     // Copies start from polTl address
     std::memcpy(&polTl, &fence, sizeof(fence));
 }
 
-void AbstractUnit::EnableCollision()
+void BaseUnit::EnableCollision()
 {
     mustCollide = true;
 }
 
-void AbstractUnit::DisableCollision()
+void BaseUnit::DisableCollision()
 {
     mustCollide = false;
 }
 
-bool AbstractUnit::IsCollisionEnabled()
+bool BaseUnit::IsCollisionEnabled()
 {
     return mustCollide;
 }
 
-bool AbstractUnit::IsVisible()
+bool BaseUnit::IsVisible()
 {
     return mustVisible;
 }
