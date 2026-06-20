@@ -189,16 +189,44 @@ std::optional<V> UnitRegistryKVPair<K, V>::GetObjectById(int id)
     return std::nullopt;
 }
 
+UnitTextureMaterial::UnitTextureMaterial(Texture2* top, Texture2* down, Texture2* left,
+                                         Texture2* right, Texture2* front, Texture2* back)
+{
+    this->top = top;
+    this->down = down;
+    this->left = left;
+    this->right = right;
+    this->front = front;
+    this->back = back;
+    hasTexture = true;
+}
+
 UnitTextureMaterial::~UnitTextureMaterial()
 {
-    top.release(), down.release();
-    left.release(), right.release();
-    front.release(), back.release();
+    if (!hasTexture)
+        return;
+    delete top;
+    top = nullptr;
+    delete down;
+    down = nullptr;
+    delete left;
+    left = nullptr;
+    delete right;
+    right = nullptr;
+    delete front;
+    front = nullptr;
+    delete back;
+    back = nullptr;
 }
 
 BaseUnit::~BaseUnit()
 {
     textures.reset();
+}
+
+UnitTextureMaterial& BaseUnit::GetMaterial() const
+{
+    return *textures;
 }
 
 void BaseUnit::SetResistance(const float resistance)

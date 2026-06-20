@@ -22,13 +22,23 @@ enum class UnitType
     Liquid,     // Is Unit Solid
 };
 
-struct UnitTextureMaterial
+class UnitTextureMaterial
 {
-    std::unique_ptr<Texture2>
-             top,
-             down,
-             left, right,
-             front, back;
+private:
+    bool hasTexture = false;
+public:
+    Texture2
+         *top,
+         *down,
+         *left, *right,
+         *front, *back;
+    UnitTextureMaterial() = default;
+    UnitTextureMaterial(
+        Texture2* top,
+        Texture2* down,
+        Texture2* left, Texture2* right,
+        Texture2* front, Texture2* back
+    );
     ~UnitTextureMaterial();
 };
 
@@ -53,6 +63,12 @@ public:
         requires(std::is_base_of_v<BaseUnit, std::decay_t<T>>)
     BaseUnit(T* type) noexcept : BaseUnit()
     {
+        // NOTE: This is the default texture
+        // This is to prevent accidental bugs
+        // If the textures is not initialized
+        // DO NOT CHANGE THIS If not needed
+        static Texture2 texture("unk.png");
+
         using pair = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
         int id = 1;
         if (pair::GetObjectById(id)
@@ -77,6 +93,10 @@ public:
             BaseUnit* base = type;
             registry.Register(id, resourceName, base);
         };
+        textures = std::make_unique<UnitTextureMaterial>();
+        textures->front = textures->back = &texture;
+        textures->left = textures->right = &texture;
+        textures->top = textures->down = &texture;
     }
     /* Delete a world unit */
     ~BaseUnit() override;
@@ -85,6 +105,7 @@ public:
     {
         float t, d, b, f; // Top, Down, Back, Front
     };
+    UnitTextureMaterial& GetMaterial() const;
 
     /* Sets the resistance against TNT of the unit */
     void SetResistance(float resistance);

@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vulkan/vulkan.h>
+#include <iostream>
 
 namespace Rl::Providers {
 
@@ -14,6 +15,9 @@ void CameraStateDrawable::OnDraw(CameraStateResource& resource, CameraStateDrawa
 void CameraStateDrawable::OnUpdate(CameraStateResource& resource, CameraStateDrawableVulkan& vk,
                                    Game::VulkanContext& context)
 {
+    if (context.pipelineLayout == VK_NULL_HANDLE) {
+        return;
+    }
     glm::mat4 model = resource.cam->GetModelMatrix();
     glm::mat4 view = resource.cam->GetViewMatrix();
     glm::mat4 projection = resource.cam->GetProjectionMatrix();

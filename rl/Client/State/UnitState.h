@@ -49,6 +49,14 @@ struct UnitStateDrawableVulkan : StateDrawableVulkan {
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    
+    // Placeholder resources for bindings 8 and 9
+    VkImage placeholderLightingTexture = VK_NULL_HANDLE;
+    VkDeviceMemory placeholderLightingTextureMemory = VK_NULL_HANDLE;
+    VkImageView placeholderLightingTextureView = VK_NULL_HANDLE;
+    VkSampler placeholderLightingSampler = VK_NULL_HANDLE;
+    VkBuffer placeholderSettingsBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory placeholderSettingsBufferMemory = VK_NULL_HANDLE;
     UnitStateDrawableVulkan() = default;
 };
 

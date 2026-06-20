@@ -163,7 +163,7 @@ Texture2::Texture2(const std::string& filepath)
 Texture2::Texture2(const std::string& filepath, const TextureProperties& properties)
     : Texture2()
 {
-    properties = properties;
+    this->properties = properties;
     LoadFromFile(filepath);
 }
 
@@ -201,16 +201,15 @@ bool Texture2::LoadFromFile(const std::string& filepath)
 
 bool Texture2::LoadFromFile(const std::string& filepath, const TextureProperties& properties)
 {
-    properties = properties;
-    filepath = filepath;
-    
+    this->properties = properties;
+    this->filepath = filepath;
     return LoadImage(filepath);
 }
 
 bool Texture2::LoadFromMemory(const uint8_t* data, size_t size, const TextureProperties& properties)
 {
-    properties = properties;
-    
+    this->properties = properties;
+
     int width, height, channels;
     stbi_uc* imageData = stbi_load_from_memory(data, static_cast<int>(size), &width, &height, &channels, 0);
     
@@ -223,18 +222,16 @@ bool Texture2::LoadFromMemory(const uint8_t* data, size_t size, const TexturePro
 
 bool Texture2::LoadFromData(const uint8_t* data, int width, int height, TextureFormat format, const TextureProperties& properties)
 {
-    properties = properties;
-    properties.format = format;
+    this->properties = properties;
+    this->properties.format = format;
     width = width;
     height = height;
     channels = GetFormatSize(format);
     
     dataSize = width * height * channels;
     data = new uint8_t[dataSize];
-    memcpy(data, data, dataSize);
-    
+    memcpy(this->data, data, dataSize);
     loaded = true;
-    
     if (properties.generateMipmaps) {
         GenerateMipmaps();
     }
@@ -321,9 +318,9 @@ bool Texture2::LoadImage(const std::string& filepath)
 
 bool Texture2::ProcessImageData(uint8_t* imageData, int width, int height, int channels)
 {
-    width = width;
-    height = height;
-    channels = channels;
+    this->width = width;
+    this->height = height;
+    this->channels = channels;
     
     // Determine format based on channels
     switch (channels) {
@@ -343,7 +340,6 @@ bool Texture2::ProcessImageData(uint8_t* imageData, int width, int height, int c
             stbi_image_free(imageData);
             return false;
     }
-    
     // Calculate data size
     dataSize = width * height * channels;
     data = new uint8_t[dataSize];
@@ -364,7 +360,6 @@ void Texture2::GenerateMipmaps()
     if (!loaded || width == 0 || height == 0) {
         return;
     }
-    
     // Calculate number of mipmap levels
     int maxDimension = std::max(width, height);
     mipmapLevels = static_cast<int>(std::floor(std::log2(maxDimension))) + 1;

@@ -62,6 +62,16 @@ struct TextureProperties {
 class Texture2
 {
 public:
+    /* Vulkan-specific resources */
+    struct VkBinding {
+        VkImage vkImage = VK_NULL_HANDLE;
+        VkDeviceMemory vkImageMemory = VK_NULL_HANDLE;
+        VkSampler vkSampler = VK_NULL_HANDLE;
+        VkImageView vkImageView = VK_NULL_HANDLE;
+        VkBuffer vkStagingBuffer = VK_NULL_HANDLE;
+        VkDeviceMemory vkStagingBufferMemory = VK_NULL_HANDLE;
+    };
+    VkBinding binding;
     Texture2();
     explicit Texture2(const std::string& filepath);
     Texture2(const std::string& filepath, const TextureProperties& properties);
@@ -137,17 +147,6 @@ private:
     /* State */
     bool loaded;
     std::string filepath;
-
-    /* Vulkan-specific resources */
-    struct VkBinding {
-        VkImage vkImage = VK_NULL_HANDLE;
-        VkDeviceMemory mvkImageMemory = VK_NULL_HANDLE;
-        VkSampler vkSampler = VK_NULL_HANDLE;
-        VkImageView vkImageView = VK_NULL_HANDLE;
-        VkBuffer vkStagingBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory vkStagingBufferMemory = VK_NULL_HANDLE;
-    };
-    VkBinding binding;
 };
 
 } // namespace Rl::Providers

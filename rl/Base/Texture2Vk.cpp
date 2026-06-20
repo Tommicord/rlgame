@@ -128,11 +128,11 @@ void Texture2::CreateVulkanImage(Game::VulkanContext& context)
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = 0; // TODO: Find appropriate memory type
 
-    if (vkAllocateMemory(context.device, &allocInfo, nullptr, &binding.mvkImageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(context.device, &allocInfo, nullptr, &binding.vkImageMemory) != VK_SUCCESS) {
         throw std::runtime_error("Failed to allocate Vulkan image memory");
     }
 
-    vkBindImageMemory(context.device, binding.vkImage, binding.mvkImageMemory, 0);
+    vkBindImageMemory(context.device, binding.vkImage, binding.vkImageMemory, 0);
 }
 
 void Texture2::UploadTextureData(Game::VulkanContext& context)
@@ -290,31 +290,34 @@ void Texture2::UploadTextureData(Game::VulkanContext& context)
                 &blit,
                 VK_FILTER_LINEAR);
 
-            // Transition current mip level to TRANSFER_SRC for next iteration
-            mipBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            mipBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            mipBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            mipBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            mipBarrier.subresourceRange.baseMipLevel = i;
-
-            vkCmdPipelineBarrier(commandBuffer,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &mipBarrier);
-
             if (mipWidth > 1) mipWidth /= 2;
             if (mipHeight > 1) mipHeight /= 2;
         }
 
-        // Transition last mip level to SHADER_READ_ONLY
+        // Transition all mip levels to SHADER_READ_ONLY
+        // First transition all levels except the last one from TRANSFER_SRC_OPTIMAL
+        mipBarrier.subresourceRange.baseMipLevel = 0;
+        mipBarrier.subresourceRange.levelCount = static_cast<uint32_t>(mipmapLevels) - 1;
         mipBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         mipBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         mipBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         mipBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(commandBuffer,
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            0,
+            0, nullptr,
+            0, nullptr,
+            1, &mipBarrier);
+
+        // Then transition the last mip level from TRANSFER_DST_OPTIMAL
         mipBarrier.subresourceRange.baseMipLevel = static_cast<uint32_t>(mipmapLevels) - 1;
+        mipBarrier.subresourceRange.levelCount = 1;
+        mipBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        mipBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        mipBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        mipBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         vkCmdPipelineBarrier(commandBuffer,
             VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -366,6 +369,10 @@ void Texture2::CreateVulkanSampler(Game::VulkanContext& context)
         return;
     }
 
+    // Check if sampler anisotropy feature is enabled
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    vkGetPhysicalDeviceFeatures(context.physicalDevice, &deviceFeatures);
+
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = GetVkFilter(properties.magFilter);
@@ -373,8 +380,8 @@ void Texture2::CreateVulkanSampler(Game::VulkanContext& context)
     samplerInfo.addressModeU = GetVkWrapMode(properties.wrapS);
     samplerInfo.addressModeV = GetVkWrapMode(properties.wrapT);
     samplerInfo.addressModeW = GetVkWrapMode(properties.wrapT);
-    samplerInfo.anisotropyEnable = properties.anisotropicFiltering ? VK_TRUE : VK_FALSE;
-    samplerInfo.maxAnisotropy = properties.maxAnisotropy;
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.maxAnisotropy = 1.0f;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;
