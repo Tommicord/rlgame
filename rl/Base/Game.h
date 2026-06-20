@@ -8,16 +8,7 @@
 
 #include "rl/Base/InputReceiver.h"
 #include "rl/Client/State/CameraState.h"
-
-// Forward declarations to avoid circular dependency
-namespace Rl::Providers {
-
-class CameraStateDrawable;
-class Camera;
-struct CameraStateResource;
-struct CameraStateDrawableVulkan;
-
-}
+#include "rl/Client/State/UnitState.h"
 
 namespace Rl::Game {
 
@@ -57,7 +48,8 @@ struct VulkanContext
 
 class Game : public Input::InputObserver {
     Input::InputReceiver& inputReceiver;
-    std::unique_ptr<Providers::CameraModel> camera;
+    std::unique_ptr<Providers::CameraModel> cameraModel;
+    std::unique_ptr<Providers::UnitModel> unitModel;
 public:
     using Window = GLFWwindow;
     using Context = VulkanContext;
@@ -96,6 +88,8 @@ private:
     Context vkContext;
     void CreateInstance();
     void CreateSurface();
+    void CreateCameraModel();
+    void CreateUnitModel();
     void CreateResources();
     void PickPhysicalDevice();
     void CreateLogicalDevice();

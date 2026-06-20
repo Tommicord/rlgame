@@ -80,10 +80,10 @@ void Game::CleanupGraphics()
 }
 void Game::CleanupResources()
 {
-    camera.reset();
-    camera->GetDrawable().OnDestroy(
-        camera->GetResource(),
-        camera->GetVulkanState(),
+    cameraModel.reset();
+    cameraModel->GetDrawable().OnDestroy(
+        cameraModel->GetResource(),
+        cameraModel->GetVulkanState(),
         vkContext);
 }
 
@@ -95,29 +95,29 @@ void Game::InitInputReceiverObserver()
 
 void Game::OnKeyEvent(const Input::KeyEvent& event)
 {
-    if (camera) {
-        camera->GetObject().OnKeyEvent(event);
+    if (cameraModel) {
+        cameraModel->GetObject().OnKeyEvent(event);
     }
 }
 
 void Game::OnMouseButtonEvent(const Input::MouseButtonEvent& event)
 {
-    if (camera) {
-        camera->GetObject().OnMouseButtonEvent(event);
+    if (cameraModel) {
+        cameraModel->GetObject().OnMouseButtonEvent(event);
     }
 }
 
 void Game::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
 {
-    if (camera) {
-        camera->GetObject().OnMouseMoveEvent(event);
+    if (cameraModel) {
+        cameraModel->GetObject().OnMouseMoveEvent(event);
     }
 }
 
 void Game::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 {
-    if (camera) {
-        camera->GetObject().OnMouseScrollEvent(event);
+    if (cameraModel) {
+        cameraModel->GetObject().OnMouseScrollEvent(event);
     }
 }
 
@@ -169,7 +169,8 @@ void Game::UpdateAudio() {}
 
 void Game::UpdateUI()
 {
-    camera->UpdateFromStateModel(vkContext);
+    cameraModel->UpdateFromStateModel(vkContext);
+    unitModel->UpdateFromStateModel(vkContext);
 }
 
 void Game::UpdateLogic() {}
@@ -231,8 +232,22 @@ void Game::CreateSurface()
         throw std::runtime_error("Failed to create window surface");
     }
 }
+
+void Game::CreateCameraModel()
+{
+    cameraModel = std::make_unique<CameraModel>(vkContext);
+}
+
+void Game::CreateUnitModel()
+{
+    unitModel = std::make_unique<UnitModel>(vkContext);
+    unitModel->GetResource()
+        .cameraModel = cameraModel.get();
+}
+
 void Game::CreateResources() {
-    camera = std::make_unique<CameraModel>(vkContext);
+    CreateCameraModel();
+    CreateUnitModel();
 }
 
 void Game::PickPhysicalDevice()

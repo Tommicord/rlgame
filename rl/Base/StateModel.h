@@ -1,6 +1,10 @@
 #pragma once
 
+#include "rl/Base/IUpdatable.h"
 #include "rl/Base/StateDrawable.h"
+
+// Forward reference
+class VulkanContext;
 
 namespace Rl::Providers {
 
@@ -41,7 +45,7 @@ public:
     void UpdateFromStateModel(Game::VulkanContext& context)
     {
         GetObject()
-            .Update(),
+            .Update();
         GetDrawable()
             .OnUpdate(
                 GetResource(),

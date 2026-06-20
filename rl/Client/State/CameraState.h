@@ -49,8 +49,8 @@ public:
     void OnDestroy(CameraStateResource& resource,
                    CameraStateDrawableVulkan& vk,
                    Game::VulkanContext& context) override;
-    void OnPause() override = 0;
-    void OnResume() override = 0;
+    void OnPause() override;
+    void OnResume() override;
 };
 
 class CameraModel :

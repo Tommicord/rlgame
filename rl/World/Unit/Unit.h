@@ -4,10 +4,11 @@
 #include <array>
 #include <memory>
 
-#include "rl/World/Unit/UnitDynamicTexture.h"
-#include "rl/World/Unit/UnitResourceName.h"
-#include "rl/World/Unit/UnitRegistry.h"
+#include "rl/Base/IUpdatable.h"
 #include "rl/Base/Texture2.h"
+#include "rl/World/Unit/UnitDynamicTexture.h"
+#include "rl/World/Unit/UnitRegistry.h"
+#include "rl/World/Unit/UnitResourceName.h"
 
 namespace Rl::World {
 
@@ -31,7 +32,7 @@ struct UnitTextureMaterial
     ~UnitTextureMaterial();
 };
 
-class BaseUnit
+class BaseUnit : IUpdatable
 {
     /* Internal Field: Stores the count of registered world units */
     using Registry = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
@@ -77,9 +78,8 @@ public:
             registry.Register(id, resourceName, base);
         };
     }
-
     /* Delete a world unit */
-    virtual ~BaseUnit();
+    ~BaseUnit() override;
 
     struct PolFence
     {
@@ -111,10 +111,13 @@ public:
     void DisableCollision();
 
     /* Returns true if the collision is enabled for this unit */
-    bool IsCollisionEnabled();
+    bool IsCollisionEnabled() const;
 
     /* Returns true if the unit is visible */
-    bool IsVisible();
+    bool IsVisible() const;
+
+    /* Updates the Base Unit, like a tick */
+    void Update() override;
 protected:
     /* Texture of the unit, back, front, left, right, bottom, top */
     std::unique_ptr<UnitTextureMaterial> textures;

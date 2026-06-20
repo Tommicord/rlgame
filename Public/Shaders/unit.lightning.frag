@@ -1,25 +1,25 @@
 #version 450
 
 // Input from geometry shader
-layout (location = 0) in vec3 g_WorldPos;
-layout (location = 1) in vec2 g_TexCoords;
-layout (location = 2) in uint g_LightingEmit;
-layout (location = 3) in uint g_TransparencyLevel;
-layout (location = 4) in uint g_FaceIndex;
+layout (location = 0) flat in vec3 g_WorldPos;
+layout (location = 1) flat in vec2 g_TexCoords;
+layout (location = 2) flat in uint g_LightingEmit;
+layout (location = 3) flat in uint g_TransparencyLevel;
+layout (location = 4) flat in uint g_FaceIndex;
+layout (location = 5) flat in vec3 g_Albedo;
+layout (location = 6) flat in float g_Metallic;
+layout (location = 7) flat in float g_Roughness;
 
 // Output color
 layout (location = 0) out vec4 outColor;
 
-// PBR Material inputs
-layout (location = 5) in vec3 a_Albedo;
-layout (location = 6) in float a_Metallic;
-layout (location = 7) in float a_Roughness;
-
 // Lighting uniforms
-layout (binding = 4) uniform vec3 u_SunDirection;
-layout (binding = 5) uniform vec3 u_SunColor;
-layout (binding = 6) uniform float u_AmbientStrength;
-layout (binding = 7) uniform vec3 u_CameraPosition;
+layout(set = 0, binding = 4) uniform LightingBlock {
+    vec3 u_SunDirection;
+    vec3 u_SunColor;
+    float u_AmbientStrength;
+    vec3 u_CameraPosition;
+} lighting;
 
 // Ambient occlusion texture
 layout (binding = 10) uniform sampler2D u_AOTexture;
@@ -131,6 +131,34 @@ vec3 CalculateAmbient(vec3 N, vec3 V, vec3 F0, PBRMaterial material, vec3 ambien
     return ambient;
 }
 
+// Main PBR calculation
+vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material, 
+                   Light sunLight, vec3 ambientColor) {
+    vec3 N = normalize(normal);
+    vec3 V = normalize(viewDir);
+    
+    // Calculate reflectance at normal incidence
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, material.albedo, material.metallic);
+    
+    // Calculate ambient lighting
+    vec3 ambient = CalculateAmbient(N, V, F0, material, ambientColor);
+    
+    // Calculate direct lighting from sun
+    vec3 Lo = CalculatePBRLight(N, V, F0, material, sunLight);
+    
+    // Combine ambient and direct lighting
+    vec3 color = ambient + Lo;
+    
+    // HDR tonemapping (Reinhard)
+    color = color / (color + vec3(1.0));
+    
+    // Gamma correction
+    color = pow(color, vec3(1.0 / 2.2));
+    
+    return color;
+}
+
 // Face normals for lighting calculation
 const vec3 faceNormals[6] = vec3[](
     vec3( 0.0,  1.0,  0.0 ),  // Top
@@ -146,32 +174,32 @@ void main() {
     vec3 normal = faceNormals[g_FaceIndex];
     // Setup PBR material
     PBRMaterial material;
-    material.albedo = a_Albedo;
-    material.metallic = a_Metallic;
-    material.roughness = a_Roughness;
+    material.albedo = g_Albedo;
+    material.metallic = g_Metallic;
+    material.roughness = g_Roughness;
     
     // Sample ambient occlusion
     float ao = texture(u_AOTexture, g_TexCoords).r;
     material.ao = ao;
     
     // Calculate view direction
-    vec3 viewDir = normalize(u_CameraPosition - g_WorldPos);
+    vec3 viewDir = normalize(lighting.u_CameraPosition - g_WorldPos);
     
     // Setup sun light
     Light sunLight;
-    sunLight.position = u_SunDirection * 1000.0; // Directional light at distance
-    sunLight.color = u_SunColor;
+    sunLight.position = lighting.u_SunDirection * 1000.0; // Directional light at distance
+    sunLight.color = lighting.u_SunColor;
     sunLight.intensity = 1.0;
     
     // Calculate ambient color
-    vec3 ambientColor = u_AmbientStrength * u_SunColor;
+    vec3 ambientColor = lighting.u_AmbientStrength * lighting.u_SunColor;
     
     // Calculate PBR lighting
     vec3 pbrColor = CalculatePBR(g_WorldPos, normal, viewDir, material, sunLight, ambientColor);
     
     // Calculate self-emission
     float emission = float(g_LightingEmit) / 255.0;
-    vec3 emitColor = emission * u_SunColor;
+    vec3 emitColor = emission * lighting.u_SunColor;
     
     // Combine PBR lighting with emission
     vec3 finalColor = pbrColor + emitColor;

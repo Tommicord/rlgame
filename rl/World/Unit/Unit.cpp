@@ -243,14 +243,18 @@ void BaseUnit::DisableCollision()
     mustCollide = false;
 }
 
-bool BaseUnit::IsCollisionEnabled()
+bool BaseUnit::IsCollisionEnabled() const
 {
     return mustCollide;
 }
 
-bool BaseUnit::IsVisible()
+bool BaseUnit::IsVisible() const
 {
     return mustVisible;
+}
+
+void BaseUnit::Update()
+{
 }
 
 } // namespace Rl::World

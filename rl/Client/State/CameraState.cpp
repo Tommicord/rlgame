@@ -44,4 +44,12 @@ CameraStateDrawableVulkan& CameraModel::GetVulkanState()
     return *cameraVk;
 }
 
+void CameraStateDrawable::OnPause()
+{
+}
+
+void CameraStateDrawable::OnResume()
+{
+}
+
 } // namespace Rl::Providers

@@ -39,7 +39,7 @@ template<class K, class V>
 class UnitRegistryKVPair
 {
 protected:
-    K regKey;
+    const K& regKey;
     V regValue;
 public:
     /* Creates a basic register of world unit */

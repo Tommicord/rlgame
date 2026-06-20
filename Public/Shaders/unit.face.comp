@@ -1,0 +1,135 @@
+#version 450
+
+// Workgroup size for parallel processing
+layout(local_size_x = 64) in;
+
+// Vertex structure matching C++ UnitVertex
+struct VertexInput {
+    vec3 position;         // Local space position
+    vec2 texCoords;       // Texture coordinates
+    uint lightingEmit;     // Lighting emit value
+    uint transparencyLevel; // Transparency level (0-255)
+    uint faceIndex;        // Face index (0-5)
+    vec4 polRight;         // Polygon fence right offsets
+    vec4 polLeft;          // Polygon fence left offsets
+    vec3 albedo;           // PBR albedo
+    float metallic;        // PBR metallic
+    float roughness;       // PBR roughness
+};
+
+// Output vertex structure for rendering
+struct VertexOutput {
+    vec4 position;        // Clip space position
+    vec3 worldPos;        // World space position
+    vec2 texCoords;       // Texture coordinates
+    uint lightingEmit;    // Lighting emit value
+    uint transparencyLevel; // Transparency level (0-255)
+    uint faceIndex;       // Face index (0-5)
+    vec3 albedo;          // PBR albedo
+    float metallic;       // PBR metallic
+    float roughness;      // PBR roughness
+};
+
+// Input buffer: all vertices from vertex buffer
+layout(set = 0, binding = 0) readonly buffer InputVertices {
+    VertexInput vertices[];
+};
+
+// Output buffer: visible vertices after culling
+layout(set = 0, binding = 1) buffer OutputVertices {
+    VertexOutput visibleVertices[];
+};
+
+// Atomic counter for visible vertex count
+layout(set = 0, binding = 2) buffer VisibleCount {
+    uint visibleVertexCount;
+};
+
+// Indirect draw parameters
+struct DrawParams {
+    uint vertexCount;
+    uint instanceCount;
+    uint firstVertex;
+    uint firstInstance;
+};
+
+layout(set = 0, binding = 3) buffer IndirectDraw {
+    DrawParams drawParams;
+};
+
+// Projection-View-Model matrix
+layout(push_constant) uniform PushConstants {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+} pc;
+
+// Frustum planes (left, right, top, bottom, near, far)
+layout(set = 0, binding = 4) uniform FrustumBlock {
+    vec4 u_FrustumPlanes[6];
+} frustum;
+
+const uint maxFaces = 6;
+
+// Check if a point is inside the frustum
+bool IsInFrustum(vec3 point) {
+    for (int i = 0; i < maxFaces; ++i) {
+        vec4 plane = frustum.u_FrustumPlanes[i];
+        float distance = dot(plane.xyz, point) + plane.w;
+        if (distance < 0.0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Check if triangle is potentially visible
+bool IsTriangleVisible(vec3 p0, vec3 p1, vec3 p2) {
+    // If any vertex is inside frustum, triangle is potentially visible
+    if (IsInFrustum(p0) || IsInFrustum(p1) || IsInFrustum(p2)) {
+        return true;
+    }
+    return false;
+}
+
+void main() {
+    uint globalID = gl_GlobalInvocationID.x;
+    uint totalVertices = vertices.length();
+    
+    // Each workgroup processes triangles (3 vertices per triangle)
+    uint triangleIndex = globalID;
+    uint vertexIndex = triangleIndex * 3;
+    
+    // Check bounds
+    if (vertexIndex + 2 >= totalVertices) {
+        return;
+    }
+    
+    // Get triangle vertices
+    Vertex v0 = vertices[vertexIndex];
+    Vertex v1 = vertices[vertexIndex + 1];
+    Vertex v2 = vertices[vertexIndex + 2];
+    
+    // Perform frustum culling
+    if (IsTriangleVisible(v0.worldPos, v1.worldPos, v2.worldPos)) {
+        // Atomically get and increment the output index
+        uint outputIndex = atomicAdd(visibleVertexCount, 3);
+        
+        // Write visible vertices to output buffer
+        visibleVertices[outputIndex] = v0;
+        visibleVertices[outputIndex + 1] = v1;
+        visibleVertices[outputIndex + 2] = v2;
+    }
+    
+    // Ensure all workgroups finish before updating draw params
+    memoryBarrierBuffer();
+    barrier();
+    
+    // First workgroup updates indirect draw parameters
+    if (globalID == 0) {
+        drawParams.vertexCount = visibleVertexCount;
+        drawParams.instanceCount = 1;
+        drawParams.firstVertex = 0;
+        drawParams.firstInstance = 0;
+    }
+}

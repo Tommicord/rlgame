@@ -178,7 +178,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     
     VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
     geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+    geomShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     geomShaderStageInfo.module = geomShaderModule.module;
     geomShaderStageInfo.pName = "main";
     
@@ -378,10 +378,18 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
                                  UnitStateDrawableVulkan& vk,
                                  Game::VulkanContext& context)
 {
-    // Reuse the Camera model
-    // This avoids unnecessary code duplication
-    // More maintainable code
-    resource.cam->UpdateFromStateModel(context);
+    if (!resource.cameraModel)
+        return;
+    UniformBufferObject ubo{};
+    World::Camera& cam = resource.cameraModel->GetObject();
+    ubo.model = cam.GetModelMatrix();
+    ubo.view = cam.GetViewMatrix();
+    ubo.projection = cam.GetProjectionMatrix();
+
+    void* data;
+    vkMapMemory(context.device, vk.uniformBufferMemory, 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vkUnmapMemory(context.device, vk.uniformBufferMemory);
 }
 
 void UnitStateDrawable::OnDraw(UnitStateResource& resource,
@@ -411,6 +419,14 @@ void UnitStateDrawable::OnDestroy(UnitStateResource& resource,
     vkDestroyPipeline(context.device, vk.pipeline, nullptr);
     vkDestroyPipelineLayout(context.device, vk.pipelineLayout, nullptr);
     vkDestroyDescriptorPool(context.device, vk.descriptorPool, nullptr);
+}
+
+void UnitStateDrawable::OnPause()
+{
+}
+
+void UnitStateDrawable::OnResume()
+{
 }
 
 } // namespace Rl::Providers

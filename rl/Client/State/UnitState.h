@@ -3,7 +3,6 @@
 #include "rl/World/Unit/Unit.h"
 #include "rl/Base/StateDrawable.h"
 #include "rl/Base/StateModel.h"
-#include "rl/Client/State/CameraState.h"
 
 #include <cstdint>
 #include <memory>
@@ -13,12 +12,19 @@
 
 namespace Rl::Providers {
 
+class CameraModel;
+
 // Just for data interchange between classes
 struct UnitStateResource : StateResource {
     World::BaseUnit* unit;
-    CameraModel* cam;
-    explicit UnitStateResource(World::BaseUnit& unit, CameraModel& cameraModel) :
-        StateResource(), unit(&unit), cam(&cameraModel)
+    CameraModel* cameraModel;
+
+    /* Note: due to compatibility with one parameter constructor
+     * This can't pass the CameraModel
+     * the camera must be set manually or will fail everything
+     */
+    explicit UnitStateResource(World::BaseUnit& unit) :
+        StateResource(), unit(&unit), cameraModel(nullptr)
     {
     }
 };
@@ -54,16 +60,16 @@ public:
     void OnDestroy(UnitStateResource& resource,
                    UnitStateDrawableVulkan& vk,
                    Game::VulkanContext& context) override;
-    void OnPause() override = 0;
-    void OnResume() override = 0;
+    void OnPause() override;
+    void OnResume() override;
 };
 
 class UnitModel :
     public StateModel<
         World::BaseUnit,
-        UnitStateDrawable,
-        UnitStateResource, UnitStateDrawableVulkan
-    >
+        UnitStateDrawable, UnitStateResource,
+        UnitStateDrawableVulkan
+>
 {
     std::shared_ptr<Providers::UnitStateDrawable> unitDrawable;
     std::unique_ptr<Providers::UnitStateResource> unitResource;

@@ -29,8 +29,11 @@ layout (location = 6) in vec4 a_PolLeft;
 // This is used for calculate the render distance beetwen the player
 // and the Unit to render in the correct position the unit
 // in the camera
-layout (binding = 0) uniform vec3 u_UnitCoord;
-layout (binding = 1) uniform vec3 u_PlayerCoord;
+layout(set = 0, binding = 0) uniform CoordinatesBlock {
+    vec3 u_UnitCoord;
+    vec3 u_PlayerCoord;
+} coords;
+
 
 // The texture of the Unit
 // The unit has 6 faces
@@ -42,6 +45,9 @@ layout (location = 1) out vec2 v_TexCoords;
 layout (location = 2) out uint v_LightingEmit;
 layout (location = 3) out uint v_TransparencyLevel;
 layout (location = 4) out uint v_FaceIndex;
+layout (location = 5) out vec3 v_Albedo;
+layout (location = 6) out float v_Metallic;
+layout (location = 7) out float v_Roughness;
 
 // Apply polygon fence offset based on face index
 vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLeft) {
@@ -76,16 +82,26 @@ vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLe
 void main() {
     // Apply polygon geometry offsets for non-cube shapes
     vec3 modifiedPosition = ApplyPolygonOffset(a_Position, a_FaceIndex, a_PolRight, a_PolLeft);
+    
     // Calculate world position
     vec4 worldPos = pc.model * vec4(modifiedPosition, 1.0);
     v_WorldPos = worldPos.xyz;
+    
     // Pass texture coordinates
     v_TexCoords = a_TexCoords;
+    
     // Pass lighting and transparency
     v_LightingEmit = a_LightingEmit;
     v_TransparencyLevel = a_TransparencyLevel;
+    
     // Pass face index for texture selection
     v_FaceIndex = a_FaceIndex;
+    
+    // Pass PBR material properties
+    v_Albedo = vec3(1.0, 1.0, 1.0); // Default white albedo
+    v_Metallic = 0.0; // Default non-metallic
+    v_Roughness = 0.5; // Default medium roughness
+    
     // Calculate final position
     gl_Position = pc.projection * pc.view * worldPos;
 }
