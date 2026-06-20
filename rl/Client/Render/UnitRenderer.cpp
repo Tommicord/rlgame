@@ -1308,20 +1308,12 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
     if (!resource.cameraModel)
         return;
     
-    // Reset visible count to 0 for each frame
-    uint32_t initialCount = 0;
-    void* countData;
-    vkMapMemory(context.device, vk.visibleCountBufferMemory, 0, sizeof(uint32_t), 0, &countData);
-    memcpy(countData, &initialCount, sizeof(uint32_t));
-    vkUnmapMemory(context.device, vk.visibleCountBufferMemory);
-    
+    // Visible count reset is now handled in OnDrawCompute using vkCmdFillBuffer (GPU-side)
     FrustumPlanes frustum { };
     CameraPVMToFrustumPlanes(frustum, resource.cameraModel->GetObject());
     
-    void* frustumData;
-    vkMapMemory(context.device, vk.frustumBufferMemory, 0, sizeof(FrustumPlanes), 0, &frustumData);
-    memcpy(frustumData, &frustum, sizeof(FrustumPlanes));
-    vkUnmapMemory(context.device, vk.frustumBufferMemory);
+    // Use vkCmdUpdateBuffer for frustum data (GPU-side update)
+    vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, sizeof(FrustumPlanes), &frustum);
     
     // Update graphics descriptor set with textures from unit
     if (resource.unit) {
@@ -1362,7 +1354,6 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
             aoProperties.generateMipmaps = true;
             aoProperties.minFilter = TextureFilter::LINEAR_MIPMAP_LINEAR;
             aoProperties.magFilter = TextureFilter::LINEAR;
-            
             Texture2* aoTextures[6] = {
                 GenerateLightningTexture(textures.top, aoProperties),
                 GenerateLightningTexture(textures.down, aoProperties),
@@ -1459,13 +1450,6 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
                 if (normalTextures[i]) {
                     delete normalTextures[i];
                 }
-            }
-        }
-        
-        // Clean up generated AO textures
-        for (int i = 0; i < 6; ++i) {
-            if (aoTextures[i]) {
-                delete aoTextures[i];
             }
         }
     }
