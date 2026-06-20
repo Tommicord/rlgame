@@ -105,6 +105,7 @@ public:
     {
         float t, d, b, f; // Top, Down, Back, Front
     };
+    [[nodiscard]]
     UnitTextureMaterial& GetMaterial() const;
 
     /* Sets the resistance against TNT of the unit */
@@ -132,9 +133,11 @@ public:
     void DisableCollision();
 
     /* Returns true if the collision is enabled for this unit */
+    [[nodiscard]]
     bool IsCollisionEnabled() const;
 
     /* Returns true if the unit is visible */
+    [[nodiscard]]
     bool IsVisible() const;
 
     /* Updates the Base Unit, like a tick */

@@ -1315,37 +1315,56 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
     // Use vkCmdUpdateBuffer for frustum data (GPU-side update)
     vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, sizeof(FrustumPlanes), &frustum);
     
-    // Update graphics descriptor set with textures from unit
+    // Update graphics descriptor set with textures from unit (only if textures changed)
     if (resource.unit) {
         const auto& textures = resource.unit->GetMaterial();
-        VkDescriptorImageInfo imageInfos[6] { };
-        auto gen = [&imageInfos, &context](Texture2 *texture, const int index)
-        {
-            if (texture) {
-                imageInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                texture->GetImageView(context);
-                imageInfos[index].imageView = texture->binding.vkImageView;
-                texture->GetSampler(context);
-                imageInfos[index].sampler = texture->binding.vkSampler;
-            }
-        };
-        // Get texture image views and samplers (order: top, down, left, right, front, back)
-        gen(textures.top, 0);
-        gen(textures.down, 1);
-        gen(textures.left, 2);
-        gen(textures.right, 3);
-        gen(textures.front, 4);
-        gen(textures.back, 5);
         
-        VkWriteDescriptorSet textureWrite{};
-        textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        textureWrite.dstSet = vk.descriptorSet;
-        textureWrite.dstBinding = 2;
-        textureWrite.dstArrayElement = 0;
-        textureWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        textureWrite.descriptorCount = 6;
-        textureWrite.pImageInfo = imageInfos;
-        vkUpdateDescriptorSets(context.device, 1, &textureWrite, 0, nullptr);
+        // Only update descriptor set if we haven't already set the textures
+        static Texture2* lastTextures[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+        bool texturesChanged = false;
+        
+        if (textures.top != lastTextures[0] || textures.down != lastTextures[1] ||
+            textures.left != lastTextures[2] || textures.right != lastTextures[3] ||
+            textures.front != lastTextures[4] || textures.back != lastTextures[5]) {
+            texturesChanged = true;
+            lastTextures[0] = textures.top;
+            lastTextures[1] = textures.down;
+            lastTextures[2] = textures.left;
+            lastTextures[3] = textures.right;
+            lastTextures[4] = textures.front;
+            lastTextures[5] = textures.back;
+        }
+        
+        if (texturesChanged) {
+            VkDescriptorImageInfo imageInfos[6] { };
+            auto gen = [&imageInfos, &context](Texture2 *texture, const int index)
+            {
+                if (texture) {
+                    imageInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    texture->GetImageView(context);
+                    imageInfos[index].imageView = texture->binding.vkImageView;
+                    texture->GetSampler(context);
+                    imageInfos[index].sampler = texture->binding.vkSampler;
+                }
+            };
+            // Get texture image views and samplers (order: top, down, left, right, front, back)
+            gen(textures.top, 0);
+            gen(textures.down, 1);
+            gen(textures.left, 2);
+            gen(textures.right, 3);
+            gen(textures.front, 4);
+            gen(textures.back, 5);
+            
+            VkWriteDescriptorSet textureWrite{};
+            textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            textureWrite.dstSet = vk.descriptorSet;
+            textureWrite.dstBinding = 2;
+            textureWrite.dstArrayElement = 0;
+            textureWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            textureWrite.descriptorCount = 6;
+            textureWrite.pImageInfo = imageInfos;
+            vkUpdateDescriptorSets(context.device, 1, &textureWrite, 0, nullptr);
+        }
         
         // Generate AO textures from unit textures (only if not already generated)
         if (vk.aoTexturesView[0] == VK_NULL_HANDLE) {
@@ -1483,10 +1502,8 @@ void UnitStateDrawable::OnDraw(UnitStateResource& resource,
     World::AbstractCamera::Eye eyePos = cam.eye;
     lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
 
-    void* lightingBufferData;
-    vkMapMemory(context.device, vk.placeholderLightingBufferMemory, 0, sizeof(LightingBlock), 0, &lightingBufferData);
-    memcpy(lightingBufferData, &lightingData, sizeof(LightingBlock));
-    vkUnmapMemory(context.device, vk.placeholderLightingBufferMemory);
+    // Use vkCmdUpdateBuffer for lighting data (GPU-side update)
+    vkCmdUpdateBuffer(context.commandBuffers[0], vk.placeholderLightingBuffer, 0, sizeof(LightingBlock), &lightingData);
     
     // Bind graphics pipeline
     if (vk.pipeline != VK_NULL_HANDLE && vk.pipelineLayout != VK_NULL_HANDLE) {
