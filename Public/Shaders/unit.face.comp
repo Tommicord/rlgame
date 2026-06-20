@@ -71,6 +71,36 @@ layout(set = 0, binding = 4) uniform FrustumBlock {
 
 const uint maxFaces = 6;
 
+// Apply polygon fence offset based on face index (from vertex shader)
+vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLeft) {
+    vec3 offset = vec3(0.0);
+    
+    // Polygon fence values: t, d, b, f (top, down, back, front)
+    // Right side: polTr, polDr, polBr, polFr
+    // Left side: polTl, polDl, polBl, polFl
+    switch(faceIndex) {
+        case 0: // Top face
+            offset.y = polRight.x; // Tr
+            break;
+        case 1: // Bottom face
+            offset.y = polRight.y; // Dr
+            break;
+        case 2: // Left face
+            offset.x = polLeft.z; // Bl
+            break;
+        case 3: // Right face
+            offset.x = polRight.z; // Br
+            break;
+        case 4: // Front face
+            offset.z = polRight.w; // Fr
+            break;
+        case 5: // Back face
+            offset.z = polLeft.w; // Fl
+            break;
+    }
+    return position + offset;
+}
+
 // Check if a point is inside the frustum
 bool IsInFrustum(vec3 point) {
     for (int i = 0; i < maxFaces; ++i) {
