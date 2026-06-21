@@ -1,4 +1,5 @@
 #include "rl/Base/Texture2.h"
+#include "rl/Base/Game.h"
 
 // Platform detection
 #if defined(_WIN32) || defined(_WIN64)
@@ -191,6 +192,40 @@ void Texture2::Cleanup()
     }
     dataSize = 0;
     loaded = false;
+}
+void Texture2::CleanupVulkan(const Game::VulkanContext& context)
+{
+    // Cleanup Vulkan resources
+    if (binding.vkStagingBuffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(context.device, binding.vkStagingBuffer, nullptr);
+        binding.vkStagingBuffer = VK_NULL_HANDLE;
+    }
+    if (binding.vkStagingBufferMemory != VK_NULL_HANDLE)
+    {
+        vkFreeMemory(context.device, binding.vkStagingBufferMemory, nullptr);
+        binding.vkStagingBufferMemory = VK_NULL_HANDLE;
+    }
+    if (binding.vkImageView != VK_NULL_HANDLE)
+    {
+        vkDestroyImageView(context.device, binding.vkImageView, nullptr);
+        binding.vkImageView = VK_NULL_HANDLE;
+    }
+    if (binding.vkSampler != VK_NULL_HANDLE)
+    {
+        vkDestroySampler(context.device, binding.vkSampler, nullptr);
+        binding.vkSampler = VK_NULL_HANDLE;
+    }
+    if (binding.vkImage != VK_NULL_HANDLE)
+    {
+        vkDestroyImage(context.device, binding.vkImage, nullptr);
+        binding.vkImage = VK_NULL_HANDLE;
+    }
+    if (binding.vkImageMemory != VK_NULL_HANDLE)
+    {
+        vkFreeMemory(context.device, binding.vkImageMemory, nullptr);
+        binding.vkImageMemory = VK_NULL_HANDLE;
+    }
 }
 
 // Loading functions

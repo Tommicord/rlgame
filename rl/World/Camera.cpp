@@ -30,15 +30,31 @@ Camera::~Camera() {}
 void Camera::Update()
 {
     constexpr float moveSpeed = 0.025f;
-    // Check pressed keys and apply movement
+    // Check pressed keys and apply movement in camera direction
     if (pressedKeys.count(Input::Key::W))
-        eye.z -= moveSpeed;
+    {
+        eye.x += cameraFront.x * moveSpeed;
+        eye.y += cameraFront.y * moveSpeed;
+        eye.z += cameraFront.z * moveSpeed;
+    }
     if (pressedKeys.count(Input::Key::S))
-        eye.z += moveSpeed;
+    {
+        eye.x -= cameraFront.x * moveSpeed;
+        eye.y -= cameraFront.y * moveSpeed;
+        eye.z -= cameraFront.z * moveSpeed;
+    }
     if (pressedKeys.count(Input::Key::A))
-        eye.x -= moveSpeed;
+    {
+        eye.x -= cameraRight.x * moveSpeed;
+        eye.y -= cameraRight.y * moveSpeed;
+        eye.z -= cameraRight.z * moveSpeed;
+    }
     if (pressedKeys.count(Input::Key::D))
-        eye.x += moveSpeed;
+    {
+        eye.x += cameraRight.x * moveSpeed;
+        eye.y += cameraRight.y * moveSpeed;
+        eye.z += cameraRight.z * moveSpeed;
+    }
     if (pressedKeys.count(Input::Key::Space))
         eye.y -= moveSpeed;
     if (pressedKeys.count(Input::Key::LeftShift))
@@ -53,11 +69,11 @@ void Camera::UpdateMatrices()
     front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    glm::vec3 cameraFront = glm::normalize(front);
+    cameraFront = glm::normalize(front);
 
     // Calculate right and up vectors
-    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f, 1.0f, 0.0f)));
-    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
+    cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f, 1.0f, 0.0f)));
+    cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 
     // View matrix, look at position + front
     glm::vec3 cameraPos = glm::vec3(eye.x, eye.y, eye.z);

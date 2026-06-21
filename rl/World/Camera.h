@@ -96,6 +96,9 @@ private:
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
     glm::mat4 pvmMatrix;
+    glm::vec3 cameraFront;
+    glm::vec3 cameraRight;
+    glm::vec3 cameraUp;
     std::unordered_set<Input::Key> pressedKeys;
     void UpdateMatrices();
 };

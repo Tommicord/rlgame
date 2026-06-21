@@ -17,6 +17,7 @@ struct VertexInput {
     float roughness;
     float tanX, tanY, tanZ;
     float bitanX, bitanY, bitanZ;
+    float normX, normY, normZ; // Geometric normal for smooth rim lighting
 };
 
 // Output vertex structure for rendering
@@ -27,6 +28,7 @@ struct VertexOutput {
     vec4 material;
     vec4 roughnessAndTan;
     vec4 bitangent;
+    vec4 geometricNormal; // Geometric normal for smooth rim lighting
 };
 
 // Input buffer: all vertices from vertex buffer
@@ -101,11 +103,14 @@ vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLe
 }
 
 // Check if a point is inside the frustum
+// Planes have inward-pointing normals (negated from standard extraction)
+// Inside points have positive distance, outside points have negative distance
 bool IsInFrustum(vec3 point) {
     for (int i = 0; i < maxFaces; ++i) {
         vec4 plane = frustum.u_FrustumPlanes[i];
         float distance = dot(plane.xyz, point) + plane.w;
-        if (distance < -0.08) {
+        // Reject points with negative distance (outside frustum)
+        if (distance > 0.350) {
             return false;
         }
     }
@@ -152,8 +157,7 @@ void main() {
     vec4 worldPos1 = pc.model * vec4(modifiedPos1, 1.0);
     vec4 worldPos2 = pc.model * vec4(modifiedPos2, 1.0);
     
-    // Perform frustum culling in world space
-    // Temporarily disable culling to test
+    // Perform frustum culling in world space (frustum planes are in world space)
     if (IsTriangleVisible(worldPos0.xyz, worldPos1.xyz, worldPos2.xyz)) {
         // Atomically get and increment the output index
         uint outputIndex = atomicAdd(visibleVertexCount, 3);
@@ -173,6 +177,7 @@ void main() {
 
             visibleVertices[outputIndex].roughnessAndTan = vec4(v0.roughness, v0.tanX, v0.tanY, v0.tanZ);
             visibleVertices[outputIndex].bitangent = vec4(v0.bitanX, v0.bitanY, v0.bitanZ, 0.0);
+            visibleVertices[outputIndex].geometricNormal = vec4(v0.normX, v0.normY, v0.normZ, 0.0);
 
             visibleVertices[outputIndex + 1].position = clipPos1;
             visibleVertices[outputIndex + 1].worldPosAndUV = vec4(worldPos1.xyz, v1.texCoords.x);
@@ -181,6 +186,7 @@ void main() {
 
             visibleVertices[outputIndex + 1].roughnessAndTan = vec4(v1.roughness, v1.tanX, v1.tanY, v1.tanZ);
             visibleVertices[outputIndex + 1].bitangent = vec4(v1.bitanX, v1.bitanY, v1.bitanZ, 0.0);
+            visibleVertices[outputIndex + 1].geometricNormal = vec4(v1.normX, v1.normY, v1.normZ, 0.0);
 
             visibleVertices[outputIndex + 2].position = clipPos2;
             visibleVertices[outputIndex + 2].worldPosAndUV = vec4(worldPos2.xyz, v2.texCoords.x);
@@ -189,6 +195,7 @@ void main() {
 
             visibleVertices[outputIndex + 2].roughnessAndTan = vec4(v2.roughness, v2.tanX, v2.tanY, v2.tanZ);
             visibleVertices[outputIndex + 2].bitangent = vec4(v2.bitanX, v2.bitanY, v2.bitanZ, 0.0);
+            visibleVertices[outputIndex + 2].geometricNormal = vec4(v2.normX, v2.normY, v2.normZ, 0.0);
         }
     }
 }

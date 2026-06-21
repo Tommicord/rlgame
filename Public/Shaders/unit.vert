@@ -7,6 +7,7 @@ layout (location = 2) in vec4 a_UVAndLighting;
 layout (location = 3) in vec4 a_Material;
 layout (location = 4) in vec4 a_RoughnessAndTan;
 layout (location = 5) in vec4 a_Bitangent;
+layout (location = 6) in vec4 a_GeometricNormal;
 
 // Push constants for camera matrices
 layout(push_constant) uniform PushConstants {
@@ -25,6 +26,7 @@ layout (location = 5) flat out vec3 v_Albedo;
 layout (location = 6) flat out float v_Metallic;
 layout (location = 7) flat out float v_Roughness;
 layout (location = 8) out mat3 v_TBN;
+layout (location = 9) smooth out vec3 v_GeometricNormal;
 
 void main() {
     vec3 worldPos = a_WorldPosAndUV.xyz;
@@ -40,6 +42,7 @@ void main() {
     float roughness = a_RoughnessAndTan.x;
     vec3 tangent = a_RoughnessAndTan.yzw;
     vec3 bitangent = a_Bitangent.xyz;
+    vec3 geometricNormal = a_GeometricNormal.xyz;
 
     gl_Position = a_Position;
 
@@ -62,4 +65,5 @@ void main() {
     v_Metallic = metallic;
     v_Roughness = roughness;
     v_TBN = mat3(T, B, N);
+    v_GeometricNormal = normalize(geometricNormal);
 }

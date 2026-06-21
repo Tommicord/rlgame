@@ -46,7 +46,7 @@ struct VulkanContext
 };
 
 class Game : public Input::InputObserver {
-    Input::InputReceiver& inputReceiver;
+    Input::InputReceiver& input;
     std::unique_ptr<Providers::CameraModel> cameraModel;
     std::unique_ptr<Providers::UnitModel> unitModel;
 public:

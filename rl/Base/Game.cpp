@@ -23,13 +23,13 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 Game::Game() :
-    inputReceiver(Input::InputReceiver::GetInstance())
+    input(Input::InputReceiver::GetInstance())
 {
 }
 
 Game::~Game() { 
-    inputReceiver.Unsubscribe(this);
-    inputReceiver.Stop();
+    input.Unsubscribe(this);
+    input.Stop();
     CleanupGraphics(); 
 }
 
@@ -89,8 +89,8 @@ void Game::CleanupResources()
 
 void Game::InitInputReceiverObserver()
 {
-    inputReceiver.Subscribe(this);
-    inputReceiver.Start();
+    input.Subscribe(this);
+    input.Start();
 }
 
 void Game::OnKeyEvent(const Input::KeyEvent& event)
@@ -152,6 +152,17 @@ void Game::InitWindow()
         (mode->width - width) / 2,
         (mode->height - height) / 2
         );
+    // Disable cursor and center it for better camera
+    glfwSetInputMode(vkWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(vkWindow, width / 2.0, height / 2.0);
+    // Set GLFW cursor position callback
+    glfwSetCursorPosCallback(vkWindow, [](GLFWwindow* window, double xpos, double ypos) {
+        Game& game = Game::GetInstance();
+        Input::MouseMoveEvent event;
+        event.x = xpos;
+        event.y = ypos;
+        game.OnMouseMoveEvent(event);
+    });
 }
 
 void Game::GetDeltaTime() {}

@@ -383,19 +383,20 @@ void InputReceiver::PollWindowsInput()
         }
     }
 
-    POINT cursorPos;
-    if (GetCursorPos(&cursorPos))
-    {
-        static POINT lastCursorPos = {0, 0};
-        if (cursorPos.x != lastCursorPos.x || cursorPos.y != lastCursorPos.y)
-        {
-            MouseMoveEvent event;
-            event.x = cursorPos.x;
-            event.y = cursorPos.y;
-            NotifyMouseMoveEvent(event);
-            lastCursorPos = cursorPos;
-        }
-    }
+    // Mouse polling disabled: using GLFW input instead
+    // POINT cursorPos;
+    // if (GetCursorPos(&cursorPos))
+    // {
+    //     static POINT lastCursorPos = {0, 0};
+    //     if (cursorPos.x != lastCursorPos.x || cursorPos.y != lastCursorPos.y)
+    //     {
+    //         MouseMoveEvent event;
+    //         event.x = cursorPos.x;
+    //         event.y = cursorPos.y;
+    //         NotifyMouseMoveEvent(event);
+    //         lastCursorPos = cursorPos;
+    //     }
+    // }
 }
 #endif
 

@@ -63,12 +63,7 @@ public:
         requires(std::is_base_of_v<BaseUnit, std::decay_t<T>>)
     BaseUnit(T* type) noexcept : BaseUnit()
     {
-        // NOTE: This is the default texture
-        // This is to prevent accidental bugs
-        // If the textures is not initialized
-        // DO NOT CHANGE THIS If not needed
-        static Texture2 texture("unknown.png");
-
+        static Texture2 texture("dirt.png");
         using pair = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
         int id = 1;
         if (pair::GetObjectById(id)

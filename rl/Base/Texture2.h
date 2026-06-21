@@ -122,9 +122,10 @@ public:
     void GenerateMipmaps();
     void GetSampler(Game::VulkanContext& context);
     void GetImageView(Game::VulkanContext& context);
+    void Cleanup();
+    void CleanupVulkan(const Game::VulkanContext& context);
 private:
     void Initialize();
-    void Cleanup();
     bool LoadImage(const std::string& filepath);
     bool ProcessImageData(uint8_t* imageData, int width, int height, int channels);
     void CreateVulkanImage(Game::VulkanContext& context);

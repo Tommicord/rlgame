@@ -28,57 +28,61 @@ struct UnitVertex {
     float roughness;
     float tanX, tanY, tanZ;
     float bitanX, bitanY, bitanZ;
+    float normX, normY, normZ; // Geometric normal for smooth rim lighting
 };
 
 // Unit cube vertices (6 faces, 2 triangles each, 3 vertices per triangle)
+// Varied material properties per face for realistic PBR lighting testing
+// Smooth normals at edges for better rim lighting interpolation
 static const std::vector<UnitVertex> unitVertices = {
-    // Top face (faceIndex = 0) - Normal: +Y, Tangent: +X, Bitangent: -Z
-    {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    {glm::vec4( 0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    {glm::vec4( 0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    {glm::vec4( 0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    {glm::vec4(-0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 0, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f},
-    
-    // Bottom face (faceIndex = 1) - Normal: -Y, Tangent: +X, Bitangent: +Z
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 1, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    
-    // Left face (faceIndex = 2) - Normal: -X, Tangent: +Z, Bitangent: +Y
-    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 2, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
-    
-    // Right face (faceIndex = 3) - Normal: +X, Tangent: -Z, Bitangent: +Y
-    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 3, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f},
-    
-    // Front face (faceIndex = 4) - Normal: +Z, Tangent: +X, Bitangent: +Y
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 4, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    
-    // Back face (faceIndex = 5) - Normal: -Z, Tangent: -X, Bitangent: +Y
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
-    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 5, 1.0f, 1.0f, 1.0f, 0.3f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+    // Top face (faceIndex = 0) - High metallic, low roughness (shiny metal)
+    {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -0.58f, 0.58f, -0.58f},
+    {glm::vec4(-0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -0.58f, 0.58f, 0.58f},
+    {glm::vec4( 0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -0.58f, 0.58f, -0.58f},
+    {glm::vec4( 0.5f, 0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4( 0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 0, 0.8f, 0.9f, 0.7f, 0.9f, 0.1f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.58f, 0.58f, -0.58f},
+
+    // Bottom face (faceIndex = 1) - Low metallic, high roughness (matte)
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
+    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, -0.58f, -0.58f},
+    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, -0.58f, 0.58f},
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
+    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, -0.58f, 0.58f},
+    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 1, 0.5f, 0.5f, 0.5f, 0.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, 0.58f},
+
+    // Left face (faceIndex = 2) - Medium metallic, medium roughness (plastic-like)
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
+    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, -0.58f, 0.58f},
+    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, 0.58f, 0.58f},
+
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
+    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, 0.58f, 0.58f},
+    {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 2, 0.6f, 0.4f, 0.8f, 0.3f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.58f, 0.58f, -0.58f},
+
+    // Right face (faceIndex = 3) - High metallic, medium roughness (brushed metal)
+    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, -0.58f, -0.58f},
+    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, 0.58f, -0.58f},
+    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, -0.58f, -0.58f},
+    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 3, 0.7f, 0.7f, 0.6f, 0.8f, 0.4f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.58f, -0.58f, 0.58f},
+
+    // Front face (faceIndex = 4) - Low metallic, low roughness (shiny plastic)
+    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, 0.58f},
+    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, -0.58f, 0.58f},
+    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4( 0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, 0.58f, 0.58f},
+    {glm::vec4(-0.5f,  0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, 0.58f, 0.58f},
+    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 4, 0.9f, 0.8f, 0.9f, 0.1f, 0.2f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, 0.58f},
+
+    // Back face (faceIndex = 5) - Medium metallic, high roughness (ceramic-like)
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
+    {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 0.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, 0.58f, -0.58f},
+    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, 0.58f, -0.58f},
+    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 0.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, 0.58f, -0.58f},
+    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(1.0f, 1.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.58f, -0.58f, -0.58f},
+    {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0,0,0,0), glm::vec4(0,0,0,0), glm::vec2(0.0f, 1.0f), 0, 0, 5, 0.4f, 0.6f, 0.5f, 0.4f, 0.7f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.58f, -0.58f, -0.58f},
 };
 
 // Uniform buffer structure
@@ -275,7 +279,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     VkBufferCreateInfo frustumBufferInfo{};
     frustumBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     frustumBufferInfo.size = sizeof(FrustumPlanes);
-    frustumBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    frustumBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     frustumBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
     if (vkCreateBuffer(context.device, &frustumBufferInfo, nullptr, &vk.frustumBuffer) != VK_SUCCESS) {
@@ -300,7 +304,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     VkBufferCreateInfo triplanarBufferInfo{};
     triplanarBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     triplanarBufferInfo.size = sizeof(TriplanarSettings);
-    triplanarBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    triplanarBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     triplanarBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
     if (vkCreateBuffer(context.device, &triplanarBufferInfo, nullptr, &vk.triplanarSettingsBuffer) != VK_SUCCESS) {
@@ -738,16 +742,18 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     
     // Create lighting uniform buffer for PBR shader
     struct LightingBlock {
-        glm::vec3 sunDirection;
-        glm::vec3 sunColor;
-        float ambientStrength;
-        glm::vec3 cameraPosition;
+        alignas(16) glm::vec3 sunDirection;
+        alignas(16) glm::vec3 sunColor;
+        alignas(4)  float ambientStrength;
+        alignas(16) glm::vec3 cameraPosition;
     };
     
+    // Ensure buffer size matches the aligned struct size
+    constexpr VkDeviceSize lightingBufferSize = sizeof(LightingBlock);
     VkBufferCreateInfo lightingBufferInfo{};
     lightingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    lightingBufferInfo.size = sizeof(LightingBlock);
-    lightingBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    lightingBufferInfo.size = lightingBufferSize;
+    lightingBufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     lightingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
     if (vkCreateBuffer(context.device, &lightingBufferInfo, nullptr, &vk.placeholderLightingBuffer) != VK_SUCCESS) {
@@ -776,8 +782,8 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     lightingData.cameraPosition = glm::vec3(0.0f, 0.0f, 15.0f);
     
     void* lightingBufferData;
-    vkMapMemory(context.device, vk.placeholderLightingBufferMemory, 0, sizeof(LightingBlock), 0, &lightingBufferData);
-    memcpy(lightingBufferData, &lightingData, sizeof(LightingBlock));
+    vkMapMemory(context.device, vk.placeholderLightingBufferMemory, 0, lightingBufferSize, 0, &lightingBufferData);
+    memcpy(lightingBufferData, &lightingData, lightingBufferSize);
     vkUnmapMemory(context.device, vk.placeholderLightingBufferMemory);
     
     // Create placeholder AO texture (1x1 white texture)
@@ -1109,10 +1115,10 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     aoTextureWrite.pImageInfo = &aoImageInfo2;
     
     // Triplanar settings buffer descriptor (binding 12)
-    VkDescriptorBufferInfo triplanarBufferInfo{};
-    triplanarBufferInfo.buffer = vk.triplanarSettingsBuffer;
-    triplanarBufferInfo.offset = 0;
-    triplanarBufferInfo.range = sizeof(TriplanarSettings);
+    VkDescriptorBufferInfo triplanarBufferInfo2{};
+    triplanarBufferInfo2.buffer = vk.triplanarSettingsBuffer;
+    triplanarBufferInfo2.offset = 0;
+    triplanarBufferInfo2.range = sizeof(TriplanarSettings);
     
     VkWriteDescriptorSet triplanarSettingsWrite{};
     triplanarSettingsWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1121,7 +1127,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
     triplanarSettingsWrite.dstArrayElement = 0;
     triplanarSettingsWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     triplanarSettingsWrite.descriptorCount = 1;
-    triplanarSettingsWrite.pBufferInfo = &triplanarBufferInfo;
+    triplanarSettingsWrite.pBufferInfo = &triplanarBufferInfo2;
     
     std::array<VkWriteDescriptorSet, 5> descriptorWrites = {
         lightingBufferWrite,
@@ -1338,26 +1344,21 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
 }
 
 void CameraPVMToFrustumPlanes(FrustumPlanes& frustum, World::Camera& cam) {
+    // Extract frustum planes from view-projection matrix (world space)
+    // Negate to get inward-pointing normals (points inside have positive distance)
     glm::mat4 vp = cam.GetProjectionMatrix() * cam.GetViewMatrix();
     glm::mat4 m = glm::transpose(vp);
-    
-    // Extract frustum planes from the combined view-projection matrix
-    // Left plane
-    frustum.planes[0] = m[3] + m[0];
-    // Right plane
-    frustum.planes[1] = m[3] - m[0];
-    // Bottom plane
-    frustum.planes[2] = m[3] - m[1];
-    // Top plane
-    frustum.planes[3] = m[3] + m[1];
-    // Near plane
-    frustum.planes[4] = m[2];
-    // Far plane
-    frustum.planes[5] = m[3] - m[2];
+
+    frustum.planes[0] = -(m[3] + m[0]); // Left
+    frustum.planes[1] = -(m[3] - m[0]); // Right
+    frustum.planes[2] = -(m[3] + m[1]); // Bottom
+    frustum.planes[3] = -(m[3] - m[1]); // Top
+    frustum.planes[4] = -(m[3] + m[2]); // Near
+    frustum.planes[5] = -(m[3] - m[2]); // Far
 
     for (int i = 0; i < 6; ++i) {
         float length = glm::length(glm::vec3(frustum.planes[i]));
-        if (length > 0.0f) {
+        if (length > 0.0001f) {
             frustum.planes[i] /= length;
         }
     }
@@ -1374,18 +1375,16 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
     FrustumPlanes frustum { };
     CameraPVMToFrustumPlanes(frustum, resource.cameraModel->GetObject());
     
-    // Use vkCmdUpdateBuffer for frustum data (GPU-side update)
-    vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, sizeof(FrustumPlanes), &frustum);
-    
     // Update graphics descriptor set with textures from unit (only if textures changed)
     if (resource.unit) {
         const auto& textures = resource.unit->GetMaterial();
         
         // Only update descriptor set if we haven't already set the textures
         static Texture2* lastTextures[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+        static bool firstTime = true;
         bool texturesChanged = false;
         
-        if (textures.top != lastTextures[0] || textures.down != lastTextures[1] ||
+        if (firstTime || textures.top != lastTextures[0] || textures.down != lastTextures[1] ||
             textures.left != lastTextures[2] || textures.right != lastTextures[3] ||
             textures.front != lastTextures[4] || textures.back != lastTextures[5]) {
             texturesChanged = true;
@@ -1395,6 +1394,7 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
             lastTextures[3] = textures.right;
             lastTextures[4] = textures.front;
             lastTextures[5] = textures.back;
+            firstTime = false;
         }
         
         if (texturesChanged) {
@@ -1453,6 +1453,11 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
                     vk.aoTextures[i] = aoTextures[i]->binding.vkImage;
                     vk.aoTexturesMemory[i] = aoTextures[i]->binding.vkImageMemory;
                     vk.aoTexturesView[i] = aoTextures[i]->binding.vkImageView;
+                    
+                    // Clear handles from temporary Texture2 to prevent double-deletion
+                    aoTextures[i]->binding.vkImage = VK_NULL_HANDLE;
+                    aoTextures[i]->binding.vkImageMemory = VK_NULL_HANDLE;
+                    aoTextures[i]->binding.vkImageView = VK_NULL_HANDLE;
                 }
             }
             
@@ -1475,6 +1480,7 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
             // Clean up generated textures
             for (int i = 0; i < 6; ++i) {
                 if (aoTextures[i]) {
+                    aoTextures[i]->CleanupVulkan(context);
                     delete aoTextures[i];
                 }
             }
@@ -1507,6 +1513,11 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
                     vk.normalTextures[i] = normalTextures[i]->binding.vkImage;
                     vk.normalTexturesMemory[i] = normalTextures[i]->binding.vkImageMemory;
                     vk.normalTexturesView[i] = normalTextures[i]->binding.vkImageView;
+                    
+                    // Clear handles from temporary Texture2 to prevent double-deletion
+                    normalTextures[i]->binding.vkImage = VK_NULL_HANDLE;
+                    normalTextures[i]->binding.vkImageMemory = VK_NULL_HANDLE;
+                    normalTextures[i]->binding.vkImageView = VK_NULL_HANDLE;
                 }
             }
             
@@ -1529,6 +1540,7 @@ void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
             // Clean up generated textures
             for (int i = 0; i < 6; ++i) {
                 if (normalTextures[i]) {
+                    normalTextures[i]->CleanupVulkan(context);
                     delete normalTextures[i];
                 }
             }
@@ -1543,30 +1555,12 @@ void UnitStateDrawable::OnDraw(UnitStateResource& resource,
     if (!resource.cameraModel)
         return;
     // Get camera matrices for push constants
-    World::Camera& cam = resource.cameraModel->GetObject();
+    const World::Camera& cam = resource.cameraModel->GetObject();
     glm::mat4 model = cam.GetModelMatrix();
     glm::mat4 view = cam.GetViewMatrix();
     glm::mat4 projection = cam.GetProjectionMatrix();
     glm::mat4 matrices[3] = {model, view, projection};
-    
-    // Update lighting buffer with current camera position
-    struct LightingBlock {
-        alignas(16) glm::vec3 sunDirection;
-        alignas(16) glm::vec3 sunColor;
-        alignas(4)  float ambientStrength;
-        alignas(16) glm::vec3 cameraPosition;
-    };
-    
-    LightingBlock lightingData{};
-    lightingData.sunDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.6f));
-    lightingData.sunColor = glm::vec3(0.6f, 0.7f, 1.0f); // Test values
-    lightingData.ambientStrength = 0.3f;
-    World::AbstractCamera::Eye eyePos = cam.eye;
-    lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
 
-    // Use vkCmdUpdateBuffer for lighting data (GPU-side update)
-    vkCmdUpdateBuffer(context.commandBuffers[0], vk.placeholderLightingBuffer, 0, sizeof(LightingBlock), &lightingData);
-    
     // Bind graphics pipeline
     if (vk.pipeline != VK_NULL_HANDLE && vk.pipelineLayout != VK_NULL_HANDLE) {
         vkCmdBindPipeline(
@@ -1602,25 +1596,55 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
 {
     if (!resource.cameraModel)
         return;
-    
+
     // Get camera matrices for push constants
     UniformBufferObject ubo{};
     const World::Camera& cam = resource.cameraModel->GetObject();
     ubo.model = cam.GetModelMatrix();
     ubo.view = cam.GetViewMatrix();
     ubo.projection = cam.GetProjectionMatrix();
-    
+
     // Reset visible vertex counter
     // using vkCmdFillBuffer (GPU-side operation)
     vkCmdFillBuffer(context.commandBuffers[0], vk.visibleCountBuffer, 0, sizeof(uint32_t), 0);
-    
-    // Barrier to ensure fill operation completes before compute shader
+
+    // Update frustum data outside render pass
+    FrustumPlanes frustum { };
+    CameraPVMToFrustumPlanes(frustum, resource.cameraModel->GetObject());
+
+    // Use the same size as the buffer creation
+    constexpr VkDeviceSize frustumSize = sizeof(FrustumPlanes);
+    vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, frustumSize, &frustum);
+
+    // Update lighting data outside render pass
+    struct LightingBlock {
+        alignas(16) glm::vec3 sunDirection;
+        alignas(16) glm::vec3 sunColor;
+        alignas(4)  float ambientStrength;
+        alignas(16) glm::vec3 cameraPosition;
+    };
+
+    LightingBlock lightingData{};
+    lightingData.sunDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.6f));
+    lightingData.sunColor = glm::vec3(0.6f, 0.7f, 1.0f);
+    lightingData.ambientStrength = 0.3f;
+    World::AbstractCamera::Eye eyePos = cam.eye;
+    lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
+
+    // Use the same size as the buffer creation
+    constexpr VkDeviceSize lightingBlockSize = sizeof(LightingBlock);
+    vkCmdUpdateBuffer(context.commandBuffers[0], vk.placeholderLightingBuffer, 0, lightingBlockSize, &lightingData);
+
     VkMemoryBarrier fillBarrier{};
     fillBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     fillBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    fillBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-    vkCmdPipelineBarrier(context.commandBuffers[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &fillBarrier, 0, nullptr, 0, nullptr);
-    
+    fillBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_UNIFORM_READ_BIT;
+
+    vkCmdPipelineBarrier(context.commandBuffers[0],
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                         0, 1, &fillBarrier, 0, nullptr, 0, nullptr);
+
     // Dispatch compute shader for frustum culling
     if (vk.computePipeline != VK_NULL_HANDLE && vk.computePipelineLayout != VK_NULL_HANDLE) {
         vkCmdBindPipeline(
@@ -1643,12 +1667,13 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
             0,
             sizeof(UniformBufferObject),
             &ubo);
+
         // Calculate workgroup count (each workgroup processes 64 triangles)
         uint32_t triangleCount = unitVertices.size() / 3;
         uint32_t workgroupCount = (triangleCount + 63) / 64;
         vkCmdDispatch(context.commandBuffers[0], workgroupCount, 1, 1);
-        
-        // Barrier to ensure compute shader finishes before copy operation
+
+        // Barrier to ensure compute shader finishes writing before the copy operation starts
         VkBufferMemoryBarrier computeToCopyBarrier{};
         computeToCopyBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
         computeToCopyBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -1658,7 +1683,7 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
         computeToCopyBarrier.buffer = vk.visibleCountBuffer;
         computeToCopyBarrier.offset = 0;
         computeToCopyBarrier.size = sizeof(uint32_t);
-        
+
         vkCmdPipelineBarrier(
             context.commandBuffers[0],
             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -1668,16 +1693,30 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
             1, &computeToCopyBarrier,
             0, nullptr
         );
-        
-        // Copy visible vertex count to indirect draw buffer (vertexCount field)
+
+        // Copy visible vertex count to indirect draw buffer (vertexCount field) [🖈]
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
         copyRegion.dstOffset = 0;
         copyRegion.size = sizeof(uint32_t);
-        
         vkCmdCopyBuffer(context.commandBuffers[0], vk.visibleCountBuffer, vk.indirectDrawBuffer, 1, &copyRegion);
-        
-        // Fill instanceCount, firstVertex, firstInstance fields
+
+        VkBufferMemoryBarrier indirectTransferBarrier{};
+        indirectTransferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        indirectTransferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        indirectTransferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        indirectTransferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        indirectTransferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        indirectTransferBarrier.buffer = vk.indirectDrawBuffer;
+        indirectTransferBarrier.offset = 0;
+        indirectTransferBarrier.size = VK_WHOLE_SIZE;
+
+        vkCmdPipelineBarrier(context.commandBuffers[0],
+                             VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             0, 0, nullptr, 1, &indirectTransferBarrier, 0, nullptr);
+
+        // Fill instanceCount, firstVertex, firstInstance fields with total safety [🖈]
         vkCmdFillBuffer(
             context.commandBuffers[0],
             vk.indirectDrawBuffer,
@@ -1693,11 +1732,11 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
             vk.indirectDrawBuffer,
             sizeof(uint32_t) * 3, sizeof(uint32_t), 0  // firstInstance = 0
         );
-        
-        // Memory barrier to ensure compute shader finishes before graphics
-        // Use buffer memory barriers for specific buffers
+
+        // Final memory barrier to ensure everything is ready before entering Graphics [🖈]
         VkBufferMemoryBarrier barriers[2]{};
 
+        // Output vertex buffer barrier
         barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
         barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
         barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
@@ -1707,8 +1746,9 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
         barriers[0].offset = 0;
         barriers[0].size = VK_WHOLE_SIZE;
 
+        // Indirect draw buffer barrier [🖈]
         barriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barriers[1].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; // Espera al último vkCmdFillBuffer parcial
         barriers[1].dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
         barriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -1718,7 +1758,7 @@ void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
 
         vkCmdPipelineBarrier(
             context.commandBuffers[0],
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT, // Bloquea ambas etapas previas
             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
             0,
             0, nullptr,
