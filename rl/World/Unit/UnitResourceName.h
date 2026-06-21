@@ -2,43 +2,46 @@
 
 #include <vector>
 
-namespace Rl::World {
+namespace Rl::World
+{
 
 class UnitResourceName
 {
-    static constexpr auto BASE = "rl.unit";
-protected:
-    /* Identifies the unit resource name, for example: rl.world.GrassBlock */
-    char *name;
-    size_t nameLen;
-public:
-    /* Creates a basic unit resource name for registry identifiers */
-    explicit UnitResourceName(const std::vector<const char*>& name) noexcept;
+  static constexpr auto BASE = "rl.unit";
 
-    /* Destroys a basic resource name object */
-    ~UnitResourceName();
+  protected:
+  /* Identifies the unit resource name, for example: rl.world.GrassBlock */
+  char*  name;
+  size_t nameLen;
 
-    /* Constructs the resource name from base identifier */
-    void ConstructResourceName(const std::vector<const char *>& base, size_t maxSize) noexcept;
+  public:
+  /* Creates a basic unit resource name for registry identifiers */
+  explicit UnitResourceName(const std::vector<const char*>& name) noexcept;
 
-    /* Splits the resource name into smaller tokens */
-    [[nodiscard]]
-    std::vector<char *> SplitResourceName() const;
+  /* Destroys a basic resource name object */
+  ~UnitResourceName();
 
-    /* Gets the base string resource name */
-    static const char* GetBaseResourceString();
+  /* Constructs the resource name from base identifier */
+  void ConstructResourceName(const std::vector<const char*>& base, size_t maxSize) noexcept;
 
-    /* Gets the stored resource name */
-    [[nodiscard]]
-    char *GetResourceName() const;
+  /* Splits the resource name into smaller tokens */
+  [[nodiscard]]
+  std::vector<char*> SplitResourceName() const;
 
-    /* Gets the stored resource name length */
-    [[nodiscard]]
-    size_t GetResourceNameLength() const;
+  /* Gets the base string resource name */
+  static const char* GetBaseResourceString();
 
-    /* Compares the resource name with other resource name */
-    [[nodiscard]]
-    bool Equals(const UnitResourceName& resource) const;
+  /* Gets the stored resource name */
+  [[nodiscard]]
+  char* GetResourceName() const;
+
+  /* Gets the stored resource name length */
+  [[nodiscard]]
+  size_t GetResourceNameLength() const;
+
+  /* Compares the resource name with other resource name */
+  [[nodiscard]]
+  bool Equals(const UnitResourceName& resource) const;
 };
 
 } // namespace Rl::World

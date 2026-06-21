@@ -1,13 +1,19 @@
-# Generated from CLion C/C++ Code Style settings
----
 Language: Cpp
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
+AlignAfterOpenBracket: DontAlign
 AlignOperands: true
 AlignTrailingComments: false
 AlwaysBreakTemplateDeclarations: Yes
+Cpp11BracedListStyle: true
+BinPackArguments: true
+BinPackParameters: false
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyExcessCharacter: 1000
+PackConstructorInitializers: BinPack
+AllowShortFunctionsOnASingleLine: None
 BraceWrapping: 
   AfterCaseLabel: true
   AfterClass: false
@@ -52,4 +58,6 @@ SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 TabWidth: 2
+UseTab: Never
+Standard: c++20
 ...

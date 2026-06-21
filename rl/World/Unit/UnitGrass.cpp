@@ -1,7 +1,8 @@
 #include "rl/World/Unit/UnitGrass.h"
 #include "rl/World/Unit/Unit.h"
 
-namespace Rl::World {
+namespace Rl::World
+{
 
 UnitGrass::UnitGrass() noexcept : BaseUnit(this)
 {
@@ -9,7 +10,7 @@ UnitGrass::UnitGrass() noexcept : BaseUnit(this)
 
 bool UnitGrass::InGrowState()
 {
-    return true;
+  return true;
 }
 
 void UnitGrass::Grow()
