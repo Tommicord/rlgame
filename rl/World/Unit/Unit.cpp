@@ -59,7 +59,12 @@ std::vector<char*> UnitResourceName::SplitResourceName() const
   std::string        nm(name);
   std::vector<char*> res;
   // Reserve space to avoid reallocations
-  const size_t dotcount = std::ranges::count_if(nm, [](const char c) { return c == '.'; });
+  const size_t dotcount = std::ranges::count_if(
+    nm, [](const char c)
+    {
+      return c == '.';
+    }
+  );
   res.reserve(dotcount + 1);
   size_t start = 0;
   for (size_t i = 0; i < nm.size(); ++i)
@@ -238,9 +243,9 @@ void BaseUnit::SetLightOpacity(const float opacity)
   this->lightOpacity = opacity;
 }
 
-void BaseUnit::SetUnitHardness(const float resistance)
+void BaseUnit::SetUnitHardness(const float hardness)
 {
-  this->unitResistance = resistance;
+  this->unitHardness = hardness;
 }
 
 void BaseUnit::SetPolFenceRight(PolFence& fence)
@@ -253,6 +258,11 @@ void BaseUnit::SetPolFenceLeft(PolFence& fence)
 {
   // Copies start from polTl address
   std::memcpy(&polTl, &fence, sizeof(fence));
+}
+
+void BaseUnit::SetPolCurve(float curve)
+{
+  this->polCurve = curve;
 }
 
 void BaseUnit::EnableCollision()

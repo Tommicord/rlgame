@@ -47,7 +47,7 @@ class BaseUnit : IUpdatable
   inline static auto defaultName = std::vector({"Unknown"});
   inline static auto registry    = Registry(UnitResourceName(defaultName));
 
-  public:
+public:
   /* Stores the properties of the world unit */
   struct
   {
@@ -104,7 +104,7 @@ class BaseUnit : IUpdatable
   void SetLightOpacity(float opacity);
 
   /* Sets the unit hardness, how many times wait to break the unit */
-  void SetUnitHardness(float resistance);
+  void SetUnitHardness(float hardness);
 
   /* Sets the right Polygon Fence, the polygons for the rendering of the Unit */
   void SetPolFenceRight(PolFence& fence);
@@ -112,8 +112,8 @@ class BaseUnit : IUpdatable
   /* Sets the left Polygon Fence, the polygons for the rendering of the Unit */
   void SetPolFenceLeft(PolFence& fence);
 
-  /* Returns the BaseUnit registry id */
-  int GetUnitId();
+  /* Sets the Polygon curve */
+  void SetPolCurve(float curve);
 
   /* Enables the collision of this unit */
   void EnableCollision();

@@ -18,123 +18,141 @@ namespace Rl::Providers
 // Vertex structure for Unit rendering (must match compute shader VertexInput with std430 layout)
 struct UnitVertex
 {
-  glm::vec4 position;     // 16 bytes
-  glm::vec4 polRight;     // 16 bytes
-  glm::vec4 polLeft;      // 16 bytes
-  glm::vec2 texCoords;    // 8 bytes
+  glm::vec4 position; // 16 bytes
+  glm::vec4 polRight; // 16 bytes
+  glm::vec4 polLeft; // 16 bytes
+  glm::vec2 texCoords; // 8 bytes
   uint32_t  lightingEmit; // 4 bytes
   uint32_t  transparencyLevel; // 4 bytes
-  
-  uint32_t  faceIndex;    // 4 bytes
-  float     roughness;    // 4 bytes
-  float     metallic;     // 4 bytes
-  float     polCurve;     // 4 bytes (curvature of unit polygons, negative or positive)
 
-  glm::vec4 albedo;       // 16 bytes (albR, albG, albB + padding)
-  glm::vec4 tangent;      // 16 bytes (tanX, tanY, tanZ + padding)
-  glm::vec4 bitangent;    // 16 bytes (bitanX, bitanY, bitanZ + padding)
-  glm::vec4 normal;       // 16 bytes (normX, normY, normZ + padding)
+  uint32_t faceIndex; // 4 bytes
+  float    roughness; // 4 bytes
+  float    metallic; // 4 bytes
+  float    polCurve; // 4 bytes (curvature of unit polygons, negative or positive)
+
+  glm::vec4 albedo; // 16 bytes (albR, albG, albB + padding)
+  glm::vec4 tangent; // 16 bytes (tanX, tanY, tanZ + padding)
+  glm::vec4 bitangent; // 16 bytes (bitanX, bitanY, bitanZ + padding)
+  glm::vec4 normal; // 16 bytes (normX, normY, normZ + padding)
 };
 
 // Unit ramp vertices (6 faces, 4 vertices per face for indexed drawing)
 // Dirt-like material properties for testing polygon rendering
-// All faces are clockwise when viewed from outside for VK_FRONT_FACE_CLOCKWISE with VK_CULL_MODE_BACK_BIT
+// All faces are clockwise when viewed from outside for VK_FRONT_FACE_CLOCKWISE with
+// VK_CULL_MODE_BACK_BIT
 static const std::vector<UnitVertex> unitVertices = {
     // Top face (faceIndex = 0) - Inclined surface (dirt)
     // CLOCKWISE when viewed from above
-    // Vertices: 0=TLB (back-left, high), 1=TLF (front-left, low), 2=TRF (front-right, low), 3=TRB (back-right, high)
+    // Vertices: 0=TLB (back-left, high), 1=TLF (front-left, low), 2=TRF (front-right, low), 3=TRB
+    // (back-right, high)
     {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 0.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
-    {glm::vec4(-0.5f, 0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 1.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
-    {glm::vec4( 0.5f, 0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 1.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
-    {glm::vec4( 0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 0.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
+        glm::vec2(0.0f, 0.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
+        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f),
+        glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
+    {glm::vec4(-0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(0.0f, 1.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
+        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f),
+        glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
+    {glm::vec4(0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 1.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
+        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f),
+        glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
+    {glm::vec4(0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 0.0f), 0, 0, 0, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.6f, 0.4f, 0.2f, 0.0f),
+        glm::vec4(0.0f, 1.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f),
+        glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
 
     // Bottom face (faceIndex = 1) - Flat base (dirt)
     // CLOCKWISE when viewed from below
     // Vertices: 4=BLB, 5=BRB, 6=BRF, 7=BLF
     {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 0.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 0.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 1.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 1.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
+        glm::vec2(0.0f, 0.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f),
+        glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
+    {glm::vec4(0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 0.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f),
+        glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
+    {glm::vec4(0.5f, -0.5f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 1.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f),
+        glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
+    {glm::vec4(-0.5f, -0.5f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(0.0f, 1.0f), 0, 0, 1, 0.9f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, -1.0f, 0.0f, 0.0f),
+        glm::vec4(0.0f, -1.0f, 0.0f, 0.0f)},
 
     // Left face (faceIndex = 2) - Vertical side (dirt)
     // CLOCKWISE when viewed from left
     // Vertices: 8=BLB, 9=BLF, 10=TLF, 11=TLB
     {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 1.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(0.0f, 1.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, 0.707f, 0.0f), glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 0.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(0.0f, 0.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, 0.707f, 0.0f), glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4(-0.5f,  0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 0.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(1.0f, 0.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, 0.707f, 0.0f), glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 1.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(1.0f, 1.0f), 0, 0, 2, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.707f, 0.707f, 0.0f), glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f)},
 
     // Right face (faceIndex = 3) - Vertical side (dirt)
     // CLOCKWISE when viewed from right
     // Vertices: 12=BRF, 13=BRB, 14=TRB, 15=TRF
     {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 0.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(0.0f, 0.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 1.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(0.0f, 1.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 1.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(1.0f, 1.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)},
     {glm::vec4( 0.5f,  0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 0.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
+        glm::vec2(1.0f, 0.0f), 0, 0, 3, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.55f, 0.38f, 0.22f, 0.0f),
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)},
 
     // Front face (faceIndex = 4) - Vertical front (low height) (dirt)
     // CLOCKWISE when viewed from front
     // Vertices: 16=BLF, 17=BRF, 18=TRF, 19=TLF
-    {glm::vec4(-0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 1.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
-    {glm::vec4( 0.5f, -0.5f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 1.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
-    {glm::vec4( 0.5f,  0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(1.0f, 0.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
-    {glm::vec4(-0.5f,  0.0f,  0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
-        glm::vec2(0.0f, 0.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
+    {glm::vec4(-0.5f, -0.5f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(0.0f, 1.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
+    {glm::vec4(0.5f, -0.5f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 1.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
+    {glm::vec4(0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(1.0f, 0.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
+    {glm::vec4(-0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec2(0.0f, 0.0f), 0, 0, 4, 0.85f, 0.0f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
+        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)},
 
     // Back face (faceIndex = 5) - Vertical back (high height) (dirt)
     // CLOCKWISE when viewed from back
     // Vertices: 20=BRB, 21=BLB, 22=TLB, 23=TRB
-    {glm::vec4( 0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+    {glm::vec4(0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
         glm::vec2(1.0f, 1.0f), 0, 0, 5, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
+        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
     {glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
         glm::vec2(0.0f, 1.0f), 0, 0, 5, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
-    {glm::vec4(-0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
+    {glm::vec4(-0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
         glm::vec2(0.0f, 0.0f), 0, 0, 5, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
-    {glm::vec4( 0.5f,  0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
+    {glm::vec4(0.5f, 0.5f, -0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
         glm::vec2(1.0f, 0.0f), 0, 0, 5, 0.85f, 0.0f, 0.0f, glm::vec4(0.5f, 0.35f, 0.2f, 0.0f),
-        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
+        glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)},
 };
 
 // Generate cube indices dynamically for indexed drawing
@@ -455,12 +473,7 @@ static void CreateSSBOBuffers(VkDevice device,
 
   std::vector<uint32_t> zeroIndices(36, 0);
   CopyDataToBuffer(
-    device, 
-    vk.outputIndexBufferMemory, 
-    0, 
-    outputIndexBufferSize, 
-    zeroIndices.data()
-  );
+      device, vk.outputIndexBufferMemory, 0, outputIndexBufferSize, zeroIndices.data());
 
   // Create visible count buffer
   CreateBuffer(device, physicalDevice, sizeof(uint32_t),
@@ -1493,11 +1506,11 @@ void UnitStateDrawable::OnCreate(
   inputAttributeDescriptions[8].location = 8;
   inputAttributeDescriptions[8].format   = VK_FORMAT_R32_SFLOAT;
   inputAttributeDescriptions[8].offset   = offsetof(UnitVertex, metallic);
-  // Padding1 (float)
+  // PolCurve (float)
   inputAttributeDescriptions[9].binding  = 0;
   inputAttributeDescriptions[9].location = 9;
   inputAttributeDescriptions[9].format   = VK_FORMAT_R32_SFLOAT;
-  inputAttributeDescriptions[9].offset   = offsetof(UnitVertex, padding1);
+  inputAttributeDescriptions[9].offset   = offsetof(UnitVertex, polCurve);
   // Albedo (vec4)
   inputAttributeDescriptions[10].binding  = 0;
   inputAttributeDescriptions[10].location = 10;
