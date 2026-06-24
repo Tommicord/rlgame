@@ -74,7 +74,7 @@ class UnitChunkBuffer
   UnitChunkBuffer& operator=(UnitChunkBuffer&& other) noexcept;
 
   /* Clears the entire chunk buffer (sets all to Air Unit id) */
-  void Clear() const;
+  void Clear();
 
   /* Gets a Unit block id at 3D coordinate in the chunk buffer */
   [[nodiscard]]

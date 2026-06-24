@@ -66,7 +66,7 @@ UnitChunkBuffer& UnitChunkBuffer::operator=(UnitChunkBuffer&& other) noexcept
   return *this;
 }
 
-void UnitChunkBuffer::Clear() const
+void UnitChunkBuffer::Clear()
 {
   if (IsValid())
   {

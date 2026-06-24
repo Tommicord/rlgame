@@ -124,6 +124,7 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertices.h
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitChunkBuffer.h
+  rl/World/Unit/UnitPropertySetter.h
 )
 
 add_subdirectory(Deps/glfw)
