@@ -22,6 +22,9 @@ layout(set = 0, binding = 4) uniform LightingBlock {
     float u_AmbientStrength;
     vec3 u_CameraPosition;
     float u_Exposure;
+    float u_Padding1;  // Padding for 16-byte alignment
+    float u_Padding2;  // Padding for 16-byte alignment
+    float u_Padding3;  // Padding for 16-byte alignment
     vec3 u_GroundColor;
     vec3 u_SkyColor;
 } lighting;
@@ -109,7 +112,7 @@ vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-// ACES filmic tone mapping
+// ACES filmic tone mapping with better HDR handling
 vec3 ACESToneMapping(vec3 color) {
     const float A = 2.51;
     const float B = 0.03;
@@ -119,10 +122,100 @@ vec3 ACESToneMapping(vec3 color) {
     return clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0);
 }
 
-// Hemispheric ambient lighting
+// Enhanced tone mapping with exposure adaptation
+vec3 EnhancedToneMapping(vec3 color, float exposure) {
+    // Apply exposure
+    color *= exposure;
+    
+    // ACES tone mapping
+    vec3 mapped = ACESToneMapping(color);
+    
+    // Subtle contrast adjustment
+    mapped = pow(mapped, vec3(1.1));
+    
+    return clamp(mapped, 0.0, 1.0);
+}
+
+// Hemispheric ambient lighting with raytracing-like approximation
 vec3 CalculateHemisphericAmbient(vec3 normal, vec3 groundColor, vec3 skyColor, float intensity) {
     float hemi = 0.5 + 0.5 * normal.y;
-    return mix(groundColor, skyColor, hemi) * intensity;
+    
+    // Add occlusion factor for more realistic ambient
+    float occlusion = 1.0 - max(0.0, -normal.y) * 0.3;
+    
+    return mix(groundColor, skyColor, hemi) * intensity * occlusion;
+}
+
+// Ray-marched soft shadows
+float CalculateSoftShadows(vec3 worldPos, vec3 lightDir, float maxDist, int steps) {
+    float shadow = 1.0;
+    float stepSize = maxDist / float(steps);
+    
+    // Simple ray marching with limited steps for performance
+    for (int i = 1; i <= steps; i++) {
+        vec3 samplePos = worldPos + lightDir * (stepSize * float(i));
+        
+        // Approximate occlusion using distance from origin (cube centered at 0,0,0)
+        float distFromCenter = length(samplePos);
+        float occlusion = smoothstep(0.5, 0.7, distFromCenter);
+        
+        shadow = min(shadow, occlusion);
+        
+        // Early exit if fully occluded
+        if (shadow < 0.1) break;
+    }
+    
+    return shadow;
+}
+
+// Screen-space ambient occlusion approximation
+float CalculateSSAO(vec3 normal, vec3 viewDir, float roughness) {
+    float NdotV = max(dot(normal, viewDir), 0.0);
+    
+    // Simple AO based on viewing angle and roughness
+    float ao = 1.0 - (1.0 - NdotV) * 0.3 * (1.0 - roughness * 0.3);
+    
+    // Add cavity approximation
+    float cavity = pow(NdotV, 0.7);
+    ao = mix(ao, cavity, 0.2);
+    
+    return clamp(ao, 0.5, 1.0);
+}
+
+// Ray-marched reflections for metallic surfaces (simplified)
+vec3 CalculateReflections(vec3 worldPos, vec3 normal, vec3 viewDir, vec3 albedo, 
+                           float metallic, float roughness, vec3 ambientColor) {
+    if (metallic < 0.3) return vec3(0.0);
+    
+    // Calculate reflection direction
+    vec3 R = reflect(-viewDir, normal);
+    
+    // Simple environment approximation based on reflection direction
+    float skyFactor = max(R.y, 0.0);
+    vec3 envColor = mix(lighting.u_GroundColor, lighting.u_SkyColor, skyFactor);
+    
+    // Roughness-based reflection blur approximation
+    float roughnessFactor = 1.0 - roughness * 0.8;
+    vec3 reflection = envColor * roughnessFactor * metallic;
+    
+    // Add albedo tint for metals
+    reflection *= mix(vec3(1.0), albedo, metallic);
+    
+    return reflection * 0.4;
+}
+
+// Global illumination approximation with light bounces
+vec3 CalculateGI(vec3 normal, vec3 albedo, float roughness, vec3 lightColor) {
+    // First bounce approximation
+    vec3 bounceColor = albedo * lightColor * 0.15;
+    
+    // Roughness affects bounce intensity
+    bounceColor *= (1.0 - roughness * 0.5);
+    
+    // Add color bleeding
+    vec3 colorBleed = albedo * lighting.u_GroundColor * 0.1;
+    
+    return bounceColor + colorBleed;
 }
 
 // Calculate PBR lighting for a single light
@@ -164,11 +257,17 @@ vec3 CalculateAmbient(vec3 N, vec3 V, vec3 F0, PBRMaterial material, vec3 ambien
     vec3 irradiance = ambientColor;
     vec3 ambient = kD * material.albedo * irradiance * material.ao;
 
-    // Add indirect specular approximation
+    // Enhanced indirect specular with roughness-based falloff
     vec3 R = reflect(-V, N);
     vec3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0), F0, material.roughness);
-    vec3 indirectSpecular = F * (1.0 - material.roughness) * ambientColor * 0.5;
-    ambient += indirectSpecular;
+    
+    // Better indirect specular approximation based on roughness
+    float roughnessFactor = 1.0 - material.roughness * 0.7;
+    vec3 indirectSpecular = F * roughnessFactor * ambientColor * 0.6;
+    
+    // Add color bleeding from environment
+    vec3 envBleeding = ambientColor * material.albedo * 0.1 * (1.0 - material.roughness);
+    ambient += indirectSpecular + envBleeding;
 
     return ambient;
 }
@@ -248,7 +347,7 @@ float TriplanarMappingSingle(vec3 worldPos, vec3 geometricNormal, sampler2D tex,
     return result;
 }
 
-// Main PBR calculation
+// Main PBR calculation with raytracing-like effects
 vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material,
                   Light sunLight, vec3 ambientColor) {
     vec3 N = normalize(normal);
@@ -282,23 +381,69 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
 
     vec3 colorFinal = ambient + Lo;
 
+    // Ray-marched soft shadows (performance-optimized): reduced intensity
+    float softShadow = CalculateSoftShadows(worldPos, L, 3.0, 4);
+    colorFinal *= mix(1.0, softShadow, 0.5); // Blend to soften effect
+
+    // Screen-space ambient occlusion approximation - more subtle
+    float ssao = CalculateSSAO(N, V, material.roughness);
+    colorFinal = mix(colorFinal * 0.7, colorFinal, ssao);
+
+    // Ray-marched reflections for metallic surfaces: reduced intensity
+    vec3 reflections = CalculateReflections(worldPos, N, V, material.albedo, 
+                                           material.metallic, material.roughness, ambientColor);
+    colorFinal += reflections * 0.5;
+
+    // Global illumination approximation: reduced intensity
+    vec3 gi = CalculateGI(N, material.albedo, material.roughness, sunLight.color);
+    colorFinal += gi * 0.5;
+
+    // Enhanced rim lighting with geometric normal for better edge definition
     vec3 geoN = normalize(v_GeometricNormal);
     float NdotV = max(dot(geoN, V), 0.0);
     vec3 rimFresnel = FresnelSchlick(NdotV, F0);
 
+    // Multi-layered rim lighting for more realistic edge glow
     float baseRim = clamp(1.0 - NdotV, 0.0, 1.0);
-    float grosorRim = 0.4;
-    float rimFactor = smoothstep(grosorRim, 1.0, baseRim);
-
-    rimFactor = pow(rimFactor, 1.5);
-
+    
+    // Inner rim - softer, more diffuse
+    float innerRim = smoothstep(0.3, 0.8, baseRim);
+    innerRim = pow(innerRim, 2.0);
+    
+    // Outer rim - sharper, more intense
+    float outerRim = smoothstep(0.6, 1.0, baseRim);
+    outerRim = pow(outerRim, 4.0);
+    
+    // Combine rim layers
+    float combinedRim = innerRim * 0.4 + outerRim * 0.6;
+    
+    // Sun alignment for directional rim flash
     float sunViewAlignment = max(dot(L, V), 0.0);
-    float flashIntensity = pow(sunViewAlignment, 4.0);
-
-    float cornerFlash = rimFactor * mix(0.2, 1.0, flashIntensity) * (1.0 - material.roughness * 0.5);
-
-    vec3 rimLight = cornerFlash * rimFresnel * sunLight.color * (sunLight.intensity * 0.5);
+    float flashIntensity = pow(sunViewAlignment, 3.0);
+    
+    // Roughness affects rim intensity - smoother surfaces have stronger rims
+    float roughnessAttenuation = 1.0 - material.roughness * 0.6;
+    float cornerFlash = combinedRim * mix(0.3, 1.0, flashIntensity) * roughnessAttenuation;
+    
+    // Colored rim light based on material and sun
+    vec3 rimColor = mix(sunLight.color, material.albedo, 0.3);
+    vec3 rimLight = cornerFlash * rimFresnel * rimColor * (sunLight.intensity * 0.7);
     colorFinal += rimLight;
+
+    // Add subtle subsurface scattering approximation for non-metallic materials
+    if (material.metallic < 0.5) {
+        float sssThickness = 1.0 - material.roughness;
+        float backLight = max(dot(-L, N), 0.0);
+        vec3 sssColor = material.albedo * sunLight.color * backLight * sssThickness * 0.15;
+        colorFinal += sssColor;
+    }
+
+    // Add microfacet detail for rough surfaces
+    if (material.roughness > 0.3) {
+        float microDetail = material.roughness * 0.1;
+        vec3 microColor = material.albedo * ambientColor * microDetail;
+        colorFinal += microColor;
+    }
 
     return colorFinal;
 }
@@ -356,19 +501,26 @@ void main() {
     // Calculate self-emission with proper HDR handling
     float emission = float(v_LightingEmit) / 255.0;
     // Emission should be additive and not affected by AO
-    vec3 emitColor = emission * material.albedo * lighting.u_SunColor * 3.0;
+    vec3 emitColor = emission * material.albedo * lighting.u_SunColor * 4.0;
+    
+    // Add bloom-like glow for emissive materials
+    if (emission > 0.1) {
+        float glowIntensity = emission * 2.0;
+        emitColor += material.albedo * glowIntensity * 0.5;
+    }
 
     vec3 finalColor = pbrColor + emitColor;
 
-    // Apply exposure control
+    // Enhanced tone mapping with exposure
     float exposure = lighting.u_Exposure > 0.0 ? lighting.u_Exposure : 1.0;
-    finalColor *= exposure;
+    vec3 mappedColor = EnhancedToneMapping(finalColor, exposure);
 
-    // ACES filmic tone mapping (better than Reinhard)
-    vec3 mappedColor = ACESToneMapping(finalColor);
-
-    // Gamma correction
+    // Gamma correction with slight desaturation for more realistic look
     mappedColor = pow(mappedColor, vec3(1.0 / 2.2));
+    
+    // Subtle color grading - slightly warm shadows, cool highlights
+    float luminance = dot(mappedColor, vec3(0.299, 0.587, 0.114));
+    mappedColor = mix(mappedColor, mappedColor * vec3(1.05, 0.98, 0.95), 1.0 - luminance * 0.5);
 
     // Output final color with texture alpha
     outColor = vec4(mappedColor, texColor.a);

@@ -75,6 +75,7 @@ set(SOURCES
   rl/World/Unit/UnitDynamicTexture.cpp
   rl/World/Unit/UnitDynamicTexture.h
   rl/World/Unit/UnitRegistry.h
+  rl/World/Unit/UnitRegister.h
 )
 
 add_subdirectory(Deps/glfw)
