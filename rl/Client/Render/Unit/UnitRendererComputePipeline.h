@@ -13,6 +13,7 @@ void UnitCreateComputePipelineLayout(
     VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
 
 // Create compute pipeline for face culling
-void UnitCreateComputePipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkPipeline& pipeline);
+void UnitCreateComputePipeline(
+    VkDevice device, VkPipelineLayout pipelineLayout, VkPipeline& pipeline);
 
 } // namespace Rl::Client::Render

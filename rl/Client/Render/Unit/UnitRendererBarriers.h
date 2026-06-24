@@ -9,11 +9,14 @@ namespace Rl::Client::Render
 VkMemoryBarrier UnitCreateMemoryBarrier(VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 
 // Create buffer memory barrier
-VkBufferMemoryBarrier UnitCreateBufferMemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessMask,
-    VkAccessFlags dstAccessMask);
+VkBufferMemoryBarrier UnitCreateBufferMemoryBarrier(
+    VkBuffer buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 
 // Create image memory barrier
-VkImageMemoryBarrier UnitCreateImageMemoryBarrier(VkImage image, VkAccessFlags srcAccessMask,
-    VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout);
+VkImageMemoryBarrier UnitCreateImageMemoryBarrier(VkImage image,
+    VkAccessFlags                                         srcAccessMask,
+    VkAccessFlags                                         dstAccessMask,
+    VkImageLayout                                         oldLayout,
+    VkImageLayout                                         newLayout);
 
 } // namespace Rl::Client::Render

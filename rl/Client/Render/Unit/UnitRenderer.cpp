@@ -1,7 +1,5 @@
 #include "rl/Base/Game.h"
 #include "rl/Base/ShaderFactory.h"
-#include "rl/Base/StateDrawable.h"
-#include "rl/Base/StateModel.h"
 #include "rl/Client/Render/Unit/UnitRendererAOTextures.h"
 #include "rl/Client/Render/Unit/UnitRendererBasicBuffer.h"
 #include "rl/Client/Render/Unit/UnitRendererCleanup.h"
@@ -15,6 +13,7 @@
 #include "rl/Client/Render/Unit/UnitRendererNormalTextures.h"
 #include "rl/Client/Render/Unit/UnitRendererPlaceholderResource.h"
 #include "rl/Client/Render/Unit/UnitRendererSampler.h"
+#include "rl/Client/Render/Unit/UnitRendererTextureManage.h"
 #include "rl/Client/Render/Unit/UnitRendererVertexInput.h"
 #include "rl/Client/Render/Unit/UnitRendererVertices.h"
 #include "rl/Client/State/UnitState.h"
@@ -65,10 +64,6 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitAllocateGraphicsDescriptorSet(
       context.device, vk.descriptorPool, vk.descriptorSetLayout, vk.descriptorSet);
 
-  // Load compute shader
-  auto computeShaderCode   = Providers::ShaderObject::Shader("unit.face.comp.spv");
-  auto computeShaderModule = Providers::ShaderObject::Module(context.device, computeShaderCode);
-
   // Create compute pipeline layout and pipeline
   Client::Render::UnitCreateComputePipelineLayout(
       context.device, vk.computeDescriptorSetLayout, vk.pipelineLayout);
@@ -77,12 +72,7 @@ void UnitStateDrawable::OnCreate(
   // Update compute descriptor set
   Client::Render::UnitUpdateComputeDescriptorSet(context.device, vk.computeDescriptorSet,
       vk.vertexBuffer, vk.indexBuffer, vk.outputIndexBuffer, vk.visibleCountBuffer,
-      vk.indirectDrawBuffer, vk.frustumBuffer, unitVertices.size());
-
-  // Create curvature compute pipeline
-  auto curveComputeShaderCode = Providers::ShaderObject::Shader("unit.curve.comp.spv");
-  auto curveComputeShaderModule =
-      Providers::ShaderObject::Module(context.device, curveComputeShaderCode);
+      vk.indirectDrawBuffer, vk.frustumBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
 
   Client::Render::UnitCreateCurvatureComputeDescriptorSetLayout(
       context.device, vk.curveComputeDescriptorSetLayout);
@@ -98,7 +88,7 @@ void UnitStateDrawable::OnCreate(
   // Update curvature compute descriptor set
   Client::Render::UnitUpdateCurvatureComputeDescriptorSet(context.device,
       vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer, vk.curvedVertexBuffer,
-      vk.curvedIndexBuffer, vk.curveCountersBuffer, vk.curveIndirectDrawBuffer, unitVertices.size(),
+      vk.curvedIndexBuffer, vk.curveCountersBuffer, vk.curveIndirectDrawBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size(),
       unitIndices.size());
 
   // Create placeholder resources
@@ -106,8 +96,11 @@ void UnitStateDrawable::OnCreate(
       vk.placeholderLightingTexture, vk.placeholderLightingBufferMemory,
       vk.placeholderLightingTextureView, vk.placeholderLightingSampler);
   Client::Render::UnitCreatePlaceholderAOTexture(context.device, context.physicalDevice,
-      vk.aoTextures, vk.aoTexturesMemory, vk.placeholderLightingTextureView,
-      vk.placeholderLightingSampler);
+      vk.placeholderAOTexture, vk.placeholderAOTextureMemory, vk.placeholderAOTextureView,
+      vk.placeholderAOSampler);
+  Client::Render::UnitCreatePlaceholderNormalTexture(context.device, context.physicalDevice,
+      vk.placeholderNormalTexture, vk.placeholderNormalTextureMemory, vk.placeholderNormalTextureView,
+      vk.placeholderNormalSampler);
   Client::Render::UnitCreatePlaceholderSettingsBuffer(context.device, context.physicalDevice,
       vk.placeholderSettingsBuffer, vk.placeholderSettingsBufferMemory);
   Client::Render::UnitCreatePlaceholderLightingBuffer(context.device, context.physicalDevice,
@@ -119,27 +112,20 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitCreateGlobalTextureSampler(context.device, vk.globalTextureSampler);
 
   // Update graphics descriptor set with placeholder resources
-  Client::Render::UnitUpdateGraphicsDescriptorSet(context.device, vk.descriptorSet, vk);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithPlaceholders(context.device, vk.descriptorSet,
+      vk.placeholderLightingBuffer, vk.placeholderLightingTextureView,
+      vk.placeholderLightingSampler, vk.placeholderSettingsBuffer, vk.placeholderAOTextureView,
+      vk.placeholderAOSampler, vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
+      vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Create vertex input state
-  auto vertexInputBinding    = UnitCreateVertexInputBindingDescription();
-  auto vertexInputAttributes = UnitCreateVertexInputAttributeDescriptions();
-
-  // Create graphics pipeline
-  auto vertShaderCode   = Providers::ShaderObject::Shader("unit.vert.spv");
-  auto fragShaderCode   = Providers::ShaderObject::Shader("unit.lightning.frag.spv");
-  auto vertShaderModule = Providers::ShaderObject::Module(context.device, vertShaderCode);
-  auto fragShaderModule = Providers::ShaderObject::Module(context.device, fragShaderCode);
+  auto vertexInputBinding    = Client::Render::UnitCreateVertexInputBindingDescription();
+  auto vertexInputAttributes = Client::Render::UnitCreateVertexAttributeDescriptions();
 
   Client::Render::UnitCreateGraphicsPipelineLayout(
       context.device, vk.descriptorSetLayout, vk.pipelineLayout);
-  Client::Render::UnitCreateGraphicsPipeline(context.device, vertShaderModule.module,
-      fragShaderModule.module, vk.pipelineLayout, vertexInputBinding, vertexInputAttributes,
-      vk.pipeline);
-
-  Providers::ShaderObject::DestroyShaderModule(context.device, computeShaderModule);
-  Providers::ShaderObject::DestroyShaderModule(context.device, vertShaderModule);
-  Providers::ShaderObject::DestroyShaderModule(context.device, fragShaderModule);
+  Client::Render::UnitCreateGraphicsPipeline(context.device, vk.pipelineLayout, context.renderPass,
+      context.swapChainExtent, vertexInputBinding, vertexInputAttributes, vk.pipeline);
 }
 
 void UnitStateDrawable::OnUpdate(
@@ -155,8 +141,8 @@ void UnitStateDrawable::OnUpdate(
   // Update graphics descriptor set with textures from unit (only if textures changed)
   if (resource.unit)
   {
-    Client::Render::UnitUpdateGraphicsDescriptorSetTextures(
-        context.device, vk.descriptorSet, resource.unit, context);
+    Client::Render::UnitUpdateUnitTextures(
+        context.device, vk.descriptorSet, resource.unit->GetMaterial(), context);
 
     // Generate AO textures from unit textures (only if not already generated)
     if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
@@ -198,11 +184,6 @@ void UnitStateDrawable::OnDestroy(
     UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
 {
   Client::Render::UnitCleanupResources(context.device, vk);
-  Client::Render::UnitCleanupBuffers(context.device, vk);
-  Client::Render::UnitCleanupTextures(context.device, vk);
-  Client::Render::UnitCleanupSamplers(context.device, vk);
-  Client::Render::UnitCleanupDescriptorSets(context.device, vk);
-  Client::Render::UnitCleanupPipelines(context.device, vk);
 }
 
 void UnitStateDrawable::OnPause()

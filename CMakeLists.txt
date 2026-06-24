@@ -57,6 +57,7 @@ set(SOURCES
   rl/Base/Texture2Vk.cpp
   rl/Base/Texture2.h
   rl/Base/StateModel.h
+  rl/Base/StateDrawable.h
   rl/Base/IUpdatable.h
   rl/Client/Render/CameraRenderer.cpp
   rl/Client/State/CameraState.cpp

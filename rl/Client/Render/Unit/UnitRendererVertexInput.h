@@ -2,15 +2,13 @@
 
 #include <array>
 #include <vulkan/vulkan.hpp>
-#include "rl/Client/Render/Unit/UnitRendererInfo.h"
 
 namespace Rl::Client::Render
 {
 
-// Create vertex input binding description
-VkVertexInputBindingDescription UnitCreateVertexBindingDescription();
+/* Creates a binding for a vertex input structure */
+VkVertexInputBindingDescription UnitCreateVertexInputBindingDescription();
 
-// Create vertex input attribute descriptions for UnitRenderVertex
-std::array<VkVertexInputAttributeDescription, 13> UnitCreateVertexAttributeDescriptions();
-
+/* Creates a binding attributes for a vertex input structure */
+std::array<VkVertexInputAttributeDescription, 14> UnitCreateVertexAttributeDescriptions();
 } // namespace Rl::Client::Render

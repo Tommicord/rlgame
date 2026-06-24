@@ -70,6 +70,10 @@ struct UnitStateDrawableVulkan : StateDrawableVulkan
   VkDeviceMemory placeholderAOTextureMemory      = VK_NULL_HANDLE;
   VkImageView    placeholderAOTextureView        = VK_NULL_HANDLE;
   VkSampler      placeholderAOSampler            = VK_NULL_HANDLE;
+  VkImage        placeholderNormalTexture        = VK_NULL_HANDLE;
+  VkDeviceMemory placeholderNormalTextureMemory  = VK_NULL_HANDLE;
+  VkImageView    placeholderNormalTextureView    = VK_NULL_HANDLE;
+  VkSampler      placeholderNormalSampler        = VK_NULL_HANDLE;
 
   // Global sampler for all textures (to avoid sampler allocation limit)
   VkSampler globalTextureSampler = VK_NULL_HANDLE;

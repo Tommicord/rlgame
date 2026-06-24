@@ -17,13 +17,12 @@ void UnitGenerateAOTextures(VkDevice    device,
     aoProperties.minFilter       = Providers::TextureFilter::LINEAR_MIPMAP_LINEAR;
     aoProperties.magFilter       = Providers::TextureFilter::LINEAR;
 
-    Providers::Texture2* aoTextures[6] = {
-      GenerateLightningTexture(textures.top, aoProperties),
-      GenerateLightningTexture(textures.down, aoProperties),
-      GenerateLightningTexture(textures.left, aoProperties),
-      GenerateLightningTexture(textures.right, aoProperties),
-      GenerateLightningTexture(textures.front, aoProperties),
-      GenerateLightningTexture(textures.back, aoProperties)};
+    Providers::Texture2* aoTextures[6] = {GenerateLightningTexture(textures.top, aoProperties),
+        GenerateLightningTexture(textures.down, aoProperties),
+        GenerateLightningTexture(textures.left, aoProperties),
+        GenerateLightningTexture(textures.right, aoProperties),
+        GenerateLightningTexture(textures.front, aoProperties),
+        GenerateLightningTexture(textures.back, aoProperties)};
 
     // Create Vulkan resources for generated AO textures
     for (int i = 0; i < 6; ++i)
@@ -55,11 +54,11 @@ void UnitGenerateAOTextures(VkDevice    device,
 }
 
 void UnitUpdateAOTextureDescriptor(
-    VkDevice device, VkDescriptorSet descriptorSet, VkImageView aoTextureView, VkSampler sampler)
+    VkDevice device, VkDescriptorSet descriptorSet, VkImageView aoTextureView[6], VkSampler sampler)
 {
   VkDescriptorImageInfo aoImageInfo{};
   aoImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  aoImageInfo.imageView   = aoTextureView;
+  aoImageInfo.imageView   = aoTextureView[0];
   aoImageInfo.sampler     = sampler;
 
   VkWriteDescriptorSet aoTextureWrite{};

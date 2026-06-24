@@ -11,16 +11,16 @@ namespace Rl::Client::Render
  */
 struct UnitRenderLightingBlock
 {
-    alignas(16) glm::vec3 sunDirection;
-    alignas(16) glm::vec3 sunColor;
-    alignas(4) float ambientStrength;
-    alignas(16) glm::vec3 cameraPosition;
-    alignas(4) float exposure;
-    alignas(4) float padding1; // Padding for 16-byte alignment
-    alignas(4) float padding2; // Padding for 16-byte alignment
-    alignas(4) float padding3; // Padding for 16-byte alignment
-    alignas(16) glm::vec3 groundColor;
-    alignas(16) glm::vec3 skyColor;
+  alignas(16) glm::vec3 sunDirection;
+  alignas(16) glm::vec3 sunColor;
+  alignas(4) float ambientStrength;
+  alignas(16) glm::vec3 cameraPosition;
+  alignas(4) float exposure;
+  alignas(4) float padding1; // Padding for 16-byte alignment
+  alignas(4) float padding2; // Padding for 16-byte alignment
+  alignas(4) float padding3; // Padding for 16-byte alignment
+  alignas(16) glm::vec3 groundColor;
+  alignas(16) glm::vec3 skyColor;
 };
 
 } // namespace Rl::Client::Render

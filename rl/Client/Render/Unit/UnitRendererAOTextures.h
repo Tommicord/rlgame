@@ -8,10 +8,14 @@
 namespace Rl::Client::Render
 {
 
-void UnitGenerateAOTextures(VkDevice device, Game::VulkanContext& context,
-    Providers::UnitStateDrawableVulkan& vk, const World::UnitTextureMaterial& textures);
+void UnitGenerateAOTextures(VkDevice    device,
+    Game::VulkanContext&                context,
+    Providers::UnitStateDrawableVulkan& vk,
+    const World::UnitTextureMaterial&   textures);
 
-void UnitUpdateAOTextureDescriptor(VkDevice device, VkDescriptorSet descriptorSet,
-    VkImageView aoTextureView, VkSampler sampler);
+void UnitUpdateAOTextureDescriptor(VkDevice device,
+    VkDescriptorSet                         descriptorSet,
+    VkImageView                             aoTextureView[6],
+    VkSampler                               sampler);
 
 } // namespace Rl::Client::Render

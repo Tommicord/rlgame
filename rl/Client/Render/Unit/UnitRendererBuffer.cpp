@@ -8,9 +8,9 @@
 namespace Rl::Client::Render
 {
 
-static uint32_t UnitFindMemoryTypeIndex(VkPhysicalDevice physicalDevice,
-    VkMemoryRequirements                                 memRequirements,
-    VkMemoryPropertyFlags                                properties)
+uint32_t UnitFindMemoryTypeIndex(VkPhysicalDevice physicalDevice,
+    VkMemoryRequirements                          memRequirements,
+    VkMemoryPropertyFlags                         properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -28,12 +28,12 @@ static uint32_t UnitFindMemoryTypeIndex(VkPhysicalDevice physicalDevice,
 
 // Helper function to create a buffer with specified properties
 void UnitCreateBuffer(VkDevice device,
-    VkPhysicalDevice       physicalDevice,
-    VkDeviceSize           size,
-    VkBufferUsageFlags     usage,
-    VkMemoryPropertyFlags  properties,
-    VkBuffer&              buffer,
-    VkDeviceMemory&        bufferMemory)
+    VkPhysicalDevice           physicalDevice,
+    VkDeviceSize               size,
+    VkBufferUsageFlags         usage,
+    VkMemoryPropertyFlags      properties,
+    VkBuffer&                  buffer,
+    VkDeviceMemory&            bufferMemory)
 {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -63,10 +63,10 @@ void UnitCreateBuffer(VkDevice device,
 }
 
 void UnitCopyDataToBuffer(VkDevice device,
-    VkDeviceMemory             bufferMemory,
-    VkDeviceSize               offset,
-    VkDeviceSize               size,
-    const void*                data)
+    VkDeviceMemory                 bufferMemory,
+    VkDeviceSize                   offset,
+    VkDeviceSize                   size,
+    const void*                    data)
 {
   void* mappedData;
   vkMapMemory(device, bufferMemory, offset, size, 0, &mappedData);
@@ -75,11 +75,11 @@ void UnitCopyDataToBuffer(VkDevice device,
 }
 
 // Create index buffer for the cube
-void UnitCreateIndexBuffer(VkDevice  device,
-    VkPhysicalDevice             physicalDevice,
-    const std::vector<uint32_t>& indices,
-    VkBuffer&                    indexBuffer,
-    VkDeviceMemory&              indexBufferMemory)
+void UnitCreateIndexBuffer(VkDevice device,
+    VkPhysicalDevice                physicalDevice,
+    const std::vector<uint32_t>&    indices,
+    VkBuffer&                       indexBuffer,
+    VkDeviceMemory&                 indexBufferMemory)
 {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -178,8 +178,8 @@ void UnitCreateUniformBuffers(
   initialTriplanar.offsetY   = 0.0f;
   initialTriplanar.offsetZ   = 0.0f;
   initialTriplanar.blendMix  = 1.0f;
-  CopyDataToBuffer(device, vk.triplanarSettingsBufferMemory, 0, sizeof(UnitRenderTriplanarSettings),
-      &initialTriplanar);
+  UnitCopyDataToBuffer(device, vk.triplanarSettingsBufferMemory, 0,
+      sizeof(UnitRenderTriplanarSettings), &initialTriplanar);
 }
 
 } // namespace Rl::Client::Render

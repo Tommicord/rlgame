@@ -56,12 +56,12 @@ void UnitGenerateNormalTextures(VkDevice device,
 
 void UnitUpdateNormalTextureDescriptor(VkDevice device,
     VkDescriptorSet                             descriptorSet,
-    VkImageView                                 normalTextureView,
+    VkImageView                                 normalTextureView[6],
     VkSampler                                   sampler)
 {
   VkDescriptorImageInfo normalImageInfo{};
   normalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  normalImageInfo.imageView   = normalTextureView;
+  normalImageInfo.imageView   = normalTextureView[0];
   normalImageInfo.sampler     = sampler;
 
   VkWriteDescriptorSet normalTextureWrite{};

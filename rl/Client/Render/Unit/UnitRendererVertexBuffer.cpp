@@ -9,7 +9,7 @@
 namespace Rl::Client::Render
 {
 
-void CreateVertexBuffer(VkDevice         device,
+void UnitCreateVertexBuffer(VkDevice         device,
     VkPhysicalDevice                     physicalDevice,
     const std::vector<UnitRenderVertex>& vertices,
     VkBuffer&                            vertexBuffer,
@@ -20,15 +20,15 @@ void CreateVertexBuffer(VkDevice         device,
   // Create staging buffer (host-visible)
   VkBuffer       stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  CreateBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  UnitCreateBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
       stagingBufferMemory);
 
   // Copy data to staging buffer
-  CopyDataToBuffer(device, stagingBufferMemory, 0, bufferSize, vertices.data());
+  UnitCopyDataToBuffer(device, stagingBufferMemory, 0, bufferSize, vertices.data());
 
   // Create device-local vertex buffer
-  CreateBuffer(device, physicalDevice, bufferSize,
+  UnitCreateBuffer(device, physicalDevice, bufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);

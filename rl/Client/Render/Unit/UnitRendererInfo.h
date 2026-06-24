@@ -5,7 +5,8 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
-namespace Rl::Client::Render {
+namespace Rl::Client::Render
+{
 
 /* Defines the Vertex data structure for unit rendering */
 struct UnitRenderVertex
@@ -25,7 +26,8 @@ struct UnitRenderVertex
   glm::vec4 polCurve;
   glm::vec4 albedo; // 16 bytes (albR, albG, albB + padding)
   glm::vec4 tangent; // 16 bytes (tanX, tanY, tanZ + padding)
-  glm::vec4 bitangent;
+  glm::vec4 bitangent; // 16 bytes (bitanX, bitanY, bitanZ + padding)
+  glm::vec4 normal; // 16 bytes (normX, normY, normZ + padding)
 };
 
 /* Defines the lighting uniforms for the unit render info */
@@ -36,9 +38,9 @@ struct UnitRenderLightingUniforms
   alignas(4) float ambientStrength;
   alignas(16) glm::vec3 cameraPosition;
   alignas(4) float exposure;
-  alignas(4) float padding1;  // Padding for 16-byte alignment
-  alignas(4) float padding2;  // Padding for 16-byte alignment
-  alignas(4) float padding3;  // Padding for 16-byte alignment
+  alignas(4) float padding1; // Padding for 16-byte alignment
+  alignas(4) float padding2; // Padding for 16-byte alignment
+  alignas(4) float padding3; // Padding for 16-byte alignment
   alignas(16) glm::vec3 groundColor;
   alignas(16) glm::vec3 skyColor;
 };
@@ -69,7 +71,7 @@ struct UnitRenderFrustumPlanes
 };
 
 /* Defines draw parameters for indirect drawing */
-struct UnitDrawIndexedParams
+struct UnitRenderDrawIndexedParams
 {
   uint32_t indexCount;
   uint32_t instanceCount;

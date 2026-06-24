@@ -8,16 +8,17 @@
 namespace Rl::Client::Render
 {
 
-void CreateCurvatureComputeBuffers(VkDevice device,
-    VkPhysicalDevice                   physicalDevice,
-    size_t                             vertexCount,
-    Providers::UnitStateDrawableVulkan&           vk)
+void UnitCreateCurvatureComputeBuffers(VkDevice device,
+    VkPhysicalDevice                            physicalDevice,
+    size_t                                      vertexCount,
+    Providers::UnitStateDrawableVulkan&         vk)
 {
-  // Calculate maximum curved vertex count (tessellation level 8 = 9x9 = 81 vertices per curved face)
-  const uint32_t tessellationLevel = 8;
-  const uint32_t verticesPerEdge = tessellationLevel + 1;
+  // Calculate maximum curved vertex count (tessellation level 8 = 9x9 = 81 vertices per curved
+  // face)
+  const uint32_t tessellationLevel        = 8;
+  const uint32_t verticesPerEdge          = tessellationLevel + 1;
   const uint32_t maxVerticesPerCurvedFace = verticesPerEdge * verticesPerEdge;
-  const uint32_t maxCurvedVertices = maxVerticesPerCurvedFace * 6; // 6 faces
+  const uint32_t maxCurvedVertices        = maxVerticesPerCurvedFace * 6; // 6 faces
   const uint32_t maxCurvedIndices = tessellationLevel * tessellationLevel * 6 * 6; // 6 faces
 
   // Create curved vertex buffer
@@ -45,20 +46,21 @@ void CreateCurvatureComputeBuffers(VkDevice device,
   UnitCopyDataToBuffer(device, vk.curveCountersBufferMemory, 0, 2 * sizeof(uint32_t), zeroCounters);
 
   // Create indirect draw buffer for curved geometry
-  UnitCreateBuffer(device, physicalDevice, sizeof(UnitDrawIndexedParams),
+  UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderDrawIndexedParams),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       vk.curveIndirectDrawBuffer, vk.curveIndirectDrawBufferMemory);
 
   // Initialize indirect draw buffer
-  UnitDrawIndexedParams initialDrawParams{};
-  initialDrawParams.indexCount = 0;
+  UnitRenderDrawIndexedParams initialDrawParams{};
+  initialDrawParams.indexCount    = 0;
   initialDrawParams.instanceCount = 1;
-  initialDrawParams.firstIndex = 0;
-  initialDrawParams.vertexOffset = 0;
+  initialDrawParams.firstIndex    = 0;
+  initialDrawParams.vertexOffset  = 0;
   initialDrawParams.firstInstance = 0;
-  UnitCopyDataToBuffer(device, vk.curveIndirectDrawBufferMemory, 0, sizeof(UnitDrawIndexedParams), &initialDrawParams);
+  UnitCopyDataToBuffer(device, vk.curveIndirectDrawBufferMemory, 0,
+      sizeof(UnitRenderDrawIndexedParams), &initialDrawParams);
 }
 
 } // namespace Rl::Client::Render

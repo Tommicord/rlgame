@@ -1,8 +1,8 @@
 #pragma once
 
+#include <vulkan/vulkan.hpp>
 #include "rl/Base/Game.h"
 #include "rl/World/Unit/Unit.h"
-#include <vulkan/vulkan.hpp>
 
 namespace Rl::Client::Render
 {
@@ -16,7 +16,7 @@ void UnitGenerateNormalTextures(VkDevice device,
 // Update normal texture descriptor
 void UnitUpdateNormalTextureDescriptor(VkDevice device,
     VkDescriptorSet                             descriptorSet,
-    VkImageView                                 normalTextureView,
+    VkImageView                                 normalTextureView[6],
     VkSampler                                   sampler);
 
 } // namespace Rl::Client::Render

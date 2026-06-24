@@ -12,10 +12,11 @@ namespace Rl::Client::Render
 void UnitCreateCurvatureComputePushConstantRange(VkPushConstantRange& pushConstantRange);
 
 // Create pipeline layout for curvature compute shader
-void UnitCreateCurvatureComputePipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
+void UnitCreateCurvatureComputePipelineLayout(
+    VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
 
 // Create curvature compute pipeline
-void UnitCreateCurvatureComputePipeline(VkDevice device, VkPipelineLayout pipelineLayout,
-    VkPipeline& pipeline);
+void UnitCreateCurvatureComputePipeline(
+    VkDevice device, VkPipelineLayout pipelineLayout, VkPipeline& pipeline);
 
 } // namespace Rl::Client::Render

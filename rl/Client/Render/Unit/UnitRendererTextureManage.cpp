@@ -1,11 +1,11 @@
-#include "rl/Base/Texture2.h"
 #include "rl/Client/Render/Unit/UnitRendererTextureManage.h"
+#include "rl/Base/Texture2.h"
 #include "rl/World/Unit/Unit.h"
 
 namespace Rl::Client::Render
 {
 
-void UpdateUnitTextures(VkDevice      device,
+void UnitUpdateUnitTextures(VkDevice  device,
     VkDescriptorSet                   descriptorSet,
     const World::UnitTextureMaterial& textures,
     Game::VulkanContext&              context)
@@ -20,6 +20,12 @@ void UpdateUnitTextures(VkDevice      device,
       imageInfos[index].imageView = texture->binding.vkImageView;
       texture->GetSampler(context);
       imageInfos[index].sampler = texture->binding.vkSampler;
+    }
+    else
+    {
+      imageInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      imageInfos[index].imageView = VK_NULL_HANDLE;
+      imageInfos[index].sampler = VK_NULL_HANDLE;
     }
   };
   // Get texture image views and samplers (order: top, down, left, right, front, back)

@@ -1,14 +1,14 @@
 #include "rl/Client/Render/Unit/UnitRendererDrawCompute.h"
+#include <glm/glm.hpp>
 #include "rl/Client/Render/Unit/UnitRendererFrustum.h"
 #include "rl/Client/Render/Unit/UnitRendererLightingBlock.h"
-#include <glm/glm.hpp>
 
 namespace Rl::Client::Render
 {
 
-void DispatchComputeShaders(Providers::UnitStateResource& resource,
-    Providers::UnitStateDrawableVulkan&                   vk,
-    Game::VulkanContext&                                  context)
+void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
+    Providers::UnitStateDrawableVulkan&                       vk,
+    Game::VulkanContext&                                      context)
 {
   if (!resource.cameraModel)
     return;
@@ -112,6 +112,8 @@ void DispatchComputeShaders(Providers::UnitStateResource& resource,
     // Calculate workgroup count, each workgroup processes 64 triangles
     uint32_t triangleCount  = 36 / 3; // 12 triangles
     uint32_t workgroupCount = (triangleCount + 63) / 64;
+    // Ensure at least 1 workgroup is dispatched
+    workgroupCount = std::max(workgroupCount, 1u);
     vkCmdDispatch(context.commandBuffers[0], workgroupCount, 1, 1);
 
     VkBufferMemoryBarrier computeToCopyBarrier{};

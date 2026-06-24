@@ -15,7 +15,8 @@ VkCommandPool UnitCreateTempCommandPool(VkDevice device, uint32_t queueFamilyInd
 
 VkCommandBuffer UnitAllocateTempCommandBuffer(VkDevice device, VkCommandPool commandPool);
 
-void UnitFreeTempCommandBuffer(VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
+void UnitFreeTempCommandBuffer(
+    VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
 
 void UnitDestroyTempCommandPool(VkDevice device, VkCommandPool commandPool);
 

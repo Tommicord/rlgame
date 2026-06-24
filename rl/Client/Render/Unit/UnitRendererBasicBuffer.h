@@ -8,6 +8,11 @@
 namespace Rl::Client::Render
 {
 
+/* Gets a memory type index frm device memory requirements */
+uint32_t UnitFindMemoryTypeIndex(VkPhysicalDevice physicalDevice,
+    VkMemoryRequirements                          memRequirements,
+    VkMemoryPropertyFlags                         properties);
+
 /* Base function for creating a Vulkan Buffer */
 void UnitCreateBuffer(VkDevice device,
     VkPhysicalDevice           physicalDevice,
