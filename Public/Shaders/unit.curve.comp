@@ -135,28 +135,28 @@ void GetAdjacentCurvature(uint currentFaceIndex, uint faceCount, out float adjVe
     if (currentFaceIndex == 0 || currentFaceIndex == 1) {
         for (uint i = 2; i < 6 && i < faceCount; i++) {
             uint adjBaseIndex = i * verticesPerFace;
-            adjVertical += max(0.0, vertices[adjBaseIndex].polCurve.x) * adjacentFactor;
-            adjHorizontal += max(0.0, vertices[adjBaseIndex].polCurve.y) * adjacentFactor;
+            adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
+            adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
         }
     } else if (currentFaceIndex == 2 || currentFaceIndex == 3) {
         if (0 < faceCount) {
             uint adjBaseIndex = 0 * verticesPerFace;
-            adjVertical += max(0.0, vertices[adjBaseIndex].polCurve.x) * adjacentFactor;
-            adjHorizontal += max(0.0, vertices[adjBaseIndex].polCurve.y) * adjacentFactor;
+            adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
+            adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
         }
     } else if (currentFaceIndex == 4 || currentFaceIndex == 5) {
         if (0 < faceCount) {
             uint adjBaseIndex = 0 * verticesPerFace;
-            adjVertical += max(0.0, vertices[adjBaseIndex].polCurve.x) * adjacentFactor;
-            adjHorizontal += max(0.0, vertices[adjBaseIndex].polCurve.y) * adjacentFactor;
+            adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
+            adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
         }
     }
 }
 
 // Apply parabolic curvature to a vertex
 void ApplyCurvature(inout VertexInput v, float adjVertical, float adjHorizontal, uint faceIndex, vec2 faceUV) {
-    float totalVertical = v.polCurve.x + adjVertical;
-    float totalHorizontal = v.polCurve.y + adjHorizontal;
+    float totalVertical = v.polCurve.x;
+    float totalHorizontal = v.polCurve.y;
     float totalCurvature = totalVertical + totalHorizontal;
 
     if (totalCurvature != 0.0) {
@@ -164,16 +164,25 @@ void ApplyCurvature(inout VertexInput v, float adjVertical, float adjHorizontal,
         float distanceFromCenter = length(centerOffset);
         float curvatureAmount = totalCurvature * (distanceFromCenter * distanceFromCenter * 2.0);
 
+        // Apply smooth falloff near edges to prevent discontinuities
+        float edgeDistX = min(faceUV.x, 1.0 - faceUV.x);
+        float edgeDistY = min(faceUV.y, 1.0 - faceUV.y);
+        float edgeDist = min(edgeDistX, edgeDistY);
+        
+        // Smooth falloff: full curvature in center, fading to zero at edges
+        // Reduced threshold for more visible curvature
+        float edgeFalloff = smoothstep(0.0, 0.3, edgeDist);
+        curvatureAmount *= edgeFalloff;
+
         v.position.xyz += v.normal.xyz * curvatureAmount;
 
-        vec2 gradient2D = centerOffset * totalCurvature * 4.0;
+        vec2 gradient2D = centerOffset * totalCurvature * 4.0 * edgeFalloff;
         vec3 gradient = vec3(gradient2D.x, 0.0, gradient2D.y);
 
         vec3 tangent = normalize(v.tangent.xyz + gradient);
         vec3 bitangent = normalize(v.bitangent.xyz + gradient);
         v.normal = vec4(normalize(cross(tangent, bitangent)), 0.0);
     }
-
 }
 
 void main() {
@@ -199,14 +208,10 @@ void main() {
     float adjVertical, adjHorizontal;
     GetAdjacentCurvature(globalID, pc.faceCount, adjVertical, adjHorizontal);
 
-    float totalVertical = polCurveV + adjVertical;
-    float totalHorizontal = polCurveH + adjHorizontal;
-
+    // Only tessellate if this face has its own curvature
+    float totalVertical = polCurveV;
+    float totalHorizontal = polCurveH;
     bool shouldTessellate = (totalVertical != 0.0 || totalHorizontal != 0.0);
-    if (globalID == 2 || globalID == 3 || globalID == 4 || globalID == 5) {
-        // Side faces: tessellate if top face has curvature
-        shouldTessellate = (adjVertical != 0.0 || adjHorizontal != 0.0);
-    }
     // Constants
     const uint MAX_VERTICES = 4096;
     const uint MAX_INDICES = 32738;
@@ -281,16 +286,22 @@ void main() {
         }
 
         // Generate indices for the curved surface tessellated grid
-        for (uint y = 0; y < tess; y++) {
-            for (uint x = 0; x < tess; x++) {
+        for (uint y = 0; y < tess; ++y) {
+            for (uint x = 0; x < tess; ++x) {
                 uint topLeft = curvedVertexOffset + y * verticesPerEdge + x;
                 uint topRight = topLeft + 1;
                 uint bottomLeft = curvedVertexOffset + (y + 1) * verticesPerEdge + x;
                 uint bottomRight = bottomLeft + 1;
-
                 uint idx = curvedIndexOffset + (y * tess + x) * 6;
 
-                if (idx + 5 < MAX_INDICES) {
+                // Only cull triangles at the corners (pointer edges)
+                float edgeThreshold = 0.05;
+                vec2 uvCenter = vec2((float(x) + 0.5) / float(tess), (float(y) + 0.5) / float(tess));
+                bool isNearXEdge = (uvCenter.x < edgeThreshold || uvCenter.x > 1.0 - edgeThreshold);
+                bool isNearYEdge = (uvCenter.y < edgeThreshold || uvCenter.y > 1.0 - edgeThreshold);
+                bool isCorner = isNearXEdge && isNearYEdge;
+
+                if (idx + 5 < MAX_INDICES && !isCorner) {
                     // Triangle 1: top-left, bottom-left, top-right
                     curvedIndices[idx] = topLeft;
                     curvedIndices[idx + 1] = bottomLeft;
@@ -300,6 +311,14 @@ void main() {
                     curvedIndices[idx + 3] = topRight;
                     curvedIndices[idx + 4] = bottomLeft;
                     curvedIndices[idx + 5] = bottomRight;
+                } else if (idx + 5 < MAX_INDICES) {
+                    // Degenerate triangles for edge regions
+                    curvedIndices[idx] = topLeft;
+                    curvedIndices[idx + 1] = topLeft;
+                    curvedIndices[idx + 2] = topLeft;
+                    curvedIndices[idx + 3] = topRight;
+                    curvedIndices[idx + 4] = topRight;
+                    curvedIndices[idx + 5] = topRight;
                 }
             }
         }

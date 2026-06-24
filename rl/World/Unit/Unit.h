@@ -60,7 +60,7 @@ public:
     requires(std::is_base_of_v<BaseUnit, std::decay_t<T>>)
   BaseUnit(T* type) noexcept : BaseUnit()
   {
-    static Texture2 texture("grass.png");
+    static Texture2 texture("unknown.png");
     using pair = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
     int id     = 1;
     if (pair::GetObjectById(id).has_value())

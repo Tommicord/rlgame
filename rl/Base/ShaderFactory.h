@@ -18,7 +18,7 @@ class ShaderObject
   {
     VkShaderModule module;
   };
-  static ShaderModule      CreateShaderModule(VkDevice device, const std::vector<char>& code);
+  static ShaderModule      Module(VkDevice device, const std::vector<char>& code);
   static void              DestroyShaderModule(VkDevice device, ShaderModule& shaderModule);
   static std::vector<char> Shader(const std::string& filename);
   ShaderObject()                               = delete;

@@ -1,0 +1,77 @@
+#include "rl/Client/Render/Unit/UnitRendererAOTextures.h"
+#include "rl/Base/Texture2.h"
+
+namespace Rl::Client::Render
+{
+
+void UnitGenerateAOTextures(VkDevice    device,
+    Game::VulkanContext&                context,
+    Providers::UnitStateDrawableVulkan& vk,
+    const World::UnitTextureMaterial&   textures)
+{
+  if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
+  {
+    Providers::TextureProperties aoProperties;
+    aoProperties.format          = Providers::TextureFormat::R8;
+    aoProperties.generateMipmaps = true;
+    aoProperties.minFilter       = Providers::TextureFilter::LINEAR_MIPMAP_LINEAR;
+    aoProperties.magFilter       = Providers::TextureFilter::LINEAR;
+
+    Providers::Texture2* aoTextures[6] = {
+      GenerateLightningTexture(textures.top, aoProperties),
+      GenerateLightningTexture(textures.down, aoProperties),
+      GenerateLightningTexture(textures.left, aoProperties),
+      GenerateLightningTexture(textures.right, aoProperties),
+      GenerateLightningTexture(textures.front, aoProperties),
+      GenerateLightningTexture(textures.back, aoProperties)};
+
+    // Create Vulkan resources for generated AO textures
+    for (int i = 0; i < 6; ++i)
+    {
+      if (aoTextures[i] && aoTextures[i]->IsLoaded())
+      {
+        aoTextures[i]->GetImageView(context);
+        vk.aoTextures[i]       = aoTextures[i]->binding.vkImage;
+        vk.aoTexturesMemory[i] = aoTextures[i]->binding.vkImageMemory;
+        vk.aoTexturesView[i]   = aoTextures[i]->binding.vkImageView;
+
+        // Clear handles from temporary Texture2 to prevent double-deletion
+        aoTextures[i]->binding.vkImage       = VK_NULL_HANDLE;
+        aoTextures[i]->binding.vkImageMemory = VK_NULL_HANDLE;
+        aoTextures[i]->binding.vkImageView   = VK_NULL_HANDLE;
+      }
+    }
+
+    // Clean up generated textures
+    for (int i = 0; i < 6; ++i)
+    {
+      if (aoTextures[i])
+      {
+        aoTextures[i]->CleanupVulkan(context);
+        delete aoTextures[i];
+      }
+    }
+  }
+}
+
+void UnitUpdateAOTextureDescriptor(
+    VkDevice device, VkDescriptorSet descriptorSet, VkImageView aoTextureView, VkSampler sampler)
+{
+  VkDescriptorImageInfo aoImageInfo{};
+  aoImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  aoImageInfo.imageView   = aoTextureView;
+  aoImageInfo.sampler     = sampler;
+
+  VkWriteDescriptorSet aoTextureWrite{};
+  aoTextureWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  aoTextureWrite.dstSet          = descriptorSet;
+  aoTextureWrite.dstBinding      = 10;
+  aoTextureWrite.dstArrayElement = 0;
+  aoTextureWrite.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  aoTextureWrite.descriptorCount = 1;
+  aoTextureWrite.pImageInfo      = &aoImageInfo;
+
+  vkUpdateDescriptorSets(device, 1, &aoTextureWrite, 0, nullptr);
+}
+
+} // namespace Rl::Client::Render

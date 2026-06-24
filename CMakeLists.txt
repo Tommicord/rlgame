@@ -58,7 +58,6 @@ set(SOURCES
   rl/Base/Texture2.h
   rl/Base/StateModel.h
   rl/Base/IUpdatable.h
-  rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/CameraRenderer.cpp
   rl/Client/State/CameraState.cpp
   rl/Client/State/CameraState.h
@@ -76,6 +75,50 @@ set(SOURCES
   rl/World/Unit/UnitDynamicTexture.h
   rl/World/Unit/UnitRegistry.h
   rl/World/Unit/UnitRegister.h
+  rl/Client/Render/Unit/UnitRenderer.cpp
+  rl/Client/Render/Unit/UnitRendererAOTextures.cpp
+  rl/Client/Render/Unit/UnitRendererAOTextures.h
+  rl/Client/Render/Unit/UnitRendererBarriers.cpp
+  rl/Client/Render/Unit/UnitRendererBarriers.h
+  rl/Client/Render/Unit/UnitRendererBasicBuffer.h
+  rl/Client/Render/Unit/UnitRendererBuffer.cpp
+  rl/Client/Render/Unit/UnitRendererCleanup.cpp
+  rl/Client/Render/Unit/UnitRendererCleanup.h
+  rl/Client/Render/Unit/UnitRendererCommandBuffers.h
+  rl/Client/Render/Unit/UnitRendererCommandBuffers.cpp
+  rl/Client/Render/Unit/UnitRendererComputeBuffer.cpp
+  rl/Client/Render/Unit/UnitRendererComputePipeline.cpp
+  rl/Client/Render/Unit/UnitRendererComputePipeline.h
+  rl/Client/Render/Unit/UnitRendererCurvatureCompute.cpp
+  rl/Client/Render/Unit/UnitRendererCurvatureCompute.h
+  rl/Client/Render/Unit/UnitRendererDescriptorSets.cpp
+  rl/Client/Render/Unit/UnitRendererDescriptorSets.h
+  rl/Client/Render/Unit/UnitRendererDraw.cpp
+  rl/Client/Render/Unit/UnitRendererDraw.h
+  rl/Client/Render/Unit/UnitRendererDrawCompute.cpp
+  rl/Client/Render/Unit/UnitRendererDrawCompute.h
+  rl/Client/Render/Unit/UnitRendererFrustum.cpp
+  rl/Client/Render/Unit/UnitRendererFrustum.h
+  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.cpp
+  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.h
+  rl/Client/Render/Unit/UnitRendererIndirectDraw.cpp
+  rl/Client/Render/Unit/UnitRendererIndirectDraw.h
+  rl/Client/Render/Unit/UnitRendererInfo.h
+  rl/Client/Render/Unit/UnitRendererLightingBlock.h
+  rl/Client/Render/Unit/UnitRendererNormalTextures.cpp
+  rl/Client/Render/Unit/UnitRendererNormalTextures.h
+  rl/Client/Render/Unit/UnitRendererPlaceholderResource.cpp
+  rl/Client/Render/Unit/UnitRendererPlaceholderResource.h
+  rl/Client/Render/Unit/UnitRendererSampler.cpp
+  rl/Client/Render/Unit/UnitRendererSampler.h
+  rl/Client/Render/Unit/UnitRendererSSBOBuffer.cpp
+  rl/Client/Render/Unit/UnitRendererTextureManage.cpp
+  rl/Client/Render/Unit/UnitRendererTextureManage.h
+  rl/Client/Render/Unit/UnitRendererVertexBuffer.cpp
+  rl/Client/Render/Unit/UnitRendererVertexInput.cpp
+  rl/Client/Render/Unit/UnitRendererVertexInput.h
+  rl/Client/Render/Unit/UnitRendererVertices.cpp
+  rl/Client/Render/Unit/UnitRendererVertices.h
 )
 
 add_subdirectory(Deps/glfw)

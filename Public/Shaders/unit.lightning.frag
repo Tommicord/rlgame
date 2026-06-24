@@ -146,76 +146,98 @@ vec3 CalculateHemisphericAmbient(vec3 normal, vec3 groundColor, vec3 skyColor, f
     return mix(groundColor, skyColor, hemi) * intensity * occlusion;
 }
 
-// Ray-marched soft shadows
-float CalculateSoftShadows(vec3 worldPos, vec3 lightDir, float maxDist, int steps) {
-    float shadow = 1.0;
-    float stepSize = maxDist / float(steps);
+// Soft shadows with organic falloff based on surface orientation
+float CalculateSoftShadows(vec3 worldPos, vec3 normal, vec3 lightDir, vec3 geometricNormal) {
+    // Self-shadowing: surfaces facing away from light are in shadow
+    float NdotL = max(dot(geometricNormal, lightDir), 0.0);
+    float selfShadow = smoothstep(0.0, 0.2, NdotL);
     
-    // Simple ray marching with limited steps for performance
-    for (int i = 1; i <= steps; i++) {
-        vec3 samplePos = worldPos + lightDir * (stepSize * float(i));
-        
-        // Approximate occlusion using distance from origin (cube centered at 0,0,0)
-        float distFromCenter = length(samplePos);
-        float occlusion = smoothstep(0.5, 0.7, distFromCenter);
-        
-        shadow = min(shadow, occlusion);
-        
-        // Early exit if fully occluded
-        if (shadow < 0.1) break;
-    }
+    // Ambient occlusion-like shadow based on surface concavity
+    // Surfaces facing inward get more shadow
+    float inwardFactor = 1.0 - max(geometricNormal.y, 0.0);
+    float cavityShadow = 1.0 - inwardFactor * 0.4;
     
-    return shadow;
+    // Distance-based soft shadow for nearby surfaces
+    // Approximate shadow from other parts of the cube
+    float distFromCenter = length(worldPos);
+    float distShadow = smoothstep(0.3, 0.7, distFromCenter);
+    
+    // Combine shadow factors with organic blending
+    float shadow = selfShadow * cavityShadow * distShadow;
+    
+    // Add subtle penumbra effect
+    shadow = mix(shadow, 1.0, 0.3);
+    
+    return pow(shadow, 2.0);
 }
 
-// Screen-space ambient occlusion approximation
-float CalculateSSAO(vec3 normal, vec3 viewDir, float roughness) {
-    float NdotV = max(dot(normal, viewDir), 0.0);
+// Ambient occlusion based on surface orientation and cavities
+float CalculateAmbientOcclusion(vec3 normal, vec3 geometricNormal) {
+    // AO based on how much the surface faces away from the camera
+    float NdotV = max(dot(normal, geometricNormal), 0.0);
+    float ao = 1.0 - (1.0 - NdotV) * 0.4;
     
-    // Simple AO based on viewing angle and roughness
-    float ao = 1.0 - (1.0 - NdotV) * 0.3 * (1.0 - roughness * 0.3);
+    // Add cavity effect - surfaces facing inward get more AO
+    float cavity = 1.0 - max(0.0, dot(geometricNormal, vec3(0, 1, 0))) * 0.3;
+    ao *= cavity;
     
-    // Add cavity approximation
-    float cavity = pow(NdotV, 0.7);
-    ao = mix(ao, cavity, 0.2);
-    
-    return clamp(ao, 0.5, 1.0);
+    return clamp(ao, 0.2, 1.0);
 }
 
-// Ray-marched reflections for metallic surfaces (simplified)
+// Ray-traced reflections approximation with environment mapping
 vec3 CalculateReflections(vec3 worldPos, vec3 normal, vec3 viewDir, vec3 albedo, 
-                           float metallic, float roughness, vec3 ambientColor) {
-    if (metallic < 0.3) return vec3(0.0);
+                           float metallic, float roughness) {
+    if (metallic < 0.2) return vec3(0.0);
     
     // Calculate reflection direction
     vec3 R = reflect(-viewDir, normal);
     
-    // Simple environment approximation based on reflection direction
+    // Environment mapping based on reflection direction
     float skyFactor = max(R.y, 0.0);
-    vec3 envColor = mix(lighting.u_GroundColor, lighting.u_SkyColor, skyFactor);
+    float groundFactor = max(-R.y, 0.0);
     
-    // Roughness-based reflection blur approximation
-    float roughnessFactor = 1.0 - roughness * 0.8;
+    // Get environment colors
+    vec3 skyReflect = lighting.u_SkyColor;
+    vec3 groundReflect = lighting.u_GroundColor;
+    
+    // Mix based on reflection direction
+    vec3 envColor = mix(groundReflect, skyReflect, skyFactor);
+    
+    // Add sun reflection if reflection direction aligns with sun
+    vec3 sunDir = normalize(lighting.u_SunDirection);
+    float sunReflect = max(dot(R, sunDir), 0.0);
+    float sunSpecular = pow(sunReflect, 256.0 - roughness * 200.0);
+    envColor += lighting.u_SunColor * sunSpecular * 2.0;
+    
+    // Roughness affects reflection intensity and sharpness
+    float roughnessFactor = 1.0 - roughness;
     vec3 reflection = envColor * roughnessFactor * metallic;
     
     // Add albedo tint for metals
     reflection *= mix(vec3(1.0), albedo, metallic);
     
-    return reflection * 0.4;
+    return reflection * 0.6;
 }
 
 // Global illumination approximation with light bounces
 vec3 CalculateGI(vec3 normal, vec3 albedo, float roughness, vec3 lightColor) {
-    // First bounce approximation
-    vec3 bounceColor = albedo * lightColor * 0.15;
+    // First bounce approximation - light bouncing from environment
+    vec3 bounceColor = albedo * lightColor * 0.40;
     
-    // Roughness affects bounce intensity
-    bounceColor *= (1.0 - roughness * 0.5);
+    // Roughness affects bounce intensity - rougher surfaces scatter more
+    bounceColor *= (1.0 + roughness * 0.5);
     
-    // Add color bleeding
-    vec3 colorBleed = albedo * lighting.u_GroundColor * 0.1;
+    // Add color bleeding from ground and sky
+    float skyBounce = max(normal.y, 0.0);
+    float groundBounce = max(-normal.y, 0.0);
     
-    return bounceColor + colorBleed;
+    vec3 skyGI = lighting.u_SkyColor * albedo * skyBounce * 0.2;
+    vec3 groundGI = lighting.u_GroundColor * albedo * groundBounce * 0.3;
+    
+    // Add inter-reflection approximation
+    vec3 interReflect = albedo * lighting.u_SunColor * 0.15 * (1.0 - roughness);
+    
+    return bounceColor + skyGI + groundGI + interReflect;
 }
 
 // Calculate PBR lighting for a single light
@@ -381,25 +403,27 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
 
     vec3 colorFinal = ambient + Lo;
 
-    // Ray-marched soft shadows (performance-optimized): reduced intensity
-    float softShadow = CalculateSoftShadows(worldPos, L, 3.0, 4);
-    colorFinal *= mix(1.0, softShadow, 0.5); // Blend to soften effect
+    // Get geometric normal for shadow calculations
+    vec3 geoN = normalize(v_GeometricNormal);
 
-    // Screen-space ambient occlusion approximation - more subtle
-    float ssao = CalculateSSAO(N, V, material.roughness);
-    colorFinal = mix(colorFinal * 0.7, colorFinal, ssao);
+    // Soft shadows with organic falloff
+    float softShadow = CalculateSoftShadows(worldPos, N, L, geoN);
+    colorFinal *= softShadow;
 
-    // Ray-marched reflections for metallic surfaces: reduced intensity
+    // Ambient occlusion
+    float ao = CalculateAmbientOcclusion(N, geoN);
+    colorFinal *= ao;
+
+    // Ray-traced reflections for metallic surfaces
     vec3 reflections = CalculateReflections(worldPos, N, V, material.albedo, 
-                                           material.metallic, material.roughness, ambientColor);
-    colorFinal += reflections * 0.5;
+                                           material.metallic, material.roughness);
+    colorFinal += reflections;
 
-    // Global illumination approximation: reduced intensity
+    // Global illumination
     vec3 gi = CalculateGI(N, material.albedo, material.roughness, sunLight.color);
-    colorFinal += gi * 0.5;
+    colorFinal += gi;
 
     // Enhanced rim lighting with geometric normal for better edge definition
-    vec3 geoN = normalize(v_GeometricNormal);
     float NdotV = max(dot(geoN, V), 0.0);
     vec3 rimFresnel = FresnelSchlick(NdotV, F0);
 
@@ -415,7 +439,7 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     outerRim = pow(outerRim, 4.0);
     
     // Combine rim layers
-    float combinedRim = innerRim * 0.4 + outerRim * 0.6;
+    float combinedRim = innerRim * 0.4 + outerRim * 0.05;
     
     // Sun alignment for directional rim flash
     float sunViewAlignment = max(dot(L, V), 0.0);

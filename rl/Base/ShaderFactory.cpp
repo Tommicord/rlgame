@@ -6,7 +6,7 @@
 namespace Rl::Providers
 {
 
-ShaderObject::ShaderModule ShaderObject::CreateShaderModule(
+ShaderObject::ShaderModule ShaderObject::Module(
     const VkDevice device, const std::vector<char>& code)
 {
   ShaderModule             module;
