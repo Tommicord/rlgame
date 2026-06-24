@@ -52,7 +52,7 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
 
 void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout)
 {
-  VkDescriptorSetLayoutBinding graphicsBindings[7]{};
+  VkDescriptorSetLayoutBinding graphicsBindings[8]{};
   // Texture array (binding 2)
   graphicsBindings[0].binding         = 2;
   graphicsBindings[0].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -88,10 +88,15 @@ void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayou
   graphicsBindings[6].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   graphicsBindings[6].descriptorCount = 1;
   graphicsBindings[6].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+  // Shadow map sampler (binding 13)
+  graphicsBindings[7].binding         = 13;
+  graphicsBindings[7].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  graphicsBindings[7].descriptorCount = 1;
+  graphicsBindings[7].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
 
   VkDescriptorSetLayoutCreateInfo graphicsLayoutInfo{};
   graphicsLayoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  graphicsLayoutInfo.bindingCount = 7;
+  graphicsLayoutInfo.bindingCount = 8;
   graphicsLayoutInfo.pBindings    = graphicsBindings;
 
   if (vkCreateDescriptorSetLayout(device, &graphicsLayoutInfo, nullptr, &layout) != VK_SUCCESS)
@@ -520,6 +525,28 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
 
   vkUpdateDescriptorSets(
       device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+}
+
+void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
+    VkDescriptorSet set,
+    VkImageView shadowMapView,
+    VkSampler shadowMapSampler)
+{
+  VkDescriptorImageInfo shadowMapInfo{};
+  shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  shadowMapInfo.imageView   = shadowMapView;
+  shadowMapInfo.sampler     = shadowMapSampler;
+
+  VkWriteDescriptorSet shadowMapWrite{};
+  shadowMapWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  shadowMapWrite.dstSet          = set;
+  shadowMapWrite.dstBinding      = 13;
+  shadowMapWrite.dstArrayElement = 0;
+  shadowMapWrite.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  shadowMapWrite.descriptorCount = 1;
+  shadowMapWrite.pImageInfo      = &shadowMapInfo;
+
+  vkUpdateDescriptorSets(device, 1, &shadowMapWrite, 0, nullptr);
 }
 
 } // namespace Rl::Client::Render

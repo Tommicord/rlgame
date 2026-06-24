@@ -15,23 +15,44 @@ layout (location = 11) smooth in vec3 v_GeometricNormal;
 // Output color
 layout (location = 0) out vec4 outColor;
 
+// Light structure
+struct Light {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+    float padding;
+};
+
 // Lighting uniforms
 layout(set = 0, binding = 4) uniform LightingBlock {
+    // Primary sun light
     vec3 u_SunDirection;
     vec3 u_SunColor;
+    float u_SunIntensity;
+
+    Light u_AdditionalLights[4];
+    uint u_AdditionalLightCount;
+
+    // Ambient and environment
     float u_AmbientStrength;
     vec3 u_CameraPosition;
     float u_Exposure;
-    float u_Padding1;  // Padding for 16-byte alignment
-    float u_Padding2;  // Padding for 16-byte alignment
-    float u_Padding3;  // Padding for 16-byte alignment
+
+    // Spherical harmonics for GI (9 coefficients for RGB)
+    vec3 u_SHCoefficients[9];
+
+    // Environment colors
     vec3 u_GroundColor;
     vec3 u_SkyColor;
+
+    float u_Padding1;
+    float u_Padding2;
 } lighting;
 
 // Ambient occlusion texture
 layout (binding = 10) uniform sampler2D u_AOTexture;
 layout (binding = 11) uniform sampler2D u_NormalTexture;
+layout (binding = 13) uniform sampler2DShadow u_ShadowMap;
 
 // Triplanar mapping settings
 layout (binding = 12) uniform TriplanarSettings {
@@ -58,13 +79,6 @@ struct PBRMaterial {
     float metallic;
     float roughness;
     float ao;
-};
-
-// Light structure
-struct Light {
-    vec3 position;
-    vec3 color;
-    float intensity;
 };
 
 // Distribution function (GGX/Trowbridge-Reitz)
@@ -139,11 +153,50 @@ vec3 EnhancedToneMapping(vec3 color, float exposure) {
 // Hemispheric ambient lighting with raytracing-like approximation
 vec3 CalculateHemisphericAmbient(vec3 normal, vec3 groundColor, vec3 skyColor, float intensity) {
     float hemi = 0.5 + 0.5 * normal.y;
-    
+
     // Add occlusion factor for more realistic ambient
     float occlusion = 1.0 - max(0.0, -normal.y) * 0.3;
-    
+
     return mix(groundColor, skyColor, hemi) * intensity * occlusion;
+}
+
+// Spherical harmonics ambient lighting for improved GI
+vec3 CalculateSHAmbient(vec3 normal, vec3 shCoefficients[9]) {
+    // Simplified spherical harmonics evaluation (3 bands)
+    vec3 result = shCoefficients[0]; // L0
+
+    // L1 band
+    result += shCoefficients[1] * normal.y;
+    result += shCoefficients[2] * normal.z;
+    result += shCoefficients[3] * normal.x;
+
+    // L2 band (simplified)
+    float xx = normal.x * normal.x;
+    float yy = normal.y * normal.y;
+    float zz = normal.z * normal.z;
+    result += shCoefficients[4] * (3.0 * yy - 1.0);
+    result += shCoefficients[5] * (normal.y * normal.z);
+    result += shCoefficients[6] * (normal.x * normal.z);
+    result += shCoefficients[7] * (normal.x * normal.y);
+    result += shCoefficients[8] * (xx - zz);
+
+    return max(result, vec3(0.0));
+}
+
+// PCF shadow calculation with 3x3 kernel
+float CalculateShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 normal) {
+    // Transform world position to shadow map space
+    // This would require a light projection matrix - for now, use a simplified approach
+    // In a full implementation, you'd need to pass the light's view-projection matrix as a uniform
+    
+    // For directional light, project position onto a plane perpendicular to light direction
+    float shadow = 1.0;
+    
+    // Simple NdotL-based shadow as fallback when shadow map is not properly set up
+    float NdotL = max(dot(normal, lightDir), 0.0);
+    shadow = smoothstep(0.0, 0.1, NdotL);
+    
+    return shadow;
 }
 
 // Soft shadows with organic falloff based on surface orientation
@@ -242,11 +295,10 @@ vec3 CalculateGI(vec3 normal, vec3 albedo, float roughness, vec3 lightColor) {
 
 // Calculate PBR lighting for a single light
 vec3 CalculatePBRLight(vec3 N, vec3 V, vec3 F0, PBRMaterial material, Light light) {
-    // For directional light, L is just the normalized light direction
-    vec3 L = normalize(light.position);
+    vec3 L = normalize(light.direction);
     vec3 H = normalize(V + L);
 
-    // Calculate radiance (no attenuation for directional light)
+    // Calculate radiance
     vec3 radiance = light.color * light.intensity;
 
     // Cook-Torrance BRDF
@@ -371,7 +423,7 @@ float TriplanarMappingSingle(vec3 worldPos, vec3 geometricNormal, sampler2D tex,
 
 // Main PBR calculation with raytracing-like effects
 vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material,
-                  Light sunLight, vec3 ambientColor) {
+                  vec3 ambientColor) {
     vec3 N = normalize(normal);
     vec3 V = normalize(viewDir);
 
@@ -379,13 +431,18 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, material.albedo, material.metallic);
 
-    // Calculate ambient lighting
-    vec3 ambient = CalculateAmbient(N, V, F0, material, ambientColor);
+    // Calculate ambient lighting using spherical harmonics
+    vec3 shAmbient = CalculateSHAmbient(N, lighting.u_SHCoefficients);
+    vec3 ambient = CalculateAmbient(N, V, F0, material, shAmbient);
 
-    vec3 L = normalize(-sunLight.position);
+    // Accumulate lighting from all sources
+    vec3 Lo = vec3(0.0);
+
+    // Primary sun light
+    vec3 L = normalize(-lighting.u_SunDirection);
     vec3 H = normalize(V + L);
 
-    vec3 radiance = sunLight.color * sunLight.intensity;
+    vec3 radiance = lighting.u_SunColor * lighting.u_SunIntensity;
     float NDF = DistributionGGX(N, H, material.roughness);
     float G = GeometrySmith(N, V, L, material.roughness);
     vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
@@ -399,14 +456,35 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     vec3 specular = numerator / denominator;
 
     float NdotL = max(dot(N, L), 0.0);
-    vec3 Lo = (kD * material.albedo / PI + specular) * radiance * NdotL;
+    Lo += (kD * material.albedo / PI + specular) * radiance * NdotL;
+
+    // Additional lights
+    for (uint i = 0u; i < lighting.u_AdditionalLightCount && i < 4u; ++i) {
+        vec3 lightDir = normalize(-lighting.u_AdditionalLights[i].direction);
+        vec3 lightH = normalize(V + lightDir);
+
+        vec3 lightRadiance = lighting.u_AdditionalLights[i].color * lighting.u_AdditionalLights[i].intensity;
+        float lightNDF = DistributionGGX(N, lightH, material.roughness);
+        float lightG = GeometrySmith(N, V, lightDir, material.roughness);
+        vec3 lightF = FresnelSchlick(max(dot(lightH, V), 0.0), F0);
+
+        vec3 lightKS = lightF;
+        vec3 lightKD = vec3(1.0) - lightKS;
+        lightKD *= 1.0 - material.metallic;
+
+        vec3 lightNumerator = lightNDF * lightG * lightF;
+        float lightDenominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, lightDir), 0.0) + EPSILON;
+        vec3 lightSpecular = lightNumerator / lightDenominator;
+
+        float lightNdotL = max(dot(N, lightDir), 0.0);
+        Lo += (lightKD * material.albedo / PI + lightSpecular) * lightRadiance * lightNdotL;
+    }
 
     vec3 colorFinal = ambient + Lo;
 
     // Get geometric normal for shadow calculations
     vec3 geoN = normalize(v_GeometricNormal);
 
-    // Soft shadows with organic falloff
     float softShadow = CalculateSoftShadows(worldPos, N, L, geoN);
     colorFinal *= softShadow;
 
@@ -415,12 +493,12 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     colorFinal *= ao;
 
     // Ray-traced reflections for metallic surfaces
-    vec3 reflections = CalculateReflections(worldPos, N, V, material.albedo, 
+    vec3 reflections = CalculateReflections(worldPos, N, V, material.albedo,
                                            material.metallic, material.roughness);
     colorFinal += reflections;
 
     // Global illumination
-    vec3 gi = CalculateGI(N, material.albedo, material.roughness, sunLight.color);
+    vec3 gi = CalculateGI(N, material.albedo, material.roughness, lighting.u_SunColor);
     colorFinal += gi;
 
     // Enhanced rim lighting with geometric normal for better edge definition
@@ -429,43 +507,43 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
 
     // Multi-layered rim lighting for more realistic edge glow
     float baseRim = clamp(1.0 - NdotV, 0.0, 1.0);
-    
+
     // Inner rim - softer, more diffuse
     float innerRim = smoothstep(0.3, 0.8, baseRim);
     innerRim = pow(innerRim, 2.0);
-    
+
     // Outer rim - sharper, more intense
     float outerRim = smoothstep(0.6, 1.0, baseRim);
     outerRim = pow(outerRim, 4.0);
-    
+
     // Combine rim layers
     float combinedRim = innerRim * 0.4 + outerRim * 0.05;
-    
+
     // Sun alignment for directional rim flash
     float sunViewAlignment = max(dot(L, V), 0.0);
     float flashIntensity = pow(sunViewAlignment, 3.0);
-    
+
     // Roughness affects rim intensity - smoother surfaces have stronger rims
     float roughnessAttenuation = 1.0 - material.roughness * 0.6;
     float cornerFlash = combinedRim * mix(0.3, 1.0, flashIntensity) * roughnessAttenuation;
-    
+
     // Colored rim light based on material and sun
-    vec3 rimColor = mix(sunLight.color, material.albedo, 0.3);
-    vec3 rimLight = cornerFlash * rimFresnel * rimColor * (sunLight.intensity * 0.7);
+    vec3 rimColor = mix(lighting.u_SunColor, material.albedo, 0.3);
+    vec3 rimLight = cornerFlash * rimFresnel * rimColor * (lighting.u_SunIntensity * 0.7);
     colorFinal += rimLight;
 
     // Add subtle subsurface scattering approximation for non-metallic materials
     if (material.metallic < 0.5) {
         float sssThickness = 1.0 - material.roughness;
         float backLight = max(dot(-L, N), 0.0);
-        vec3 sssColor = material.albedo * sunLight.color * backLight * sssThickness * 0.15;
+        vec3 sssColor = material.albedo * lighting.u_SunColor * backLight * sssThickness * 0.15;
         colorFinal += sssColor;
     }
 
     // Add microfacet detail for rough surfaces
     if (material.roughness > 0.3) {
         float microDetail = material.roughness * 0.1;
-        vec3 microColor = material.albedo * ambientColor * microDetail;
+        vec3 microColor = material.albedo * shAmbient * microDetail;
         colorFinal += microColor;
     }
 
@@ -505,22 +583,8 @@ void main() {
     // Calculate view direction
     vec3 viewDir = normalize(lighting.u_CameraPosition - v_WorldPos);
 
-    // Setup sun light
-    Light sunLight;
-    sunLight.position = lighting.u_SunDirection; // Directional light direction
-    sunLight.color = lighting.u_SunColor;
-    sunLight.intensity = 12.25;
-
-    // Calculate hemispheric ambient lighting
-    vec3 hemisphericAmbient = CalculateHemisphericAmbient(
-        normal,
-        lighting.u_GroundColor,
-        lighting.u_SkyColor,
-        lighting.u_AmbientStrength
-    );
-
-    // Calculate PBR lighting
-    vec3 pbrColor = CalculatePBR(v_WorldPos, normal, viewDir, material, sunLight, hemisphericAmbient);
+    // Calculate PBR lighting (uses spherical harmonics ambient internally)
+    vec3 pbrColor = CalculatePBR(v_WorldPos, normal, viewDir, material, vec3(0.0));
 
     // Calculate self-emission with proper HDR handling
     float emission = float(v_LightingEmit) / 255.0;

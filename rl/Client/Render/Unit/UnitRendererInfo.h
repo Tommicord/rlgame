@@ -30,19 +30,40 @@ struct UnitRenderVertex
   glm::vec4 normal; // 16 bytes (normX, normY, normZ + padding)
 };
 
+/* Defines a single light source */
+struct UnitRenderLight
+{
+  alignas(16) glm::vec3 direction; // For directional lights
+  alignas(16) glm::vec3 color;
+  alignas(4) float intensity;
+  alignas(4) float padding;
+};
+
 /* Defines the lighting uniforms for the unit render info */
 struct UnitRenderLightingUniforms
 {
+  // Primary sun light
   alignas(16) glm::vec3 sunDirection;
   alignas(16) glm::vec3 sunColor;
+  alignas(4) float sunIntensity;
+
+  UnitRenderLight additionalLights[4];
+  alignas(4) uint32_t additionalLightCount;
+
+  // Ambient and environment
   alignas(4) float ambientStrength;
   alignas(16) glm::vec3 cameraPosition;
   alignas(4) float exposure;
-  alignas(4) float padding1; // Padding for 16-byte alignment
-  alignas(4) float padding2; // Padding for 16-byte alignment
-  alignas(4) float padding3; // Padding for 16-byte alignment
+
+  // Spherical harmonics for GI (9 coefficients for RGB = 27 floats)
+  alignas(16) glm::vec3 shCoefficients[9];
+
+  // Environment colors
   alignas(16) glm::vec3 groundColor;
   alignas(16) glm::vec3 skyColor;
+
+  alignas(4) float padding1;
+  alignas(4) float padding2;
 };
 
 /* Defines the triplanar settings */

@@ -106,6 +106,14 @@ struct UnitStateDrawableVulkan : StateDrawableVulkan
   VkDescriptorSetLayout curveComputeDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSet  curveComputeDescriptorSet       = VK_NULL_HANDLE;
 
+  // Shadow map resources
+  VkImage        shadowMapImage       = VK_NULL_HANDLE;
+  VkDeviceMemory shadowMapMemory     = VK_NULL_HANDLE;
+  VkImageView    shadowMapView        = VK_NULL_HANDLE;
+  VkSampler      shadowMapSampler     = VK_NULL_HANDLE;
+  VkFramebuffer  shadowMapFramebuffer = VK_NULL_HANDLE;
+  VkRenderPass   shadowMapRenderPass  = VK_NULL_HANDLE;
+
   UnitStateDrawableVulkan() = default;
 };
 

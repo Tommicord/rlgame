@@ -13,6 +13,7 @@
 #include "rl/Client/Render/Unit/UnitRendererNormalTextures.h"
 #include "rl/Client/Render/Unit/UnitRendererPlaceholderResource.h"
 #include "rl/Client/Render/Unit/UnitRendererSampler.h"
+#include "rl/Client/Render/Unit/UnitRendererShadowMap.h"
 #include "rl/Client/Render/Unit/UnitRendererTextureManage.h"
 #include "rl/Client/Render/Unit/UnitRendererVertexInput.h"
 #include "rl/Client/Render/Unit/UnitRendererVertices.h"
@@ -108,6 +109,20 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitCreateTriplanarSettingsBuffer(context.device, context.physicalDevice,
       vk.triplanarSettingsBuffer, vk.triplanarSettingsBufferMemory);
 
+  // Create shadow map resources
+  Client::Render::UnitShadowMapConfig shadowConfig{};
+  Client::Render::UnitShadowMapResources shadowResources{};
+  Client::Render::UnitCreateShadowMapResources(context.device, context.physicalDevice,
+      shadowConfig, shadowResources);
+
+  // Assign shadow map resources to vk struct
+  vk.shadowMapImage = shadowResources.shadowMapImage;
+  vk.shadowMapMemory = shadowResources.shadowMapMemory;
+  vk.shadowMapView = shadowResources.shadowMapView;
+  vk.shadowMapSampler = shadowResources.shadowMapSampler;
+  vk.shadowMapFramebuffer = shadowResources.shadowMapFramebuffer;
+  vk.shadowMapRenderPass = shadowResources.shadowMapRenderPass;
+
   // Create global texture sampler
   Client::Render::UnitCreateGlobalTextureSampler(context.device, vk.globalTextureSampler);
 
@@ -117,6 +132,10 @@ void UnitStateDrawable::OnCreate(
       vk.placeholderLightingSampler, vk.placeholderSettingsBuffer, vk.placeholderAOTextureView,
       vk.placeholderAOSampler, vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
       vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
+
+  // Update graphics descriptor set with shadow map
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(context.device, vk.descriptorSet,
+      vk.shadowMapView, vk.shadowMapSampler);
 
   // Create vertex input state
   auto vertexInputBinding    = Client::Render::UnitCreateVertexInputBindingDescription();

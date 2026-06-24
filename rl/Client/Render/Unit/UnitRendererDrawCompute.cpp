@@ -31,17 +31,46 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, frustumSize, &frustum);
 
   UnitRenderLightingBlock lightingData{};
+  // Primary sun light
   lightingData.sunDirection         = glm::normalize(glm::vec3(0.5f, 0.8f, 0.6f));
-  lightingData.sunColor             = glm::vec3(1.0f, 0.3f, 0.6f);
-  lightingData.ambientStrength      = 0.7f;
+  lightingData.sunColor             = glm::vec3(1.0f, 0.95f, 0.8f);
+  lightingData.sunIntensity         = 12.25f;
+
+  // Additional lights (fill lights for more realistic lighting)
+  lightingData.additionalLightCount = 2;
+  // cool blue from opposite side
+  lightingData.additionalLights[0].direction = glm::normalize(glm::vec3(-0.3f, 0.5f, -0.4f));
+  lightingData.additionalLights[0].color = glm::vec3(0.6f, 0.7f, 0.9f);
+  lightingData.additionalLights[0].intensity = 2.0f;
+  // warm rim light
+  lightingData.additionalLights[1].direction = glm::normalize(glm::vec3(-0.8f, 0.2f, 0.5f));
+  lightingData.additionalLights[1].color = glm::vec3(1.0f, 0.8f, 0.6f);
+  lightingData.additionalLights[1].intensity = 1.5f;
+
+  // Ambient and environment
+  lightingData.ambientStrength      = 0.15f;
   World::AbstractCamera::Eye eyePos = cam.eye;
   lightingData.cameraPosition       = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
-  lightingData.exposure             = 1.0f;
+  lightingData.exposure             = 1.25f;
+
+  // Spherical harmonics coefficients for improved GI
+  // These are pre-computed approximations for sky/ground lighting
+  lightingData.shCoefficients[0] = glm::vec3(0.53f, 0.81f, 0.92f) * 0.5f; // L0 - sky
+  lightingData.shCoefficients[1] = glm::vec3(0.15f, 0.12f, 0.1f) * 0.3f;  // L1 - ground
+  lightingData.shCoefficients[2] = glm::vec3(0.0f, 0.0f, 0.0f);  // L1
+  lightingData.shCoefficients[3] = glm::vec3(0.0f, 0.0f, 0.0f);  // L1
+  lightingData.shCoefficients[4] = glm::vec3(0.0f, 0.0f, 0.0f);  // L2
+  lightingData.shCoefficients[5] = glm::vec3(0.0f, 0.0f, 0.0f);  // L2
+  lightingData.shCoefficients[6] = glm::vec3(0.0f, 0.0f, 0.0f);  // L2
+  lightingData.shCoefficients[7] = glm::vec3(0.0f, 0.0f, 0.0f);  // L2
+  lightingData.shCoefficients[8] = glm::vec3(0.0f, 0.0f, 0.0f);  // L2
+
+  // Environment colors
+  lightingData.groundColor          = glm::vec3(0.15f, 0.12f, 0.1f);
+  lightingData.skyColor             = glm::vec3(0.53f, 0.81f, 0.92f);
+
   lightingData.padding1             = 0.0f;
   lightingData.padding2             = 0.0f;
-  lightingData.padding3             = 0.0f;
-  lightingData.groundColor          = glm::vec3(0.1f, 0.1f, 0.15f);
-  lightingData.skyColor             = glm::vec3(0.5f, 0.7f, 1.0f);
 
   constexpr VkDeviceSize lightingBlockSize = sizeof(UnitRenderLightingBlock);
   vkCmdUpdateBuffer(
