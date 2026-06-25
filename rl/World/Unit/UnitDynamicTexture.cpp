@@ -161,7 +161,6 @@ std::vector<int> UnitDynamicTexture::GetTargetColorMap() const
           uint8_t   g        = data[index + 1];
           uint8_t   b        = data[index + 2];
           uint32_t  colorKey = (r << 16) | (g << 8) | b;
-          ;
           colorFreq[colorKey]++;
         }
       }
@@ -183,6 +182,12 @@ void UnitDynamicTexture::ProcessColorFreqMap(
   }
   outMap.push_back(0x00000000); // Default black
 }
+
+Providers::Texture2* UnitDynamicTexture::GenDynamicTexture()
+{
+  return GenDynamicTexture(seed);
+}
+
 Providers::Texture2* UnitDynamicTexture::GenDynamicTexture(Seed seed)
 {
   if (!baseTexture->IsLoaded() || !baseTexture->GetData())
@@ -190,8 +195,8 @@ Providers::Texture2* UnitDynamicTexture::GenDynamicTexture(Seed seed)
     return nullptr;
   }
   // Update noise generator with new seed
-  noiseGen.~OpenSimplexNoiseGen();
-  new (&noiseGen) OpenSimplexNoiseGen(seed);
+  noiseGen.ResetSeed(seed);
+  
   // Get color palette from base texture
   const std::vector<int> colorMap = GetTargetColorMap();
   // Generate noise map

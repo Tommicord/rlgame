@@ -1,10 +1,18 @@
-cmake_minimum_required(VERSION 4.2.0)
+cmake_minimum_required(VERSION 3.28)
 
 project(rl LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Enable C++20 modules support
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /experimental:module /std:c++20")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules-ts")
+endif()
 
 # Detect target architecture and set appropriate SIMD flags
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
@@ -18,32 +26,12 @@ else()
 endif()
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
-include(FetchContent)
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY	https://github.com/g-truc/glm.git
-  GIT_TAG 	      0af55ccecd98d4e5a8d1fad7de25ba429d60e863 #refs/tags/1.0.1
-)
-FetchContent_MakeAvailable(glm)
 
-FetchContent_Declare(
-  stb
-  GIT_REPOSITORY https://github.com/nothings/stb.git
-  GIT_TAG        master
-)
-FetchContent_MakeAvailable(stb)
-
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        release-1.12.1
-)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(SOURCES
-  rl/Base/Game.cpp
   rl/Base/Game.h
   rl/Base/Shader.cpp
   rl/Base/Shader.h
@@ -74,6 +62,7 @@ set(SOURCES
   rl/World/Unit/UnitGrass.h
   rl/World/Unit/UnitDynamicTexture.cpp
   rl/World/Unit/UnitDynamicTexture.h
+  rl/World/Unit/UnitPropertyStrategy.h
   rl/World/Unit/UnitRegistry.h
   rl/World/Unit/UnitRegister.h
   rl/Client/Render/Unit/UnitRenderer.cpp
@@ -125,17 +114,17 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertices.h
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitChunkBuffer.h
-  rl/World/Unit/UnitPropertyStrategy.h
   rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp
   rl/World/Chunk/UnitChunkBufferGPUSimplex.h
 )
 
 add_subdirectory(Deps/glfw)
-add_executable(rlgame ${SOURCES})
+add_subdirectory(Deps/glm)
+add_subdirectory(Deps/gtest)
+add_executable(rlgame rl/Base/Game.cpp ${SOURCES})
 target_include_directories(
   rlgame
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
   ${stb_SOURCE_DIR}
 )
 target_link_libraries(
@@ -224,13 +213,10 @@ target_compile_shaders(
 enable_testing()
 
 add_executable(
-  rlgame_tests 
+  rlgame_tests
+  ${SOURCES}
   Tests/UnitDynamicTextureTest.cpp
-  Tests/Main.cpp
-  rl/World/Unit/UnitDynamicTexture.cpp
-  rl/Base/Texture2.cpp
-  rl/Base/SimplexNoise.cpp
-  rl/World/Unit/UnitResourceName.h
+  Tests/UnitChunkBufferTest.cpp
 )
 
 target_include_directories(

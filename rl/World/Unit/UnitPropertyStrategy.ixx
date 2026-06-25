@@ -1,6 +1,6 @@
-#pragma once
+export module Rl.World.Unit.UnitPropertyStrategy;
 
-#include <type_traits>
+import <type_traits>;
 
 namespace Rl::World
 {
@@ -8,11 +8,11 @@ namespace Rl::World
 class BaseUnit;
 
 template <class T>
-inline constexpr bool IsDerivedUnit = std::is_base_of_v<BaseUnit, T>;
+export inline constexpr bool IsDerivedUnit = std::is_base_of_v<BaseUnit, T>;
 
 template <class T>
   requires IsDerivedUnit<T>
-class UnitPropertyStrategy
+export class UnitPropertyStrategy
 {
   public:
   /* Gets the base light emission value for this unit type */

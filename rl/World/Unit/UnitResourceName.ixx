@@ -1,11 +1,11 @@
-#pragma once
+export module Rl.World.Unit.UnitResourceName;
 
-#include <vector>
+import <vector>;
 
 namespace Rl::World
 {
 
-class UnitResourceName
+export class UnitResourceName
 {
   static constexpr auto BASE = "rl.unit";
 

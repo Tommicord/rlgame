@@ -189,7 +189,7 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
   const uint32_t     totalElements   = width * height * depth;
   const VkDeviceSize noiseBufferSize = totalElements * sizeof(float);
 
-  Rl::Client::Render::UnitCreateBuffer(device, physicalDevice, noiseBufferSize,
+  Client::Render::UnitCreateBuffer(device, physicalDevice, noiseBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, noiseBuffer, noiseBufferMemory);
 

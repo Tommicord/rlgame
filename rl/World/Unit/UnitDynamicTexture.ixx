@@ -1,19 +1,18 @@
-#pragma once
+export module Rl.World.Unit.UnitDynamicTexture;
 
-#include "rl/Base/SimplexNoise.h"
-#include "rl/Base/Texture2.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <map>
-#include <memory>
-#include <optional>
-#include <vector>
+import Rl.Base.SimplexNoise;
+import Rl.Base.Texture2;
+import <cstddef>;
+import <cstdint>;
+import <map>;
+import <memory>;
+import <optional>;
+import <vector>;
 
 namespace Rl::World
 {
 
-class AbstractUnitDynamicTexture
+export class AbstractUnitDynamicTexture
 {
   public:
   virtual ~AbstractUnitDynamicTexture() = default;
@@ -35,7 +34,7 @@ class AbstractUnitDynamicTexture
   virtual Providers::Texture2* GenDynamicTexture(Seed seed) = 0;
 };
 
-class UnitDynamicTexture : public AbstractUnitDynamicTexture
+export class UnitDynamicTexture : public AbstractUnitDynamicTexture
 {
   /* Stores the color frequency map */
   std::map<uint32_t, int> clFreqMap;

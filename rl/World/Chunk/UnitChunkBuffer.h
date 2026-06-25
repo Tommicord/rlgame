@@ -11,6 +11,9 @@ namespace Rl::World::Chunk
 /* Chunk Storage data */
 class UnitChunkBuffer
 {
+  public:
+
+  using BufferUnit  = int;
   /* Stores the chunk buffer dimensions */
   template <int W, int H, int D>
   struct ChunkBufferSizes
@@ -21,7 +24,7 @@ class UnitChunkBuffer
   struct ChunkBuffer
   {
     /* Stores array of Unit id's */
-    std::unique_ptr<int[]> b;
+    std::unique_ptr<BufferUnit[]> b;
 
     /* Gets the Unit buffer */
     int* Get() const noexcept
@@ -42,7 +45,6 @@ class UnitChunkBuffer
     int x, y, z;
   };
 
-  public:
   /*
    * A 64x64x128x4 Array of 2 MB is cacheable in the GPU L2 cache
    * This is an ideal size for a Chunk of Units
@@ -77,11 +79,11 @@ class UnitChunkBuffer
 
   /* Gets a Unit block id at 3D coordinate in the chunk buffer */
   [[nodiscard]]
-  std::optional<int> GetUnitIdXYZ(int x, int y, int z) const;
+  std::optional<BufferUnit> GetUnitIdXYZ(int x, int y, int z) const;
 
   /* Gets a Unit block id using ChunkCoord */
   [[nodiscard]]
-  std::optional<int> GetUnitId(const ChunkCoord& coord) const;
+  std::optional<BufferUnit> GetUnitId(const ChunkCoord& coord) const;
 
   /* Checks if a coordinate is within chunk bounds */
   [[nodiscard]]
@@ -93,19 +95,31 @@ class UnitChunkBuffer
 
   /* Gets the total number of blocks in the chunk */
   [[nodiscard]]
-  constexpr int GetTotalBlocks() const;
+  constexpr int GetTotalBlocks() const
+  {
+    return W * H * D;
+  }
 
   /* Gets the raw buffer pointer (for GPU transfer) */
   [[nodiscard]]
-  int* GetRaw();
+  BufferUnit* GetRaw()
+  {
+    return buffer.Get();
+  }
 
   /* Gets the raw buffer pointer (const version) */
   [[nodiscard]]
-  const int* GetRaw() const;
+  const BufferUnit* GetRaw() const
+  {
+    return buffer.Get();
+  }
 
   /* Gets the buffer size in bytes */
   [[nodiscard]]
-  constexpr size_t GetBufferSizeBytes() const;
+  constexpr size_t GetBufferSizeBytes() const
+  {
+    return static_cast<size_t>(W * H * D) * sizeof(BufferUnit);
+  }
 
   /* Checks if the buffer is valid (allocated) */
   [[nodiscard]]
@@ -114,19 +128,29 @@ class UnitChunkBuffer
   /* Gets chunk dimensions as ChunkCoord */
   [[nodiscard]]
   ChunkCoord GetDimensions() const;
-
-  protected:
-  /* Maps a 3D coordinate to the chunk buffer array pos */
-  [[nodiscard]]
-  int IndexMap3d2(int x, int y, int z) const;
-
-  /* Maps a ChunkCoord to the chunk buffer array pos */
-  [[nodiscard]]
-  int IndexMap3d2(const ChunkCoord& coord) const;
-
-  /* Checks a coordinate (is invalid if out of bounds in the chunk buffer) */
-  [[nodiscard]]
-  bool IndexVal(int& x, int max) const;
 };
 
-} // namespace Rl::World
+/* Maps a 3D coordinate to the chunk buffer array pos */
+template<int W, int H>
+[[nodiscard]]
+int IndexMap3d2(int x, int y, int z)
+{
+  return x + (y * W) + (z * W * H);
+}
+
+/* Maps a ChunkCoord to the chunk buffer array pos */
+template<int W, int H>
+[[nodiscard]]
+int IndexMap3d2(const UnitChunkBuffer::ChunkCoord& coord)
+{
+  return IndexMap3d2<W, H>(coord.x, coord.y, coord.z);
+}
+
+/* Checks a coordinate (is invalid if out of bounds in the chunk buffer) */
+[[nodiscard]]
+inline bool IndexVal(int& x, int max)
+{
+  return x >= 0 && x < max;
+}
+
+} // namespace Rl::World::Chunk

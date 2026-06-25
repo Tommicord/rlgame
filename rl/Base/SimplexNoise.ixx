@@ -1,12 +1,12 @@
-#pragma once
+export module Rl.Base.SimplexNoise;
 
-#include <array>
-#include <cstdint>
+import <array>;
+import <cstdint>;
 
 namespace Rl::Providers
 {
 
-class AbstractOpenSimplexNoise
+export class AbstractOpenSimplexNoise
 {
   public:
   virtual ~AbstractOpenSimplexNoise() = default;
@@ -16,7 +16,7 @@ class AbstractOpenSimplexNoise
   virtual float eval(float x, float y, float z) const = 0;
 };
 
-class OpenSimplexNoiseGen : public AbstractOpenSimplexNoise
+export class OpenSimplexNoiseGen : public AbstractOpenSimplexNoise
 {
   public:
   OpenSimplexNoiseGen();

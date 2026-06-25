@@ -1,6 +1,5 @@
-Deps/
 cmake-build-*/
-.idea/
 build/
 .vs/
+.idea/
 out/

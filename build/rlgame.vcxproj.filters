@@ -16,13 +16,22 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\UnitRenderer.cpp">
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Lightning.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Normal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Binding.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\CameraRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.cpp">
@@ -37,12 +46,93 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputeBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSSBOBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\ShaderFactory.h">
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.h">
@@ -57,16 +147,25 @@
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\StateModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\StateDrawable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\IUpdatable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitResourceName.h">
@@ -78,19 +177,145 @@
     <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitPropertyStrategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegister.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBasicBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\shader.frag.spv.rule">
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.shadow.vert.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\shader.vert.spv.rule">
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.shadow.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.face.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.curve.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise2d.glsl.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise3d.glsl.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.common.glsl.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.gradients.glsl.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.init.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise.constants.glsl.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.perm.glsl.spv.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
     <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\shader.frag.spv" />
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\shader.vert.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.vert.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.frag.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.face.comp.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.frag.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.vert.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.comp.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.init.comp.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv" />
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">

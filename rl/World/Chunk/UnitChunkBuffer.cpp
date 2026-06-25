@@ -79,7 +79,7 @@ std::optional<int> UnitChunkBuffer::GetUnitIdXYZ(int x, int y, int z) const
     return std::nullopt;
   if (IndexVal(x, W) && IndexVal(y, H) && IndexVal(z, D))
   {
-    return buffer.b[IndexMap3d2(x, y, z)];
+    return buffer.b[IndexMap3d2<W, H>(x, y, z)];
   }
   return std::nullopt;
 }
@@ -99,25 +99,6 @@ bool UnitChunkBuffer::IsInBounds(const ChunkCoord& coord) const
   return IsInBounds(coord.x, coord.y, coord.z);
 }
 
-constexpr int UnitChunkBuffer::GetTotalBlocks() const
-{
-  return W * H * D;
-}
-
-int* UnitChunkBuffer::GetRaw()
-{
-  return buffer.b.get();
-}
-
-const int* UnitChunkBuffer::GetRaw() const
-{
-  return buffer.b.get();
-}
-
-constexpr size_t UnitChunkBuffer::GetBufferSizeBytes() const
-{
-  return static_cast<size_t>(W * H * D) * sizeof(int);
-}
 
 bool UnitChunkBuffer::IsValid() const
 {
@@ -129,19 +110,5 @@ UnitChunkBuffer::ChunkCoord UnitChunkBuffer::GetDimensions() const
   return {W, H, D};
 }
 
-int UnitChunkBuffer::IndexMap3d2(int x, int y, int z) const
-{
-  return x + (y * W) + (z * W * H);
-}
 
-int UnitChunkBuffer::IndexMap3d2(const ChunkCoord& coord) const
-{
-  return IndexMap3d2(coord.x, coord.y, coord.z);
-}
-
-bool UnitChunkBuffer::IndexVal(int& x, int max) const
-{
-  return x >= 0 && x < max;
-}
-
-} // namespace Rl::World
+} // namespace Rl::World::Chunk
