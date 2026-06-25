@@ -59,6 +59,12 @@ struct alignas(16) UnitRenderLightingUniforms
   alignas(16) glm::vec4 groundColor;
   alignas(16) glm::vec4 skyColor;
   alignas(16) glm::mat4 lightSpaceMatrix;
+
+  // LOD settings
+  float lodDistanceNear;   // Distance threshold for high quality
+  float lodDistanceFar;    // Distance threshold for low quality
+  uint32_t qualityLevel;   // 0=low, 1=medium, 2=high
+  float _padding;          // Alignment padding
 };
 
 /* Defines the triplanar settings */

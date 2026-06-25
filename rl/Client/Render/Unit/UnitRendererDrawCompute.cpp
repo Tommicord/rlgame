@@ -84,6 +84,10 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   lightingData.groundColor          = glm::vec4(0.15f, 0.12f, 0.1f, 0.0f);
   lightingData.skyColor             = glm::vec4(0.53f, 0.81f, 0.92f, 0.0f);
   lightingData.lightSpaceMatrix     = CalculateLightSpaceMatrix(lightingData.sunDirection, lightingData.cameraPosition);
+  lightingData.lodDistanceNear      = 30.0f;  // High quality within 30 units
+  lightingData.lodDistanceFar       = 60.0f;  // Low quality beyond 60 units
+  lightingData.qualityLevel         = 1;      // 0=low, 1=medium, 2=high
+  lightingData._padding             = 0.0f;
 
   constexpr VkDeviceSize lightingBlockSize = sizeof(UnitRenderLightingUniforms);
   vkCmdUpdateBuffer(
