@@ -1,7 +1,7 @@
 #include "rl/Client/Render/Unit/UnitRendererShadowPipeline.h"
-#include "rl/Client/Render/Unit/UnitRendererVertexInput.h"
-#include "rl/Client/Render/Unit/UnitRendererInfo.h"
 #include "rl/Base/Shader.h"
+#include "rl/Client/Render/Unit/UnitRendererInfo.h"
+#include "rl/Client/Render/Unit/UnitRendererVertexInput.h"
 
 #include <stdexcept>
 
@@ -17,19 +17,24 @@ void UnitCreateShadowPipelineLayout(VkDevice device, VkPipelineLayout& pipelineL
   shadowPipelineLayoutInfo.pushConstantRangeCount = 1;
 
   VkPushConstantRange shadowPushConstantRange{};
-  shadowPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  shadowPushConstantRange.offset     = 0;
-  shadowPushConstantRange.size       = sizeof(glm::mat4); // light space matrix
+  shadowPushConstantRange.stageFlags           = VK_SHADER_STAGE_VERTEX_BIT;
+  shadowPushConstantRange.offset               = 0;
+  shadowPushConstantRange.size                 = sizeof(glm::mat4); // light space matrix
   shadowPipelineLayoutInfo.pPushConstantRanges = &shadowPushConstantRange;
 
-  if (vkCreatePipelineLayout(device, &shadowPipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device, &shadowPipelineLayoutInfo, nullptr, &pipelineLayout) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create shadow pipeline layout");
   }
 }
 
-void UnitCreateShadowPipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass,
-    uint32_t width, uint32_t height, VkPipeline& pipeline)
+void UnitCreateShadowPipeline(VkDevice device,
+    VkPipelineLayout                   pipelineLayout,
+    VkRenderPass                       renderPass,
+    uint32_t                           width,
+    uint32_t                           height,
+    VkPipeline&                        pipeline)
 {
   auto vertShaderCode   = Providers::ShaderObject::Shader("unit.shadow.vert.spv");
   auto fragShaderCode   = Providers::ShaderObject::Shader("unit.shadow.frag.spv");
@@ -63,10 +68,10 @@ void UnitCreateShadowPipeline(VkDevice device, VkPipelineLayout pipelineLayout, 
 
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputInfo.vertexBindingDescriptionCount = 1;
-  vertexInputInfo.pVertexBindingDescriptions    = &bindingDescription;
+  vertexInputInfo.vertexBindingDescriptionCount   = 1;
+  vertexInputInfo.pVertexBindingDescriptions      = &bindingDescription;
   vertexInputInfo.vertexAttributeDescriptionCount = 1;
-  vertexInputInfo.pVertexAttributeDescriptions = &positionAttribute;
+  vertexInputInfo.pVertexAttributeDescriptions    = &positionAttribute;
 
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
   inputAssembly.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -119,10 +124,10 @@ void UnitCreateShadowPipeline(VkDevice device, VkPipelineLayout pipelineLayout, 
 
   // No color attachment for shadow pass
   VkPipelineColorBlendStateCreateInfo colorBlending{};
-  colorBlending.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-  colorBlending.logicOpEnable     = VK_FALSE;
-  colorBlending.attachmentCount   = 0;
-  colorBlending.pAttachments      = nullptr;
+  colorBlending.sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  colorBlending.logicOpEnable   = VK_FALSE;
+  colorBlending.attachmentCount = 0;
+  colorBlending.pAttachments    = nullptr;
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -141,7 +146,8 @@ void UnitCreateShadowPipeline(VkDevice device, VkPipelineLayout pipelineLayout, 
   pipelineInfo.subpass             = 0;
   pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;
 
-  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create shadow graphics pipeline");
   }

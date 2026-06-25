@@ -1,7 +1,7 @@
 #version 450
 
 // Workgroup size for parallel processing
-layout(local_size_x = 64) in;
+layout (local_size_x = 64) in;
 
 // Vertex structure matching C++ UnitVertex
 struct VertexInput {
@@ -11,7 +11,7 @@ struct VertexInput {
     vec2 texCoords;    // 8 bytes
     uint lightingEmit; // 4 bytes
     uint transparencyLevel; // 4 bytes
-    
+
     uint faceIndex;    // 4 bytes
     float roughness;   // 4 bytes
     float metallic;    // 4 bytes
@@ -36,22 +36,22 @@ struct VertexOutput {
 };
 
 // Input buffer: all vertices from vertex buffer
-layout(set = 0, binding = 0) readonly buffer InputVertices {
+layout (set = 0, binding = 0) readonly buffer InputVertices {
     VertexInput vertices[];
 };
 
 // Index buffer for indexed drawing
-layout(set = 0, binding = 1) readonly buffer IndexBuffer {
+layout (set = 0, binding = 1) readonly buffer IndexBuffer {
     uint indices[];
 };
 
 // Output buffer: visible indices after culling
-layout(std430, set = 0, binding = 2) buffer OutputIndices {
+layout (std430, set = 0, binding = 2) buffer OutputIndices {
     uint visibleIndices[];
 };
 
 // Atomic counter for visible index count
-layout(set = 0, binding = 3) buffer VisibleCount {
+layout (set = 0, binding = 3) buffer VisibleCount {
     uint visibleIndexCount;
 };
 
@@ -64,19 +64,19 @@ struct DrawIndexedParams {
     uint firstInstance;
 };
 
-layout(set = 0, binding = 4) buffer IndirectDraw {
+layout (set = 0, binding = 4) buffer IndirectDraw {
     DrawIndexedParams drawParams;
 };
 
 // Projection-View-Model matrix
-layout(push_constant) uniform PushConstants {
+layout (push_constant) uniform PushConstants {
     mat4 model;
     mat4 view;
     mat4 projection;
 } pc;
 
 // Frustum planes (left, right, top, bottom, near, far)
-layout(set = 0, binding = 5) uniform FrustumBlock {
+layout (set = 0, binding = 5) uniform FrustumBlock {
     vec4 u_FrustumPlanes[6];
 } frustum;
 
@@ -85,11 +85,11 @@ const uint maxFaces = 6;
 // Apply polygon fence offset based on face index (from vertex shader)
 vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLeft) {
     vec3 offset = vec3(0.0);
-    
+
     // Polygon fence values: t, d, b, f (top, down, back, front)
     // Right side: polTr, polDr, polBr, polFr
     // Left side: polTl, polDl, polBl, polFl
-    switch(faceIndex) {
+    switch (faceIndex) {
         case 0: // Top face
             offset.y = polRight.x; // Tr
             break;
@@ -136,21 +136,21 @@ bool IsTriangleVisible(vec3 p0, vec3 p1, vec3 p2) {
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     uint totalIndices = indices.length();
-    
+
     // Each workgroup processes triangles (3 indices per triangle)
     uint triangleIndex = globalID;
     uint indexIndex = triangleIndex * 3;
-    
+
     // Check bounds: return early if out of bounds
     if (indexIndex + 2 >= totalIndices) {
         return;
     }
-    
+
     // Get triangle indices from index buffer
     uint idx0 = indices[indexIndex];
     uint idx1 = indices[indexIndex + 1];
     uint idx2 = indices[indexIndex + 2];
-    
+
     // Get triangle vertices from input buffer using indices
     VertexInput v0 = vertices[idx0];
     VertexInput v1 = vertices[idx1];
@@ -164,12 +164,12 @@ void main() {
     vec3 modifiedPos0 = ApplyPolygonOffset(rawPos0, v0.faceIndex, v0.polRight, v0.polLeft);
     vec3 modifiedPos1 = ApplyPolygonOffset(rawPos1, v1.faceIndex, v1.polRight, v1.polLeft);
     vec3 modifiedPos2 = ApplyPolygonOffset(rawPos2, v2.faceIndex, v2.polRight, v2.polLeft);
-    
+
     // Transform to world space
     vec4 worldPos0 = pc.model * vec4(modifiedPos0, 1.0);
     vec4 worldPos1 = pc.model * vec4(modifiedPos1, 1.0);
     vec4 worldPos2 = pc.model * vec4(modifiedPos2, 1.0);
-    
+
     // Perform frustum culling in world space (frustum planes are in world space)
     if (IsTriangleVisible(worldPos0.xyz, worldPos1.xyz, worldPos2.xyz)) {
         // Atomically get and increment the output index

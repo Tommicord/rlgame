@@ -1,7 +1,7 @@
 #version 450
 
 // Workgroup size for parallel processing
-layout(local_size_x = 64) in;
+layout (local_size_x = 64) in;
 
 // Vertex structure matching C++ UnitVertex
 struct VertexInput {
@@ -46,27 +46,27 @@ struct VertexOutput {
 };
 
 // Input buffer: base vertices (4 vertices per face)
-layout(std430, set = 0, binding = 0) readonly buffer InputVertices {
+layout (std430, set = 0, binding = 0) readonly buffer InputVertices {
     VertexInput vertices[];
 };
 
 // Index buffer for base faces
-layout(std430, set = 0, binding = 1) readonly buffer IndexBuffer {
+layout (std430, set = 0, binding = 1) readonly buffer IndexBuffer {
     uint indices[];
 };
 
 // Output buffer: curved vertices
-layout(std430, set = 0, binding = 2) buffer OutputVertices {
+layout (std430, set = 0, binding = 2) buffer OutputVertices {
     VertexOutput curvedVertices[];
 };
 
 // Output buffer: curved indices
-layout(std430, set = 0, binding = 3) buffer OutputIndices {
+layout (std430, set = 0, binding = 3) buffer OutputIndices {
     uint curvedIndices[];
 };
 
 // Atomic counter for vertex and index counts
-layout(std430, set = 0, binding = 4) buffer Counters {
+layout (std430, set = 0, binding = 4) buffer Counters {
     uint vertexCount;
     uint indexCount;
 };
@@ -80,12 +80,12 @@ struct DrawIndexedParams {
     uint firstInstance;
 };
 
-layout(std430, set = 0, binding = 5) buffer IndirectDraw {
+layout (std430, set = 0, binding = 5) buffer IndirectDraw {
     DrawIndexedParams drawParams;
 };
 
 // Tessellation settings
-layout(push_constant) uniform PushConstants {
+layout (push_constant) uniform PushConstants {
     uint tessellationLevel; // Subdivisions per edge (e.g., 8 = 8x8 grid)
     uint faceCount;
 } pc;
@@ -168,7 +168,7 @@ void ApplyCurvature(inout VertexInput v, float adjVertical, float adjHorizontal,
         float edgeDistX = min(faceUV.x, 1.0 - faceUV.x);
         float edgeDistY = min(faceUV.y, 1.0 - faceUV.y);
         float edgeDist = min(edgeDistX, edgeDistY);
-        
+
         // Smooth falloff: full curvature in center, fading to zero at edges
         // Reduced threshold for more visible curvature
         float edgeFalloff = smoothstep(0.0, 0.58, edgeDist);

@@ -18,7 +18,7 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
   computeBindings[1].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   computeBindings[1].descriptorCount = 1;
   computeBindings[1].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
-  
+
   computeBindings[2].binding         = 2;
   computeBindings[2].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   computeBindings[2].descriptorCount = 1;
@@ -520,17 +520,15 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
   triplanarSettingsWrite.descriptorCount = 1;
   triplanarSettingsWrite.pBufferInfo     = &triplanarBufferInfo;
 
-  std::array descriptorWrites = {textureArrayWrite, lightingBufferWrite, lightingTextureWrite, settingsWrite,
-      aoTextureWrite, normalTextureWrite, triplanarSettingsWrite};
+  std::array descriptorWrites = {textureArrayWrite, lightingBufferWrite, lightingTextureWrite,
+      settingsWrite, aoTextureWrite, normalTextureWrite, triplanarSettingsWrite};
 
   vkUpdateDescriptorSets(
       device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
-    VkDescriptorSet set,
-    VkImageView shadowMapView,
-    VkSampler shadowMapSampler)
+void UnitUpdateGraphicsDescriptorSetWithShadowMap(
+    VkDevice device, VkDescriptorSet set, VkImageView shadowMapView, VkSampler shadowMapSampler)
 {
   VkDescriptorImageInfo shadowMapInfo{};
   shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

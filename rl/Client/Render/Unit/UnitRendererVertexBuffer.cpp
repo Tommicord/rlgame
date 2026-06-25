@@ -9,7 +9,7 @@
 namespace Rl::Client::Render
 {
 
-void UnitCreateVertexBuffer(VkDevice         device,
+void UnitCreateVertexBuffer(VkDevice     device,
     VkPhysicalDevice                     physicalDevice,
     const std::vector<UnitRenderVertex>& vertices,
     VkBuffer&                            vertexBuffer,

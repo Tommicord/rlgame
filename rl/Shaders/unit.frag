@@ -24,7 +24,7 @@ struct Light {
 };
 
 // Lighting uniforms
-layout(std140, set = 0, binding = 4) uniform LightingBlock {
+layout (std140, set = 0, binding = 4) uniform LightingBlock {
     vec4 u_SunDirection;
     vec4 u_SunColor;
     float u_SunIntensity;
@@ -137,13 +137,13 @@ vec3 ACESToneMapping(vec3 color) {
 vec3 EnhancedToneMapping(vec3 color, float exposure) {
     // Apply exposure
     color *= exposure;
-    
+
     // ACES tone mapping
     vec3 mapped = ACESToneMapping(color);
-    
+
     // Subtle contrast adjustment
     mapped = pow(mapped, vec3(1.1));
-    
+
     return clamp(mapped, 0.0, 1.0);
 }
 
@@ -187,8 +187,8 @@ float CalculateShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 normal) {
     projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
     if (
-        projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 ||
-        projCoords.y < 0.0 || projCoords.y > 1.0
+    projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 ||
+    projCoords.y < 0.0 || projCoords.y > 1.0
     ) {
         return 1.0;
     }
@@ -201,8 +201,8 @@ float CalculateShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 normal) {
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
 
-    for(int x = 0; x <= 2; ++x) {
-        for(int y = 0; y <= 2; ++y) {
+    for (int x = 0; x <= 2; ++x) {
+        for (int y = 0; y <= 2; ++y) {
             vec3 shadowCoord = vec3(projCoords.xy + vec2(x, y) * texelSize, currentDepth);
             shadow += texture(u_ShadowMap, shadowCoord);
         }
@@ -216,18 +216,18 @@ float CalculateSoftShadows(vec3 worldPos, vec3 normal, vec3 lightDir, vec3 geome
     // Self-shadowing: surfaces facing away from light are in shadow
     float NdotL = max(dot(normal, lightDir), 0.0);
     float selfShadow = smoothstep(0.0, 0.25, NdotL);
-    
+
     // Ambient occlusion-like shadow based on surface concavity
     // Surfaces facing inward get more shadow
     float inwardFactor = 1.0 - max(geometricNormal.y, 0.0);
     float cavityShadow = 1.0 - inwardFactor * 0.4;
-    
+
     // Combine shadow factors with organic blending
     float shadow = selfShadow * cavityShadow;
-    
+
     // Add subtle penumbra effect
     shadow = mix(shadow, 1.0, 0.25);
-    
+
     return pow(shadow, 2.0);
 }
 
@@ -236,17 +236,17 @@ float CalculateAmbientOcclusion(vec3 normal, vec3 geometricNormal) {
     // AO based on how much the surface faces away from the camera
     float NdotV = max(dot(normal, geometricNormal), 0.0);
     float ao = 1.0 - (1.0 - NdotV) * 0.4;
-    
+
     // Add cavity effect - surfaces facing inward get more AO
     float cavity = 1.0 - max(0.0, dot(geometricNormal, vec3(0, 1, 0))) * 0.3;
     ao *= cavity;
-    
+
     return clamp(ao, 0.2, 1.0);
 }
 
 // Ray-traced reflections approximation with environment mapping
 vec3 CalculateReflections(vec3 worldPos, vec3 normal, vec3 viewDir, vec3 albedo,
-                           float metallic, float roughness, float lodFactor) {
+                          float metallic, float roughness, float lodFactor) {
     // Skip reflections for low quality or low metallic surfaces
     if (lighting.u_QualityLevel == 0 || metallic < 0.25) return vec3(0.0);
 
@@ -407,11 +407,11 @@ vec3 CalculateAmbient(vec3 N, vec3 V, vec3 F0, PBRMaterial material, vec3 ambien
     // Enhanced indirect specular with roughness-based falloff
     vec3 R = reflect(-V, N);
     vec3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0), F0, material.roughness);
-    
+
     // Better indirect specular approximation based on roughness
     float roughnessFactor = 1.0 - material.roughness * 0.7;
     vec3 indirectSpecular = F * roughnessFactor * ambientColor * 0.6;
-    
+
     // Add color bleeding from environment
     vec3 envBleeding = ambientColor * material.albedo * 0.1 * (1.0 - material.roughness);
     ambient += indirectSpecular + envBleeding;
@@ -683,7 +683,7 @@ void main() {
     float emission = float(v_LightingEmit) / 255.0;
     // Emission should be additive and not affected by AO
     vec3 emitColor = emission * material.albedo * lighting.u_SunColor.xyz * 4.0;
-    
+
     // Add bloom-like glow for emissive materials
     if (emission > 0.15) {
         float glowIntensity = emission * 2.0;
@@ -698,7 +698,7 @@ void main() {
 
     // Gamma correction with slight desaturation for more realistic look
     mappedColor = pow(mappedColor, vec3(1.0 / 2.2));
-    
+
     // Subtle color grading - slightly warm shadows, cool highlights
     float luminance = dot(mappedColor, vec3(0.299, 0.587, 0.114));
     mappedColor = mix(mappedColor, mappedColor * vec3(1.05, 0.98, 0.95), 1.0 - luminance * 0.5);

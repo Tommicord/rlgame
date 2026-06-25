@@ -74,7 +74,8 @@ void UnitStateDrawable::OnCreate(
   // Update compute descriptor set
   Client::Render::UnitUpdateComputeDescriptorSet(context.device, vk.computeDescriptorSet,
       vk.vertexBuffer, vk.indexBuffer, vk.outputIndexBuffer, vk.visibleCountBuffer,
-      vk.indirectDrawBuffer, vk.frustumBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
+      vk.indirectDrawBuffer, vk.frustumBuffer,
+      sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
 
   Client::Render::UnitCreateCurvatureComputeDescriptorSetLayout(
       context.device, vk.curveComputeDescriptorSetLayout);
@@ -90,8 +91,8 @@ void UnitStateDrawable::OnCreate(
   // Update curvature compute descriptor set
   Client::Render::UnitUpdateCurvatureComputeDescriptorSet(context.device,
       vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer, vk.curvedVertexBuffer,
-      vk.curvedIndexBuffer, vk.curveCountersBuffer, vk.curveIndirectDrawBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size(),
-      unitIndices.size());
+      vk.curvedIndexBuffer, vk.curveCountersBuffer, vk.curveIndirectDrawBuffer,
+      sizeof(Client::Render::UnitRenderVertex) * unitVertices.size(), unitIndices.size());
 
   // Create placeholder resources
   Client::Render::UnitCreatePlaceholderLightingTexture(context.device, context.physicalDevice,
@@ -101,8 +102,8 @@ void UnitStateDrawable::OnCreate(
       vk.placeholderAOTexture, vk.placeholderAOTextureMemory, vk.placeholderAOTextureView,
       vk.placeholderAOSampler);
   Client::Render::UnitCreatePlaceholderNormalTexture(context.device, context.physicalDevice,
-      vk.placeholderNormalTexture, vk.placeholderNormalTextureMemory, vk.placeholderNormalTextureView,
-      vk.placeholderNormalSampler);
+      vk.placeholderNormalTexture, vk.placeholderNormalTextureMemory,
+      vk.placeholderNormalTextureView, vk.placeholderNormalSampler);
   Client::Render::UnitCreatePlaceholderSettingsBuffer(context.device, context.physicalDevice,
       vk.placeholderSettingsBuffer, vk.placeholderSettingsBufferMemory);
   Client::Render::UnitCreatePlaceholderLightingBuffer(context.device, context.physicalDevice,
@@ -111,18 +112,18 @@ void UnitStateDrawable::OnCreate(
       vk.triplanarSettingsBuffer, vk.triplanarSettingsBufferMemory);
 
   // Create shadow map resources
-  Client::Render::UnitShadowMapConfig shadowConfig{};
+  Client::Render::UnitShadowMapConfig    shadowConfig{};
   Client::Render::UnitShadowMapResources shadowResources{};
-  Client::Render::UnitCreateShadowMapResources(context.device, context.physicalDevice,
-      shadowConfig, shadowResources);
+  Client::Render::UnitCreateShadowMapResources(
+      context.device, context.physicalDevice, shadowConfig, shadowResources);
 
   // Assign shadow map resources to vk struct
-  vk.shadowMapImage = shadowResources.shadowMapImage;
-  vk.shadowMapMemory = shadowResources.shadowMapMemory;
-  vk.shadowMapView = shadowResources.shadowMapView;
-  vk.shadowMapSampler = shadowResources.shadowMapSampler;
+  vk.shadowMapImage       = shadowResources.shadowMapImage;
+  vk.shadowMapMemory      = shadowResources.shadowMapMemory;
+  vk.shadowMapView        = shadowResources.shadowMapView;
+  vk.shadowMapSampler     = shadowResources.shadowMapSampler;
   vk.shadowMapFramebuffer = shadowResources.shadowMapFramebuffer;
-  vk.shadowMapRenderPass = shadowResources.shadowMapRenderPass;
+  vk.shadowMapRenderPass  = shadowResources.shadowMapRenderPass;
 
   // Create shadow map pipeline layout and pipeline
   Client::Render::UnitCreateShadowPipelineLayout(context.device, vk.shadowPipelineLayout);
@@ -140,8 +141,8 @@ void UnitStateDrawable::OnCreate(
       vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Update graphics descriptor set with shadow map
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(context.device, vk.descriptorSet,
-      vk.shadowMapView, vk.shadowMapSampler);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(
+      context.device, vk.descriptorSet, vk.shadowMapView, vk.shadowMapSampler);
 
   // Create vertex input state
   auto vertexInputBinding    = Client::Render::UnitCreateVertexInputBindingDescription();

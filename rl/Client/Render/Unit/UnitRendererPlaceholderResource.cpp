@@ -1,6 +1,6 @@
 #include "rl/Client/Render/Unit/UnitRendererPlaceholderResource.h"
-#include "rl/Client/Render/Unit/UnitRendererInfo.h"
 #include "rl/Client/Render/Unit/UnitRendererBasicBuffer.h"
+#include "rl/Client/Render/Unit/UnitRendererInfo.h"
 
 #include <stdexcept>
 
@@ -143,9 +143,10 @@ void UnitCreatePlaceholderLightingBuffer(VkDevice device,
   vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
-  allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocInfo.allocationSize  = memRequirements.size;
-  allocInfo.memoryTypeIndex = UnitFindMemoryTypeIndex(physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex =
+      UnitFindMemoryTypeIndex(physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
   {
@@ -187,9 +188,10 @@ void UnitCreatePlaceholderAOTexture(VkDevice device,
   vkGetImageMemoryRequirements(device, texture, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
-  allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocInfo.allocationSize  = memRequirements.size;
-  allocInfo.memoryTypeIndex = UnitFindMemoryTypeIndex(physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex =
+      UnitFindMemoryTypeIndex(physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   if (vkAllocateMemory(device, &allocInfo, nullptr, &textureMemory) != VK_SUCCESS)
   {
@@ -286,11 +288,11 @@ void UnitCreateTriplanarSettingsBuffer(VkDevice device,
 }
 
 void UnitCreatePlaceholderNormalTexture(VkDevice device,
-    VkPhysicalDevice                          physicalDevice,
-    VkImage&                                  texture,
-    VkDeviceMemory&                           textureMemory,
-    VkImageView&                              textureView,
-    VkSampler&                                sampler)
+    VkPhysicalDevice                             physicalDevice,
+    VkImage&                                     texture,
+    VkDeviceMemory&                              textureMemory,
+    VkImageView&                                 textureView,
+    VkSampler&                                   sampler)
 {
   // Create a 1x1 white texture as placeholder for normal map
   VkImageCreateInfo imageInfo{};

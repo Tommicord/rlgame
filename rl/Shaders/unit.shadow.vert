@@ -1,7 +1,7 @@
 #version 450
 
 layout (location = 0) in vec4 a_Position;
-layout(push_constant) uniform PushConstants {
+layout (push_constant) uniform PushConstants {
     mat4 lightSpaceMatrix;
 } pc;
 

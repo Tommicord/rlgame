@@ -59,9 +59,7 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
     VkBuffer                                                  triplanarBuffer,
     size_t                                                    lightingBufferSize);
 
-void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
-    VkDescriptorSet set,
-    VkImageView shadowMapView,
-    VkSampler shadowMapSampler);
+void UnitUpdateGraphicsDescriptorSetWithShadowMap(
+    VkDevice device, VkDescriptorSet set, VkImageView shadowMapView, VkSampler shadowMapSampler);
 
 } // namespace Rl::Client::Render

@@ -17,7 +17,7 @@ layout (location = 12) in vec4 a_Bitangent;        // Bitangent (16 bytes)
 layout (location = 13) in vec4 a_Normal;           // Normal (16 bytes)
 
 // Push constants for camera matrices
-layout(push_constant) uniform PushConstants {
+layout (push_constant) uniform PushConstants {
     mat4 model;
     mat4 view;
     mat4 projection;
@@ -42,9 +42,9 @@ void main() {
     float polCurveV = a_PolCurve.x;
     float polCurveH = a_PolCurve.y;
 
-    uint lightingEmit     = a_LightingEmit;
+    uint lightingEmit = a_LightingEmit;
     uint transparencyLevel = a_TransparencyLevel;
-    uint faceIndex        = a_FaceIndex;
+    uint faceIndex = a_FaceIndex;
 
     vec3 albedo = a_Albedo.xyz;
     float metallic = a_Metallic;

@@ -34,10 +34,10 @@ struct UnitRenderVertex
 struct UnitRenderLight
 {
   glm::vec3 direction;
-  float padding0;
+  float     padding0;
   glm::vec3 color;
-  float intensity;
-  float padding1[4];
+  float     intensity;
+  float     padding1[4];
 };
 
 /* Defines the lighting uniforms for the unit render info */
@@ -46,10 +46,10 @@ struct alignas(16) UnitRenderLightingUniforms
   // Primary sunlight
   glm::vec4 sunDirection;
   glm::vec4 sunColor;
-  float sunIntensity;
-  uint32_t additionalLightCount;
-  float ambientStrength;
-  float exposure;
+  float     sunIntensity;
+  uint32_t  additionalLightCount;
+  float     ambientStrength;
+  float     exposure;
 
   alignas(16) glm::vec3 cameraPosition;
 
@@ -61,10 +61,10 @@ struct alignas(16) UnitRenderLightingUniforms
   alignas(16) glm::mat4 lightSpaceMatrix;
 
   // LOD settings
-  float lodDistanceNear;   // Distance threshold for high quality
-  float lodDistanceFar;    // Distance threshold for low quality
-  uint32_t qualityLevel;   // 0=low, 1=medium, 2=high
-  float _padding;          // Alignment padding
+  float    lodDistanceNear; // Distance threshold for high quality
+  float    lodDistanceFar; // Distance threshold for low quality
+  uint32_t qualityLevel; // 0=low, 1=medium, 2=high
+  float    _padding; // Alignment padding
 };
 
 /* Defines the triplanar settings */

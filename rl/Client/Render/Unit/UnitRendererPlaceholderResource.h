@@ -37,10 +37,10 @@ void UnitCreateTriplanarSettingsBuffer(VkDevice device,
     VkDeviceMemory&                             bufferMemory);
 
 void UnitCreatePlaceholderNormalTexture(VkDevice device,
-    VkPhysicalDevice                          physicalDevice,
-    VkImage&                                  texture,
-    VkDeviceMemory&                           textureMemory,
-    VkImageView&                              textureView,
-    VkSampler&                                sampler);
+    VkPhysicalDevice                             physicalDevice,
+    VkImage&                                     texture,
+    VkDeviceMemory&                              textureMemory,
+    VkImageView&                                 textureView,
+    VkSampler&                                   sampler);
 
 } // namespace Rl::Client::Render

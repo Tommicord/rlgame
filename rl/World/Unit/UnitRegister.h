@@ -9,7 +9,7 @@ namespace Rl::World
 /* Defines an abstract class for Unit register */
 class UnitRegister
 {
-public:
+  public:
   /* Constructs a basic unit register */
   virtual ~UnitRegister() = default;
 
@@ -22,17 +22,17 @@ public:
 template <typename T>
 class IUnitIdentifiable : public UnitRegister
 {
-public:
+  public:
   using Id = unsigned int;
 
   /* Compile-Time Static method, Gens a hash for the Unit class */
   static consteval unsigned int GenClassId()
   {
-    constexpr unsigned int factor = 6;
+    constexpr unsigned int factor   = 6;
     constexpr unsigned int complete = 65534;
-    unsigned int hash = 0x0000;
-    std::string_view name = typeid(T).name();
-    
+    unsigned int           hash     = 0x0000;
+    std::string_view       name     = typeid(T).name();
+
     for (const char c : name)
     {
       hash ^= static_cast<unsigned int>(c);
@@ -50,7 +50,8 @@ public:
 
   /* Compile-Evaluated static function that gets the id for the Unit */
   [[nodiscard]]
-  static consteval int GetStaticUnitId() {
+  static consteval int GetStaticUnitId()
+  {
     const int id = GenClassId();
     return id;
   }

@@ -7,9 +7,9 @@
 #include "rl/Base/IUpdatable.h"
 #include "rl/Base/Texture2.h"
 #include "rl/World/Unit/UnitDynamicTexture.h"
+#include "rl/World/Unit/UnitPropertyStrategy.h"
 #include "rl/World/Unit/UnitRegistry.h"
 #include "rl/World/Unit/UnitResourceName.h"
-#include "rl/World/Unit/UnitPropertyStrategy.h"
 
 namespace Rl::World
 {
@@ -48,7 +48,7 @@ class BaseUnit : IUpdatable
   inline static auto defaultName = std::vector({"Unknown"});
   inline static auto registry    = Registry(UnitResourceName(defaultName));
 
-public:
+  public:
   /* Stores the properties of the world unit */
   struct
   {
@@ -132,78 +132,132 @@ public:
 
   /* Updates the Base Unit properties */
   void Update() override;
-  
+
   /* Gets the light emission from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyLightEmit() const { return 0.0f; }
-  
+  virtual float GetStrategyLightEmit() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the light opacity from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyLightOpacity() const { return 1.0f; }
-  
+  virtual float GetStrategyLightOpacity() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the ambient occlusion from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyAmbientOcclusion() const { return 1.0f; }
-  
+  virtual float GetStrategyAmbientOcclusion() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the roughness from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyRoughness() const { return 0.5f; }
-  
+  virtual float GetStrategyRoughness() const
+  {
+    return 0.5f;
+  }
+
   /* Gets the metallic from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyMetallic() const { return 0.0f; }
-  
+  virtual float GetStrategyMetallic() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the albedo R from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyAlbedoR() const { return 1.0f; }
-  
+  virtual float GetStrategyAlbedoR() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the albedo G from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyAlbedoG() const { return 1.0f; }
-  
+  virtual float GetStrategyAlbedoG() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the albedo B from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyAlbedoB() const { return 1.0f; }
-  
+  virtual float GetStrategyAlbedoB() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the dirtiness from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyDirtiness() const { return 0.0f; }
-  
+  virtual float GetStrategyDirtiness() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the wetness from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyWetness() const { return 0.0f; }
-  
+  virtual float GetStrategyWetness() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the temperature from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyTemperature() const { return 20.0f; }
-  
+  virtual float GetStrategyTemperature() const
+  {
+    return 20.0f;
+  }
+
   /* Gets the hardness from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyHardness() const { return 1.0f; }
-  
+  virtual float GetStrategyHardness() const
+  {
+    return 1.0f;
+  }
+
   /* Gets the explosion resistance from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyExplosionResistance() const { return 0.0f; }
-  
+  virtual float GetStrategyExplosionResistance() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the transparency from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyTransparency() const { return 0.0f; }
-  
+  virtual float GetStrategyTransparency() const
+  {
+    return 0.0f;
+  }
+
   /* Gets the flammability from property strategy */
   [[nodiscard]]
-  virtual float GetStrategyFlammability() const { return 0.0f; }
-  
+  virtual float GetStrategyFlammability() const
+  {
+    return 0.0f;
+  }
+
   /* Checks if unit is liquid from property strategy */
   [[nodiscard]]
-  virtual bool IsStrategyLiquid() const { return false; }
-  
+  virtual bool IsStrategyLiquid() const
+  {
+    return false;
+  }
+
   /* Checks if unit is gas from property strategy */
   [[nodiscard]]
-  virtual bool IsStrategyGas() const { return false; }
-  
+  virtual bool IsStrategyGas() const
+  {
+    return false;
+  }
+
   /* Checks if unit is solid from property strategy */
   [[nodiscard]]
-  virtual bool IsStrategySolid() const { return true; }
+  virtual bool IsStrategySolid() const
+  {
+    return true;
+  }
 
   protected:
   /* Texture of the unit, back, front, left, right, bottom, top */

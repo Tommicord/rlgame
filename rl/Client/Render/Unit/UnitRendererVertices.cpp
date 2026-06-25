@@ -14,7 +14,7 @@ static const std::vector<UnitRenderVertex> unitVertices = {
         glm::vec4(0.6f, 0.4f, 0.2f, 0.0f), glm::vec4(0.0f, 1.0f, 1.0f, 0.0f),
         glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},
     // Top face
-  {glm::vec4(-0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
+    {glm::vec4(-0.5f, 0.0f, 0.5f, 1.0f), glm::vec4(0, 0, 0, 0), glm::vec4(0, 0, 0, 0),
         glm::vec2(0.0f, 1.0f), 0, 0, 0, 0.0f, 0.95f, 0.0f, glm::vec4(-0.45f, 0.0f, 0.0f, 0.0f),
         glm::vec4(0.6f, 0.4f, 0.2f, 0.0f), glm::vec4(0.0f, 1.0f, 1.0f, 0.0f),
         glm::vec4(0.0f, 0.707f, -0.707f, 0.0f), glm::vec4(0.0f, 0.707f, -0.707f, 0.0f)},

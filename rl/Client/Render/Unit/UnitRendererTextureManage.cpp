@@ -24,8 +24,8 @@ void UnitUpdateUnitTextures(VkDevice  device,
     else
     {
       imageInfos[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-      imageInfos[index].imageView = VK_NULL_HANDLE;
-      imageInfos[index].sampler = VK_NULL_HANDLE;
+      imageInfos[index].imageView   = VK_NULL_HANDLE;
+      imageInfos[index].sampler     = VK_NULL_HANDLE;
     }
   };
   // Get texture image views and samplers (order: top, down, left, right, front, back)

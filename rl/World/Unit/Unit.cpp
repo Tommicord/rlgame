@@ -1,7 +1,7 @@
 #include "rl/World/Unit/Unit.h"
+#include "rl/World/Unit/UnitRegister.h"
 #include "rl/World/Unit/UnitRegistry.h"
 #include "rl/World/Unit/UnitResourceName.h"
-#include "rl/World/Unit/UnitRegister.h"
 
 #include <algorithm>
 #include <cstring>
@@ -60,12 +60,7 @@ std::vector<char*> UnitResourceName::SplitResourceName() const
   std::string        nm(name);
   std::vector<char*> res;
   // Reserve space to avoid reallocations
-  const size_t dotcount = std::ranges::count_if(
-    nm, [](const char c)
-    {
-      return c == '.';
-    }
-  );
+  const size_t dotcount = std::ranges::count_if(nm, [](const char c) { return c == '.'; });
   res.reserve(dotcount + 1);
   size_t start = 0;
   for (size_t i = 0; i < nm.size(); ++i)

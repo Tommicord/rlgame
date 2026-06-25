@@ -93,29 +93,29 @@ struct UnitStateDrawableVulkan : StateDrawableVulkan
   VkDeviceMemory triplanarSettingsBufferMemory = VK_NULL_HANDLE;
 
   // Curvature compute shader buffers
-  VkBuffer       curvedVertexBuffer       = VK_NULL_HANDLE;
-  VkDeviceMemory curvedVertexBufferMemory = VK_NULL_HANDLE;
-  VkBuffer       curvedIndexBuffer       = VK_NULL_HANDLE;
-  VkDeviceMemory curvedIndexBufferMemory = VK_NULL_HANDLE;
-  VkBuffer       curveCountersBuffer       = VK_NULL_HANDLE;
-  VkDeviceMemory curveCountersBufferMemory = VK_NULL_HANDLE;
-  VkBuffer       curveIndirectDrawBuffer       = VK_NULL_HANDLE;
-  VkDeviceMemory curveIndirectDrawBufferMemory = VK_NULL_HANDLE;
-  VkPipeline     curveComputePipeline            = VK_NULL_HANDLE;
-  VkPipelineLayout curveComputePipelineLayout      = VK_NULL_HANDLE;
+  VkBuffer              curvedVertexBuffer              = VK_NULL_HANDLE;
+  VkDeviceMemory        curvedVertexBufferMemory        = VK_NULL_HANDLE;
+  VkBuffer              curvedIndexBuffer               = VK_NULL_HANDLE;
+  VkDeviceMemory        curvedIndexBufferMemory         = VK_NULL_HANDLE;
+  VkBuffer              curveCountersBuffer             = VK_NULL_HANDLE;
+  VkDeviceMemory        curveCountersBufferMemory       = VK_NULL_HANDLE;
+  VkBuffer              curveIndirectDrawBuffer         = VK_NULL_HANDLE;
+  VkDeviceMemory        curveIndirectDrawBufferMemory   = VK_NULL_HANDLE;
+  VkPipeline            curveComputePipeline            = VK_NULL_HANDLE;
+  VkPipelineLayout      curveComputePipelineLayout      = VK_NULL_HANDLE;
   VkDescriptorSetLayout curveComputeDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSet  curveComputeDescriptorSet       = VK_NULL_HANDLE;
+  VkDescriptorSet       curveComputeDescriptorSet       = VK_NULL_HANDLE;
 
   // Shadow map resources
-  VkImage        shadowMapImage       = VK_NULL_HANDLE;
-  VkDeviceMemory shadowMapMemory     = VK_NULL_HANDLE;
-  VkImageView    shadowMapView        = VK_NULL_HANDLE;
-  VkSampler      shadowMapSampler     = VK_NULL_HANDLE;
-  VkFramebuffer  shadowMapFramebuffer = VK_NULL_HANDLE;
-  VkRenderPass   shadowMapRenderPass  = VK_NULL_HANDLE;
-  VkPipeline     shadowPipeline      = VK_NULL_HANDLE;
+  VkImage          shadowMapImage       = VK_NULL_HANDLE;
+  VkDeviceMemory   shadowMapMemory      = VK_NULL_HANDLE;
+  VkImageView      shadowMapView        = VK_NULL_HANDLE;
+  VkSampler        shadowMapSampler     = VK_NULL_HANDLE;
+  VkFramebuffer    shadowMapFramebuffer = VK_NULL_HANDLE;
+  VkRenderPass     shadowMapRenderPass  = VK_NULL_HANDLE;
+  VkPipeline       shadowPipeline       = VK_NULL_HANDLE;
   VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
-  bool           shadowMapInitialized = false;
+  bool             shadowMapInitialized = false;
 
   UnitStateDrawableVulkan() = default;
 };
@@ -130,8 +130,8 @@ class UnitStateDrawable : public StateDrawable<UnitStateResource, UnitStateDrawa
       UnitStateDrawableVulkan&   vk,
       Game::VulkanContext&       context) override;
   void OnDrawCompute(UnitStateResource& resource,
-      UnitStateDrawableVulkan& vk,
-      Game::VulkanContext& context) override;
+      UnitStateDrawableVulkan&          vk,
+      Game::VulkanContext&              context) override;
   void OnUpdate(UnitStateResource& resource,
       UnitStateDrawableVulkan&     vk,
       Game::VulkanContext&         context) override;

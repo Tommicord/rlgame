@@ -24,7 +24,7 @@ class UnitChunkBuffer
     std::unique_ptr<int[]> b;
 
     /* Gets the Unit buffer */
-    int *Get() const noexcept
+    int* Get() const noexcept
     {
       return b.get();
     }
@@ -43,7 +43,6 @@ class UnitChunkBuffer
   };
 
   public:
-
   /*
    * A 64x64x128x4 Array of 2 MB is cacheable in the GPU L2 cache
    * This is an ideal size for a Chunk of Units
@@ -116,7 +115,7 @@ class UnitChunkBuffer
   [[nodiscard]]
   ChunkCoord GetDimensions() const;
 
-protected:
+  protected:
   /* Maps a 3D coordinate to the chunk buffer array pos */
   [[nodiscard]]
   int IndexMap3d2(int x, int y, int z) const;

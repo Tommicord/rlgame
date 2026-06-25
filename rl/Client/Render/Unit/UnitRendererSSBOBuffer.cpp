@@ -9,7 +9,7 @@
 namespace Rl::Client::Render
 {
 
-void UnitCreateSSBOBuffers(VkDevice         device,
+void UnitCreateSSBOBuffers(VkDevice     device,
     VkPhysicalDevice                    physicalDevice,
     size_t                              vertexCount,
     Providers::UnitStateDrawableVulkan& vk)
