@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
-#include "rl/World/Chunk/UnitChunkBuffer.h"
+import <gtest/gtest.h>;
+import Rl.World.Chunk.UnitChunkBuffer;
 
 using namespace Rl::World::Chunk;
 

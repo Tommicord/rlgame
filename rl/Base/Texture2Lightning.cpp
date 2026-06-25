@@ -1,13 +1,13 @@
-#include "rl/Base/Texture2.h"
+import Rl.Base.Texture2;
 
-#include <algorithm>
-#include <cmath>
-#include <random>
+import <algorithm>;
+import <cmath>;
+import <random>;
 
 namespace Rl::Providers
 {
 
-Texture2* GenerateLightningTexture(Texture2* baseTexture, const TextureProperties& properties)
+Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properties& properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -80,11 +80,11 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const TexturePropertie
 
   // Create new texture with the generated data
   Texture2*         lightningTexture = new Texture2();
-  TextureProperties lightningProps   = properties;
-  lightningProps.format              = TextureFormat::R8;
+  Texture2Properties lightningProps   = properties;
+  lightningProps.format              = Texture2Format::R8;
   lightningProps.generateMipmaps     = true;
 
-  lightningTexture->LoadFromData(lightningData, width, height, TextureFormat::R8, lightningProps);
+  lightningTexture->LoadFromData(lightningData, width, height, Texture2Format::R8, lightningProps);
 
   // Clean up temporary data
   delete[] lightningData;
@@ -93,7 +93,7 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const TexturePropertie
 }
 
 Texture2* GenerateDirectionalLightTexture(
-    Texture2* baseTexture, const glm::vec3& lightDirection, const TextureProperties& properties)
+    Texture2* baseTexture, const glm::vec3& lightDirection, const Texture2Properties& properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -194,11 +194,11 @@ Texture2* GenerateDirectionalLightTexture(
 
   // Create new texture with the generated data
   Texture2*         lightingTexture = new Texture2();
-  TextureProperties lightingProps   = properties;
-  lightingProps.format              = TextureFormat::RGB8;
+  Texture2Properties lightingProps   = properties;
+  lightingProps.format              = Texture2Format::RGB8;
   lightingProps.generateMipmaps     = true;
 
-  lightingTexture->LoadFromData(lightingData, width, height, TextureFormat::RGB8, lightingProps);
+  lightingTexture->LoadFromData(lightingData, width, height, Texture2Format::RGB8, lightingProps);
 
   // Clean up temporary data
   delete[] lightingData;

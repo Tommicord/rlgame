@@ -1,10 +1,10 @@
-#include "rl/World/Unit/UnitDynamicTexture.h"
-#include "rl/Base/SimplexNoise.h"
-#include "rl/Base/Texture2.h"
+import Rl.World.Unit.UnitDynamicTexture;
+import Rl.Base.SimplexNoise;
+import Rl.Base.Texture2;
 
-#include <algorithm>
-#include <map>
-#include <vector>
+import <algorithm>;
+import <map>;
+import <vector>;
 
 #ifdef X86_
 #include <immintrin.h>
@@ -245,7 +245,7 @@ Texture2* UnitDynamicTexture::GenTexture(
   // Create new Texture2
   auto* newTexture = new Texture2();
   newTexture->LoadFromData(data, static_cast<int>(width), static_cast<int>(height),
-      (channels == 4) ? TextureFormat::RGBA8 : TextureFormat::RGB8, TextureProperties());
+      (channels == 4) ? Texture2Format::RGBA8 : Texture2Format::RGB8, Texture2Properties());
   delete[] data;
   return newTexture;
 }

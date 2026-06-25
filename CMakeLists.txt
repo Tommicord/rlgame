@@ -5,16 +5,9 @@ project(rl LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Enable C++20 modules support
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /experimental:module /std:c++20")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules-ts")
-endif()
+set(CMAKE_CXX_MODULE_STD ON)
 
-# Detect target architecture and set appropriate SIMD flags
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
   add_compile_definitions(ARM_)
   message(STATUS "Target architecture ARM - NEON SIMD enabled")
@@ -29,103 +22,113 @@ find_package(Vulkan REQUIRED COMPONENTS glslc)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+
+# C++20 Modules
+set(CXX_MODULES
+  rl/Base/Game.ixx
+  rl/Base/Shader.ixx
+  rl/Base/InputReceiver.ixx
+  rl/Base/SimplexNoise.ixx
+  rl/Base/Texture2.ixx
+  rl/Base/StateModel.ixx
+  rl/Base/StateDrawable.ixx
+  rl/Base/IUpdatable.ixx
+  rl/Client/State/CameraState.ixx
+  rl/Client/State/UnitState.ixx
+  rl/World/Camera.ixx
+  rl/World/Unit/Unit.ixx
+  rl/World/Unit/UnitRegistry.ixx
+  rl/World/Unit/UnitResourceName.ixx
+  rl/World/Unit/UnitGrass.ixx
+  rl/World/Unit/UnitDynamicTexture.ixx
+  rl/World/Unit/UnitPropertyStrategy.ixx
+  rl/World/Unit/UnitRegister.ixx
+  rl/Client/Render/Unit/UnitRendererAOTextures.ixx
+  rl/Client/Render/Unit/UnitRendererBarriers.ixx
+  rl/Client/Render/Unit/UnitRendererBasicBuffer.ixx
+  rl/Client/Render/Unit/UnitRendererCleanup.ixx
+  rl/Client/Render/Unit/UnitRendererCommandBuffers.ixx
+  rl/Client/Render/Unit/UnitRendererComputePipeline.ixx
+  rl/Client/Render/Unit/UnitRendererCurvatureCompute.ixx
+  rl/Client/Render/Unit/UnitRendererDescriptorSets.ixx
+  rl/Client/Render/Unit/UnitRendererDraw.ixx
+  rl/Client/Render/Unit/UnitRendererDrawCompute.ixx
+  rl/Client/Render/Unit/UnitRendererFrustum.ixx
+  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.ixx
+  rl/Client/Render/Unit/UnitRendererShadowPipeline.ixx
+  rl/Client/Render/Unit/UnitRendererIndirectDraw.ixx
+  rl/Client/Render/Unit/UnitRendererInfo.ixx
+  rl/Client/Render/Unit/UnitRendererNormalTextures.ixx
+  rl/Client/Render/Unit/UnitRendererPlaceholderResource.ixx
+  rl/Client/Render/Unit/UnitRendererShadowMap.ixx
+  rl/Client/Render/Unit/UnitRendererSampler.ixx
+  rl/Client/Render/Unit/UnitRendererTextureManage.ixx
+  rl/Client/Render/Unit/UnitRendererVertexInput.ixx
+  rl/Client/Render/Unit/UnitRendererVertices.ixx
+  rl/World/Chunk/UnitChunkBuffer.ixx
+  rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx
+)
 
 set(SOURCES
-  rl/Base/Game.h
   rl/Base/Shader.cpp
-  rl/Base/Shader.h
-  rl/Base/InputReceiver.h
   rl/Base/InputReceiver.cpp
   rl/Base/SimplexNoise.cpp
-  rl/Base/SimplexNoise.h
   rl/Base/Texture2.cpp
   rl/Base/Texture2Lightning.cpp
   rl/Base/Texture2Normal.cpp
   rl/Base/Texture2Binding.cpp
-  rl/Base/Texture2.h
-  rl/Base/StateModel.h
-  rl/Base/StateDrawable.h
-  rl/Base/IUpdatable.h
   rl/Client/Render/CameraRenderer.cpp
   rl/Client/State/CameraState.cpp
-  rl/Client/State/CameraState.h
   rl/Client/State/UnitState.cpp
-  rl/Client/State/UnitState.h
-  rl/World/Camera.h
   rl/World/Camera.cpp
   rl/World/Unit/Unit.cpp
-  rl/World/Unit/Unit.h
-  rl/World/Unit/UnitRegistry.h
-  rl/World/Unit/UnitResourceName.h
   rl/World/Unit/UnitGrass.cpp
-  rl/World/Unit/UnitGrass.h
   rl/World/Unit/UnitDynamicTexture.cpp
-  rl/World/Unit/UnitDynamicTexture.h
-  rl/World/Unit/UnitPropertyStrategy.h
-  rl/World/Unit/UnitRegistry.h
-  rl/World/Unit/UnitRegister.h
   rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/Unit/UnitRendererAOTextures.cpp
-  rl/Client/Render/Unit/UnitRendererAOTextures.h
   rl/Client/Render/Unit/UnitRendererBarriers.cpp
-  rl/Client/Render/Unit/UnitRendererBarriers.h
-  rl/Client/Render/Unit/UnitRendererBasicBuffer.h
   rl/Client/Render/Unit/UnitRendererBuffer.cpp
   rl/Client/Render/Unit/UnitRendererCleanup.cpp
-  rl/Client/Render/Unit/UnitRendererCleanup.h
-  rl/Client/Render/Unit/UnitRendererCommandBuffers.h
   rl/Client/Render/Unit/UnitRendererCommandBuffers.cpp
   rl/Client/Render/Unit/UnitRendererComputeBuffer.cpp
   rl/Client/Render/Unit/UnitRendererComputePipeline.cpp
-  rl/Client/Render/Unit/UnitRendererComputePipeline.h
   rl/Client/Render/Unit/UnitRendererCurvatureCompute.cpp
-  rl/Client/Render/Unit/UnitRendererCurvatureCompute.h
   rl/Client/Render/Unit/UnitRendererDescriptorSets.cpp
-  rl/Client/Render/Unit/UnitRendererDescriptorSets.h
   rl/Client/Render/Unit/UnitRendererDraw.cpp
-  rl/Client/Render/Unit/UnitRendererDraw.h
   rl/Client/Render/Unit/UnitRendererDrawCompute.cpp
-  rl/Client/Render/Unit/UnitRendererDrawCompute.h
   rl/Client/Render/Unit/UnitRendererFrustum.cpp
-  rl/Client/Render/Unit/UnitRendererFrustum.h
   rl/Client/Render/Unit/UnitRendererGraphicsPipeline.cpp
-  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.h
   rl/Client/Render/Unit/UnitRendererShadowPipeline.cpp
-  rl/Client/Render/Unit/UnitRendererShadowPipeline.h
   rl/Client/Render/Unit/UnitRendererIndirectDraw.cpp
-  rl/Client/Render/Unit/UnitRendererIndirectDraw.h
-  rl/Client/Render/Unit/UnitRendererInfo.h
   rl/Client/Render/Unit/UnitRendererNormalTextures.cpp
-  rl/Client/Render/Unit/UnitRendererNormalTextures.h
   rl/Client/Render/Unit/UnitRendererPlaceholderResource.cpp
-  rl/Client/Render/Unit/UnitRendererPlaceholderResource.h
   rl/Client/Render/Unit/UnitRendererShadowMap.cpp
-  rl/Client/Render/Unit/UnitRendererShadowMap.h
   rl/Client/Render/Unit/UnitRendererSampler.cpp
-  rl/Client/Render/Unit/UnitRendererSampler.h
   rl/Client/Render/Unit/UnitRendererSSBOBuffer.cpp
   rl/Client/Render/Unit/UnitRendererTextureManage.cpp
-  rl/Client/Render/Unit/UnitRendererTextureManage.h
   rl/Client/Render/Unit/UnitRendererVertexBuffer.cpp
   rl/Client/Render/Unit/UnitRendererVertexInput.cpp
-  rl/Client/Render/Unit/UnitRendererVertexInput.h
   rl/Client/Render/Unit/UnitRendererVertices.cpp
-  rl/Client/Render/Unit/UnitRendererVertices.h
   rl/World/Chunk/UnitChunkBuffer.cpp
-  rl/World/Chunk/UnitChunkBuffer.h
   rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp
-  rl/World/Chunk/UnitChunkBufferGPUSimplex.h
 )
 
 add_subdirectory(Deps/glfw)
 add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
+
 add_executable(rlgame rl/Base/Game.cpp ${SOURCES})
+target_sources(
+  rlgame
+  PUBLIC
+  FILE_SET CXX_MODULES
+    FILES ${CXX_MODULES}
+)
 target_include_directories(
   rlgame
   PRIVATE
-  ${stb_SOURCE_DIR}
+  Deps/glm
+  Deps/stb
 )
 target_link_libraries(
   rlgame
@@ -217,6 +220,12 @@ add_executable(
   ${SOURCES}
   Tests/UnitDynamicTextureTest.cpp
   Tests/UnitChunkBufferTest.cpp
+)
+target_sources(
+  rlgame_tests 
+  PUBLIC FILE_SET 
+    CXX_MODULES FILES 
+    ${CXX_MODULES}
 )
 
 target_include_directories(

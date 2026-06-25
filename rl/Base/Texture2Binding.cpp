@@ -1,9 +1,9 @@
-#include "rl/Base/Game.h"
-#include "rl/Base/Texture2.h"
+import Rl.Base.Game;
+import Rl.Base.Texture2;
 
-#include <cstring>
-#include <stdexcept>
-#include <vulkan/vulkan.h>
+import <cstring>;
+import <stdexcept>;
+import <vulkan/vulkan.h>;
 
 namespace Rl::Providers
 {
@@ -12,87 +12,87 @@ VkFormat Texture2::GetVkFormat() const
 {
   switch (properties.format)
   {
-  case TextureFormat::RGB8:
+  case Texture2Format::RGB8:
     return VK_FORMAT_R8G8B8_UNORM;
-  case TextureFormat::RGBA8:
+  case Texture2Format::RGBA8:
     return VK_FORMAT_R8G8B8A8_UNORM;
-  case TextureFormat::RGB16F:
+  case Texture2Format::RGB16F:
     return VK_FORMAT_R16G16B16_SFLOAT;
-  case TextureFormat::RGBA16F:
+  case Texture2Format::RGBA16F:
     return VK_FORMAT_R16G16B16A16_SFLOAT;
-  case TextureFormat::RGB32F:
+  case Texture2Format::RGB32F:
     return VK_FORMAT_R32G32B32_SFLOAT;
-  case TextureFormat::RGBA32F:
+  case Texture2Format::RGBA32F:
     return VK_FORMAT_R32G32B32A32_SFLOAT;
-  case TextureFormat::R8:
+  case Texture2Format::R8:
     return VK_FORMAT_R8_UNORM;
-  case TextureFormat::RG8:
+  case Texture2Format::RG8:
     return VK_FORMAT_R8G8_UNORM;
-  case TextureFormat::R16F:
+  case Texture2Format::R16F:
     return VK_FORMAT_R16_SFLOAT;
-  case TextureFormat::RG16F:
+  case Texture2Format::RG16F:
     return VK_FORMAT_R16G16_SFLOAT;
-  case TextureFormat::DEPTH16:
+  case Texture2Format::DEPTH16:
     return VK_FORMAT_D16_UNORM;
-  case TextureFormat::DEPTH24:
+  case Texture2Format::DEPTH24:
     return VK_FORMAT_X8_D24_UNORM_PACK32;
-  case TextureFormat::DEPTH32F:
+  case Texture2Format::DEPTH32F:
     return VK_FORMAT_D32_SFLOAT;
   default:
     return VK_FORMAT_R8G8B8A8_UNORM;
   }
 }
 
-VkFilter Texture2::GetVkFilter(TextureFilter filter) const
+VkFilter Texture2::GetVkFilter(Texture2Filter filter) const
 {
   switch (filter)
   {
-  case TextureFilter::NEAREST:
+  case Texture2Filter::NEAREST:
     return VK_FILTER_NEAREST;
-  case TextureFilter::LINEAR:
+  case Texture2Filter::LINEAR:
     return VK_FILTER_LINEAR;
-  case TextureFilter::NEAREST_MIPMAP_NEAREST:
+  case Texture2Filter::NEAREST_MIPMAP_NEAREST:
     return VK_FILTER_NEAREST;
-  case TextureFilter::LINEAR_MIPMAP_NEAREST:
+  case Texture2Filter::LINEAR_MIPMAP_NEAREST:
     return VK_FILTER_LINEAR;
-  case TextureFilter::NEAREST_MIPMAP_LINEAR:
+  case Texture2Filter::NEAREST_MIPMAP_LINEAR:
     return VK_FILTER_NEAREST;
-  case TextureFilter::LINEAR_MIPMAP_LINEAR:
+  case Texture2Filter::LINEAR_MIPMAP_LINEAR:
     return VK_FILTER_LINEAR;
   default:
     return VK_FILTER_LINEAR;
   }
 }
 
-VkSamplerMipmapMode Texture2::GetVkMipmapMode(TextureFilter filter) const
+VkSamplerMipmapMode Texture2::GetVkMipmapMode(Texture2Filter filter) const
 {
   switch (filter)
   {
-  case TextureFilter::NEAREST:
-  case TextureFilter::LINEAR:
+  case Texture2Filter::NEAREST:
+  case Texture2Filter::LINEAR:
     return VK_SAMPLER_MIPMAP_MODE_NEAREST;
-  case TextureFilter::NEAREST_MIPMAP_NEAREST:
-  case TextureFilter::LINEAR_MIPMAP_NEAREST:
+  case Texture2Filter::NEAREST_MIPMAP_NEAREST:
+  case Texture2Filter::LINEAR_MIPMAP_NEAREST:
     return VK_SAMPLER_MIPMAP_MODE_NEAREST;
-  case TextureFilter::NEAREST_MIPMAP_LINEAR:
-  case TextureFilter::LINEAR_MIPMAP_LINEAR:
+  case Texture2Filter::NEAREST_MIPMAP_LINEAR:
+  case Texture2Filter::LINEAR_MIPMAP_LINEAR:
     return VK_SAMPLER_MIPMAP_MODE_LINEAR;
   default:
     return VK_SAMPLER_MIPMAP_MODE_LINEAR;
   }
 }
 
-VkSamplerAddressMode Texture2::GetVkWrapMode(TextureWrap wrap) const
+VkSamplerAddressMode Texture2::GetVkWrapMode(Texture2Wrap wrap) const
 {
   switch (wrap)
   {
-  case TextureWrap::REPEAT:
+  case Texture2Wrap::REPEAT:
     return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  case TextureWrap::MIRRORED_REPEAT:
+  case Texture2Wrap::MIRRORED_REPEAT:
     return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-  case TextureWrap::CLAMP_TO_EDGE:
+  case Texture2Wrap::CLAMP_TO_EDGE:
     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-  case TextureWrap::CLAMP_TO_BORDER:
+  case Texture2Wrap::CLAMP_TO_BORDER:
     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
   default:
     return VK_SAMPLER_ADDRESS_MODE_REPEAT;

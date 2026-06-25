@@ -1,9 +1,10 @@
-#include "rl/Base/InputReceiver.h"
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <mutex>
-#include <thread>
+import Rl.Base.InputReceiver;
+
+import <algorithm>;
+import <chrono>;
+import <iostream>;
+import <mutex>;
+import <thread>;
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>

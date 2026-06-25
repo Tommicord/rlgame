@@ -1,5 +1,5 @@
-#include "rl/Client/Render/Unit/UnitRendererAOTextures.h"
-#include "rl/Base/Texture2.h"
+import Rl.Client.Render.Unit.UnitRendererAOTextures;
+import Rl.Base.Texture2;
 
 namespace Rl::Client::Render
 {
@@ -11,11 +11,11 @@ void UnitGenerateAOTextures(VkDevice    device,
 {
   if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
   {
-    Providers::TextureProperties aoProperties;
-    aoProperties.format          = Providers::TextureFormat::R8;
+    Providers::Texture2Properties aoProperties;
+    aoProperties.format          = Providers::Texture2Format::R8;
     aoProperties.generateMipmaps = true;
-    aoProperties.minFilter       = Providers::TextureFilter::LINEAR_MIPMAP_LINEAR;
-    aoProperties.magFilter       = Providers::TextureFilter::LINEAR;
+    aoProperties.minFilter       = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
+    aoProperties.magFilter       = Providers::Texture2Filter::LINEAR;
 
     Providers::Texture2* aoTextures[6] = {GenerateLightningTexture(textures.top, aoProperties),
         GenerateLightningTexture(textures.down, aoProperties),

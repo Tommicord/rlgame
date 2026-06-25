@@ -1,9 +1,9 @@
-#include <cstdint>
-#include <gtest/gtest.h>
+import <cstdint>;
+import <gtest/gtest.h>;
 
-#include "rl/Base/SimplexNoise.h"
-#include "rl/Base/Texture2.h"
-#include "rl/World/Unit/UnitDynamicTexture.h"
+import Rl.Base.Shader;
+import Rl.Base.Texture2;
+import Rl.World.Unit.UnitDynamicTexture;
 
 using namespace Rl::World;
 using namespace Rl::Providers;
@@ -187,7 +187,7 @@ TEST(UnitDynamicTextureEdgeCases, ZeroNoiseScale)
 {
   uint8_t  testData[64] = {0};
   Texture2 testTexture;
-  testTexture.LoadFromData(testData, 8, 8, TextureFormat::RGB8, TextureProperties());
+  testTexture.LoadFromData(testData, 8, 8, Texture2Format::RGB8, Texture2Properties());
 
   UnitDynamicTexture::DynamicOptions options;
   options.noiseSc  = 0.0f;
@@ -205,7 +205,7 @@ TEST(UnitDynamicTextureEdgeCases, MaximumVariation)
 {
   uint8_t  testData[64] = {128}; // Gray texture
   Texture2 testTexture;
-  testTexture.LoadFromData(testData, 8, 8, TextureFormat::RGB8, TextureProperties());
+  testTexture.LoadFromData(testData, 8, 8, Texture2Format::RGB8, Texture2Properties());
 
   UnitDynamicTexture::DynamicOptions options;
   options.noiseSc  = 1.0f;

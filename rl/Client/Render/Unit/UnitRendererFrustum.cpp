@@ -1,8 +1,8 @@
-#include "rl/Client/Render/Unit/UnitRendererFrustum.h"
+import Rl.Client.Render.Unit.UnitRendererFrustum;
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+import <glm/glm.hpp>;
+import <glm/gtc/matrix_transform.hpp>;
 
 namespace Rl::Client::Render
 {

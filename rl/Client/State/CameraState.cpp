@@ -1,12 +1,12 @@
-#include "rl/Client/State/CameraState.h"
-#include "rl/Base/Game.h"
-#include "rl/World/Camera.h"
+import Rl.Client.State.CameraState;
+import Rl.Base.Game;
+import Rl.World.Camera;
 
-#include <algorithm>
-#include <cmath>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+import <algorithm>;
+import <cmath>;
+import <glm/glm.hpp>;
+import <glm/gtc/matrix_transform.hpp>;
+import <glm/gtc/type_ptr.hpp>;
 
 namespace Rl::Providers
 {

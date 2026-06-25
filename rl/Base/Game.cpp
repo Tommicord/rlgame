@@ -1,14 +1,14 @@
-#include "rl/Base/Game.h"
-#include "rl/Base/Shader.h"
-#include "rl/Client/State/CameraState.h"
+import Rl.Base.Game;
+import Rl.Base.Shader;
+import Rl.Client.State.CameraState;
 
-#include <algorithm>
-#include <cstdint>
-#include <cstdlib>
-#include <iostream>
-#include <set>
-#include <stdexcept>
-#include "glm/fwd.hpp"
+import <algorithm>;
+import <cstdint>;
+import <cstdlib>;
+import <iostream>;
+import <set>;
+import <stdexcept>;
+import <glm/fwd.hpp>;
 
 namespace Rl::Game
 {

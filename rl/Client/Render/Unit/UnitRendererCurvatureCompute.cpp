@@ -1,6 +1,6 @@
-#include "rl/Client/Render/Unit/UnitRendererCurvatureCompute.h"
+import Rl.Client.Render.Unit.UnitRendererCurvatureCompute;
 
-#include <stdexcept>
+import <stdexcept>;
 
 namespace Rl::Client::Render
 {

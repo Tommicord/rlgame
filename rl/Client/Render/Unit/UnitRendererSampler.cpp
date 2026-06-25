@@ -1,4 +1,4 @@
-#include "rl/Client/Render/Unit/UnitRendererSampler.h"
+import Rl.Client.Render.Unit.UnitRendererSampler;
 
 namespace Rl::Client::Render
 {

@@ -1,11 +1,11 @@
-#include <algorithm>
-#include <cmath>
-#include "rl/Base/Texture2.h"
+import <algorithm>;
+import <cmath>;
+import Rl.Base.Texture2;
 
 namespace Rl::Providers
 {
 
-Texture2* GenerateNormalTexture(Texture2* baseTexture, const TextureProperties& properties)
+Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties& properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -100,8 +100,8 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const TextureProperties& 
 
   // Create new texture with the generated normal map data
   Texture2*         normalTexture = new Texture2();
-  TextureProperties normalProps   = properties;
-  normalProps.format              = TextureFormat::RGBA8; // Use RGBA8 for blit support
+  Texture2Properties normalProps   = properties;
+  normalProps.format              = Texture2Format::RGBA8; // Use RGBA8 for blit support
   normalProps.generateMipmaps     = true;
   normalProps.sRGB                = false; // Normal maps should not be in sRGB space
 
@@ -116,7 +116,7 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const TextureProperties& 
     rgbaData[i * 4 + 3] = 255; // Alpha = 1.0
   }
 
-  normalTexture->LoadFromData(rgbaData, width, height, TextureFormat::RGBA8, normalProps);
+  normalTexture->LoadFromData(rgbaData, width, height, Texture2Format::RGBA8, normalProps);
   delete[] rgbaData;
 
   // Clean up temporary data

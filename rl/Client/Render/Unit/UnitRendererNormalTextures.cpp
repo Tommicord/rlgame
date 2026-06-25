@@ -1,5 +1,5 @@
-#include "rl/Client/Render/Unit/UnitRendererNormalTextures.h"
-#include "rl/Base/Texture2.h"
+import Rl.Client.Render.Unit.UnitRendererNormalTextures;
+import Rl.Base.Texture2;
 
 namespace Rl::Client::Render
 {
@@ -11,11 +11,11 @@ void UnitGenerateNormalTextures(VkDevice device,
 {
   if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
   {
-    Providers::TextureProperties normalProperties;
-    normalProperties.format          = Providers::TextureFormat::RGBA8;
+    Providers::Texture2Properties normalProperties;
+    normalProperties.format          = Providers::Texture2Format::RGBA8;
     normalProperties.generateMipmaps = true;
-    normalProperties.minFilter       = Providers::TextureFilter::LINEAR_MIPMAP_LINEAR;
-    normalProperties.magFilter       = Providers::TextureFilter::LINEAR;
+    normalProperties.minFilter       = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
+    normalProperties.magFilter       = Providers::Texture2Filter::LINEAR;
     normalProperties.sRGB            = false;
 
     Providers::Texture2* normalTextures[6] = {GenerateNormalTexture(textures.top, normalProperties),

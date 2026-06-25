@@ -1,11 +1,11 @@
-#include "rl/Base/Texture2.h"
-#include "rl/Base/Game.h"
+import Rl.Base.Texture2;
+import Rl.Base.Game;
 
 // Platform detection
 #if defined(_WIN32) || defined(_WIN64)
 #define RL_PLATFORM_WINDOWS
 #elif defined(__APPLE__)
-#include <TargetConditionals.h>
+import <TargetConditionals.h>;
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 #define RL_PLATFORM_IOS
 #else
@@ -19,20 +19,19 @@
 
 // Platform-specific includes
 #ifdef RL_PLATFORM_ANDROID
-#include <android/asset_manager.h>
-#include <android/log.h>
+import <android/asset_manager.h>;
+import <android/log.h>;
 #elif defined(RL_PLATFORM_IOS)
-#include <CoreFoundation/CoreFoundation.h>
+import <CoreFoundation/CoreFoundation.h>;
 #endif
 
-// stb_image for cross-platform image loading
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+import <stb_image.h>;
 
-#include <cmath>
-#include <cstring>
-#include <fstream>
-#include <sstream>
+import <cmath>;
+import <cstring>;
+import <fstream>;
+import <sstream>;
 
 namespace Rl::Providers
 {
@@ -74,99 +73,99 @@ std::string Texture2::GetPlatformName()
 }
 
 // Format utilities
-int Texture2::GetFormatSize(TextureFormat format)
+int Texture2::GetFormatSize(Texture2Format format)
 {
   switch (format)
   {
-  case TextureFormat::RGB8:
+  case Texture2Format::RGB8:
     return 3;
-  case TextureFormat::RGBA8:
+  case Texture2Format::RGBA8:
     return 4;
-  case TextureFormat::RGB16F:
+  case Texture2Format::RGB16F:
     return 6;
-  case TextureFormat::RGBA16F:
+  case Texture2Format::RGBA16F:
     return 8;
-  case TextureFormat::RGB32F:
+  case Texture2Format::RGB32F:
     return 12;
-  case TextureFormat::RGBA32F:
+  case Texture2Format::RGBA32F:
     return 16;
-  case TextureFormat::R8:
+  case Texture2Format::R8:
     return 1;
-  case TextureFormat::RG8:
+  case Texture2Format::RG8:
     return 2;
-  case TextureFormat::R16F:
+  case Texture2Format::R16F:
     return 2;
-  case TextureFormat::RG16F:
+  case Texture2Format::RG16F:
     return 4;
-  case TextureFormat::DEPTH16:
+  case Texture2Format::DEPTH16:
     return 2;
-  case TextureFormat::DEPTH24:
+  case Texture2Format::DEPTH24:
     return 3;
-  case TextureFormat::DEPTH32F:
+  case Texture2Format::DEPTH32F:
     return 4;
   default:
     return 4;
   }
 }
 
-std::string Texture2::GetFormatName(TextureFormat format)
+std::string Texture2::GetFormatName(Texture2Format format)
 {
   switch (format)
   {
-  case TextureFormat::RGB8:
+  case Texture2Format::RGB8:
     return "RGB8";
-  case TextureFormat::RGBA8:
+  case Texture2Format::RGBA8:
     return "RGBA8";
-  case TextureFormat::RGB16F:
+  case Texture2Format::RGB16F:
     return "RGB16F";
-  case TextureFormat::RGBA16F:
+  case Texture2Format::RGBA16F:
     return "RGBA16F";
-  case TextureFormat::RGB32F:
+  case Texture2Format::RGB32F:
     return "RGB32F";
-  case TextureFormat::RGBA32F:
+  case Texture2Format::RGBA32F:
     return "RGBA32F";
-  case TextureFormat::R8:
+  case Texture2Format::R8:
     return "R8";
-  case TextureFormat::RG8:
+  case Texture2Format::RG8:
     return "RG8";
-  case TextureFormat::R16F:
+  case Texture2Format::R16F:
     return "R16F";
-  case TextureFormat::RG16F:
+  case Texture2Format::RG16F:
     return "RG16F";
-  case TextureFormat::DEPTH16:
+  case Texture2Format::DEPTH16:
     return "DEPTH16";
-  case TextureFormat::DEPTH24:
+  case Texture2Format::DEPTH24:
     return "DEPTH24";
-  case TextureFormat::DEPTH32F:
+  case Texture2Format::DEPTH32F:
     return "DEPTH32F";
   default:
     return "UNKNOWN";
   }
 }
 
-bool Texture2::IsFormatSupported(TextureFormat format)
+bool Texture2::IsFormatSupported(Texture2Format format)
 {
   // All basic formats are supported
   switch (format)
   {
-  case TextureFormat::RGB8:
-  case TextureFormat::RGBA8:
-  case TextureFormat::R8:
-  case TextureFormat::RG8:
+  case Texture2Format::RGB8:
+  case Texture2Format::RGBA8:
+  case Texture2Format::R8:
+  case Texture2Format::RG8:
     return true;
-  case TextureFormat::RGB16F:
-  case TextureFormat::RGBA16F:
-  case TextureFormat::R16F:
-  case TextureFormat::RG16F:
+  case Texture2Format::RGB16F:
+  case Texture2Format::RGBA16F:
+  case Texture2Format::R16F:
+  case Texture2Format::RG16F:
     // Float formats may not be supported on all platforms
     return true;
-  case TextureFormat::RGB32F:
-  case TextureFormat::RGBA32F:
+  case Texture2Format::RGB32F:
+  case Texture2Format::RGBA32F:
     // 32-bit float formats may have limited support
     return true;
-  case TextureFormat::DEPTH16:
-  case TextureFormat::DEPTH24:
-  case TextureFormat::DEPTH32F:
+  case Texture2Format::DEPTH16:
+  case Texture2Format::DEPTH24:
+  case Texture2Format::DEPTH32F:
     // Depth formats are typically supported
     return true;
   default:
@@ -186,7 +185,7 @@ Texture2::Texture2(const std::string& filepath) : Texture2()
   LoadFromFile(filepath);
 }
 
-Texture2::Texture2(const std::string& filepath, const TextureProperties& properties) : Texture2()
+Texture2::Texture2(const std::string& filepath, const Texture2Properties& properties) : Texture2()
 {
   this->properties = properties;
   LoadFromFile(filepath);
@@ -259,14 +258,14 @@ bool Texture2::LoadFromFile(const std::string& filepath)
   return LoadFromFile(filepath, properties);
 }
 
-bool Texture2::LoadFromFile(const std::string& filepath, const TextureProperties& properties)
+bool Texture2::LoadFromFile(const std::string& filepath, const Texture2Properties& properties)
 {
   this->properties = properties;
   this->filepath   = filepath;
   return LoadImage(filepath);
 }
 
-bool Texture2::LoadFromMemory(const uint8_t* data, size_t size, const TextureProperties& properties)
+bool Texture2::LoadFromMemory(const uint8_t* data, size_t size, const Texture2Properties& properties)
 {
   this->properties = properties;
 
@@ -285,8 +284,8 @@ bool Texture2::LoadFromMemory(const uint8_t* data, size_t size, const TexturePro
 bool Texture2::LoadFromData(const uint8_t* data,
     int                                    width,
     int                                    height,
-    TextureFormat                          format,
-    const TextureProperties&               properties)
+    Texture2Format                          format,
+    const Texture2Properties&               properties)
 {
   this->properties        = properties;
   this->properties.format = format;
@@ -394,16 +393,16 @@ bool Texture2::ProcessImageData(uint8_t* imageData, int width, int height, int c
   switch (channels)
   {
   case 1:
-    properties.format = TextureFormat::R8;
+    properties.format = Texture2Format::R8;
     break;
   case 2:
-    properties.format = TextureFormat::RG8;
+    properties.format = Texture2Format::RG8;
     break;
   case 3:
-    properties.format = TextureFormat::RGB8;
+    properties.format = Texture2Format::RGB8;
     break;
   case 4:
-    properties.format = TextureFormat::RGBA8;
+    properties.format = Texture2Format::RGBA8;
     break;
   default:
     stbi_image_free(imageData);

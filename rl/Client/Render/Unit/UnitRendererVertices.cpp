@@ -1,6 +1,6 @@
-#include "rl/Client/Render/Unit/UnitRendererVertices.h"
+import Rl.Client.Render.Unit.UnitRendererVertices;
 
-#include <glm/glm.hpp>
+import <glm/glm.hpp>;
 
 namespace Rl::Client::Render
 {

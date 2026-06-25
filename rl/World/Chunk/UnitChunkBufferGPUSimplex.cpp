@@ -1,9 +1,9 @@
-#include "rl/World/Chunk/UnitChunkBufferGPUSimplex.h"
-#include "rl/Base/Shader.h"
-#include "rl/Client/Render/Unit/UnitRendererBasicBuffer.h"
+import Rl.World.Chunk.UnitChunkBufferGPUSimplex;
+import Rl.Base.Shader;
+import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 
-#include <cstring>
-#include <stdexcept>
+import <cstring>;
+import <stdexcept>;
 
 namespace Rl::World::Chunk
 {

@@ -1,6 +1,6 @@
-#include "rl/World/Chunk/UnitChunkBuffer.h"
+import Rl.World.Chunk.UnitChunkBuffer;
 
-#include <cstring>
+import <cstring>;
 
 namespace Rl::World::Chunk
 {

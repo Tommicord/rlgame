@@ -1,4 +1,4 @@
-#include "UnitRendererBarriers.h"
+import Rl.Client.Render.Unit.UnitRendererBarriers;
 
 namespace Rl::Client::Render
 {

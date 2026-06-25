@@ -1,7 +1,8 @@
-#include "rl/Base/Shader.h"
-#include <fstream>
-#include <stdexcept>
-#include <vector>
+import Rl.Base.Shader;
+
+import <fstream>;
+import <stdexcept>;
+import <vector>;
 
 namespace Rl::Providers
 {

@@ -1,12 +1,12 @@
-#include "rl/World/Unit/Unit.h"
-#include "rl/World/Unit/UnitRegister.h"
-#include "rl/World/Unit/UnitRegistry.h"
-#include "rl/World/Unit/UnitResourceName.h"
+import Rl.World.Unit.Unit;
+import Rl.World.Unit.UnitRegister;
+import Rl.World.Unit.UnitRegistry;
+import Rl.World.Unit.UnitResourceName;
 
-#include <algorithm>
-#include <cstring>
-#include <memory>
-#include <vector>
+import <algorithm>;
+import <cstring>;
+import <memory>;
+import <vector>;
 
 namespace Rl::World
 {

@@ -1,7 +1,7 @@
-#include "rl/Client/Render/Unit/UnitRendererDrawCompute.h"
-#include "rl/Client/Render/Unit/UnitRendererFrustum.h"
+import Rl.Client.Render.Unit.UnitRendererDrawCompute;
+import Rl.Client.Render.Unit.UnitRendererFrustum;
 
-#include <glm/glm.hpp>
+import <glm/glm.hpp>;
 
 namespace Rl::Client::Render
 {

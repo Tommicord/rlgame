@@ -1,9 +1,9 @@
-#include "rl/Client/Render/Unit/UnitRendererBasicBuffer.h"
+import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 
-#include <array>
-#include <cstddef>
-#include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
+import <array>;
+import <cstddef>;
+import <glm/glm.hpp>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

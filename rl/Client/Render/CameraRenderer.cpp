@@ -1,10 +1,10 @@
-#include "rl/Base/Game.h"
-#include "rl/Client/State/CameraState.h"
+import Rl.Base.Game;
+import Rl.Client.State.CameraState;
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <vulkan/vulkan.h>
+import <glm/glm.hpp>;
+import <glm/gtc/type_ptr.hpp>;
+import <iostream>;
+import <vulkan/vulkan.h>;
 
 namespace Rl::Providers
 {

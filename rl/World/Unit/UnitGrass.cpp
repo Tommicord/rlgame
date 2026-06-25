@@ -1,5 +1,5 @@
-#include "rl/World/Unit/UnitGrass.h"
-#include "rl/World/Unit/Unit.h"
+import Rl.World.Unit.UnitGrass;
+import Rl.World.Unit.Unit;
 
 namespace Rl::World
 {

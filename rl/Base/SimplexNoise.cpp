@@ -1,9 +1,9 @@
-#include "rl/Base/SimplexNoise.h"
+import Rl.Base.SimplexNoise;
 
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
+import <algorithm>;
+import <cmath>;
+import <cstddef>;
+import <cstdint>;
 
 namespace Rl::Providers
 {

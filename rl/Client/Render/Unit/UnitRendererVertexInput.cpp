@@ -1,5 +1,5 @@
-#include "rl/Client/Render/Unit/UnitRendererVertexInput.h"
-#include "rl/Client/Render/Unit/UnitRendererInfo.h"
+import Rl.Client.Render.Unit.UnitRendererVertexInput;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 
 namespace Rl::Client::Render
 {

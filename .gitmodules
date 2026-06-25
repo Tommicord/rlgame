@@ -7,3 +7,6 @@
 [submodule "Deps/gtest"]
 	path = Deps/gtest
 	url = https://github.com/google/googletest.git
+[submodule "Deps/glm"]
+	path = Deps/glm
+	url = https://github.com/g-truc/glm.git
