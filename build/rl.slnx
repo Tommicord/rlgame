@@ -7,43 +7,43 @@
 		<BuildType Name="RelWithDebInfo"/>
 		<Platform Name="x64"/>
 	</Configurations>
-	<Project Path="_deps/glm-build/glm/glm.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f238686b-86de-37a0-8ecc-61dd9c8ddb5c">
+	<Project Path="Deps/glm/glm/glm.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f238686b-86de-37a0-8ecc-61dd9c8ddb5c">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
-	<Project Path="_deps/googletest-build/googlemock/gmock.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ee4d7d3a-080a-3b79-91f9-c64ee6bc726d">
+	<Project Path="Deps/gtest/googlemock/gmock.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ee4d7d3a-080a-3b79-91f9-c64ee6bc726d">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
-	<Project Path="_deps/googletest-build/googlemock/gmock_main.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5d268000-e506-3e0b-a2f8-edac057735b8">
+	<Project Path="Deps/gtest/googlemock/gmock_main.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5d268000-e506-3e0b-a2f8-edac057735b8">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
-	<Project Path="_deps/googletest-build/googletest/gtest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8db9a827-98d2-3931-84a9-63d02f3ced1d">
+	<Project Path="Deps/gtest/googletest/gtest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8db9a827-98d2-3931-84a9-63d02f3ced1d">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
-	<Project Path="_deps/googletest-build/googletest/gtest_main.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7f589d62-f1ff-35cd-b135-53b1d8b74f13">
+	<Project Path="Deps/gtest/googletest/gtest_main.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7f589d62-f1ff-35cd-b135-53b1d8b74f13">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
-		<BuildDependency Project="_deps/googletest-build/googletest/gtest.vcxproj"/>
+		<BuildDependency Project="Deps/gtest/googletest/gtest.vcxproj"/>
 	</Project>
 	<Project Path="rlgame.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6800a225-f88f-31c9-b2d5-c00c0fe93b42">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="Deps/glfw/src/glfw.vcxproj"/>
-		<BuildDependency Project="_deps/glm-build/glm/glm.vcxproj"/>
+		<BuildDependency Project="Deps/glm/glm/glm.vcxproj"/>
 	</Project>
 	<Project Path="rlgame_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b7648362-43dc-3418-ba60-740a561f36fc">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="Deps/glfw/src/glfw.vcxproj"/>
-		<BuildDependency Project="_deps/glm-build/glm/glm.vcxproj"/>
-		<BuildDependency Project="_deps/googletest-build/googletest/gtest.vcxproj"/>
-		<BuildDependency Project="_deps/googletest-build/googletest/gtest_main.vcxproj"/>
+		<BuildDependency Project="Deps/glm/glm/glm.vcxproj"/>
+		<BuildDependency Project="Deps/gtest/googletest/gtest.vcxproj"/>
+		<BuildDependency Project="Deps/gtest/googletest/gtest_main.vcxproj"/>
 	</Project>
 	<Folder Name="/CMakePredefinedTargets/">
 		<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ef086d51-796d-3e62-846c-f4213c3852c3" DefaultStartup="true">
 			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 			<BuildDependency Project="Deps/glfw/src/glfw.vcxproj"/>
-			<BuildDependency Project="_deps/glm-build/glm/glm.vcxproj"/>
-			<BuildDependency Project="_deps/googletest-build/googlemock/gmock.vcxproj"/>
-			<BuildDependency Project="_deps/googletest-build/googlemock/gmock_main.vcxproj"/>
-			<BuildDependency Project="_deps/googletest-build/googletest/gtest.vcxproj"/>
-			<BuildDependency Project="_deps/googletest-build/googletest/gtest_main.vcxproj"/>
+			<BuildDependency Project="Deps/glm/glm/glm.vcxproj"/>
+			<BuildDependency Project="Deps/gtest/googlemock/gmock.vcxproj"/>
+			<BuildDependency Project="Deps/gtest/googlemock/gmock_main.vcxproj"/>
+			<BuildDependency Project="Deps/gtest/googletest/gtest.vcxproj"/>
+			<BuildDependency Project="Deps/gtest/googletest/gtest_main.vcxproj"/>
 			<BuildDependency Project="rlgame.vcxproj"/>
 			<BuildDependency Project="rlgame_tests.vcxproj"/>
 		</Project>

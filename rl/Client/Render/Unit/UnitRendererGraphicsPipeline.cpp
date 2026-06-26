@@ -1,5 +1,10 @@
 import Rl.Client.Render.Unit.UnitRendererGraphicsPipeline;
+import Rl.Base.Shader;
+import Rl.Base.Binding;
+
 import <stdexcept>;
+import <glm/glm.hpp>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

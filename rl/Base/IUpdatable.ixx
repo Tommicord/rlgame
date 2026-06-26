@@ -1,6 +1,6 @@
 export module Rl.Base.IUpdatable;
 
-export namespace Rl::Providers
+namespace Rl::Providers
 {
 
 export class IUpdatable

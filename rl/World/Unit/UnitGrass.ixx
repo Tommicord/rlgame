@@ -1,6 +1,6 @@
 export module Rl.World.Unit.UnitGrass;
 
-import Rl.World.Unit.Unit;
+import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
 import <type_traits>;
 
@@ -20,7 +20,9 @@ export class IUnitGrowable
   virtual void Grow() = 0;
 };
 
-export class UnitGrass : public BaseUnit, IUnitGrowable, IUnitIdentifiable<UnitGrass>
+export class UnitGrass final : public IUnit<UnitGrass>,
+                               public IUnitGrowable,
+                               public IUnitIdentifiable<UnitGrass>
 {
   public:
   UnitGrass() noexcept;

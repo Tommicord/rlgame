@@ -1,8 +1,10 @@
 export module Rl.Client.State.CameraState;
 
-import Rl.Base.StateDrawable;
-import Rl.Base.StateModel;
+import Rl.Base.IDrawable;
+import Rl.Base.IModel;
+import Rl.Base.Binding;
 import Rl.World.Camera;
+
 import <cstdint>;
 import <memory>;
 import <string>;
@@ -12,77 +14,77 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Providers
 {
 
-// Just for data interchange between classes
-export struct CameraStateResource : StateResource
+export struct CameraStateResource final : IStateResource
 {
-  World::Camera* cam;
-  explicit CameraStateResource(World::Camera& camera) : StateResource(), cam(&camera)
+  World::Camera& cam;
+  explicit CameraStateResource(World::Camera& camera) : IStateResource(), cam(camera)
   {
   }
 };
 
-export struct CameraStateDrawableVulkan : StateDrawableVulkan
+export struct CameraStateBinding final : IStateDrawableBinding
 {
-  VkBuffer              uniformBuffer       = VK_NULL_HANDLE;
+  VkBuffer              uniformBuffer = VK_NULL_HANDLE;
   VkDeviceMemory        uniformBufferMemory = VK_NULL_HANDLE;
-  VkDescriptorSet       descriptorSet       = VK_NULL_HANDLE;
-  VkDescriptorPool      descriptorPool      = VK_NULL_HANDLE;
+  VkDescriptorSet       descriptorSet = VK_NULL_HANDLE;
+  VkDescriptorPool      descriptorPool = VK_NULL_HANDLE;
   VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-  CameraStateDrawableVulkan()               = default;
+  CameraStateBinding() = default;
 };
 
-export class CameraStateDrawable : public StateDrawable<CameraStateResource, CameraStateDrawableVulkan>
+export class CameraStateDrawable final
+    : public IStateDrawable<CameraStateResource, CameraStateBinding>
 {
   public:
   /* Stores the base class type */
-  using Base = StateDrawable<CameraStateResource, CameraStateDrawableVulkan>;
+  using Base = IStateDrawable;
 
-  void OnDraw(CameraStateResource& resource,
-      CameraStateDrawableVulkan&   vk,
-      Game::VulkanContext&         context) override;
+  void OnDraw(
+      CameraStateResource& resource, CameraStateBinding& vk, Game::MainBinding& context) override;
   void OnDrawCompute(
-      CameraStateResource& resource, CameraStateDrawableVulkan& vk, Game::VulkanContext& context);
-  void OnUpdate(CameraStateResource& resource,
-      CameraStateDrawableVulkan&     vk,
-      Game::VulkanContext&           context) override;
-  void OnCreate(CameraStateResource& resource,
-      CameraStateDrawableVulkan&     vk,
-      Game::VulkanContext&           context) override;
-  void OnDestroy(CameraStateResource& resource,
-      CameraStateDrawableVulkan&      vk,
-      Game::VulkanContext&            context) override;
+      CameraStateResource& resource, CameraStateBinding& vk, Game::MainBinding& context) override;
+  void OnUpdate(
+      CameraStateResource& resource, CameraStateBinding& vk, Game::MainBinding& context) override;
+  void OnCreate(
+      CameraStateResource& resource, CameraStateBinding& vk, Game::MainBinding& context) override;
+  void OnDestroy(
+      CameraStateResource& resource, CameraStateBinding& vk, Game::MainBinding& context) override;
   void OnPause() override;
   void OnResume() override;
 };
 
-export class CameraModel : public StateModel<World::Camera,
-                        CameraStateDrawable,
-                        CameraStateResource,
-                        CameraStateDrawableVulkan>
+export class CameraModel final : public IStateModel<World::Camera,
+                                     CameraStateDrawable,
+                                     CameraStateResource,
+                                     CameraStateBinding>
 {
-  std::shared_ptr<Providers::CameraStateDrawable>       cameraDrawable;
-  std::unique_ptr<Providers::CameraStateResource>       cameraResource;
-  std::unique_ptr<Providers::CameraStateDrawableVulkan> cameraVk;
-  std::unique_ptr<World::Camera>                        camera;
+  std::shared_ptr<CameraStateDrawable> cameraDrawable;
+  std::unique_ptr<CameraStateResource> cameraResource;
+  std::unique_ptr<CameraStateBinding>  cameraBinding;
+  std::unique_ptr<World::Camera>       camera;
 
   public:
   /* Constructs a model of the Camera class */
-  explicit CameraModel(Game::VulkanContext& context);
+  explicit CameraModel(Game::MainBinding& context);
 
   /* Destructs a CameraModel */
   ~CameraModel() override = default;
 
   /* Gets the stored camera */
-  World::Camera& GetObject() override;
+  [[nodiscard]]
+  World::Camera& GetObject() const override;
 
   /* Gets the stored camera */
-  CameraStateResource& GetResource() override;
+  [[nodiscard]]
+  CameraStateResource& GetResource() const override;
 
   /* Gets the stored camera */
-  CameraStateDrawable& GetDrawable() override;
+  [[nodiscard]]
+  CameraStateDrawable& GetDrawable() const override;
 
   /* Gets the stored camera */
-  CameraStateDrawableVulkan& GetVulkanState() override;
+  [[nodiscard]]
+  CameraStateBinding& GetBinding() const override;
 };
 
 } // namespace Rl::Providers

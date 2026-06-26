@@ -1,4 +1,6 @@
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.State.UnitState;
 
 import <array>;
 import <cstddef>;
@@ -11,14 +13,14 @@ namespace Rl::Client::Render
 void UnitCreateCurvatureComputeBuffers(VkDevice device,
     VkPhysicalDevice                            physicalDevice,
     size_t                                      vertexCount,
-    Providers::UnitStateDrawableVulkan&         vk)
+    Providers::UnitStateBinding&                vk)
 {
   // Calculate maximum curved vertex count (tessellation level 8 = 9x9 = 81 vertices per curved
   // face)
-  const uint32_t tessellationLevel        = 8;
-  const uint32_t verticesPerEdge          = tessellationLevel + 1;
+  const uint32_t tessellationLevel = 8;
+  const uint32_t verticesPerEdge = tessellationLevel + 1;
   const uint32_t maxVerticesPerCurvedFace = verticesPerEdge * verticesPerEdge;
-  const uint32_t maxCurvedVertices        = maxVerticesPerCurvedFace * 6; // 6 faces
+  const uint32_t maxCurvedVertices = maxVerticesPerCurvedFace * 6; // 6 faces
   const uint32_t maxCurvedIndices = tessellationLevel * tessellationLevel * 6 * 6; // 6 faces
 
   // Create curved vertex buffer
@@ -54,10 +56,10 @@ void UnitCreateCurvatureComputeBuffers(VkDevice device,
 
   // Initialize indirect draw buffer
   UnitRenderDrawIndexedParams initialDrawParams{};
-  initialDrawParams.indexCount    = 0;
+  initialDrawParams.indexCount = 0;
   initialDrawParams.instanceCount = 1;
-  initialDrawParams.firstIndex    = 0;
-  initialDrawParams.vertexOffset  = 0;
+  initialDrawParams.firstIndex = 0;
+  initialDrawParams.vertexOffset = 0;
   initialDrawParams.firstInstance = 0;
   UnitCopyDataToBuffer(device, vk.curveIndirectDrawBufferMemory, 0,
       sizeof(UnitRenderDrawIndexedParams), &initialDrawParams);

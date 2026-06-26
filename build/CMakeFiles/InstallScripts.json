@@ -2,14 +2,14 @@
 	"InstallScripts" : 
 	[
 		"C:/Users/USUARIO/IdeaProjects/RL/build/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build/glm/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/googlemock/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/googletest/cmake_install.cmake",
 		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/cmake_install.cmake",
 		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/src/cmake_install.cmake",
-		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/docs/cmake_install.cmake"
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glfw/docs/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glm/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glm/glm/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/googlemock/cmake_install.cmake",
+		"C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/googletest/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

@@ -8,19 +8,25 @@ namespace Rl::World
 {
 
 // Some forward references
-class BaseUnit;
-template <class K, class V>
-class UnitRegistryKVPair;
+class IUnit;
+
+export template <class K, class V>
+class UnitRegistryPair3;
+
 class UnitResourceName;
 
-template <class K, class V>
-export class UnitRegisters
+export template <class K, class V>
+class UnitRegisters
 {
-  inline static std::vector<UnitRegistryKVPair<K, V>> registry;
-
   public:
+  /* The pair type for the registry */
+  using Pair = UnitRegistryPair3<K, V>;
+
+  /* Start of pairs */
+  static std::vector<Pair> registry;
+
   /* Puts a Key-Value pair of Unit register */
-  static void PutKV(UnitRegistryKVPair<K, V>& reg) noexcept;
+  static void PutPair(UnitRegistryPair3<K, V>& reg) noexcept;
 
   /* Returns the registry size */
   [[nodiscard]]
@@ -28,27 +34,28 @@ export class UnitRegisters
 
   /* Returns the current registry */
   [[nodiscard]]
-  static std::vector<UnitRegistryKVPair<K, V>>& GetRegistry();
+  static const std::vector<UnitRegistryPair3<K, V>>& GetRegistry();
 
-  /* This is only to the KV Pair access the PutKV method
+  /* This is only to the KV Pair access the PutPair method
    * When a register is created, automatically
    * Adds the KV pair to the registry */
-  friend class UnitRegistryKVPair<K, V>;
+  friend class UnitRegistryPair3<K, V>;
 };
 
-template <class K, class V>
-export class UnitRegistryKVPair
+export template <class K, class V>
+class UnitRegistryPair3
 {
   protected:
+  short    regId;
   const K& regKey;
   V        regValue;
 
   public:
   /* Creates a basic register of world unit */
-  explicit UnitRegistryKVPair(const K& defaultRegKey);
+  explicit UnitRegistryPair3(const K& defaultRegKey);
 
   /* Registers a Unit into the registry */
-  void Register(int id, K& key, V& value);
+  void Register(unsigned short id, K& key, V& value);
 
   /* Gets the name we use to identify the object */
   [[nodiscard]]
@@ -60,8 +67,8 @@ export class UnitRegistryKVPair
 
   /* Gets the object from the id identifier */
   [[nodiscard]]
-  static std::optional<V> GetObjectById(int id);
+  static std::optional<V> GetObjectById(unsigned short id);
 };
-template export class UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
+template class UnitRegistryPair3<UnitResourceName, IUnit*>;
 
 } // namespace Rl::World

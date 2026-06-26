@@ -1,12 +1,15 @@
 Language: Cpp
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: true
 AlignAfterOpenBracket: DontAlign
 AlignOperands: true
 AlignTrailingComments: false
 AlwaysBreakTemplateDeclarations: Yes
+BreakInheritanceList: AfterComma
+BreakTemplateDeclarations: MultiLine
+AllowBreakBeforeNoexceptSpecifier: Always
 Cpp11BracedListStyle: true
 BinPackArguments: true
 BinPackParameters: false

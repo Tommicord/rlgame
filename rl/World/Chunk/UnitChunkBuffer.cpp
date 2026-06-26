@@ -1,6 +1,8 @@
 import Rl.World.Chunk.UnitChunkBuffer;
 
 import <cstring>;
+import <optional>;
+import <memory>;
 
 namespace Rl::World::Chunk
 {
@@ -110,5 +112,9 @@ UnitChunkBuffer::ChunkCoord UnitChunkBuffer::GetDimensions() const
   return {W, H, D};
 }
 
+bool IndexVal(const int& x, const int max)
+{
+  return x >= 0 && x < max;
+}
 
 } // namespace Rl::World::Chunk

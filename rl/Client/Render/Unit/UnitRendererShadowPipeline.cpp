@@ -4,6 +4,8 @@ import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.Render.Unit.UnitRendererVertexInput;
 
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
+import <glm/glm.hpp>;
 
 namespace Rl::Client::Render
 {

@@ -2,14 +2,10 @@ export module Rl.Base.Shader;
 
 import <string>;
 import <vector>;
-import <vulkan/vulkan.h>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Providers
 {
-
-export constexpr int Vert    = (0 << 1);
-export constexpr int Frag    = (0 << 2);
-export constexpr int Compute = (0 << 3);
 
 export class ShaderObject
 {

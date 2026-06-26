@@ -4,6 +4,7 @@ import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 
 import <cstring>;
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::World::Chunk
 {
@@ -26,18 +27,18 @@ void UnitChunkBufferGPUSimplex::Initialize(
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permGradIndex3DBuffer, permGradIndex3DBufferMemory);
 
   VkDescriptorPoolSize poolSizes[3] = {};
-  poolSizes[0].type                 = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[0].descriptorCount      = 3; // perm, permGradIndex3D, noise output
-  poolSizes[1].type                 = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[1].descriptorCount      = 1;
-  poolSizes[2].type                 = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[2].descriptorCount      = 1;
+  poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  poolSizes[0].descriptorCount = 3; // perm, permGradIndex3D, noise output
+  poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  poolSizes[1].descriptorCount = 1;
+  poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  poolSizes[2].descriptorCount = 1;
 
   VkDescriptorPoolCreateInfo poolInfo{};
-  poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolInfo.poolSizeCount = 3;
-  poolInfo.pPoolSizes    = poolSizes;
-  poolInfo.maxSets       = 2; // One for init, one for generation
+  poolInfo.pPoolSizes = poolSizes;
+  poolInfo.maxSets = 2; // One for init, one for generation
 
   if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
@@ -46,25 +47,25 @@ void UnitChunkBufferGPUSimplex::Initialize(
 
   // Create descriptor set layout
   VkDescriptorSetLayoutBinding bindings[3] = {};
-  bindings[0].binding                      = 0;
-  bindings[0].descriptorType               = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  bindings[0].descriptorCount              = 1;
-  bindings[0].stageFlags                   = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[0].binding = 0;
+  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[0].descriptorCount = 1;
+  bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-  bindings[1].binding         = 1;
-  bindings[1].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[1].binding = 1;
+  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   bindings[1].descriptorCount = 1;
-  bindings[1].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-  bindings[2].binding         = 2;
-  bindings[2].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[2].binding = 2;
+  bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   bindings[2].descriptorCount = 1;
-  bindings[2].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{};
-  layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   layoutInfo.bindingCount = 3;
-  layoutInfo.pBindings    = bindings;
+  layoutInfo.pBindings = bindings;
 
   if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
   {
@@ -72,10 +73,10 @@ void UnitChunkBufferGPUSimplex::Initialize(
   }
 
   VkDescriptorSetAllocateInfo allocInfo{};
-  allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocInfo.descriptorPool     = descriptorPool;
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = descriptorPool;
   allocInfo.descriptorSetCount = 1;
-  allocInfo.pSetLayouts        = &descriptorSetLayout;
+  allocInfo.pSetLayouts = &descriptorSetLayout;
 
   if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet) != VK_SUCCESS)
   {
@@ -84,15 +85,15 @@ void UnitChunkBufferGPUSimplex::Initialize(
 
   VkPushConstantRange initPushConstantRange{};
   initPushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  initPushConstantRange.offset     = 0;
-  initPushConstantRange.size       = sizeof(uint32_t);
+  initPushConstantRange.offset = 0;
+  initPushConstantRange.size = sizeof(uint32_t);
 
   VkPipelineLayoutCreateInfo initLayoutInfo{};
-  initLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  initLayoutInfo.setLayoutCount         = 1;
-  initLayoutInfo.pSetLayouts            = &descriptorSetLayout;
+  initLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  initLayoutInfo.setLayoutCount = 1;
+  initLayoutInfo.pSetLayouts = &descriptorSetLayout;
   initLayoutInfo.pushConstantRangeCount = 1;
-  initLayoutInfo.pPushConstantRanges    = &initPushConstantRange;
+  initLayoutInfo.pPushConstantRanges = &initPushConstantRange;
 
   if (vkCreatePipelineLayout(device, &initLayoutInfo, nullptr, &initPipelineLayout) != VK_SUCCESS)
   {
@@ -100,18 +101,18 @@ void UnitChunkBufferGPUSimplex::Initialize(
   }
 
   // Create init compute pipeline
-  auto initShaderCode   = Providers::ShaderObject::Shader("simplex.init.comp.spv");
+  auto initShaderCode = Providers::ShaderObject::Shader("simplex.init.comp.spv");
   auto initShaderModule = Providers::ShaderObject::Module(device, initShaderCode);
 
   VkPipelineShaderStageCreateInfo initShaderStageInfo{};
-  initShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  initShaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
+  initShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  initShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
   initShaderStageInfo.module = initShaderModule.module;
-  initShaderStageInfo.pName  = "main";
+  initShaderStageInfo.pName = "main";
 
   VkComputePipelineCreateInfo initPipelineInfo{};
-  initPipelineInfo.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  initPipelineInfo.stage  = initShaderStageInfo;
+  initPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  initPipelineInfo.stage = initShaderStageInfo;
   initPipelineInfo.layout = initPipelineLayout;
 
   if (vkCreateComputePipelines(
@@ -119,47 +120,47 @@ void UnitChunkBufferGPUSimplex::Initialize(
   {
     throw std::runtime_error("Failed to create init compute pipeline for Simplex noise");
   }
-  ShaderObject::DestroyShaderModule(device, initShaderModule);
+  Providers::ShaderObject::DestroyShaderModule(device, initShaderModule);
 
   VkDescriptorBufferInfo permBufferInfo{};
   permBufferInfo.buffer = permBuffer;
   permBufferInfo.offset = 0;
-  permBufferInfo.range  = VK_WHOLE_SIZE;
+  permBufferInfo.range = VK_WHOLE_SIZE;
 
   VkDescriptorBufferInfo permGradIndexBufferInfo{};
   permGradIndexBufferInfo.buffer = permGradIndex3DBuffer;
   permGradIndexBufferInfo.offset = 0;
-  permGradIndexBufferInfo.range  = VK_WHOLE_SIZE;
+  permGradIndexBufferInfo.range = VK_WHOLE_SIZE;
 
   VkDescriptorBufferInfo dummyNoiseBufferInfo{};
   dummyNoiseBufferInfo.buffer = permBuffer; // Use any valid buffer as placeholder
   dummyNoiseBufferInfo.offset = 0;
-  dummyNoiseBufferInfo.range  = sizeof(float);
+  dummyNoiseBufferInfo.range = sizeof(float);
 
   VkWriteDescriptorSet initWrites[3] = {};
-  initWrites[0].sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[0].dstSet               = descriptorSet;
-  initWrites[0].dstBinding           = 0;
-  initWrites[0].dstArrayElement      = 0;
-  initWrites[0].descriptorType       = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  initWrites[0].descriptorCount      = 1;
-  initWrites[0].pBufferInfo          = &permBufferInfo;
+  initWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  initWrites[0].dstSet = descriptorSet;
+  initWrites[0].dstBinding = 0;
+  initWrites[0].dstArrayElement = 0;
+  initWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  initWrites[0].descriptorCount = 1;
+  initWrites[0].pBufferInfo = &permBufferInfo;
 
-  initWrites[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[1].dstSet          = descriptorSet;
-  initWrites[1].dstBinding      = 1;
+  initWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  initWrites[1].dstSet = descriptorSet;
+  initWrites[1].dstBinding = 1;
   initWrites[1].dstArrayElement = 0;
-  initWrites[1].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  initWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   initWrites[1].descriptorCount = 1;
-  initWrites[1].pBufferInfo     = &permGradIndexBufferInfo;
+  initWrites[1].pBufferInfo = &permGradIndexBufferInfo;
 
-  initWrites[2].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[2].dstSet          = descriptorSet;
-  initWrites[2].dstBinding      = 2;
+  initWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  initWrites[2].dstSet = descriptorSet;
+  initWrites[2].dstBinding = 2;
   initWrites[2].dstArrayElement = 0;
-  initWrites[2].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  initWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   initWrites[2].descriptorCount = 1;
-  initWrites[2].pBufferInfo     = &dummyNoiseBufferInfo;
+  initWrites[2].pBufferInfo = &dummyNoiseBufferInfo;
 
   vkUpdateDescriptorSets(device, 3, initWrites, 0, nullptr);
 
@@ -182,11 +183,11 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
     vkFreeMemory(device, noiseBufferMemory, nullptr);
   }
 
-  noiseWidth  = width;
+  noiseWidth = width;
   noiseHeight = height;
-  noiseDepth  = depth;
+  noiseDepth = depth;
 
-  const uint32_t     totalElements   = width * height * depth;
+  const uint32_t     totalElements = width * height * depth;
   const VkDeviceSize noiseBufferSize = totalElements * sizeof(float);
 
   Client::Render::UnitCreateBuffer(device, physicalDevice, noiseBufferSize,
@@ -197,16 +198,16 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
   VkDescriptorBufferInfo noiseBufferInfo{};
   noiseBufferInfo.buffer = noiseBuffer;
   noiseBufferInfo.offset = 0;
-  noiseBufferInfo.range  = VK_WHOLE_SIZE;
+  noiseBufferInfo.range = VK_WHOLE_SIZE;
 
   VkWriteDescriptorSet noiseWrite{};
-  noiseWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  noiseWrite.dstSet          = descriptorSet;
-  noiseWrite.dstBinding      = 2;
+  noiseWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  noiseWrite.dstSet = descriptorSet;
+  noiseWrite.dstBinding = 2;
   noiseWrite.dstArrayElement = 0;
-  noiseWrite.descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  noiseWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   noiseWrite.descriptorCount = 1;
-  noiseWrite.pBufferInfo     = &noiseBufferInfo;
+  noiseWrite.pBufferInfo = &noiseBufferInfo;
 
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
 }
@@ -221,15 +222,15 @@ void UnitChunkBufferGPUSimplex::GenerateNoise(
 
   VkPushConstantRange genPushConstantRange{};
   genPushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  genPushConstantRange.offset     = 0;
-  genPushConstantRange.size       = sizeof(SimplexNoisePushConstants);
+  genPushConstantRange.offset = 0;
+  genPushConstantRange.size = sizeof(SimplexNoisePushConstants);
 
   VkPipelineLayoutCreateInfo genLayoutInfo{};
-  genLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  genLayoutInfo.setLayoutCount         = 1;
-  genLayoutInfo.pSetLayouts            = &descriptorSetLayout;
+  genLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  genLayoutInfo.setLayoutCount = 1;
+  genLayoutInfo.pSetLayouts = &descriptorSetLayout;
   genLayoutInfo.pushConstantRangeCount = 1;
-  genLayoutInfo.pPushConstantRanges    = &genPushConstantRange;
+  genLayoutInfo.pPushConstantRanges = &genPushConstantRange;
 
   VkPipelineLayout genPipelineLayout;
   if (vkCreatePipelineLayout(device, &genLayoutInfo, nullptr, &genPipelineLayout) != VK_SUCCESS)
@@ -237,18 +238,18 @@ void UnitChunkBufferGPUSimplex::GenerateNoise(
     throw std::runtime_error("Failed to create generation pipeline layout for Simplex noise");
   }
 
-  auto genShaderCode   = Providers::ShaderObject::Shader("simplex.comp.spv");
+  auto genShaderCode = Providers::ShaderObject::Shader("simplex.comp.spv");
   auto genShaderModule = Providers::ShaderObject::Module(device, genShaderCode);
 
   VkPipelineShaderStageCreateInfo genShaderStageInfo{};
-  genShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  genShaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
+  genShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  genShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
   genShaderStageInfo.module = genShaderModule.module;
-  genShaderStageInfo.pName  = "main";
+  genShaderStageInfo.pName = "main";
 
   VkComputePipelineCreateInfo genPipelineInfo{};
-  genPipelineInfo.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  genPipelineInfo.stage  = genShaderStageInfo;
+  genPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  genPipelineInfo.stage = genShaderStageInfo;
   genPipelineInfo.layout = genPipelineLayout;
 
   VkPipeline genPipeline;
@@ -269,22 +270,22 @@ void UnitChunkBufferGPUSimplex::GenerateNoise(
 
   // Dispatch compute shader
   const uint32_t workgroupSize = 8;
-  uint32_t       workgroupsX   = (params.width + workgroupSize - 1) / workgroupSize;
-  uint32_t       workgroupsY   = (params.height + workgroupSize - 1) / workgroupSize;
-  uint32_t       workgroupsZ   = (params.depth + workgroupSize - 1) / workgroupSize;
+  uint32_t       workgroupsX = (params.width + workgroupSize - 1) / workgroupSize;
+  uint32_t       workgroupsY = (params.height + workgroupSize - 1) / workgroupSize;
+  uint32_t       workgroupsZ = (params.depth + workgroupSize - 1) / workgroupSize;
 
   vkCmdDispatch(commandBuffer, workgroupsX, workgroupsY, workgroupsZ);
 
   // Add memory barrier to ensure shader writes are complete
   VkBufferMemoryBarrier barrier{};
-  barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-  barrier.srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT;
-  barrier.dstAccessMask       = VK_ACCESS_TRANSFER_READ_BIT;
+  barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+  barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+  barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.buffer              = noiseBuffer;
-  barrier.offset              = 0;
-  barrier.size                = VK_WHOLE_SIZE;
+  barrier.buffer = noiseBuffer;
+  barrier.offset = 0;
+  barrier.size = VK_WHOLE_SIZE;
 
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
@@ -300,7 +301,7 @@ void UnitChunkBufferGPUSimplex::Cleanup(VkDevice device)
   {
     vkDestroyBuffer(device, noiseBuffer, nullptr);
     vkFreeMemory(device, noiseBufferMemory, nullptr);
-    noiseBuffer       = VK_NULL_HANDLE;
+    noiseBuffer = VK_NULL_HANDLE;
     noiseBufferMemory = VK_NULL_HANDLE;
   }
 
@@ -308,7 +309,7 @@ void UnitChunkBufferGPUSimplex::Cleanup(VkDevice device)
   {
     vkDestroyBuffer(device, permBuffer, nullptr);
     vkFreeMemory(device, permBufferMemory, nullptr);
-    permBuffer       = VK_NULL_HANDLE;
+    permBuffer = VK_NULL_HANDLE;
     permBufferMemory = VK_NULL_HANDLE;
   }
 
@@ -316,7 +317,7 @@ void UnitChunkBufferGPUSimplex::Cleanup(VkDevice device)
   {
     vkDestroyBuffer(device, permGradIndex3DBuffer, nullptr);
     vkFreeMemory(device, permGradIndex3DBufferMemory, nullptr);
-    permGradIndex3DBuffer       = VK_NULL_HANDLE;
+    permGradIndex3DBuffer = VK_NULL_HANDLE;
     permGradIndex3DBufferMemory = VK_NULL_HANDLE;
   }
 

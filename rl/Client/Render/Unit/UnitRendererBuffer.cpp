@@ -1,4 +1,6 @@
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.State.UnitState;
 
 import <array>;
 import <cstddef>;
@@ -26,7 +28,6 @@ uint32_t UnitFindMemoryTypeIndex(VkPhysicalDevice physicalDevice,
   throw std::runtime_error("Failed to find suitable memory type");
 }
 
-// Helper function to create a buffer with specified properties
 void UnitCreateBuffer(VkDevice device,
     VkPhysicalDevice           physicalDevice,
     VkDeviceSize               size,
@@ -162,7 +163,7 @@ void UnitCreateIndexBuffer(VkDevice device,
 }
 
 void UnitCreateUniformBuffers(
-    VkDevice device, VkPhysicalDevice physicalDevice, Providers::UnitStateDrawableVulkan& vk)
+    VkDevice device, VkPhysicalDevice physicalDevice, Providers::UnitStateBinding& vk)
 {
   // Create triplanar settings buffer
   UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderTriplanarSettings),

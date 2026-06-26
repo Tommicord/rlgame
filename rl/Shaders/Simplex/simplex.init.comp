@@ -1,3 +1,5 @@
+#version 450
+
 layout (local_size_x = 256) in;
 
 layout(std430, binding = 0) buffer PermutationBuffer {
@@ -15,7 +17,7 @@ layout(push_constant) uniform PushConstants {
 
 // Linear congruential generator for pseudo-random numbers
 uint LCG(uint state) {
-    return state * 6364136223846793005u + 1442695040888963407u;
+    return state * 1664525u + 1013904223u;
 }
 
 void main() {

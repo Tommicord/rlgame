@@ -8,14 +8,23 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_MODULE_STD ON)
 
+# Platform-specific defines for Vulkan
+if(WIN32)
+  add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
+elseif(APPLE)
+  add_compile_definitions(VK_USE_PLATFORM_METAL_EXT)
+elseif(UNIX)
+  add_compile_definitions(VK_USE_PLATFORM_XCB_KHR)
+endif()
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
   add_compile_definitions(ARM_)
-  message(STATUS "Target architecture ARM - NEON SIMD enabled")
+  message(STATUS "Target architecture ARM; NEON SIMD enabled")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
   add_compile_definitions(X86_)
   message(STATUS "Target architecture x86/x86-64 - SSE/AVX SIMD enabled")
 else()
-  message(WARNING "Unknown target architecture ${CMAKE_SYSTEM_PROCESSOR} - SIMD optimizations disabled")
+  message(WARNING "Unknown target architecture ${CMAKE_SYSTEM_PROCESSOR}; SIMD optimizations disabled")
 endif()
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
@@ -23,15 +32,56 @@ find_package(Vulkan REQUIRED COMPONENTS glslc)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+function(target_add_header_units TARGET)
+  set(_headers ${ARGN})
+  foreach(H IN LISTS _headers)
+    if(IS_ABSOLUTE "${H}")
+      set(HEADER_PATH "${H}")
+    else()
+      set(HEADER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${H}")
+    endif()
+    target_sources(
+      ${TARGET}
+      PRIVATE FILE_SET
+        HEADERS FILES
+      "${HEADER_PATH}"
+    )
+  endforeach()
+endfunction()
+
+# Helper: apply SIMD/compiler flags to a target (centralized to avoid duplication)
+function(target_configure TARGET)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      target_compile_options(${TARGET} PRIVATE -mfpu=neon -mfloat-abi=hard)
+    endif()
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      target_compile_options(${TARGET} PRIVATE -msse4.2 -mavx2)
+    elseif(MSVC)
+      target_compile_options(
+        ${TARGET}
+        PRIVATE
+          "/experimental:module"
+          "/Zc:preprocessor"
+          "/arch:AVX2"
+          "/Zm200"
+          "/MP2"
+      )
+    endif()
+  endif()
+endfunction()
+
 # C++20 Modules
 set(CXX_MODULES
+  rl/Base/Binding.ixx
   rl/Base/Game.ixx
   rl/Base/Shader.ixx
   rl/Base/InputReceiver.ixx
   rl/Base/SimplexNoise.ixx
   rl/Base/Texture2.ixx
-  rl/Base/StateModel.ixx
-  rl/Base/StateDrawable.ixx
+  rl/Base/IStateModel.ixx
+  rl/Base/IStateDrawable.ixx
   rl/Base/IUpdatable.ixx
   rl/Client/State/CameraState.ixx
   rl/Client/State/UnitState.ixx
@@ -40,6 +90,7 @@ set(CXX_MODULES
   rl/World/Unit/UnitRegistry.ixx
   rl/World/Unit/UnitResourceName.ixx
   rl/World/Unit/UnitGrass.ixx
+  rl/World/Unit/UnitAir.ixx
   rl/World/Unit/UnitDynamicTexture.ixx
   rl/World/Unit/UnitPropertyStrategy.ixx
   rl/World/Unit/UnitRegister.ixx
@@ -83,6 +134,7 @@ set(SOURCES
   rl/World/Camera.cpp
   rl/World/Unit/Unit.cpp
   rl/World/Unit/UnitGrass.cpp
+  rl/World/Unit/UnitGrass.cpp
   rl/World/Unit/UnitDynamicTexture.cpp
   rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/Unit/UnitRendererAOTextures.cpp
@@ -117,7 +169,11 @@ add_subdirectory(Deps/glfw)
 add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
 
-add_executable(rlgame rl/Base/Game.cpp ${SOURCES})
+add_executable(rlgame rl/Base/Game.cpp ${SOURCES}
+  rl/Base/Binding.ixx
+  rl/World/Unit/UnitAir.ixx
+  rl/World/Unit/UnitAir.cpp)
+
 target_sources(
   rlgame
   PUBLIC
@@ -127,8 +183,8 @@ target_sources(
 target_include_directories(
   rlgame
   PRIVATE
-  Deps/glm
-  Deps/stb
+  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/glm
+  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/stb
 )
 target_link_libraries(
   rlgame
@@ -137,21 +193,6 @@ target_link_libraries(
   glfw
   glm::glm
 )
-
-# Enable SIMD instructions based on architecture
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame PRIVATE -mfpu=neon)
-    target_compile_options(rlgame PRIVATE -mfloat-abi=hard)
-  endif()
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame PRIVATE -msse4.2)
-    target_compile_options(rlgame PRIVATE -mavx2)
-  elseif(MSVC)
-    target_compile_options(rlgame PRIVATE /arch:AVX2)
-  endif()
-endif()
 
 # Platform-specific libraries for input polling
 if(WIN32)
@@ -205,13 +246,7 @@ target_compile_shaders(
   rl/Shaders/unit.frag
   rl/Shaders/unit.vert
   rl/Shaders/Simplex/simplex.comp
-  rl/Shaders/Simplex/simplex.noise2d.glsl
-  rl/Shaders/Simplex/simplex.noise3d.glsl
-  rl/Shaders/Simplex/simplex.common.glsl
-  rl/Shaders/Simplex/simplex.gradients.glsl
   rl/Shaders/Simplex/simplex.init.comp
-  rl/Shaders/Simplex/simplex.noise.constants.glsl
-  rl/Shaders/Simplex/simplex.perm.glsl
 )
 enable_testing()
 
@@ -232,7 +267,7 @@ target_include_directories(
   rlgame_tests
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${stb_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/stb
 )
 
 target_compile_options(rlgame_tests PRIVATE /EHsc)
@@ -247,6 +282,17 @@ target_link_libraries(
   glm::glm
   glfw
 )
+
+set(HEADER_UNITS
+  Deps/stb/stb_image.h
+  Deps/glm/glm/glm.hpp
+  Deps/glfw/include/GLFW/glfw3.h)
+target_configure(rlgame)
+target_configure(rlgame_tests)
+
+# Precompile headers
+target_add_header_units(rlgame_tests ${HEADER_UNITS})
+target_add_header_units(rlgame ${HEADER_UNITS})
 
 # Enable SIMD instructions based on architecture for tests
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")

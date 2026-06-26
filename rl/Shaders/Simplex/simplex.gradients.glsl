@@ -1,4 +1,3 @@
-// 2D gradients (8 gradients, 2 components each)
 const int GRADIENTS_2D[16] = int[](
     5, 2,    // Gradient 0
     2, 5,    // Gradient 1
@@ -10,7 +9,6 @@ const int GRADIENTS_2D[16] = int[](
     -2, -5   // Gradient 7
 );
 
-// 3D gradients (24 gradients, 3 components each)
 const int GRADIENTS_3D[72] = int[](
     -11, 4, 4,    // Gradient 0
     -4, 11, 4,    // Gradient 1

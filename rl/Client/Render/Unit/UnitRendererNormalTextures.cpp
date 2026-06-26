@@ -1,12 +1,17 @@
 import Rl.Client.Render.Unit.UnitRendererNormalTextures;
+import Rl.Client.State.UnitState;
+import Rl.Base.Binding;
 import Rl.Base.Texture2;
+import Rl.World.Unit;
+
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {
 
 void UnitGenerateNormalTextures(VkDevice device,
-    Game::VulkanContext&                 context,
-    Providers::UnitStateDrawableVulkan&  vk,
+    Game::MainBinding&                 context,
+    Providers::UnitStateBinding&  vk,
     const World::UnitTextureMaterial&    textures)
 {
   if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
@@ -47,7 +52,7 @@ void UnitGenerateNormalTextures(VkDevice device,
     {
       if (normalTextures[i])
       {
-        normalTextures[i]->CleanupVulkan(context);
+        normalTextures[i]->CleanupBinding(context);
         delete normalTextures[i];
       }
     }

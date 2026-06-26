@@ -1,7 +1,14 @@
 import Rl.Client.Render.Unit.UnitRendererDrawCompute;
 import Rl.Client.Render.Unit.UnitRendererFrustum;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.State.UnitState;
+import Rl.Base.Binding;
+import Rl.World.Camera;
 
 import <glm/glm.hpp>;
+import <glm/ext/matrix_clip_space.hpp>;
+import <glm/ext/matrix_transform.hpp>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {
@@ -17,15 +24,12 @@ static glm::mat4 CalculateLightSpaceMatrix(
 }
 
 void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
-    Providers::UnitStateDrawableVulkan&                       vk,
-    Game::VulkanContext&                                      context)
+    Providers::UnitStateBinding&                       vk,
+    Game::MainBinding&                                      context)
 {
-  if (!resource.cameraModel)
-    return;
-
   // Get camera matrices for push constants
   UnitRenderUBO        ubo{};
-  const World::Camera& cam = resource.cameraModel->GetObject();
+  const World::Camera& cam = resource.camera.value().GetObject();
   ubo.model                = cam.GetModelMatrix();
   ubo.view                 = cam.GetViewMatrix();
   ubo.projection           = cam.GetProjectionMatrix();
@@ -35,7 +39,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
 
   // Update frustum data outside render pass
   UnitRenderFrustumPlanes frustum{};
-  UnitCameraToFrustumPlanes(frustum, resource.cameraModel->GetObject());
+  UnitCameraToFrustumPlanes(frustum, resource.camera.value().GetObject());
 
   constexpr VkDeviceSize frustumSize = sizeof(UnitRenderFrustumPlanes);
   vkCmdUpdateBuffer(context.commandBuffers[0], vk.frustumBuffer, 0, frustumSize, &frustum);

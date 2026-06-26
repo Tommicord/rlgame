@@ -2,6 +2,7 @@ import Rl.Client.Render.Unit.UnitRendererDescriptorSets;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

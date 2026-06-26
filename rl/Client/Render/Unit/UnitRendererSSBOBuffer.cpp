@@ -1,10 +1,7 @@
-#pragma once
-
-#include "rl/Client/Render/Unit/UnitRendererBasicBuffer.h"
-#include "rl/Client/Render/Unit/UnitRendererInfo.h"
-#include "rl/Client/State/UnitState.h"
-
-#include <vulkan/vulkan.hpp>
+import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.State.UnitState;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {
@@ -12,7 +9,7 @@ namespace Rl::Client::Render
 void UnitCreateSSBOBuffers(VkDevice     device,
     VkPhysicalDevice                    physicalDevice,
     size_t                              vertexCount,
-    Providers::UnitStateDrawableVulkan& vk)
+    Providers::UnitStateBinding& vk)
 {
   // Create output index buffer (host-visible for compute shader writes)
   VkDeviceSize outputIndexBufferSize = sizeof(uint32_t) * 36; // Max 36 indices for cube

@@ -1,7 +1,7 @@
 import Rl.Base.Texture2;
 import Rl.Base.Game;
+import Rl.Base.Binding;
 
-// Platform detection
 #if defined(_WIN32) || defined(_WIN64)
 #define RL_PLATFORM_WINDOWS
 #elif defined(__APPLE__)
@@ -32,6 +32,7 @@ import <cmath>;
 import <cstring>;
 import <fstream>;
 import <sstream>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Providers
 {
@@ -217,7 +218,7 @@ void Texture2::Cleanup()
   dataSize = 0;
   loaded   = false;
 }
-void Texture2::CleanupVulkan(const Game::VulkanContext& context)
+void Texture2::CleanupBinding(const Game::MainBinding& context)
 {
   // Cleanup Vulkan resources
   if (binding.vkStagingBuffer != VK_NULL_HANDLE)

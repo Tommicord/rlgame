@@ -1,5 +1,7 @@
 import Rl.Base.Game;
 import Rl.Base.Shader;
+import Rl.Base.Binding;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.Render.Unit.UnitRendererAOTextures;
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 import Rl.Client.Render.Unit.UnitRendererCleanup;
@@ -29,7 +31,7 @@ namespace Rl::Providers
 {
 
 void UnitStateDrawable::OnCreate(
-    UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
 {
   const auto& unitVertices = Client::Render::UnitGetTestVertices();
   Client::Render::UnitCreateVertexBuffer(
@@ -118,12 +120,12 @@ void UnitStateDrawable::OnCreate(
       context.device, context.physicalDevice, shadowConfig, shadowResources);
 
   // Assign shadow map resources to vk struct
-  vk.shadowMapImage       = shadowResources.shadowMapImage;
-  vk.shadowMapMemory      = shadowResources.shadowMapMemory;
-  vk.shadowMapView        = shadowResources.shadowMapView;
-  vk.shadowMapSampler     = shadowResources.shadowMapSampler;
+  vk.shadowMapImage = shadowResources.shadowMapImage;
+  vk.shadowMapMemory = shadowResources.shadowMapMemory;
+  vk.shadowMapView = shadowResources.shadowMapView;
+  vk.shadowMapSampler = shadowResources.shadowMapSampler;
   vk.shadowMapFramebuffer = shadowResources.shadowMapFramebuffer;
-  vk.shadowMapRenderPass  = shadowResources.shadowMapRenderPass;
+  vk.shadowMapRenderPass = shadowResources.shadowMapRenderPass;
 
   // Create shadow map pipeline layout and pipeline
   Client::Render::UnitCreateShadowPipelineLayout(context.device, vk.shadowPipelineLayout);
@@ -145,7 +147,7 @@ void UnitStateDrawable::OnCreate(
       context.device, vk.descriptorSet, vk.shadowMapView, vk.shadowMapSampler);
 
   // Create vertex input state
-  auto vertexInputBinding    = Client::Render::UnitCreateVertexInputBindingDescription();
+  auto vertexInputBinding = Client::Render::UnitCreateVertexInputBindingDescription();
   auto vertexInputAttributes = Client::Render::UnitCreateVertexAttributeDescriptions();
 
   Client::Render::UnitCreateGraphicsPipelineLayout(
@@ -155,54 +157,56 @@ void UnitStateDrawable::OnCreate(
 }
 
 void UnitStateDrawable::OnUpdate(
-    UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
 {
-  if (!resource.cameraModel)
+  if (!resource.camera.has_value())
+  {
     return;
-
+  }
   // Visible count reset is now handled in OnDrawCompute using vkCmdFillBuffer (GPU-side)
   Client::Render::UnitRenderFrustumPlanes frustum{};
-  Client::Render::UnitCameraToFrustumPlanes(frustum, resource.cameraModel->GetObject());
+  Client::Render::UnitCameraToFrustumPlanes(frustum, resource.camera.value().GetObject());
 
   // Update graphics descriptor set with textures from unit (only if textures changed)
-  if (resource.unit)
+  Client::Render::UnitUpdateUnitTextures(
+      context.device, vk.descriptorSet, resource.unit.GetMaterial(), context);
+
+  // Generate AO textures from unit textures (only if not already generated)
+  if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
   {
-    Client::Render::UnitUpdateUnitTextures(
-        context.device, vk.descriptorSet, resource.unit->GetMaterial(), context);
+    Client::Render::UnitGenerateAOTextures(
+        context.device, context, vk, resource.unit.GetMaterial());
+    Client::Render::UnitUpdateAOTextureDescriptor(
+        context.device, vk.descriptorSet, vk.aoTexturesView, vk.globalTextureSampler);
+  }
 
-    // Generate AO textures from unit textures (only if not already generated)
-    if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
-    {
-      Client::Render::UnitGenerateAOTextures(
-          context.device, context, vk, resource.unit->GetMaterial());
-      Client::Render::UnitUpdateAOTextureDescriptor(
-          context.device, vk.descriptorSet, vk.aoTexturesView, vk.globalTextureSampler);
-    }
-
-    // Generate normal textures from unit textures (only if not already generated)
-    if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
-    {
-      Client::Render::UnitGenerateNormalTextures(
-          context.device, context, vk, resource.unit->GetMaterial());
-      Client::Render::UnitUpdateNormalTextureDescriptor(
-          context.device, vk.descriptorSet, vk.normalTexturesView, vk.globalTextureSampler);
-    }
+  // Generate normal textures from unit textures (only if not already generated)
+  if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
+  {
+    Client::Render::UnitGenerateNormalTextures(
+        context.device, context, vk, resource.unit.GetMaterial());
+    Client::Render::UnitUpdateNormalTextureDescriptor(
+        context.device, vk.descriptorSet, vk.normalTexturesView, vk.globalTextureSampler);
   }
 }
 
 void UnitStateDrawable::OnDraw(
-    UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
 {
-  if (!resource.cameraModel)
+  if (!resource.camera.has_value())
+  {
     return;
+  }
   Client::Render::UnitRender(resource, vk, context);
 }
 
 void UnitStateDrawable::OnDrawCompute(
-    UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
 {
-  if (!resource.cameraModel)
+  if (!resource.camera.has_value())
+  {
     return;
+  }
   Client::Render::UnitDispatchComputeShaders(resource, vk, context);
 
   // Although this has nothing to do with a
@@ -212,7 +216,7 @@ void UnitStateDrawable::OnDrawCompute(
 }
 
 void UnitStateDrawable::OnDestroy(
-    UnitStateResource& resource, UnitStateDrawableVulkan& vk, Game::VulkanContext& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
 {
   Client::Render::UnitCleanupResources(context.device, vk);
 }

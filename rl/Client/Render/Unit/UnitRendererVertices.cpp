@@ -1,4 +1,5 @@
 import Rl.Client.Render.Unit.UnitRendererVertices;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 
 import <glm/glm.hpp>;
 

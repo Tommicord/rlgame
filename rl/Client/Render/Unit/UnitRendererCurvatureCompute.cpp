@@ -1,6 +1,8 @@
 import Rl.Client.Render.Unit.UnitRendererCurvatureCompute;
+import Rl.Base.Shader;
 
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

@@ -2,31 +2,34 @@ export module Rl.World.Unit;
 
 import Rl.Base.IUpdatable;
 import Rl.Base.Texture2;
+import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitDynamicTexture;
 import Rl.World.Unit.UnitPropertyStrategy;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
+
 import <algorithm>;
+import <string_view>;
 import <array>;
 import <memory>;
+import <vector>;
 
 namespace Rl::World
 {
 
 using namespace Rl::Providers;
 
-export enum class UnitType
-{
-  Visible, // Unit Visible
-  NotVisible, // Unit No Visible
-  Solid, // Is Unit Solid
-  Liquid, // Is Unit Solid
+export enum class UnitType {
+  VISIBLE, // Unit Visible
+  NVISIBLE, // Unit No Visible
+  SOLID, // Is Unit Solid
+  LIQUID, // Is Unit Solid
 };
 
 export class UnitTextureMaterial
 {
-  private:
-  bool hasTexture = false;
+  /* Stores if all fields are initialized */
+  bool hasMaterial = false;
 
   public:
   Texture2 *top, *down, *left, *right, *front, *back;
@@ -40,12 +43,18 @@ export class UnitTextureMaterial
   ~UnitTextureMaterial();
 };
 
-export class BaseUnit : IUpdatable
+// Forward reference to default block
+class UnitAir;
+
+export template <class Derived = void> class IUnit : IUpdatable
 {
+  /* The registry value type */
+  using RegistryV = IUnit*;
+
   /* Internal Field: Stores the count of registered world units */
-  using Registry                 = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
-  inline static auto defaultName = std::vector({"Unknown"});
-  inline static auto registry    = Registry(UnitResourceName(defaultName));
+  using Registry = UnitRegistryPair3<UnitResourceName, RegistryV>;
+  inline static std::vector<std::string_view> defaultName = {std::string_view("Unknown")};
+  inline static auto                          registry = Registry(UnitResourceName(defaultName));
 
   public:
   /* Stores the properties of the world unit */
@@ -56,36 +65,23 @@ export class BaseUnit : IUpdatable
   } props;
 
   /* Creates a basic WorldUnit, automatically registers the unit */
-  template <typename T>
-    requires IsDerivedUnit<T>
-  BaseUnit(T* type) noexcept : BaseUnit()
+  explicit IUnit(unsigned short id) noexcept : IUnit()
   {
+    RegisterDerived(id);
+
     static Texture2 texture("Unknown.png");
-    using pair = UnitRegistryKVPair<UnitResourceName, BaseUnit*>;
-    int id     = 1;
-    if (pair::GetObjectById(id).has_value())
-    {
-      while (pair::GetObjectById(id).has_value())
-      {
-        id++;
-      }
-    }
-    if (!pair::GetObjectById(id).has_value())
-    {
-      std::vector<const char*> v;
-      v.reserve(1);
-      v.push_back(typeid(T).name());
-      UnitResourceName resourceName(v);
-      BaseUnit*        base = type;
-      registry.Register(id, resourceName, base);
-    };
-    textures        = std::make_unique<UnitTextureMaterial>();
+
+    textures = std::make_unique<UnitTextureMaterial>();
     textures->front = textures->back = &texture;
     textures->left = textures->right = &texture;
     textures->top = textures->down = &texture;
   }
+  IUnit(const IUnit& other) = delete;
+  IUnit(const IUnit&& other) = delete;
+  IUnit& operator=(const IUnit& other) = delete;
+
   /* Delete a world unit */
-  ~BaseUnit() override;
+  ~IUnit() override;
 
   struct PolFence
   {
@@ -107,10 +103,10 @@ export class BaseUnit : IUpdatable
   void SetUnitHardness(float hardness);
 
   /* Sets the right Polygon Fence, the polygons for the rendering of the Unit */
-  void SetPolFenceRight(PolFence& fence);
+  void SetPolFenceRight(const PolFence& fence);
 
   /* Sets the left Polygon Fence, the polygons for the rendering of the Unit */
-  void SetPolFenceLeft(PolFence& fence);
+  void SetPolFenceLeft(const PolFence& fence);
 
   /* Sets the Polygon curve */
   void SetPolCurve(float curve);
@@ -259,6 +255,28 @@ export class BaseUnit : IUpdatable
   }
 
   protected:
+  /* Registers in compile-time a Unit id into the registry */
+  static void RegisterDerived(unsigned short& id)
+  {
+    using P = UnitRegistryPair3<UnitResourceName, IUnit*>;
+    RegisterDerivedInRegistry<P>(id);
+  }
+
+  /* Registers in a Unit id, name, and constant value into the registry */
+  template <typename P> static void RegisterDerivedInRegistry(unsigned short& id)
+  {
+    if (!P::GetObjectById(id).has_value())
+    {
+      std::vector<std::string_view> v;
+      v.reserve(1);
+      v[0] = IUnitIdentifiable<Derived>::SimpleClassName();
+      UnitResourceName resourceName(v);
+      auto*            base = static_cast<Derived*>(new IUnit());
+      auto             ref = static_cast<RegistryV>(base);
+      registry.Register(id, resourceName, ref);
+    }
+  }
+
   /* Texture of the unit, back, front, left, right, bottom, top */
   std::unique_ptr<UnitTextureMaterial> textures;
 
@@ -309,7 +327,8 @@ export class BaseUnit : IUpdatable
   bool translucent;
 
   private:
-  BaseUnit() = default;
+  /* Private IUnit constructor, only to init the fields */
+  IUnit() = default;
 };
 
 } // namespace Rl::World

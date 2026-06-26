@@ -3,7 +3,6 @@
 #include "simplex.noise.constants.glsl"
 #include "simplex.gradients.glsl"
 #include "simplex.perm.glsl"
-#include "simplex.init.comp"
 #include "simplex.common.glsl"
 #include "simplex.noise2d.glsl"
 #include "simplex.noise3d.glsl"
@@ -17,12 +16,11 @@ layout(std430, binding = 2) buffer NoiseBuffer {
 
 // Noise generation parameters
 layout(push_constant) uniform PushConstants {
-    uint dimension;      // 2, 3, or 4
+    uint dimension;      // 2 or 3
     float scale;         // Noise scale
     float offsetX;       // X offset
     float offsetY;       // Y offset
     float offsetZ;       // Z offset
-    float offsetW;       // W offset (for 4D)
     uint width;          // Grid width
     uint height;         // Grid height
     uint depth;          // Grid depth
@@ -42,7 +40,6 @@ void main() {
     float worldX = (float(x) / float(pc.width)) * pc.scale + pc.offsetX;
     float worldY = (float(y) / float(pc.height)) * pc.scale + pc.offsetY;
     float worldZ = (float(z) / float(pc.depth)) * pc.scale + pc.offsetZ;
-    float worldW = float(pc.time) * 0.01 + pc.offsetW;
 
     uint index = x + y * pc.width + z * pc.width * pc.height;
 

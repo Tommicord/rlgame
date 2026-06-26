@@ -8,7 +8,7 @@ import <vulkan/vulkan.h>;
 namespace Rl::Providers
 {
 
-VkFormat Texture2::GetVkFormat() const
+VkFormat Texture2::GetBindingFormat() const
 {
   switch (properties.format)
   {
@@ -43,7 +43,7 @@ VkFormat Texture2::GetVkFormat() const
   }
 }
 
-VkFilter Texture2::GetVkFilter(Texture2Filter filter) const
+VkFilter Texture2::GetBindingFilter(Texture2Filter filter) const
 {
   switch (filter)
   {
@@ -64,7 +64,7 @@ VkFilter Texture2::GetVkFilter(Texture2Filter filter) const
   }
 }
 
-VkSamplerMipmapMode Texture2::GetVkMipmapMode(Texture2Filter filter) const
+VkSamplerMipmapMode Texture2::GetBindingMipmapMode(Texture2Filter filter) const
 {
   switch (filter)
   {
@@ -82,7 +82,7 @@ VkSamplerMipmapMode Texture2::GetVkMipmapMode(Texture2Filter filter) const
   }
 }
 
-VkSamplerAddressMode Texture2::GetVkWrapMode(Texture2Wrap wrap) const
+VkSamplerAddressMode Texture2::GetBindingWrapMode(Texture2Wrap wrap) const
 {
   switch (wrap)
   {
@@ -99,7 +99,7 @@ VkSamplerAddressMode Texture2::GetVkWrapMode(Texture2Wrap wrap) const
   }
 }
 
-void Texture2::CreateVulkanImage(Game::VulkanContext& context)
+void Texture2::CreateBindingImage(Game::MainBinding& context)
 {
   if (!loaded || binding.vkImage != VK_NULL_HANDLE)
   {
@@ -114,7 +114,7 @@ void Texture2::CreateVulkanImage(Game::VulkanContext& context)
   imageInfo.extent.depth  = 1;
   imageInfo.mipLevels     = static_cast<uint32_t>(mipmapLevels);
   imageInfo.arrayLayers   = 1;
-  imageInfo.format        = GetVkFormat();
+  imageInfo.format        = GetBindingFormat();
   imageInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
   imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
   imageInfo.usage         = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -143,7 +143,7 @@ void Texture2::CreateVulkanImage(Game::VulkanContext& context)
   vkBindImageMemory(context.device, binding.vkImage, binding.vkImageMemory, 0);
 }
 
-void Texture2::UploadTextureData(Game::VulkanContext& context)
+void Texture2::UploadTextureData(Game::MainBinding& context)
 {
   if (!loaded || data == nullptr || binding.vkImage == VK_NULL_HANDLE)
   {
@@ -343,7 +343,7 @@ void Texture2::UploadTextureData(Game::VulkanContext& context)
   binding.vkStagingBufferMemory = VK_NULL_HANDLE;
 }
 
-void Texture2::CreateVulkanSampler(Game::VulkanContext& context)
+void Texture2::CreateBindingSampler(Game::MainBinding& context)
 {
   if (binding.vkSampler != VK_NULL_HANDLE)
   {
@@ -356,18 +356,18 @@ void Texture2::CreateVulkanSampler(Game::VulkanContext& context)
 
   VkSamplerCreateInfo samplerInfo{};
   samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-  samplerInfo.magFilter               = GetVkFilter(properties.magFilter);
-  samplerInfo.minFilter               = GetVkFilter(properties.minFilter);
-  samplerInfo.addressModeU            = GetVkWrapMode(properties.wrapS);
-  samplerInfo.addressModeV            = GetVkWrapMode(properties.wrapT);
-  samplerInfo.addressModeW            = GetVkWrapMode(properties.wrapT);
+  samplerInfo.magFilter               = GetBindingFilter(properties.magFilter);
+  samplerInfo.minFilter               = GetBindingFilter(properties.minFilter);
+  samplerInfo.addressModeU            = GetBindingWrapMode(properties.wrapS);
+  samplerInfo.addressModeV            = GetBindingWrapMode(properties.wrapT);
+  samplerInfo.addressModeW            = GetBindingWrapMode(properties.wrapT);
   samplerInfo.anisotropyEnable        = VK_FALSE;
   samplerInfo.maxAnisotropy           = 1.0f;
   samplerInfo.borderColor             = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
   samplerInfo.unnormalizedCoordinates = VK_FALSE;
   samplerInfo.compareEnable           = VK_FALSE;
   samplerInfo.compareOp               = VK_COMPARE_OP_ALWAYS;
-  samplerInfo.mipmapMode              = GetVkMipmapMode(properties.minFilter);
+  samplerInfo.mipmapMode              = GetBindingMipmapMode(properties.minFilter);
   samplerInfo.mipLodBias              = 0.0f;
   samplerInfo.minLod                  = 0.0f;
   samplerInfo.maxLod                  = static_cast<float>(mipmapLevels);
@@ -378,15 +378,15 @@ void Texture2::CreateVulkanSampler(Game::VulkanContext& context)
   }
 }
 
-void Texture2::GetSampler(Game::VulkanContext& context)
+void Texture2::GetSampler(Game::MainBinding& context)
 {
   if (binding.vkSampler == VK_NULL_HANDLE)
   {
-    CreateVulkanSampler(context);
+    CreateBindingSampler(context);
   }
 }
 
-void Texture2::GetImageView(Game::VulkanContext& context)
+void Texture2::GetImageView(Game::MainBinding& context)
 {
   if (binding.vkImageView != VK_NULL_HANDLE)
   {
@@ -395,7 +395,7 @@ void Texture2::GetImageView(Game::VulkanContext& context)
 
   if (binding.vkImage == VK_NULL_HANDLE)
   {
-    CreateVulkanImage(context);
+    CreateBindingImage(context);
     UploadTextureData(context);
   }
 
@@ -403,7 +403,7 @@ void Texture2::GetImageView(Game::VulkanContext& context)
   viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
   viewInfo.image                           = binding.vkImage;
   viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-  viewInfo.format                          = GetVkFormat();
+  viewInfo.format                          = GetBindingFormat();
   viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
   viewInfo.subresourceRange.baseMipLevel   = 0;
   viewInfo.subresourceRange.levelCount     = static_cast<uint32_t>(mipmapLevels);

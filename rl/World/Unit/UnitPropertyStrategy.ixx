@@ -5,14 +5,10 @@ import <type_traits>;
 namespace Rl::World
 {
 
-class BaseUnit;
+class IUnit;
 
-template <class T>
-export inline constexpr bool IsDerivedUnit = std::is_base_of_v<BaseUnit, T>;
-
-template <class T>
-  requires IsDerivedUnit<T>
-export class UnitPropertyStrategy
+export template <class T>
+class UnitPropertyStrategy
 {
   public:
   /* Gets the base light emission value for this unit type */

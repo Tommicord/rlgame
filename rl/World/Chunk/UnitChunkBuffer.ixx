@@ -16,12 +16,12 @@ export class UnitChunkBuffer
   using BufferUnit  = int;
   /* Stores the chunk buffer dimensions */
   template <int W, int H, int D>
-  export struct ChunkBufferSizes
+  struct ChunkBufferSizes
   {
     int w = W, h = H, d = D;
   };
   /* Represents the chunk buffer */
-  export struct ChunkBuffer
+  struct ChunkBuffer
   {
     /* Stores array of Unit id's */
     std::unique_ptr<BufferUnit[]> b;
@@ -40,7 +40,7 @@ export class UnitChunkBuffer
   };
 
   /* Represents a 3D coordinate in the chunk */
-  export struct ChunkCoord
+  struct ChunkCoord
   {
     int x, y, z;
   };
@@ -94,8 +94,8 @@ export class UnitChunkBuffer
   bool IsInBounds(const ChunkCoord& coord) const;
 
   /* Gets the total number of blocks in the chunk */
-  [[nodiscard]]
-  constexpr int GetTotalBlocks() const
+  static [[nodiscard]]
+  constexpr int GetTotalBlocks()
   {
     return W * H * D;
   }
@@ -131,26 +131,22 @@ export class UnitChunkBuffer
 };
 
 /* Maps a 3D coordinate to the chunk buffer array pos */
-template<int W, int H>
+export template<int W, int H>
 [[nodiscard]]
-export int IndexMap3d2(int x, int y, int z)
+int IndexMap3d2(int x, int y, int z)
 {
   return x + (y * W) + (z * W * H);
 }
 
 /* Maps a ChunkCoord to the chunk buffer array pos */
-template<int W, int H>
+export template<int W, int H>
 [[nodiscard]]
-export int IndexMap3d2(const UnitChunkBuffer::ChunkCoord& coord)
+int IndexMap3d2(const UnitChunkBuffer::ChunkCoord& coord)
 {
   return IndexMap3d2<W, H>(coord.x, coord.y, coord.z);
 }
 
 /* Checks a coordinate (is invalid if out of bounds in the chunk buffer) */
-[[nodiscard]]
-export inline bool IndexVal(int& x, int max)
-{
-  return x >= 0 && x < max;
-}
+export bool IndexVal(const int& x, int max);
 
 } // namespace Rl::World::Chunk

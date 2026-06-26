@@ -1,17 +1,18 @@
 import Rl.Client.State.CameraState;
 import Rl.Base.Game;
+import Rl.Base.Binding;
 import Rl.World.Camera;
 
 import <algorithm>;
 import <cmath>;
+import <memory>;
 import <glm/glm.hpp>;
 import <glm/gtc/matrix_transform.hpp>;
-import <glm/gtc/type_ptr.hpp>;
 
 namespace Rl::Providers
 {
 
-CameraModel::CameraModel(Game::VulkanContext& context) : StateModel(context)
+CameraModel::CameraModel(Game::MainBinding& context) : IStateModel(context)
 {
   // Create camera
   camera = std::make_unique<World::Camera>();
@@ -21,28 +22,28 @@ CameraModel::CameraModel(Game::VulkanContext& context) : StateModel(context)
   camera->SetAspectRatio(aspect);
   cameraDrawable = std::make_shared<CameraStateDrawable>();
   cameraResource = std::make_unique<CameraStateResource>(*camera);
-  cameraVk       = std::make_unique<CameraStateDrawableVulkan>();
-  cameraDrawable->OnCreate(*cameraResource, *cameraVk, context);
+  cameraBinding = std::make_unique<CameraStateBinding>();
+  cameraDrawable->OnCreate(*cameraResource, *cameraBinding, context);
 }
 
-World::Camera& CameraModel::GetObject()
+World::Camera& CameraModel::GetObject() const
 {
   return *camera;
 }
 
-CameraStateResource& CameraModel::GetResource()
+CameraStateResource& CameraModel::GetResource() const
 {
   return *cameraResource;
 }
 
-CameraStateDrawable& CameraModel::GetDrawable()
+CameraStateDrawable& CameraModel::GetDrawable() const
 {
   return *cameraDrawable;
 }
 
-CameraStateDrawableVulkan& CameraModel::GetVulkanState()
+CameraStateBinding& CameraModel::GetBinding() const
 {
-  return *cameraVk;
+  return *cameraBinding;
 }
 
 void CameraStateDrawable::OnPause()

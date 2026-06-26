@@ -1,5 +1,3 @@
-// OpenSimplex Noise Permutation Arrays
-// Permutation table (256 values)
 layout(std430, binding = 0) buffer PermutationBuffer {
     int perm[256];
 };

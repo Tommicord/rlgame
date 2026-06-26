@@ -11,6 +11,6 @@ namespace Rl::Client::Render
  * Gets the camera View-Projection matrix and do some math
  * behind the scene
  */
-export void UnitCameraToFrustumPlanes(UnitRenderFrustumPlanes& frustum, World::Camera& cam);
+export void UnitCameraToFrustumPlanes(UnitRenderFrustumPlanes& frustum, const World::Camera& cam);
 
 } // namespace Rl::Client::Render

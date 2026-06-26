@@ -3,6 +3,7 @@ import Rl.Base.Shader;
 import <fstream>;
 import <stdexcept>;
 import <vector>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Providers
 {

@@ -1,4 +1,6 @@
 import Rl.Client.Render.Unit.UnitRendererFrustum;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.World.Camera;
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 import <glm/glm.hpp>;
@@ -7,7 +9,7 @@ import <glm/gtc/matrix_transform.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitCameraToFrustumPlanes(UnitRenderFrustumPlanes& frustum, World::Camera& cam)
+void UnitCameraToFrustumPlanes(UnitRenderFrustumPlanes& frustum, const World::Camera& cam)
 {
   // Extract frustum planes from view-projection matrix (world space)
   // Negate to get inward-pointing normals (points inside have positive distance)

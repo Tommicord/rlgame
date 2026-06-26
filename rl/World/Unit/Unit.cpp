@@ -1,21 +1,25 @@
-import Rl.World.Unit.Unit;
+import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
+import Rl.Base.Texture2;
 
 import <algorithm>;
 import <cstring>;
+import <string>;
 import <memory>;
 import <vector>;
+import <optional>;
 
 namespace Rl::World
 {
 
-UnitResourceName::UnitResourceName(const std::vector<const char*>& name) noexcept
+UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) noexcept
 {
   constexpr int maxSize = 255;
-  this->name            = new char[maxSize];
-  this->name[0]         = 0x00;
+  this->name = new char[maxSize];
+  this->name[0] = 0x00;
+  this->nameLen = 0;
   ConstructResourceName(name, maxSize);
 }
 
@@ -25,16 +29,16 @@ UnitResourceName::~UnitResourceName()
 }
 
 void UnitResourceName::ConstructResourceName(
-    const std::vector<const char*>& base, const size_t maxSize) noexcept
+    const std::vector<std::string_view>& base, const size_t maxSize) noexcept
 {
   if (!this->name)
     return;
-
   this->nameLen = 0;
   this->name[0] = 0x00;
   for (size_t i = 0; i < base.size(); ++i)
   {
-    size_t count = std::strlen(base[i]);
+    std::string_view view = base[i];
+    size_t           count = std::strlen(view.data());
     if (count > 255)
     {
       count = 255;
@@ -43,11 +47,9 @@ void UnitResourceName::ConstructResourceName(
     {
       break;
     }
-    // Append the string
-    std::strcat(this->name, base[i]);
+    this->name[count] = '.';
+    std::strcat(this->name, view.data());
     this->nameLen += count;
-
-    // Add dot separator if not the last element
     if (i < base.size() - 1)
     {
       std::strcat(this->name, ".");
@@ -82,11 +84,6 @@ std::vector<char*> UnitResourceName::SplitResourceName() const
   return res;
 }
 
-const char* UnitResourceName::GetBaseResourceString()
-{
-  return BASE;
-}
-
 char* UnitResourceName::GetResourceName() const
 {
   return name;
@@ -106,42 +103,42 @@ bool UnitResourceName::Equals(const UnitResourceName& resource) const
   return std::memcmp(this->name, resource.name, this->nameLen);
 }
 
-template <class K, class V>
-void UnitRegisters<K, V>::PutKV(UnitRegistryKVPair<K, V>& reg) noexcept
+template <class K, class V> void UnitRegisters<K, V>::PutPair(UnitRegistryPair3<K, V>& reg) noexcept
 {
-  registry.push_back(reg);
+  registry.emplace_back(reg);
 }
 
-template <class K, class V>
-size_t UnitRegisters<K, V>::GetRegistrySize()
+template <class K, class V> size_t UnitRegisters<K, V>::GetRegistrySize()
 {
   return registry.size();
 }
 
 template <class K, class V>
-std::vector<UnitRegistryKVPair<K, V>>& UnitRegisters<K, V>::GetRegistry()
+const std::vector<UnitRegistryPair3<K, V>>& UnitRegisters<K, V>::GetRegistry()
 {
   return registry;
 }
 
 template <class K, class V>
-UnitRegistryKVPair<K, V>::UnitRegistryKVPair(const K& defaultRegKey) :
-    regKey(defaultRegKey), regValue()
+UnitRegistryPair3<K, V>::UnitRegistryPair3(const K& defaultRegKey) :
+    regId(-1), regKey(defaultRegKey), regValue()
 {
 }
 
 template <class K, class V>
-void UnitRegistryKVPair<K, V>::Register(int id, K& key, V& value)
+void UnitRegistryPair3<K, V>::Register(unsigned short id, K& key, V& value)
 {
   if (&key == &this->regKey)
   {
     this->regValue = value;
   }
-  UnitRegisters<K, V>::PutKV(*this);
+  this->regId = id;
+
+  /* Finally register the pair */
+  UnitRegisters<K, V>::PutPair(*this);
 }
 
-template <class K, class V>
-std::optional<K> UnitRegistryKVPair<K, V>::GetNameForObject(V& value)
+template <class K, class V> std::optional<K> UnitRegistryPair3<K, V>::GetNameForObject(V& value)
 {
   // Access the static registry through UnitRegisters
   auto& registry = UnitRegisters<K, V>::GetRegistry();
@@ -156,8 +153,7 @@ std::optional<K> UnitRegistryKVPair<K, V>::GetNameForObject(V& value)
   return std::nullopt;
 }
 
-template <class K, class V>
-std::optional<V> UnitRegistryKVPair<K, V>::GetObject(K name)
+template <class K, class V> std::optional<V> UnitRegistryPair3<K, V>::GetObject(K name)
 {
   // Access the static registry through UnitRegisters
   auto& registry = UnitRegisters<K, V>::GetRegistry();
@@ -173,32 +169,39 @@ std::optional<V> UnitRegistryKVPair<K, V>::GetObject(K name)
 }
 
 template <class K, class V>
-std::optional<V> UnitRegistryKVPair<K, V>::GetObjectById(int id)
+std::optional<V> UnitRegistryPair3<K, V>::GetObjectById(unsigned short id)
 {
   // Access the static registry through UnitRegisters
   auto& registry = UnitRegisters<K, V>::GetRegistry();
-  if (id >= 0 && static_cast<size_t>(id) < registry.size())
+  for (const auto& reg : registry)
   {
-    return registry[id].regValue;
+    if (reg.regId == id)
+    {
+      return reg;
+    }
   }
   return std::nullopt;
 }
 
-UnitTextureMaterial::UnitTextureMaterial(
-    Texture2* top, Texture2* down, Texture2* left, Texture2* right, Texture2* front, Texture2* back)
+UnitTextureMaterial::UnitTextureMaterial(Providers::Texture2* top,
+    Providers::Texture2*                                      down,
+    Providers::Texture2*                                      left,
+    Providers::Texture2*                                      right,
+    Providers::Texture2*                                      front,
+    Providers::Texture2*                                      back)
 {
-  this->top   = top;
-  this->down  = down;
-  this->left  = left;
+  this->top = top;
+  this->down = down;
+  this->left = left;
   this->right = right;
   this->front = front;
-  this->back  = back;
-  hasTexture  = true;
+  this->back = back;
+  hasMaterial = true;
 }
 
 UnitTextureMaterial::~UnitTextureMaterial()
 {
-  if (!hasTexture)
+  if (!hasMaterial)
     return;
   delete top;
   top = nullptr;
@@ -213,75 +216,74 @@ UnitTextureMaterial::~UnitTextureMaterial()
   delete back;
   back = nullptr;
 }
-
-BaseUnit::~BaseUnit()
+template <class Derived> IUnit<Derived>::~IUnit()
 {
   textures.reset();
 }
 
-UnitTextureMaterial& BaseUnit::GetMaterial() const
+template <class Derived> UnitTextureMaterial& IUnit<Derived>::GetMaterial() const
 {
   return *textures;
 }
 
-void BaseUnit::SetResistance(const float resistance)
+template <class Derived> void IUnit<Derived>::SetResistance(const float resistance)
 {
   this->unitResistance = resistance;
 }
 
-void BaseUnit::SetLightEmit(const float emit)
+template <class Derived> void IUnit<Derived>::SetLightEmit(const float emit)
 {
   this->lightEmit = emit;
 }
 
-void BaseUnit::SetLightOpacity(const float opacity)
+template <class Derived> void IUnit<Derived>::SetLightOpacity(const float opacity)
 {
   this->lightOpacity = opacity;
 }
 
-void BaseUnit::SetUnitHardness(const float hardness)
+template <class Derived> void IUnit<Derived>::SetUnitHardness(const float hardness)
 {
   this->unitHardness = hardness;
 }
 
-void BaseUnit::SetPolFenceRight(PolFence& fence)
+template <class Derived> void IUnit<Derived>::SetPolFenceRight(const PolFence& fence)
 {
-  // Copies start from polTr address
+  // Copies registry from polTr address
   std::memcpy(&polTr, &fence, sizeof(fence));
 }
 
-void BaseUnit::SetPolFenceLeft(PolFence& fence)
+template <class Derived> void IUnit<Derived>::SetPolFenceLeft(const PolFence& fence)
 {
-  // Copies start from polTl address
+  // Copies registry from polTl address
   std::memcpy(&polTl, &fence, sizeof(fence));
 }
 
-void BaseUnit::SetPolCurve(float curve)
+template <class Derived> void IUnit<Derived>::SetPolCurve(const float curve)
 {
   this->polCurveV = curve;
 }
 
-void BaseUnit::EnableCollision()
+template <class Derived> void IUnit<Derived>::EnableCollision()
 {
   mustCollide = true;
 }
 
-void BaseUnit::DisableCollision()
+template <class Derived> void IUnit<Derived>::DisableCollision()
 {
   mustCollide = false;
 }
 
-bool BaseUnit::IsCollisionEnabled() const
+template <class Derived> bool IUnit<Derived>::IsCollisionEnabled() const
 {
   return mustCollide;
 }
 
-bool BaseUnit::IsVisible() const
+template <class Derived> bool IUnit<Derived>::IsVisible() const
 {
   return mustVisible;
 }
 
-void BaseUnit::Update()
+template <class Derived> void IUnit<Derived>::Update()
 {
 }
 

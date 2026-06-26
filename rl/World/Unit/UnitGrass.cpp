@@ -1,10 +1,11 @@
 import Rl.World.Unit.UnitGrass;
-import Rl.World.Unit.Unit;
+import Rl.World.Unit;
 
 namespace Rl::World
 {
 
-UnitGrass::UnitGrass() noexcept : BaseUnit(this)
+UnitGrass::UnitGrass() noexcept :
+    IUnit(IUnitIdentifiable::GetClassId()), IUnitGrowable(), IUnitIdentifiable()
 {
 }
 
@@ -16,8 +17,5 @@ bool UnitGrass::InGrowState()
 void UnitGrass::Grow()
 {
 }
-
-// Explicit template instantiation
-template BaseUnit::BaseUnit(UnitGrass*) noexcept;
 
 } // namespace Rl::World

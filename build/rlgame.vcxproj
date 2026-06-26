@@ -34,25 +34,21 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -90,14 +86,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include"</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
       <CallingConvention></CallingConvention>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnableModules>true</EnableModules>
       <ExceptionHandling>Sync</ExceptionHandling>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <FloatingPointModel></FloatingPointModel>
@@ -105,23 +102,26 @@
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ProcessorNumber>2</ProcessorNumber>
       <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <SupportJustMyCode></SupportJustMyCode>
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;X86_;_MBCS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;X86_;_MBCS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -141,7 +141,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Debug\glfw3.lib;_deps\glm-build\glm\Debug\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Debug\glfw3.lib;Deps\glm\glm\Debug\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention></DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -159,13 +159,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include"</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
       <CallingConvention></CallingConvention>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnableModules>true</EnableModules>
       <ExceptionHandling>Sync</ExceptionHandling>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <FloatingPointModel></FloatingPointModel>
@@ -173,25 +174,28 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ProcessorNumber>2</ProcessorNumber>
       <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <SupportJustMyCode></SupportJustMyCode>
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -211,7 +215,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Release\glfw3.lib;_deps\glm-build\glm\Release\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Release\glfw3.lib;Deps\glm\glm\Release\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention></DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -229,13 +233,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include"</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
       <CallingConvention></CallingConvention>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnableModules>true</EnableModules>
       <ExceptionHandling>Sync</ExceptionHandling>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <FloatingPointModel></FloatingPointModel>
@@ -243,25 +248,28 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MinSpace</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ProcessorNumber>2</ProcessorNumber>
       <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <SupportJustMyCode></SupportJustMyCode>
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -281,7 +289,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\MinSizeRel\glfw3.lib;_deps\glm-build\glm\MinSizeRel\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\MinSizeRel\glfw3.lib;Deps\glm\glm\MinSizeRel\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention></DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -299,14 +307,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include"</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
       <CallingConvention></CallingConvention>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnableModules>true</EnableModules>
       <ExceptionHandling>Sync</ExceptionHandling>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <FloatingPointModel></FloatingPointModel>
@@ -314,23 +323,26 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MinimalRebuild></MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ProcessorNumber>2</ProcessorNumber>
       <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <SupportJustMyCode></SupportJustMyCode>
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;X86_;_MBCS;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;VK_USE_PLATFORM_WIN32_KHR;X86_;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\build\_deps\stb-src;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-src;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;C:\VulkanSDK\1.4.341.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -350,7 +362,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\RelWithDebInfo\glfw3.lib;_deps\glm-build\glm\RelWithDebInfo\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\RelWithDebInfo\glfw3.lib;Deps\glm\glm\RelWithDebInfo\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention></DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -843,278 +855,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise2d.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.noise2d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise2d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise2d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise2d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.noise2d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise2d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise2d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise2d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.noise2d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise2d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise2d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise2d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.noise2d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise2d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise2d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise2d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise3d.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.noise3d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise3d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise3d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise3d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.noise3d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise3d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise3d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise3d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.noise3d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise3d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise3d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise3d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.noise3d.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise3d.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise3d.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise3d.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.common.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.common.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.common.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.common.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.common.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.common.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.common.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.common.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.common.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.common.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.common.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.common.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.common.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.common.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.common.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.common.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.common.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.gradients.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.gradients.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.gradients.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.gradients.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.gradients.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.gradients.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.gradients.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.gradients.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.gradients.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.gradients.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.gradients.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.gradients.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.gradients.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.gradients.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.gradients.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.gradients.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.gradients.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.init.comp.spv.rule">
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.init.comp</Message>
@@ -1183,142 +923,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.noise.constants.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.noise.constants.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise.constants.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise.constants.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise.constants.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.noise.constants.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise.constants.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise.constants.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise.constants.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.noise.constants.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise.constants.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise.constants.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise.constants.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.noise.constants.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.noise.constants.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.noise.constants.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.noise.constants.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\simplex.perm.glsl.spv.rule">
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader simplex.perm.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.perm.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.perm.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.perm.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader simplex.perm.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.perm.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.perm.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.perm.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader simplex.perm.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.perm.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.perm.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.perm.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader simplex.perm.glsl</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
-if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.perm.glsl -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.perm.glsl.spv
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\Simplex\simplex.perm.glsl;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\CMakeLists.txt">
       <UseUtf8Encoding>Always</UseUtf8Encoding>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/USUARIO/IdeaProjects/RL/CMakeLists.txt</Message>
@@ -1331,7 +935,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\PatchInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\RepositoryInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\UpdateInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitclone.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitupdate.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\shared_internal_commands.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\stepscript.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/USUARIO/IdeaProjects/RL/CMakeLists.txt</Message>
@@ -1344,7 +948,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\PatchInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\RepositoryInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\UpdateInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitclone.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitupdate.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\shared_internal_commands.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\stepscript.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/USUARIO/IdeaProjects/RL/CMakeLists.txt</Message>
@@ -1357,7 +961,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\PatchInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\RepositoryInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\UpdateInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitclone.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitupdate.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\shared_internal_commands.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\stepscript.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/USUARIO/IdeaProjects/RL/CMakeLists.txt</Message>
@@ -1370,96 +974,138 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\PatchInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\RepositoryInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\UpdateInfo.txt.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitclone.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\gitupdate.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\shared_internal_commands.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\ExternalProject\stepscript.cmake.in;C:\Program Files\CMake\share\cmake-4.3\Modules\FetchContent.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\FindVulkan.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\GoogleTest.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Linker\MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Linker\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.3\Modules\Platform\WindowsPaths.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeCXXCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeRCCompiler.cmake;C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\4.3.0-rc1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2.cpp" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/Game.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/Shader.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/InputReceiver.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/SimplexNoise.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/Texture2.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Lightning.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Normal.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Binding.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\StateModel.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\StateDrawable.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\IUpdatable.h" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\CameraRenderer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegistry.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitResourceName.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitGrass.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitGrass.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitPropertyStrategy.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegister.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/State/CameraState.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/State/UnitState.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Camera.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Unit/Unit.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitGrass.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitGrass.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitDynamicTexture.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRenderer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBasicBuffer.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererAOTextures.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererBarriers.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBuffer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.cpp" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCleanup.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCommandBuffers.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputeBuffer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.h" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererInfo.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererComputePipeline.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCurvatureCompute.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDescriptorSets.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDraw.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDrawCompute.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererFrustum.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererGraphicsPipeline.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererShadowPipeline.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererIndirectDraw.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererNormalTextures.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererPlaceholderResource.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererShadowMap.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererSampler.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSSBOBuffer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererTextureManage.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexBuffer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.h" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.cpp" />
-    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererVertexInput.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.cpp">
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererVertices.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBuffer.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Binding.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitAir.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitAir.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitAir.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitAir.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitAir.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitAir.cpp.obj</ObjectFileName>
+    </ClCompile>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.vert.spv">
     </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.frag.spv">
@@ -1474,20 +1120,362 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.comp.spv">
     </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise2d.glsl.spv">
-    </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise3d.glsl.spv">
-    </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.common.glsl.spv">
-    </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.gradients.glsl.spv">
-    </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.init.comp.spv">
     </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.noise.constants.glsl.spv">
-    </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\simplex.perm.glsl.spv">
-    </None>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\Deps\stb\stb_image.h" />
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\Deps\glm\glm\glm.hpp" />
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include\GLFW\glfw3.h" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Base/Game.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/Game.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/Game.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Base/Shader.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/Shader.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/Shader.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Base/InputReceiver.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/InputReceiver.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/InputReceiver.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Base/SimplexNoise.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/SimplexNoise.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/SimplexNoise.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Base/Texture2.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/Texture2.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/Texture2.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\IStateModel.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\IStateDrawable.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\IUpdatable.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/State/CameraState.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/State/CameraState.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/State/CameraState.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/State/UnitState.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/State/UnitState.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/State/UnitState.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Camera.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Camera.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Camera.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Unit/Unit.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/Unit.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Unit/Unit.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegistry.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitResourceName.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitGrass.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitGrass.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitGrass.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitGrass.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitDynamicTexture.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitDynamicTexture.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitDynamicTexture.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitPropertyStrategy.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegister.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererAOTextures.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererAOTextures.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererAOTextures.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBarriers.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererBarriers.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererBarriers.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererBarriers.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererBasicBuffer.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCleanup.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCleanup.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCleanup.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCleanup.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCommandBuffers.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCommandBuffers.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCommandBuffers.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCommandBuffers.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererComputePipeline.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererComputePipeline.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererComputePipeline.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererComputePipeline.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererCurvatureCompute.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCurvatureCompute.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererCurvatureCompute.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererCurvatureCompute.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDescriptorSets.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDescriptorSets.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDescriptorSets.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDescriptorSets.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDraw.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDraw.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDraw.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDraw.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererDrawCompute.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDrawCompute.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererDrawCompute.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererDrawCompute.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererFrustum.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererFrustum.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererFrustum.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererFrustum.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererGraphicsPipeline.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererGraphicsPipeline.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererGraphicsPipeline.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererGraphicsPipeline.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowPipeline.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererShadowPipeline.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererShadowPipeline.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererShadowPipeline.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererIndirectDraw.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererIndirectDraw.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererIndirectDraw.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererIndirectDraw.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererInfo.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererNormalTextures.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererNormalTextures.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererNormalTextures.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererNormalTextures.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererPlaceholderResource.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererPlaceholderResource.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererPlaceholderResource.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererPlaceholderResource.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererShadowMap.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererShadowMap.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererShadowMap.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererShadowMap.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererSampler.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererSampler.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererSampler.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererSampler.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererTextureManage.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererTextureManage.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererTextureManage.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererTextureManage.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertexInput.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererVertexInput.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererVertexInput.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererVertexInput.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererVertices.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererVertices.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Client/Render/Unit/UnitRendererVertices.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererVertices.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitChunkBuffer.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkBuffer.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBuffer.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.obj</ObjectFileName>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -1501,7 +1489,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{76FEB5D4-5F72-3B8D-8A18-4920CA8A0FB3}</Project>
       <Name>glfw</Name>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\USUARIO\IdeaProjects\RL\build\_deps\glm-build\glm\glm.vcxproj">
+    <ProjectReference Include="C:\Users\USUARIO\IdeaProjects\RL\build\Deps\glm\glm\glm.vcxproj">
       <Project>{F238686B-86DE-37A0-8ECC-61DD9C8DDB5C}</Project>
       <Name>glm</Name>
     </ProjectReference>

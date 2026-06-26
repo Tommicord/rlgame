@@ -1,22 +1,17 @@
 export module Rl.Base.Texture2;
 
+import Rl.Base.Binding;
+
 import <cstdint>;
 import <glm/glm.hpp>;
 import <string>;
 import <vector>;
 import <vulkan/vulkan.h>;
 
-// Forward declaration
-namespace Rl::Game
-{
-export struct VulkanContext;
-}
-
 namespace Rl::Providers
 {
 
-export enum class Texture2Format
-{
+export enum class Texture2Format {
   UNKNOWN,
   RGB8,
   RGBA8,
@@ -33,8 +28,7 @@ export enum class Texture2Format
   DEPTH32F
 };
 
-export enum class Texture2Filter
-{
+export enum class Texture2Filter {
   NEAREST,
   LINEAR,
   NEAREST_MIPMAP_NEAREST,
@@ -43,13 +37,7 @@ export enum class Texture2Filter
   LINEAR_MIPMAP_LINEAR
 };
 
-export enum class Texture2Wrap
-{
-  REPEAT,
-  MIRRORED_REPEAT,
-  CLAMP_TO_EDGE,
-  CLAMP_TO_BORDER
-};
+export enum class Texture2Wrap { REPEAT, MIRRORED_REPEAT, CLAMP_TO_EDGE, CLAMP_TO_BORDER };
 
 export struct Texture2Properties
 {
@@ -58,10 +46,10 @@ export struct Texture2Properties
   Texture2Filter magFilter            = Texture2Filter::LINEAR;
   Texture2Wrap   wrapS                = Texture2Wrap::REPEAT;
   Texture2Wrap   wrapT                = Texture2Wrap::REPEAT;
-  bool          generateMipmaps      = true;
-  bool          sRGB                 = true;
-  bool          anisotropicFiltering = true;
-  float         maxAnisotropy        = 16.0f;
+  bool           generateMipmaps      = true;
+  bool           sRGB                 = true;
+  bool           anisotropicFiltering = true;
+  float          maxAnisotropy        = 16.0f;
 };
 
 export class Texture2
@@ -143,14 +131,14 @@ export class Texture2
   static bool        IsFormatSupported(Texture2Format format);
   static int         GetFormatSize(Texture2Format format);
   static std::string GetFormatName(Texture2Format format);
-  bool LoadFromFile(const std::string& filepath);
+  bool               LoadFromFile(const std::string& filepath);
   bool LoadFromFile(const std::string& filepath, const Texture2Properties& properties);
   bool LoadFromMemory(const uint8_t* data, size_t size, const Texture2Properties& properties);
   bool LoadFromData(const uint8_t* data,
       int                          width,
       int                          height,
-      Texture2Format                format,
-      const Texture2Properties&     properties);
+      Texture2Format               format,
+      const Texture2Properties&    properties);
   bool LoadFromAndroidAsset(const std::string& assetPath);
   bool LoadFromIOSBundle(const std::string& resourcePath);
   static bool        IsMobilePlatform();
@@ -158,26 +146,26 @@ export class Texture2
   static std::string GetPlatformName();
 
   void GenerateMipmaps();
-  void GetSampler(Game::VulkanContext& context);
-  void GetImageView(Game::VulkanContext& context);
+  void GetSampler(Game::MainBinding& context);
+  void GetImageView(Game::MainBinding& context);
   void Cleanup();
-  void CleanupVulkan(const Game::VulkanContext& context);
+  void CleanupBinding(const Game::MainBinding& context);
 
   private:
-  void                 Initialize();
-  bool                 LoadImage(const std::string& filepath);
-  bool                 ProcessImageData(uint8_t* imageData, int width, int height, int channels);
-  void                 CreateVulkanImage(Game::VulkanContext& context);
-  void                 CreateVulkanSampler(Game::VulkanContext& context);
-  void                 UploadTextureData(Game::VulkanContext& context);
+  void Initialize();
+  bool LoadImage(const std::string& filepath);
+  bool ProcessImageData(uint8_t* imageData, int width, int height, int channels);
+  void CreateBindingImage(Game::MainBinding& context);
+  void CreateBindingSampler(Game::MainBinding& context);
+  void UploadTextureData(Game::MainBinding& context);
   [[nodiscard]]
-  VkFormat             GetVkFormat() const;
+  VkFormat GetBindingFormat() const;
   [[nodiscard]]
-  VkFilter             GetVkFilter(Texture2Filter filter) const;
+  VkFilter GetBindingFilter(Texture2Filter filter) const;
   [[nodiscard]]
-  VkSamplerMipmapMode  GetVkMipmapMode(Texture2Filter filter) const;
+  VkSamplerMipmapMode GetBindingMipmapMode(Texture2Filter filter) const;
   [[nodiscard]]
-  VkSamplerAddressMode GetVkWrapMode(Texture2Wrap wrap) const;
+  VkSamplerAddressMode GetBindingWrapMode(Texture2Wrap wrap) const;
 
   uint8_t* data;
   size_t   dataSize;
@@ -187,11 +175,12 @@ export class Texture2
   int      mipmapLevels;
 
   Texture2Properties properties;
-  bool        loaded;
-  std::string filepath;
+  bool               loaded;
+  std::string        filepath;
 };
 
-export Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properties& properties);
+export Texture2* GenerateLightningTexture(
+    Texture2* baseTexture, const Texture2Properties& properties);
 export Texture2* GenerateDirectionalLightTexture(
     Texture2* baseTexture, const glm::vec3& lightDirection, const Texture2Properties& properties);
 export Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties& properties);

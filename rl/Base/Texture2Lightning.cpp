@@ -3,6 +3,7 @@ import Rl.Base.Texture2;
 import <algorithm>;
 import <cmath>;
 import <random>;
+import <glm/glm.hpp>;
 
 namespace Rl::Providers
 {

@@ -3,6 +3,7 @@ import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

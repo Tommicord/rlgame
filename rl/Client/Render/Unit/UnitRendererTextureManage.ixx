@@ -1,7 +1,8 @@
 export module Rl.Client.Render.Unit.UnitRendererTextureManage;
 
 import Rl.Base.Game;
-import Rl.World.Unit.Unit;
+import Rl.Base.Binding;
+import Rl.World.Unit;
 import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
@@ -11,6 +12,6 @@ namespace Rl::Client::Render
 export void UnitUpdateUnitTextures(VkDevice  device,
     VkDescriptorSet                   descriptorSet,
     const World::UnitTextureMaterial& textures,
-    Game::VulkanContext&              context);
+    Game::MainBinding&              context);
 
 } // namespace Rl::Client::Render

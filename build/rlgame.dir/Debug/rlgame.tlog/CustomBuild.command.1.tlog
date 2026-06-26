@@ -1,8 +1,8 @@
-^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SHADER.FRAG.SPV.RULE
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.SHADOW.VERT.SPV.RULE
 setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/shader.frag -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/shader.frag.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.shadow.vert -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.shadow.vert.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
@@ -10,11 +10,83 @@ endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd
-^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SHADER.VERT.SPV.RULE
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.SHADOW.FRAG.SPV.RULE
 setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/Public/Shaders/shader.vert -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/shader.vert.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.shadow.frag -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.shadow.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.FACE.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.face.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.face.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.CURVE.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.frag -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.vert -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SIMPLEX.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\SIMPLEX.INIT.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/Simplex/simplex.init.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/simplex.init.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

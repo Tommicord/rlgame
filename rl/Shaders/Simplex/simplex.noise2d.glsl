@@ -36,7 +36,7 @@ float Noise2D(float x, float y) {
     float attn1 = 2.0 - dx1 * dx1 - dy1 * dy1;
     if (attn1 > 0.0) {
         attn1 *= attn1;
-        value += attn1 * attn1 * extrapolate2d(xsb + 1, ysb + 0, dx1, dy1);
+        value += attn1 * attn1 * Extrapolate2d(xsb + 1, ysb + 0, dx1, dy1);
     }
 
     // Contribution (0,1)
@@ -45,7 +45,7 @@ float Noise2D(float x, float y) {
     float attn2 = 2.0 - dx2 * dx2 - dy2 * dy2;
     if (attn2 > 0.0) {
         attn2 *= attn2;
-        value += attn2 * attn2 * extrapolate2d(xsb + 0, ysb + 1, dx2, dy2);
+        value += attn2 * attn2 * Extrapolate2d(xsb + 0, ysb + 1, dx2, dy2);
     }
 
     if (inSum <= 1.0) {
@@ -104,14 +104,14 @@ float Noise2D(float x, float y) {
     float attn0 = 2.0 - dx0 * dx0 - dy0 * dy0;
     if (attn0 > 0.0) {
         attn0 *= attn0;
-        value += attn0 * attn0 * extrapolate2d(xsb, ysb, dx0, dy0);
+        value += attn0 * attn0 * Extrapolate2d(xsb, ysb, dx0, dy0);
     }
 
     // Extra Vertex
     float attn_ext = 2.0 - dx_ext * dx_ext - dy_ext * dy_ext;
     if (attn_ext > 0.0) {
         attn_ext *= attn_ext;
-        value += attn_ext * attn_ext * extrapolate2d(xsv_ext, ysv_ext, dx_ext, dy_ext);
+        value += attn_ext * attn_ext * Extrapolate2d(xsv_ext, ysv_ext, dx_ext, dy_ext);
     }
 
     return value / NORM_2D;

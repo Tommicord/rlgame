@@ -1,40 +1,44 @@
 import Rl.Client.State.UnitState;
+import Rl.Client.State.CameraState;
+import Rl.World.Unit;
 import Rl.World.Unit.UnitGrass;
+import Rl.World.Unit.UnitRegister;
+import Rl.Base.Binding;
+import Rl.Base.Game;
+
+import <memory>;
 
 namespace Rl::Providers
 {
 
-UnitModel::UnitModel(Game::VulkanContext& context) : StateModel(context)
+UnitModel::UnitModel(Game::MainBinding& context) : IStateModel(context)
 {
   unitDrawable = std::make_shared<UnitStateDrawable>();
-  unitVk       = std::make_unique<UnitStateDrawableVulkan>();
-
-  // Create a default unit (e.g., grass)
-  unit         = std::make_unique<World::UnitGrass>();
+  unitBinding  = std::make_unique<UnitStateBinding>();
+  unsigned short testId = World::IUnitIdentifiable<World::UnitGrass>::GetStaticClassId();
+  unit         = std::make_unique<World::IUnit<>>(testId);
   unitResource = std::make_unique<UnitStateResource>(*unit);
-
-  // Initialize Vulkan resources
-  unitDrawable->OnCreate(*unitResource, *unitVk, context);
+  unitDrawable->OnCreate(*unitResource, *unitBinding, context);
 }
 
-World::BaseUnit& UnitModel::GetObject()
+World::IUnit<>& UnitModel::GetObject() const
 {
   return *unit;
 }
 
-UnitStateResource& UnitModel::GetResource()
+UnitStateResource& UnitModel::GetResource() const
 {
   return *unitResource;
 }
 
-UnitStateDrawable& UnitModel::GetDrawable()
+UnitStateDrawable& UnitModel::GetDrawable() const
 {
   return *unitDrawable;
 }
 
-UnitStateDrawableVulkan& UnitModel::GetVulkanState()
+UnitStateBinding& UnitModel::GetBinding() const
 {
-  return *unitVk;
+  return *unitBinding;
 }
 
 } // namespace Rl::Providers

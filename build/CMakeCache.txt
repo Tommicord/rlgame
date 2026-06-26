@@ -370,6 +370,9 @@ GLM_ENABLE_SIMD_AVX:BOOL=OFF
 //Enable AVX2 optimizations
 GLM_ENABLE_SIMD_AVX2:BOOL=OFF
 
+//Enable ARM NEON optimizations
+GLM_ENABLE_SIMD_NEON:BOOL=OFF
+
 //Enable SSE2 optimizations
 GLM_ENABLE_SIMD_SSE2:BOOL=OFF
 
@@ -387,6 +390,10 @@ GLM_ENABLE_SIMD_SSSE3:BOOL=OFF
 
 //Force 'pure' instructions
 GLM_FORCE_PURE:BOOL=OFF
+
+//Use Abseil and RE2. Requires Abseil and RE2 to be separately
+// added to the build.
+GTEST_HAS_ABSL:BOOL=OFF
 
 //Enable installation of googletest. (Projects embedding googletest
 // may want to turn this OFF.)
@@ -408,43 +415,43 @@ Vulkan_INCLUDE_DIR:PATH=C:/VulkanSDK/1.4.341.1/include
 Vulkan_LIBRARY:FILEPATH=C:/VulkanSDK/1.4.341.1/Lib/vulkan-1.lib
 
 //Value Computed by CMake
-glm_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-build
+glm_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/Deps/glm
 
 //Value Computed by CMake
 glm_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-glm_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/glm-src
+glm_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/Deps/glm
 
 //Value Computed by CMake
-gmock_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/googlemock
+gmock_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/googlemock
 
 //Value Computed by CMake
 gmock_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-gmock_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-src/googlemock
+gmock_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/Deps/gtest/googlemock
 
 //Build all of Google Mock's own tests.
 gmock_build_tests:BOOL=OFF
 
 //Value Computed by CMake
-googletest-distribution_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build
+googletest-distribution_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest
 
 //Value Computed by CMake
 googletest-distribution_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-googletest-distribution_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-src
+googletest-distribution_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/Deps/gtest
 
 //Value Computed by CMake
-gtest_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/googletest
+gtest_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/googletest
 
 //Value Computed by CMake
 gtest_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-gtest_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-src/googletest
+gtest_SOURCE_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/Deps/gtest/googletest
 
 //Build gtest's sample programs.
 gtest_build_samples:BOOL=OFF
@@ -461,9 +468,6 @@ gtest_force_shared_crt:BOOL=ON
 
 //Build gtest with internal symbols hidden in shared libraries.
 gtest_hide_internal_symbols:BOOL=OFF
-
-//Dependencies for the target
-gtest_main_LIB_DEPENDS:STATIC=general;gtest;
 
 //Value Computed by CMake
 rl_BINARY_DIR:STATIC=C:/Users/USUARIO/IdeaProjects/RL/build
@@ -683,7 +687,7 @@ _Python_INTERPRETER_SIGNATURE:INTERNAL=3559b0dce956e3cda37195b0c98c2ed7
 //NumPy reason failure
 _Python_NumPy_REASON_FAILURE:INTERNAL=
 cmake_package_name:INTERNAL=GTest
-generated_dir:INTERNAL=C:/Users/USUARIO/IdeaProjects/RL/build/_deps/googletest-build/googletest/generated
+generated_dir:INTERNAL=C:/Users/USUARIO/IdeaProjects/RL/build/Deps/gtest/googletest/generated
 //ADVANCED property for variable: gmock_build_tests
 gmock_build_tests-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: gtest_build_samples

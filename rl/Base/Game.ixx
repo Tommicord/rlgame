@@ -1,51 +1,18 @@
 export module Rl.Base.Game;
 
 import Rl.Base.InputReceiver;
+import Rl.Base.Binding;
 import Rl.Client.State.CameraState;
 import Rl.Client.State.UnitState;
+
 import <GLFW/glfw3.h>;
 import <optional>;
 import <vector>;
-import <vulkan/vulkan.h>;
+import <memory>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Game
 {
-
-export struct VulkanContext
-{
-  VkInstance                   instance       = VK_NULL_HANDLE;
-  VkPhysicalDevice             physicalDevice = VK_NULL_HANDLE;
-  VkDevice                     device         = VK_NULL_HANDLE;
-  VkQueue                      graphicsQueue  = VK_NULL_HANDLE;
-  VkQueue                      presentQueue   = VK_NULL_HANDLE;
-  VkSurfaceKHR                 surface        = VK_NULL_HANDLE;
-  VkSwapchainKHR               swapChain      = VK_NULL_HANDLE;
-  std::vector<VkImage>         swapChainImages;
-  VkFormat                     swapChainImageFormat;
-  VkExtent2D                   swapChainExtent;
-  std::vector<VkImageView>     swapChainImageViews;
-  VkRenderPass                 renderPass          = VK_NULL_HANDLE;
-  VkDescriptorSetLayout        descriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSet              descriptorSet       = VK_NULL_HANDLE;
-  VkPipelineLayout             pipelineLayout      = VK_NULL_HANDLE;
-  std::vector<VkFramebuffer>   swapChainFramebuffers;
-  VkCommandPool                commandPool = VK_NULL_HANDLE;
-  std::vector<VkCommandBuffer> commandBuffers;
-  VkSemaphore                  imageAvailableSemaphore = VK_NULL_HANDLE;
-  std::vector<VkSemaphore>     renderFinishedSemaphores;
-  VkFence                      inFlightFence = VK_NULL_HANDLE;
-  struct QueueFamilyIndices
-  {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-    [[nodiscard]]
-    bool isComplete() const
-    {
-      return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-  };
-  QueueFamilyIndices queueFamilyIndices;
-};
 
 export class Game : public Input::InputObserver
 {
@@ -55,7 +22,7 @@ export class Game : public Input::InputObserver
 
   public:
   using Window  = GLFWwindow;
-  using Context = VulkanContext;
+  using Context = MainBinding;
   void           Run();
   void           Tick();
   void           CleanupGraphics();
@@ -73,7 +40,7 @@ export class Game : public Input::InputObserver
   void           UpdateLogic();
   void           UpdateRender();
   static Game&   GetInstance();
-  VulkanContext& GetVulkanContext();
+  MainBinding& GetVulkanContext();
   void           OnKeyEvent(const Input::KeyEvent& event) override;
   void           OnMouseButtonEvent(const Input::MouseButtonEvent& event) override;
   void           OnMouseMoveEvent(const Input::MouseMoveEvent& event) override;
@@ -88,8 +55,8 @@ export class Game : public Input::InputObserver
   static constexpr int height = 900;
 
   Game();
-  Window*                           vkWindow = nullptr;
-  Context                           vkContext;
+  Window*                           window = nullptr;
+  Context                           binding;
   void                              CreateInstance();
   void                              CreateSurface();
   void                              CreateCameraModel();
@@ -107,7 +74,7 @@ export class Game : public Input::InputObserver
   void                              CreateSyncObjects();
   void                              DrawUI();
   void                              DrawFrame();
-  VulkanContext::QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) const;
+  MainBinding::QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) const;
   bool                              IsDeviceSuitable(VkPhysicalDevice device);
   bool                              CheckValidationLayerSupport();
   std::vector<const char*>          GetRequiredExtensions();

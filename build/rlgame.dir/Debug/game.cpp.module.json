@@ -3,12 +3,94 @@
     "revision": 0,
     "rules": [
         {
-            "primary-output": "rlgame.dir\\Debug\\Game.obj",
+            "primary-output": "rlgame.dir\\Debug\\rl/Base/Game.cpp.obj",
             "outputs": [
                 "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\vc145.pdb",
                 "rlgame.dir\\Debug\\"
             ],
-            "requires": []
+            "requires": [
+                {
+                    "logical-name": "Rl.Base.Game"
+                },
+                {
+                    "logical-name": "Rl.Base.Shader"
+                },
+                {
+                    "logical-name": "Rl.Base.Binding"
+                },
+                {
+                    "logical-name": "Rl.Base.InputReceiver"
+                },
+                {
+                    "logical-name": "Rl.Client.State.CameraState"
+                },
+                {
+                    "logical-name": "Rl.Client.State.UnitState"
+                },
+                {
+                    "logical-name": "Rl.World.Camera"
+                },
+                {
+                    "logical-name": "algorithm",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\algorithm",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "cstdint",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\cstdint",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "cstdlib",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\cstdlib",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "iostream",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\iostream",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "set",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\set",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "GLFW/glfw3.h",
+                    "source-path": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glfw\\include\\glfw\\glfw3.h",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "stdexcept",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\stdexcept",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "vulkan/vulkan.hpp",
+                    "source-path": "c:\\vulkansdk\\1.4.341.1\\include\\vulkan\\vulkan.hpp",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "glm/glm.hpp",
+                    "source-path": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glm\\glm\\glm.hpp",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "vector",
+                    "source-path": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\vector",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                }
+            ]
         }
     ]
 }

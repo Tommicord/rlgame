@@ -1,12 +1,17 @@
 import Rl.Client.Render.Unit.UnitRendererAOTextures;
+import Rl.Client.State.UnitState;
+import Rl.World.Unit;
+import Rl.Base.Binding;
 import Rl.Base.Texture2;
+
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {
 
 void UnitGenerateAOTextures(VkDevice    device,
-    Game::VulkanContext&                context,
-    Providers::UnitStateDrawableVulkan& vk,
+    Game::MainBinding&                context,
+    Providers::UnitStateBinding& vk,
     const World::UnitTextureMaterial&   textures)
 {
   if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
@@ -46,7 +51,7 @@ void UnitGenerateAOTextures(VkDevice    device,
     {
       if (aoTextures[i])
       {
-        aoTextures[i]->CleanupVulkan(context);
+        aoTextures[i]->CleanupBinding(context);
         delete aoTextures[i];
       }
     }

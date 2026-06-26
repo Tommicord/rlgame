@@ -1,6 +1,8 @@
 import Rl.Client.Render.Unit.UnitRendererVertexInput;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 
+import <vulkan/vulkan.hpp>;
+
 namespace Rl::Client::Render
 {
 

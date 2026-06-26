@@ -1,9 +1,13 @@
 import Rl.Client.Render.Unit.UnitRendererCleanup;
+import Rl.Client.State.UnitState;
+import Rl.Base.Binding;
+
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {
 
-void UnitCleanupResources(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupResources(VkDevice device, Providers::UnitStateBinding& vk)
 {
   UnitCleanupBuffers(device, vk);
   UnitCleanupTextures(device, vk);
@@ -12,7 +16,7 @@ void UnitCleanupResources(VkDevice device, Providers::UnitStateDrawableVulkan& v
   UnitCleanupDescriptorSets(device, vk);
 }
 
-void UnitCleanupBuffers(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
 {
   vkDestroyBuffer(device, vk.vertexBuffer, nullptr);
   vkFreeMemory(device, vk.vertexBufferMemory, nullptr);
@@ -44,7 +48,7 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
   vkFreeMemory(device, vk.curveIndirectDrawBufferMemory, nullptr);
 }
 
-void UnitCleanupTextures(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
 {
   // Cleanup placeholder textures
   vkDestroySampler(device, vk.placeholderLightingSampler, nullptr);
@@ -99,7 +103,7 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateDrawableVulkan& vk
   vkFreeMemory(device, vk.shadowMapMemory, nullptr);
 }
 
-void UnitCleanupSamplers(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupSamplers(VkDevice device, Providers::UnitStateBinding& vk)
 {
   // Cleanup global sampler
   if (vk.globalTextureSampler != VK_NULL_HANDLE)
@@ -108,7 +112,7 @@ void UnitCleanupSamplers(VkDevice device, Providers::UnitStateDrawableVulkan& vk
   }
 }
 
-void UnitCleanupPipelines(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupPipelines(VkDevice device, Providers::UnitStateBinding& vk)
 {
   vkDestroyPipeline(device, vk.computePipeline, nullptr);
   vkDestroyPipelineLayout(device, vk.computePipelineLayout, nullptr);
@@ -120,7 +124,7 @@ void UnitCleanupPipelines(VkDevice device, Providers::UnitStateDrawableVulkan& v
   vkDestroyPipelineLayout(device, vk.shadowPipelineLayout, nullptr);
 }
 
-void UnitCleanupDescriptorSets(VkDevice device, Providers::UnitStateDrawableVulkan& vk)
+void UnitCleanupDescriptorSets(VkDevice device, Providers::UnitStateBinding& vk)
 {
   vkDestroyDescriptorSetLayout(device, vk.computeDescriptorSetLayout, nullptr);
   vkDestroyDescriptorSetLayout(device, vk.curveComputeDescriptorSetLayout, nullptr);

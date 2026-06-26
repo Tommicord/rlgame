@@ -1,5 +1,7 @@
 import Rl.Client.Render.Unit.UnitRendererSampler;
 
+import <vulkan/vulkan.hpp>;
+
 namespace Rl::Client::Render
 {
 

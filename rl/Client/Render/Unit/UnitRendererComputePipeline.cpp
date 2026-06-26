@@ -1,5 +1,9 @@
 import Rl.Client.Render.Unit.UnitRendererComputePipeline;
+import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Base.Shader;
+
 import <stdexcept>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
 {

@@ -1,14 +1,14 @@
 export module Rl.World.Unit.UnitResourceName;
 
 import <vector>;
+import <string>;
+import <string_view>;
 
 namespace Rl::World
 {
 
 export class UnitResourceName
 {
-  static constexpr auto BASE = "rl.unit";
-
   protected:
   /* Identifies the unit resource name, for example: rl.world.UnitGrass */
   char*  name;
@@ -17,21 +17,21 @@ export class UnitResourceName
   size_t nameLen;
 
   public:
+  /* The prefix of the resource name */
+  static constexpr auto prefix = "rl.unit";
+
   /* Creates a basic unit resource name for registry identifiers */
-  explicit UnitResourceName(const std::vector<const char*>& name) noexcept;
+  explicit UnitResourceName(const std::vector<std::string_view>& name) noexcept;
 
   /* Destroys a basic resource name object */
   ~UnitResourceName();
 
   /* Constructs the resource name from base identifier */
-  void ConstructResourceName(const std::vector<const char*>& base, size_t maxSize) noexcept;
+  void ConstructResourceName(const std::vector<std::string_view>& base, size_t maxSize) noexcept;
 
   /* Splits the resource name into smaller tokens */
   [[nodiscard]]
   std::vector<char*> SplitResourceName() const;
-
-  /* Gets the base string resource name */
-  static const char* GetBaseResourceString();
 
   /* Gets the stored resource name */
   [[nodiscard]]

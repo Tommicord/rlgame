@@ -47,16 +47,16 @@ export void UnitCreateVertexBuffer(VkDevice     device,
 export void UnitCreateSSBOBuffers(VkDevice     device,
     VkPhysicalDevice                    physicalDevice,
     size_t                              vertexCount,
-    Providers::UnitStateDrawableVulkan& vk);
+    Providers::UnitStateBinding& vk);
 
 /* Creates the buffers for the curvature compute shader */
 export void UnitCreateCurvatureComputeBuffers(VkDevice device,
     VkPhysicalDevice                            physicalDevice,
     size_t                                      vertexCount,
-    Providers::UnitStateDrawableVulkan&         vk);
+    Providers::UnitStateBinding&         vk);
 
 /* Creates a Vulkan uniform buffer */
 export void UnitCreateUniformBuffers(
-    VkDevice device, VkPhysicalDevice physicalDevice, Providers::UnitStateDrawableVulkan& vk);
+    VkDevice device, VkPhysicalDevice physicalDevice, Providers::UnitStateBinding& vk);
 
 } // namespace Rl::Client::Render
