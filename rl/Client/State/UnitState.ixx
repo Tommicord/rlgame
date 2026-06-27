@@ -19,10 +19,10 @@ namespace Rl::Providers
 // Just for data interchange between classes
 export struct UnitStateResource final : public IStateResource
 {
-  World::IUnit<>& unit;
+  World::IUnit& unit;
   CameraModel*   camera;
 
-  explicit UnitStateResource(World::IUnit<>& unit) :
+  explicit UnitStateResource(World::IUnit& unit) :
       IStateResource(), unit(unit), camera(nullptr)
   {
   }
@@ -138,12 +138,12 @@ export class UnitStateDrawable final : public IStateDrawable<UnitStateResource, 
 };
 
 export class UnitModel final
-    : public IStateModel<World::IUnit<>, UnitStateDrawable, UnitStateResource, UnitStateBinding>
+    : public IStateModel<World::IUnit, UnitStateDrawable, UnitStateResource, UnitStateBinding>
 {
   std::shared_ptr<UnitStateDrawable> unitDrawable;
   std::unique_ptr<UnitStateResource> unitResource;
   std::unique_ptr<UnitStateBinding>  unitBinding;
-  std::unique_ptr<World::IUnit<>>    unit;
+  std::unique_ptr<World::IUnit>    unit;
 
   public:
   /* Constructs a model of the Camera class */
@@ -154,7 +154,7 @@ export class UnitModel final
 
   /* Gets the stored camera */
   [[nodiscard]]
-  World::IUnit<>& GetObjectRef() const override;
+  World::IUnit& GetObjectRef() const override;
 
   /* Gets the stored camera */
   [[nodiscard]]

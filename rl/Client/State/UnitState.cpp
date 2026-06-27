@@ -15,13 +15,12 @@ UnitModel::UnitModel(Game::MainBinding& context) : IStateModel(context)
 {
   unitDrawable = std::make_shared<UnitStateDrawable>();
   unitBinding  = std::make_unique<UnitStateBinding>();
-  unsigned short testId = World::IUnitIdentifiable<World::UnitGrass>::GetStaticClassId();
-  unit         = std::make_unique<World::IUnit<>>(testId);
+  unit         = std::make_unique<World::UnitGrass>();
   unitResource = std::make_unique<UnitStateResource>(*unit);
   unitDrawable->OnCreate(*unitResource, *unitBinding, context);
 }
 
-World::IUnit<>& UnitModel::GetObjectRef() const
+World::IUnit& UnitModel::GetObjectRef() const
 {
   return *unit;
 }

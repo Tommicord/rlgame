@@ -7,11 +7,24 @@ import <type_traits>;
 namespace Rl::World
 {
 
-export class UnitAir final : public IUnit<UnitAir>,
+export class UnitAir final : public IUnit,
                              public IUnitIdentifiable<UnitAir>
 {
   public:
   UnitAir() noexcept;
+
+  private:
+  [[nodiscard]]
+  unsigned short GetDerivedClassId() const override
+  {
+    return IUnitIdentifiable<UnitAir>::GetClassId();
+  }
+
+  [[nodiscard]]
+  std::string_view GetDerivedClassName() const override
+  {
+    return IUnitIdentifiable<UnitAir>::SimpleClassName();
+  }
 };
 
 } // namespace Rl::World

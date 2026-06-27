@@ -20,7 +20,12 @@ UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) no
   this->name = new char[maxSize];
   this->name[0] = 0x00;
   this->nameLen = 0;
-  ConstructResourceName(name, maxSize);
+  // Append to the start the prefix rl.unit
+  std::vector<std::string_view> fullName;
+  fullName.reserve(name.size() + 1);
+  fullName.emplace_back(prefix);
+  fullName.insert(fullName.end(), name.begin(), name.end());
+  ConstructResourceName(fullName, maxSize);
 }
 
 UnitResourceName::~UnitResourceName()
@@ -38,7 +43,7 @@ void UnitResourceName::ConstructResourceName(
   for (size_t i = 0; i < base.size(); ++i)
   {
     std::string_view view = base[i];
-    size_t           count = std::strlen(view.data());
+    size_t           count = view.length();
     if (count > 255)
     {
       count = 255;
@@ -47,15 +52,15 @@ void UnitResourceName::ConstructResourceName(
     {
       break;
     }
-    this->name[count] = '.';
-    std::strcat(this->name, view.data());
+    std::memcpy(this->name + this->nameLen, view.data(), count);
     this->nameLen += count;
     if (i < base.size() - 1)
     {
-      std::strcat(this->name, ".");
+      this->name[this->nameLen] = '.';
       this->nameLen += 1;
     }
   }
+  this->name[this->nameLen] = 0x00;
 }
 std::vector<char*> UnitResourceName::SplitResourceName() const
 {

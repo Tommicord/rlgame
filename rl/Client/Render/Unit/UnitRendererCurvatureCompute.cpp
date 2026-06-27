@@ -39,7 +39,7 @@ void UnitCreateCurvatureComputePipelineLayout(
 void UnitCreateCurvatureComputePipeline(
     VkDevice device, VkPipelineLayout pipelineLayout, VkPipeline& pipeline)
 {
-  auto curveComputeShaderCode   = Providers::ShaderObject::Shader("unit.curve.comp.spv");
+  auto curveComputeShaderCode   = Providers::ShaderObject::Shader("unit.tessel.comp.spv");
   auto curveComputeShaderModule = Providers::ShaderObject::Module(device, curveComputeShaderCode);
 
   VkPipelineShaderStageCreateInfo curveComputeShaderStageInfo{};

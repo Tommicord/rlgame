@@ -20,7 +20,7 @@ export class IUnitGrowable
   virtual void Grow() = 0;
 };
 
-export class UnitGrass final : public IUnit<UnitGrass>,
+export class UnitGrass final : public IUnit,
                                public IUnitGrowable,
                                public IUnitIdentifiable<UnitGrass>
 {
@@ -30,6 +30,19 @@ export class UnitGrass final : public IUnit<UnitGrass>,
   protected:
   bool InGrowState() override;
   void Grow() override;
+
+  private:
+  [[nodiscard]]
+  unsigned short GetDerivedClassId() const override
+  {
+    return IUnitIdentifiable<UnitGrass>::GetClassId();
+  }
+
+  [[nodiscard]]
+  std::string_view GetDerivedClassName() const override
+  {
+    return IUnitIdentifiable<UnitGrass>::SimpleClassName();
+  }
 };
 
 } // namespace Rl::World

@@ -5,10 +5,9 @@ namespace Rl::World
 {
 
 UnitAir::UnitAir() noexcept :
-    IUnit(IUnitIdentifiable::GetClassId()), IUnitIdentifiable()
+    IUnit(IUnitIdentifiable<UnitAir>::GetClassId()), IUnitIdentifiable<UnitAir>()
 {
+  RegisterDerived<UnitAir>(*this);
 }
-
-template class IUnit<UnitAir>;
 
 } // namespace Rl::World

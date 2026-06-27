@@ -7,6 +7,7 @@ namespace Rl::World
 UnitGrass::UnitGrass() noexcept :
     IUnit(IUnitIdentifiable<UnitGrass>::GetClassId()), IUnitGrowable(), IUnitIdentifiable<UnitGrass>()
 {
+  RegisterDerived<UnitGrass>(*this);
 }
 
 bool UnitGrass::InGrowState()
@@ -17,6 +18,5 @@ bool UnitGrass::InGrowState()
 void UnitGrass::Grow()
 {
 }
-template class IUnit<UnitGrass>;
 
 } // namespace Rl::World
