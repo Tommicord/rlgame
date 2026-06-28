@@ -123,6 +123,25 @@ set(CXX_MODULES
   rl/Client/Render/Unit/UnitRendererVertices.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
   rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx
+  rl/RayLog/RayLog.ixx
+  rl/RayLog/RayLogConfig.ixx
+  rl/RayLog/RayLogPlatform.ixx
+  rl/RayLog/RayLogUuid.ixx
+  rl/RayLog/RayLogLevelPrinter.ixx
+  rl/RayLog/IRayLogSerializable.ixx
+  rl/RayLog/RayLogRingBuffer.ixx
+  rl/RayLog/RayLogMessage.ixx
+  rl/RayLog/RayLogTimestamp.ixx
+  rl/RayLog/RayLogPlatformOutput.ixx
+  rl/RayLog/RayLogFormatter.ixx
+  rl/RayLog/RayLogFormatParser.ixx
+  rl/RayLog/RayLogThreadPool.ixx
+  rl/RayLog/RayLogFileOutput.ixx
+  rl/RayLog/RayLogStackTrace.ixx
+  rl/RayLog/RayLogSymbolDemangler.ixx
+  rl/RayLog/RayLogFatalHandler.ixx
+  rl/RayLog/RayLogger.ixx
+  rl/RayLog/RayLogMacro.ixx
 )
 
 set(SOURCES
