@@ -1,7 +1,7 @@
-export module Rl.Player.Camera;
+export module Rl.Player.PlayerCamera;
 
 import Rl.Base.IUpdatable;
-import Rl.Base.InputReceiver;
+import Rl.Base.UserInput;
 
 import <array>;
 import <glm/glm.hpp>;
@@ -29,7 +29,7 @@ export class IPlayerCamera
   float  fov;
   float  aspectRatio;
   float  zoom;
-  float  pitch, yaw, roll;
+  float  pitch, yaw;
   virtual ~IPlayerCamera() = default;
   IPlayerCamera() = default;
   IPlayerCamera(const IPlayerCamera& other) = delete;
@@ -53,8 +53,11 @@ export class IPlayerCamera
   virtual glm::mat4 GetPVMMatrix() const = 0;
 };
 
-export struct CameraInputReceiver : Input::IInputObserver
+export struct PlayerCameraInput : Input::IInputObserver
 {
+  PlayerCameraInput() : IInputObserver(*this)
+  {
+  }
   void OnKeyEvent(const Input::KeyEvent& event) override = 0;
   void OnMouseButtonEvent(const Input::MouseButtonEvent& event) override = 0;
   void OnMouseMoveEvent(const Input::MouseMoveEvent& event) override = 0;
@@ -66,7 +69,7 @@ export class PlayerCamera final : public IPlayerCamera,
 {
   public:
   PlayerCamera();
-  ~PlayerCamera() override;
+  ~PlayerCamera() override = default;
   void Update() override;
   void SetPVMMatrix(const Matrix& mvp) override;
   void SetRotateXYZ(const Eye& eye) override;

@@ -100,7 +100,7 @@ VkSamplerAddressMode Texture2::GetBindingWrapMode(Texture2Wrap wrap) const
   }
 }
 
-void Texture2::CreateBindingImage(Game::MainBinding& context)
+void Texture2::CreateBindingImage(Main::MainBinding& context)
 {
   if (!loaded || binding.vkImage != VK_NULL_HANDLE)
   {
@@ -144,7 +144,7 @@ void Texture2::CreateBindingImage(Game::MainBinding& context)
   vkBindImageMemory(context.device, binding.vkImage, binding.vkImageMemory, 0);
 }
 
-void Texture2::UploadTextureData(Game::MainBinding& context)
+void Texture2::UploadTextureData(Main::MainBinding& context)
 {
   if (!loaded || data == nullptr || binding.vkImage == VK_NULL_HANDLE)
   {
@@ -344,7 +344,7 @@ void Texture2::UploadTextureData(Game::MainBinding& context)
   binding.vkStagingBufferMemory = VK_NULL_HANDLE;
 }
 
-void Texture2::CreateBindingSampler(Game::MainBinding& context)
+void Texture2::CreateBindingSampler(Main::MainBinding& context)
 {
   if (binding.vkSampler != VK_NULL_HANDLE)
   {
@@ -379,7 +379,7 @@ void Texture2::CreateBindingSampler(Game::MainBinding& context)
   }
 }
 
-void Texture2::GetSampler(Game::MainBinding& context)
+void Texture2::GetSampler(Main::MainBinding& context)
 {
   if (binding.vkSampler == VK_NULL_HANDLE)
   {
@@ -387,7 +387,7 @@ void Texture2::GetSampler(Game::MainBinding& context)
   }
 }
 
-void Texture2::GetImageView(Game::MainBinding& context)
+void Texture2::GetImageView(Main::MainBinding& context)
 {
   if (binding.vkImageView != VK_NULL_HANDLE)
   {

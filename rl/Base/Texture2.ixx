@@ -151,18 +151,18 @@ export class Texture2
   static std::string GetPlatformName();
 
   void GenMipmaps();
-  void GetSampler(Game::MainBinding& context);
-  void GetImageView(Game::MainBinding& context);
+  void GetSampler(Main::MainBinding& context);
+  void GetImageView(Main::MainBinding& context);
   void Cleanup();
-  void CleanupBinding(const Game::MainBinding& context);
+  void CleanupBinding(const Main::MainBinding& context);
 
   private:
   void Initialize();
   bool LoadImage(const std::string& filepath);
   bool ProcessImageData(uint8_t* imageData, int width, int height, int channels);
-  void CreateBindingImage(Game::MainBinding& context);
-  void CreateBindingSampler(Game::MainBinding& context);
-  void UploadTextureData(Game::MainBinding& context);
+  void CreateBindingImage(Main::MainBinding& context);
+  void CreateBindingSampler(Main::MainBinding& context);
+  void UploadTextureData(Main::MainBinding& context);
   [[nodiscard]]
   VkFormat GetBindingFormat() const;
   [[nodiscard]]

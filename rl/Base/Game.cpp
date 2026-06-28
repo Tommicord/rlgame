@@ -1,9 +1,10 @@
 import Rl.Base.Game;
 import Rl.Base.Shader;
 import Rl.Base.Binding;
-import Rl.Base.InputReceiver;
+import Rl.Base.UserInput;
 import Rl.Client.State.UnitState;
-import Rl.Player.Camera;
+import Rl.Player.PlayerCamera;
+import Rl.Player.CameraController;
 
 import <algorithm>;
 import <cstdint>;
@@ -16,7 +17,7 @@ import <vulkan/vulkan.hpp>;
 import <glm/glm.hpp>;
 import <vector>;
 
-namespace Rl::Game
+namespace Rl::Main
 {
 
 using namespace Rl::Providers;
@@ -31,13 +32,12 @@ constexpr bool enableValidationLayers = true;
 
 Game::Game() : input(Input::UserInput::GetInstance())
 {
-  input.Start();
 }
 
 Game::~Game()
 {
   input.Stop();
-  CleanupGraphics();
+  DestroyGraphics();
 }
 
 void Game::Run()
@@ -45,16 +45,17 @@ void Game::Run()
   InitWindow();
   InitGraphics();
 
-  while (!glfwWindowShouldClose( window ))
+  while (!glfwWindowShouldClose(window))
   {
+    glfwPollEvents();
     Draw();
   }
   vkDeviceWaitIdle(binding.device);
 }
 
-void Game::CleanupGraphics()
+void Game::DestroyGraphics()
 {
-  CleanupResources();
+  DestroyResources();
   vkDestroySemaphore(binding.device, binding.imageAvailableSemaphore, nullptr);
   for (const auto semaphore : binding.renderFinishedSemaphores)
   {
@@ -80,9 +81,9 @@ void Game::CleanupGraphics()
   glfwDestroyWindow(window);
   glfwTerminate();
 }
-void Game::CleanupResources()
+void Game::DestroyResources()
 {
-  delete unitModel;
+  unitModel.reset();
 }
 
 void Game::InitGraphics()
@@ -107,13 +108,55 @@ void Game::InitWindow()
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  window = glfwCreateWindow(width, height, "The Real Game", nullptr, nullptr);
   GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-  window = glfwCreateWindow(width, height, "RL", monitor, nullptr);
-
   glfwSetWindowPos(window, (mode->width - width) / 2, (mode->height - height) / 2);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPos(window, width / 2.0, height / 2.0);
+
+  glfwSetCursorPosCallback(window,
+      [](GLFWwindow* window, const double xpos, const double ypos)
+      {
+        const Game&           game = GetInstance();
+        Input::MouseMoveEvent event{};
+        event.x = xpos;
+        event.y = ypos;
+        game.input.NotifyMouseMoveEvent(event);
+      });
+
+  glfwSetKeyCallback(window,
+      [](GLFWwindow* window, const int key, const int scancode, const int action,
+          const int mods)
+      {
+        const Game&     game = GetInstance();
+        Input::KeyEvent event{};
+        event.key = Input::GlfwKeyToInputKey(key);
+        event.action = static_cast<Input::Action>(action);
+        event.modifiers = mods;
+        game.input.NotifyKeyEvent(event);
+      });
+
+  glfwSetMouseButtonCallback(window,
+      [](GLFWwindow* window, const int button, const int action, const int mods)
+      {
+        const Game&             game = GetInstance();
+        Input::MouseButtonEvent event{};
+        event.button = static_cast<Input::MouseButton>(button);
+        event.action = static_cast<Input::Action>(action);
+        event.modifiers = mods;
+        game.input.NotifyMouseButtonEvent(event);
+      });
+
+  glfwSetScrollCallback(window,
+      [](GLFWwindow* window, const double xoffset, const double yoffset)
+      {
+        const Game&             game = GetInstance();
+        Input::MouseScrollEvent event{};
+        event.xOffset = xoffset;
+        event.yOffset = yoffset;
+        game.input.NotifyMouseScrollEvent(event);
+      });
 }
 
 void Game::UpdateModels()
@@ -127,7 +170,7 @@ Game& Game::GetInstance()
   return game;
 }
 
-MainBinding& Game::GetVulkanContext()
+MainBinding& Game::GetMainBinding()
 {
   return this->binding;
 }
@@ -171,7 +214,8 @@ void Game::CreateInstance()
 
 void Game::CreateSurface()
 {
-  if (glfwCreateWindowSurface(binding.instance, window, nullptr, &binding.surface) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(binding.instance, window, nullptr, &binding.surface) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create window surface");
   }
@@ -257,22 +301,24 @@ void Game::CreateLogicalDevice()
     createInfo.enabledLayerCount = 0;
   }
 
-  if (vkCreateDevice(binding.physicalDevice, &createInfo, nullptr, &binding.device) != VK_SUCCESS)
+  if (vkCreateDevice(binding.physicalDevice, &createInfo, nullptr, &binding.device) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create logical device");
   }
 
-  vkGetDeviceQueue(
-      binding.device, binding.queueFamilyIndices.graphicsFamily.value(), 0, &binding.graphicsQueue);
-  vkGetDeviceQueue(
-      binding.device, binding.queueFamilyIndices.presentFamily.value(), 0, &binding.presentQueue);
+  vkGetDeviceQueue(binding.device, binding.queueFamilyIndices.graphicsFamily.value(), 0,
+      &binding.graphicsQueue);
+  vkGetDeviceQueue(binding.device, binding.queueFamilyIndices.presentFamily.value(), 0,
+      &binding.presentQueue);
 }
 
 void Game::CreateSwapChain()
 {
   MainBinding::QueueFamilyIndices indices = FindQueueFamilies(binding.physicalDevice);
   VkSurfaceCapabilitiesKHR        caps;
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(binding.physicalDevice, binding.surface, &caps);
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+      binding.physicalDevice, binding.surface, &caps);
 
   constexpr VkSurfaceFormatKHR surfaceFormat = {
       VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -301,7 +347,8 @@ void Game::CreateSwapChain()
   createInfo.clipped = VK_TRUE;
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(binding.device, &createInfo, nullptr, &binding.swapChain) != VK_SUCCESS)
+  if (vkCreateSwapchainKHR(binding.device, &createInfo, nullptr, &binding.swapChain) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create swap chain");
   }
@@ -336,8 +383,8 @@ void Game::CreateImageViews()
     createInfo.subresourceRange.baseArrayLayer = 0;
     createInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(binding.device, &createInfo, nullptr, &binding.swapChainImageViews[i]) !=
-        VK_SUCCESS)
+    if (vkCreateImageView(binding.device, &createInfo, nullptr,
+            &binding.swapChainImageViews[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("Failed to create image views");
     }
@@ -411,7 +458,8 @@ void Game::CreateCommandPool()
   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   poolInfo.queueFamilyIndex = binding.queueFamilyIndices.graphicsFamily.value();
 
-  if (vkCreateCommandPool(binding.device, &poolInfo, nullptr, &binding.commandPool) != VK_SUCCESS)
+  if (vkCreateCommandPool(binding.device, &poolInfo, nullptr, &binding.commandPool) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create command pool");
   }
@@ -442,8 +490,8 @@ void Game::CreateSyncObjects()
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-  if (vkCreateSemaphore(
-          binding.device, &semaphoreInfo, nullptr, &binding.imageAvailableSemaphore) != VK_SUCCESS)
+  if (vkCreateSemaphore(binding.device, &semaphoreInfo, nullptr,
+          &binding.imageAvailableSemaphore) != VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create image available semaphore");
   }
@@ -458,7 +506,8 @@ void Game::CreateSyncObjects()
     }
   }
 
-  if (vkCreateFence(binding.device, &fenceInfo, nullptr, &binding.inFlightFence) != VK_SUCCESS)
+  if (vkCreateFence(binding.device, &fenceInfo, nullptr, &binding.inFlightFence) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create synchronization objects for frame");
   }
@@ -483,8 +532,8 @@ void Game::CreatePipelineLayout()
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-  if (vkCreatePipelineLayout(
-          binding.device, &pipelineLayoutInfo, nullptr, &binding.pipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(binding.device, &pipelineLayoutInfo, nullptr,
+          &binding.pipelineLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create pipeline layout");
   }
@@ -522,7 +571,8 @@ void Game::Draw()
   renderPassInfo.clearValueCount = 1;
   renderPassInfo.pClearValues = &clearColor;
 
-  vkCmdBeginRenderPass(binding.commandBuffers[0], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBeginRenderPass(
+      binding.commandBuffers[0], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
   // Set viewport
   VkViewport viewport{};
   viewport.x = 0.0f;
@@ -551,8 +601,8 @@ void Game::Draw()
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
   const VkSemaphore              waitSemaphores[] = {binding.imageAvailableSemaphore};
-  constexpr VkPipelineStageFlags waitStages[] = {
-      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  constexpr VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;
@@ -563,7 +613,8 @@ void Game::Draw()
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(binding.graphicsQueue, 1, &submitInfo, binding.inFlightFence) != VK_SUCCESS)
+  if (vkQueueSubmit(binding.graphicsQueue, 1, &submitInfo, binding.inFlightFence) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to submit draw command buffer");
   }
@@ -588,7 +639,8 @@ MainBinding::QueueFamilyIndices Game::FindQueueFamilies(VkPhysicalDevice device)
   vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+  vkGetPhysicalDeviceQueueFamilyProperties(
+      device, &queueFamilyCount, queueFamilies.data());
 
   int i = 0;
   for (const auto& queueFamily : queueFamilies)
@@ -613,9 +665,9 @@ MainBinding::QueueFamilyIndices Game::FindQueueFamilies(VkPhysicalDevice device)
   return indices;
 }
 
-bool Game::IsDeviceSuitable(VkPhysicalDevice device) const
+bool Game::IsDeviceSuitable(const VkPhysicalDevice device) const
 {
-  MainBinding::QueueFamilyIndices indices = FindQueueFamilies(device);
+  const MainBinding::QueueFamilyIndices indices = FindQueueFamilies(device);
 
   return indices.isComplete();
 }
@@ -628,12 +680,12 @@ bool Game::CheckValidationLayerSupport() const
   std::vector<VkLayerProperties> availableLayers(layerCount);
   vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-  for (const char* layerName : validationLayers)
+  for (const auto layerName : validationLayers)
   {
     bool layerFound = false;
     for (const auto& layerProperties : availableLayers)
     {
-      if (strcmp(layerName, layerProperties.layerName) == 0)
+      if (std::strcmp(layerName, layerProperties.layerName) == 0)
       {
         layerFound = true;
         break;
@@ -650,9 +702,9 @@ bool Game::CheckValidationLayerSupport() const
 
 std::vector<const char*> Game::GetRequiredExtensions() const
 {
-  uint32_t     glfwExtensionCount = 0;
-  const auto   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  std::vector  extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+  uint32_t    glfwExtensionCount = 0;
+  const auto  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+  std::vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
   if (enableValidationLayers)
   {
@@ -666,7 +718,7 @@ std::vector<const char*> Game::GetRequiredExtensions() const
 
 int main()
 {
-  Rl::Game::Game& game = Rl::Game::Game::GetInstance();
+  Rl::Main::Game& game = Rl::Main::Game::GetInstance();
   try
   {
     game.Run();

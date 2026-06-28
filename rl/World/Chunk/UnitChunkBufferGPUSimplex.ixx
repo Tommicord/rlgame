@@ -32,7 +32,7 @@ export class UnitChunkBufferGPUSimplex
   ~UnitChunkBufferGPUSimplex() = default;
 
   /* Initialize Simplex noise resources like permutation tables, etc. */
-  void Initialize(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
+  void Create(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
 
   /* Create noise output buffer for a chunk */
   void CreateNoiseBuffer(VkDevice device,
@@ -42,7 +42,7 @@ export class UnitChunkBufferGPUSimplex
       uint32_t                    depth);
 
   /* Generates noise for a chunk using a GPU compute shader */
-  void GenerateNoise(
+  void GenNoise(
       VkDevice device, VkCommandBuffer commandBuffer, const SimplexNoisePushConstants& params) const;
 
   /* Gets the noise buffer for reading results */
@@ -54,7 +54,7 @@ export class UnitChunkBufferGPUSimplex
   {
     return noiseBufferMemory;
   }
-  void Cleanup(VkDevice device);
+  void Destroy(VkDevice device);
 
   private:
   /* Stores the permutation buffer */

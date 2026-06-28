@@ -3,7 +3,7 @@ export module Rl.Base.Binding;
 import <optional>;
 import <vulkan/vulkan.hpp>;
 
-namespace Rl::Game {
+namespace Rl::Main {
 
 /* Defines the main vulkan resources for the Game */
 export struct MainBinding

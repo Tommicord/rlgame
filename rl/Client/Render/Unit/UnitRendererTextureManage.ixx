@@ -12,6 +12,6 @@ namespace Rl::Client::Render
 export void UnitUpdateUnitTextures(VkDevice  device,
     VkDescriptorSet                   descriptorSet,
     const World::UnitTextureMaterial& textures,
-    Game::MainBinding&              context);
+    Main::MainBinding&              context);
 
 } // namespace Rl::Client::Render

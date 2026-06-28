@@ -60,7 +60,6 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
   vkDestroyImage(device, vk.placeholderAOTexture, nullptr);
   vkFreeMemory(device, vk.placeholderAOTextureMemory, nullptr);
 
-  // Cleanup AO textures
   for (int i = 0; i < 6; ++i)
   {
     if (vk.aoTexturesView[i] != VK_NULL_HANDLE)
@@ -77,7 +76,6 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
     }
   }
 
-  // Cleanup normal textures
   for (int i = 0; i < 6; ++i)
   {
     if (vk.normalTexturesView[i] != VK_NULL_HANDLE)
@@ -93,8 +91,7 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
       vkFreeMemory(device, vk.normalTexturesMemory[i], nullptr);
     }
   }
-
-  // Cleanup shadow map resources
+  
   vkDestroySampler(device, vk.shadowMapSampler, nullptr);
   vkDestroyFramebuffer(device, vk.shadowMapFramebuffer, nullptr);
   vkDestroyRenderPass(device, vk.shadowMapRenderPass, nullptr);
@@ -105,11 +102,7 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
 
 void UnitCleanupSamplers(VkDevice device, Providers::UnitStateBinding& vk)
 {
-  // Cleanup global sampler
-  if (vk.globalTextureSampler != VK_NULL_HANDLE)
-  {
-    vkDestroySampler(device, vk.globalTextureSampler, nullptr);
-  }
+  vkDestroySampler(device, vk.globalTextureSampler, nullptr);
 }
 
 void UnitCleanupPipelines(VkDevice device, Providers::UnitStateBinding& vk)

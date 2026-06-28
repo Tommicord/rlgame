@@ -31,7 +31,7 @@ namespace Rl::Providers
 {
 
 void UnitStateDrawable::OnCreate(
-    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
   const auto& unitVertices = Client::Render::UnitGetTestVertices();
   Client::Render::UnitCreateVertexBuffer(
@@ -157,15 +157,11 @@ void UnitStateDrawable::OnCreate(
 }
 
 void UnitStateDrawable::OnUpdate(
-    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
-  if (!resource.camera)
-  {
-    return;
-  }
   // Visible count reset is now handled in OnDrawCompute using vkCmdFillBuffer (GPU-side)
   Client::Render::UnitRenderFrustumPlanes frustum{};
-  Client::Render::UnitCameraToFrustumPlanes(frustum, resource.camera->GetObjectRef());
+  Client::Render::UnitCameraToFrustumPlanes(frustum, *resource.player.camera);
 
   // Update graphics descriptor set with textures from unit (only if textures changed)
   Client::Render::UnitUpdateUnitTextures(
@@ -191,22 +187,14 @@ void UnitStateDrawable::OnUpdate(
 }
 
 void UnitStateDrawable::OnDraw(
-    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
-  if (!resource.camera)
-  {
-    return;
-  }
   Client::Render::UnitRender(resource, vk, context);
 }
 
 void UnitStateDrawable::OnDrawCompute(
-    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
-  if (!resource.camera)
-  {
-    return;
-  }
   Client::Render::UnitDispatchComputeShaders(resource, vk, context);
 
   // Although this has nothing to do with a
@@ -216,7 +204,7 @@ void UnitStateDrawable::OnDrawCompute(
 }
 
 void UnitStateDrawable::OnDestroy(
-    UnitStateResource& resource, UnitStateBinding& vk, Game::MainBinding& context)
+    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
   Client::Render::UnitCleanupResources(context.device, vk);
 }

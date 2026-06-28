@@ -27,7 +27,8 @@ export class UnitChunkBuffer
     std::unique_ptr<BufferUnit[]> b;
 
     /* Gets the Unit buffer */
-    int* Get() const noexcept
+    [[nodiscard]]
+   BufferUnit* Get() const noexcept
     {
       return b.get();
     }

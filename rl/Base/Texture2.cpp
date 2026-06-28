@@ -217,7 +217,7 @@ void Texture2::Cleanup()
   dataSize = 0;
   loaded = false;
 }
-void Texture2::CleanupBinding(const Game::MainBinding& context)
+void Texture2::CleanupBinding(const Main::MainBinding& context)
 {
   // Cleanup Vulkan resources
   if (binding.vkStagingBuffer != VK_NULL_HANDLE)

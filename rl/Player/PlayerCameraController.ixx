@@ -1,13 +1,13 @@
 export module Rl.Player.CameraController;
 
-import Rl.Player.Camera;
-import Rl.Base.InputReceiver;
+import Rl.Player.PlayerCamera;
+import Rl.Base.UserInput;
 
 namespace Rl::Player
 {
 
 /* Controls camera rotation and movement from input */
-export class PlayerCameraController final : public CameraInputReceiver
+export class PlayerCameraController final : public PlayerCameraInput
 {
 public:
   /* Constructs controller with camera reference */
@@ -29,7 +29,9 @@ public:
   void Update() const;
 
 private:
+  /* The player camera object reference */
   IPlayerCamera& camera;
+
   bool           mouseCaptured{false};
   double         lastMouseX{0.0};
   double         lastMouseY{0.0};

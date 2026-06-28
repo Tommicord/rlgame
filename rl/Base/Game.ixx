@@ -1,8 +1,10 @@
 export module Rl.Base.Game;
 
-import Rl.Base.InputReceiver;
+import Rl.Base.UserInput;
 import Rl.Base.Binding;
 import Rl.Client.State.UnitState;
+import Rl.Player.PlayerCamera;
+import Rl.Player.CameraController;
 
 import <GLFW/glfw3.h>;
 import <optional>;
@@ -10,26 +12,26 @@ import <vector>;
 import <memory>;
 import <vulkan/vulkan.hpp>;
 
-namespace Rl::Game
+namespace Rl::Main
 {
 
 /* The GLFWwindow alias type */
-export using Window = GLFWwindow;
+export using WindowT = GLFWwindow;
 
 /* The MainBinding alias type */
-export using Context = MainBinding;
+export using ContextT = MainBinding;
 
 /* The UserInput alias type */
-export using Input = Input::UserInput;
+export using InputT = Input::UserInput;
 
 /* Width of the window */
-export constinit unsigned int width = 1800;
+export constexpr unsigned int width = 1800;
 
 /* Height of the window */
-export constinit unsigned int height = 900;
+export constexpr unsigned int height = 900;
 
 /* The unique input receiver in the Game */
-constinit Input::UserInput& input = Input::UserInput::GetInstance();
+export InputT& input = Input::UserInput::GetInstance();
 
 export class Game
 {
@@ -38,20 +40,20 @@ export class Game
 
   public:
   void         Run();
-  void         CleanupGraphics();
-  void         CleanupResources();
+  void         DestroyGraphics();
+  void         DestroyResources();
   void         InitGraphics();
   void         InitWindow();
   void         UpdateModels();
   static Game& GetInstance();
-  MainBinding& GetVulkanContext();
+  MainBinding& GetMainBinding();
   ~Game();
 
   private:
   Game();
-  Window* window;
-  Input&  input;
-  Context binding;
+  WindowT* window;
+  InputT&  input;
+  ContextT binding;
 
   void CreateInstance();
   void CreateSurface();

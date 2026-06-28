@@ -1,20 +1,12 @@
 export module Rl.Base.IDrawable;
 
 import Rl.Base.Binding;
-import Rl.Player;
 
 namespace Rl::Providers
 {
 
 export struct IStateResource
 {
-  /* The player reference, cannot be null */
-  Player::IPlayer& player;
-
-  IStateResource()
-  {
-  }
-
   virtual ~IStateResource() = default;
 };
 
@@ -23,24 +15,23 @@ export struct IStateDrawableBinding
   virtual ~IStateDrawableBinding() = default;
 };
 
-export template <class T = void, class B = void>
-class IStateDrawable
+export template <class T = void, class B = void> class IStateDrawable
 {
   public:
-  using ContextValue                                                         = Game::MainBinding;
-  using ResValue                                                             = T;
-  using BindingValue                                                         = B;
-  IStateDrawable()                                                           = default;
-  IStateDrawable(const IStateDrawable& other)                                = delete;
-  IStateDrawable& operator=(const IStateDrawable& other)                     = delete;
-  virtual ~IStateDrawable()                                                  = default;
-  virtual void OnDraw(T& resource, B& vk, Game::MainBinding& context)        = 0;
-  virtual void OnDrawCompute(T& resource, B& vk, Game::MainBinding& context) = 0;
-  virtual void OnUpdate(T& resource, B& vk, ContextValue& context)           = 0;
-  virtual void OnCreate(T& resources, B& vk, ContextValue& context)          = 0;
-  virtual void OnDestroy(T& resources, B& vk, ContextValue& context)         = 0;
-  virtual void OnPause()                                                     = 0;
-  virtual void OnResume()                                                    = 0;
+  using ContextValue = Main::MainBinding;
+  using ResValue = T;
+  using BindingValue = B;
+  IStateDrawable() = default;
+  IStateDrawable(const IStateDrawable& other) = delete;
+  IStateDrawable& operator=(const IStateDrawable& other) = delete;
+  virtual ~IStateDrawable() = default;
+  virtual void OnDraw(T& resource, B& vk, Main::MainBinding& context) = 0;
+  virtual void OnDrawCompute(T& resource, B& vk, Main::MainBinding& context) = 0;
+  virtual void OnUpdate(T& resource, B& vk, ContextValue& context) = 0;
+  virtual void OnCreate(T& resources, B& vk, ContextValue& context) = 0;
+  virtual void OnDestroy(T& resources, B& vk, ContextValue& context) = 0;
+  virtual void OnPause() = 0;
+  virtual void OnResume() = 0;
 };
 
 } // namespace Rl::Providers

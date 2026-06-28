@@ -1,6 +1,6 @@
 import Rl.Player.CameraController;
-import Rl.Player.Camera;
-import Rl.Base.InputReceiver;
+import Rl.Player.PlayerCamera;
+import Rl.Base.UserInput;
 
 import <glm/glm.hpp>;
 import <cmath>;
@@ -9,60 +9,58 @@ namespace Rl::Player
 {
 
 PlayerCameraController::PlayerCameraController(IPlayerCamera& camera) noexcept :
-    CameraInputReceiver(), camera(camera)
+    PlayerCameraInput(*this), camera(camera)
 {
 }
 
 void PlayerCameraController::OnKeyEvent(const Input::KeyEvent& event)
 {
-  using namespace Input;
-
-  if (event.action == Action::Press || event.action == Action::Repeat)
+  if (event.action == Input::Action::Press || event.action == Input::Action::Repeat)
   {
     switch (event.key)
     {
-    case Key::W:
+    case Input::Key::W:
       moveForward = true;
       break;
-    case Key::S:
+    case Input::Key::S:
       moveBackward = true;
       break;
-    case Key::A:
+    case Input::Key::A:
       moveLeft = true;
       break;
-    case Key::D:
+    case Input::Key::D:
       moveRight = true;
       break;
-    case Key::Space:
+    case Input::Key::Space:
       moveUp = true;
       break;
-    case Key::LeftShift:
+    case Input::Key::LeftShift:
       moveDown = true;
       break;
     default:
       break;
     }
   }
-  else if (event.action == Action::Release)
+  else if (event.action == Input::Action::Release)
   {
     switch (event.key)
     {
-    case Key::W:
+    case Input::Key::W:
       moveForward = false;
       break;
-    case Key::S:
+    case Input::Key::S:
       moveBackward = false;
       break;
-    case Key::A:
+    case Input::Key::A:
       moveLeft = false;
       break;
-    case Key::D:
+    case Input::Key::D:
       moveRight = false;
       break;
-    case Key::Space:
+    case Input::Key::Space:
       moveUp = false;
       break;
-    case Key::LeftShift:
+    case Input::Key::LeftShift:
       moveDown = false;
       break;
     default:
@@ -73,11 +71,9 @@ void PlayerCameraController::OnKeyEvent(const Input::KeyEvent& event)
 
 void PlayerCameraController::OnMouseButtonEvent(const Input::MouseButtonEvent& event)
 {
-  using namespace Input;
-
-  if (event.button == MouseButton::Right)
+  if (event.button == Input::MouseButton::Right)
   {
-    mouseCaptured = (event.action == Action::Press);
+    mouseCaptured = (event.action == Input::Action::Press);
   }
 }
 
@@ -109,7 +105,7 @@ void PlayerCameraController::OnMouseMoveEvent(const Input::MouseMoveEvent& event
 
 void PlayerCameraController::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 {
-  const auto zoomOffset = static_cast<float>(event.yOffset * 0.1f);
+  const auto  zoomOffset = static_cast<float>(event.yOffset * 0.1f);
   const float newZoom = glm::clamp(camera.zoom + zoomOffset, 0.1f, 10.0f);
   camera.SetZoom(newZoom);
 }

@@ -11,7 +11,7 @@ namespace Rl::Client::Render
 void UnitUpdateUnitTextures(VkDevice  device,
     VkDescriptorSet                   descriptorSet,
     const World::UnitTextureMaterial& textures,
-    Game::MainBinding&                context)
+    Main::MainBinding&                context)
 {
   VkDescriptorImageInfo imageInfos[6]{};
   auto                  gen = [&imageInfos, &context](Providers::Texture2* texture, const int index)

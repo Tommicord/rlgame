@@ -11,7 +11,7 @@ namespace Rl::Client::Render
 {
 
 export void UnitGenerateAOTextures(VkDevice    device,
-    Game::MainBinding&                context,
+    Main::MainBinding&                context,
     Providers::UnitStateBinding& vk,
     const World::UnitTextureMaterial&   textures);
 

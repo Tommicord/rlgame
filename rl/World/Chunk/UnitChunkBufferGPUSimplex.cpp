@@ -9,7 +9,7 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::World::Chunk
 {
 
-void UnitChunkBufferGPUSimplex::Initialize(
+void UnitChunkBufferGPUSimplex::Create(
     VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed)
 {
   if (isInitialized)
@@ -176,7 +176,6 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
     uint32_t                                               height,
     uint32_t                                               depth)
 {
-  // Cleanup previous noise buffer if exists
   if (noiseBuffer != VK_NULL_HANDLE)
   {
     vkDestroyBuffer(device, noiseBuffer, nullptr);
@@ -212,12 +211,12 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
 }
 
-void UnitChunkBufferGPUSimplex::GenerateNoise(
+void UnitChunkBufferGPUSimplex::GenNoise(
     VkDevice device, VkCommandBuffer commandBuffer, const SimplexNoisePushConstants& params) const
 {
   if (!isInitialized)
   {
-    throw std::runtime_error("Simplex noise not initialized. Call Initialize() first.");
+    throw std::runtime_error("Simplex noise not initialized. Call Initialize() first");
   }
 
   VkPushConstantRange genPushConstantRange{};
@@ -290,12 +289,11 @@ void UnitChunkBufferGPUSimplex::GenerateNoise(
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 
-  // Cleanup temporary pipeline resources
   vkDestroyPipeline(device, genPipeline, nullptr);
   vkDestroyPipelineLayout(device, genPipelineLayout, nullptr);
 }
 
-void UnitChunkBufferGPUSimplex::Cleanup(VkDevice device)
+void UnitChunkBufferGPUSimplex::Destroy(VkDevice device)
 {
   if (noiseBuffer != VK_NULL_HANDLE)
   {
@@ -356,7 +354,6 @@ void UnitChunkBufferGPUSimplex::Cleanup(VkDevice device)
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
     descriptorPool = VK_NULL_HANDLE;
   }
-
   isInitialized = false;
 }
 

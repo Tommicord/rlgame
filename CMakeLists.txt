@@ -85,6 +85,9 @@ set(CXX_MODULES
   rl/Client/State/UnitState.ixx
   rl/Player/PlayerCamera.ixx
   rl/Player/PlayerCameraController.ixx
+  rl/Player/PlayerController.ixx
+  rl/Player/PlayerProvider.ixx
+  rl/Player/IPlayer.ixx
   rl/Player/Player.ixx
   rl/World/Unit/Unit.ixx
   rl/World/Unit/UnitRegistry.ixx
@@ -129,6 +132,7 @@ set(SOURCES
   rl/Base/Texture2Normal.cpp
   rl/Base/Texture2Binding.cpp
   rl/Player/PlayerCameraController.cpp
+  rl/Player/PlayerController.cpp
   rl/Player/PlayerCamera.cpp
   rl/Player/Player.cpp
   rl/World/Unit/Unit.cpp
@@ -249,6 +253,7 @@ add_executable(
   ${SOURCES}
   Tests/UnitDynamicTextureTest.cpp
   Tests/UnitChunkBufferTest.cpp
+  Tests/UnitRegistryTest.cpp
 )
 target_sources(
   rlgame_tests

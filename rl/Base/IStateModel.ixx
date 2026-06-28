@@ -25,7 +25,7 @@ class IStateModel
 {
   public:
   /* Initializer of a state model */
-  explicit IStateModel(Game::MainBinding& context)
+  explicit IStateModel(Main::MainBinding& context)
   {
   }
 
@@ -45,19 +45,19 @@ class IStateModel
   virtual B& GetBinding() const = 0;
 
   /* Draws the drawable using the vulkan context */
-  void Draw(Game::MainBinding& context)
+  void Draw(Main::MainBinding& context)
   {
     static_cast<D&>(GetDrawable()).OnDraw(GetResource(), GetBinding(), context);
   }
 
   /* Dispatches compute shaders using the vulkan context */
-  void DrawCompute(Game::MainBinding& context)
+  void DrawCompute(Main::MainBinding& context)
   {
     static_cast<D&>(GetDrawable()).OnDrawCompute(GetResource(), GetBinding(), context);
   }
 
   /* Updates the drawable state */
-  void Update(Game::MainBinding& context)
+  void Update(Main::MainBinding& context)
   {
     static_cast<IUpdatable&>(GetObjectRef()).Update();
     static_cast<D&>(GetDrawable()).OnUpdate(GetResource(), GetBinding(), context);

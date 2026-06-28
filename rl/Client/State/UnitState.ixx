@@ -4,7 +4,9 @@ import Rl.Base.IDrawable;
 import Rl.Base.IModel;
 import Rl.Base.Binding;
 import Rl.World.Unit;
-import Rl.Player.Camera;
+import Rl.Player.PlayerCamera;
+import Rl.Player.PlayerProvider;
+import Rl.Player.IPlayer;
 import Rl.World.Unit.UnitGrass;
 
 import <cstdint>;
@@ -17,12 +19,16 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Providers
 {
 
-// Just for data interchange between classes
 export struct UnitStateResource final : public IStateResource
 {
-  World::IUnit& unit;
+  /* The target Unit to render */
+  World::IUnit&    unit;
 
-  explicit UnitStateResource(World::IUnit& unit) : IStateResource(), unit(unit)
+  /* Needs Player to access Camera */
+  Player::IPlayer& player;
+
+  explicit UnitStateResource(World::IUnit& unit) :
+      IStateResource(), unit(unit), player(Player::PlayerProvider::GetInstance())
   {
   }
 };
@@ -51,7 +57,6 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   VkDescriptorSet       descriptorSet = VK_NULL_HANDLE;
   VkDescriptorPool      descriptorPool = VK_NULL_HANDLE;
 
-  // Placeholder resources for bindings 8 and 9
   VkImage        placeholderLightingTexture = VK_NULL_HANDLE;
   VkDeviceMemory placeholderLightingTextureMemory = VK_NULL_HANDLE;
   VkImageView    placeholderLightingTextureView = VK_NULL_HANDLE;
@@ -59,7 +64,6 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   VkBuffer       placeholderSettingsBuffer = VK_NULL_HANDLE;
   VkDeviceMemory placeholderSettingsBufferMemory = VK_NULL_HANDLE;
 
-  // PBR lighting resources (binding 4 and 10)
   VkBuffer       placeholderLightingBuffer = VK_NULL_HANDLE;
   VkDeviceMemory placeholderLightingBufferMemory = VK_NULL_HANDLE;
   VkImage        placeholderAOTexture = VK_NULL_HANDLE;
@@ -71,24 +75,20 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   VkImageView    placeholderNormalTextureView = VK_NULL_HANDLE;
   VkSampler      placeholderNormalSampler = VK_NULL_HANDLE;
 
-  // Global sampler for all textures (to avoid sampler allocation limit)
+  // Global sampler for all textures to avoid sampler allocation limit
   VkSampler globalTextureSampler = VK_NULL_HANDLE;
 
-  // Generated AO textures for each face
   VkImage        aoTextures[6] = {VK_NULL_HANDLE};
   VkDeviceMemory aoTexturesMemory[6] = {VK_NULL_HANDLE};
   VkImageView    aoTexturesView[6] = {VK_NULL_HANDLE};
 
-  // Generated normal textures for each face (binding 11)
   VkImage        normalTextures[6] = {VK_NULL_HANDLE};
   VkDeviceMemory normalTexturesMemory[6] = {VK_NULL_HANDLE};
   VkImageView    normalTexturesView[6] = {VK_NULL_HANDLE};
 
-  // Triplanar mapping settings buffer (binding 12)
   VkBuffer       triplanarSettingsBuffer = VK_NULL_HANDLE;
   VkDeviceMemory triplanarSettingsBufferMemory = VK_NULL_HANDLE;
 
-  // Curvature compute shader buffers
   VkBuffer              curvedVertexBuffer = VK_NULL_HANDLE;
   VkDeviceMemory        curvedVertexBufferMemory = VK_NULL_HANDLE;
   VkBuffer              curvedIndexBuffer = VK_NULL_HANDLE;
@@ -125,19 +125,19 @@ export class UnitStateDrawable final
 
   void OnDraw(UnitStateResource& resource,
       UnitStateBinding&          vk,
-      Game::MainBinding&         context) override;
+      Main::MainBinding&         context) override;
   void OnDrawCompute(UnitStateResource& resource,
       UnitStateBinding&                 vk,
-      Game::MainBinding&                context) override;
+      Main::MainBinding&                context) override;
   void OnUpdate(UnitStateResource& resource,
       UnitStateBinding&            vk,
-      Game::MainBinding&           context) override;
+      Main::MainBinding&           context) override;
   void OnCreate(UnitStateResource& resource,
       UnitStateBinding&            vk,
-      Game::MainBinding&           context) override;
+      Main::MainBinding&           context) override;
   void OnDestroy(UnitStateResource& resource,
       UnitStateBinding&             vk,
-      Game::MainBinding&            context) override;
+      Main::MainBinding&            context) override;
   void OnPause() override;
   void OnResume() override;
 };
@@ -151,10 +151,11 @@ export class UnitModel final : public IStateModel<World::IUnit,
   std::unique_ptr<UnitStateResource> resource;
   std::unique_ptr<UnitStateBinding>  binding;
   std::unique_ptr<World::IUnit>      ref;
+  Main::MainBinding*                 context;
 
   public:
   /* Constructs a model of the Camera class */
-  explicit UnitModel(Game::MainBinding& context) : IStateModel(context)
+  explicit UnitModel(Main::MainBinding& context) : IStateModel(context), context(&context)
   {
     drawable = std::make_shared<UnitStateDrawable>();
     binding = std::make_unique<UnitStateBinding>();
@@ -164,7 +165,10 @@ export class UnitModel final : public IStateModel<World::IUnit,
   }
 
   /* Destructs a CameraModel */
-  ~UnitModel() override = default;
+  ~UnitModel() override
+  {
+    drawable->OnDestroy(*resource, *binding, *context);
+  }
 
   /* Gets the stored camera */
   [[nodiscard]]

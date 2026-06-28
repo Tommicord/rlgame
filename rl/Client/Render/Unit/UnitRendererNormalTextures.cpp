@@ -10,7 +10,7 @@ namespace Rl::Client::Render
 {
 
 void UnitGenerateNormalTextures(VkDevice device,
-    Game::MainBinding&                 context,
+    Main::MainBinding&                 context,
     Providers::UnitStateBinding&  vk,
     const World::UnitTextureMaterial&    textures)
 {

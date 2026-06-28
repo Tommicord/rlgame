@@ -1,10 +1,10 @@
-import Rl.Base.InputReceiver;
+import Rl.Base.UserInput;
 
 import <algorithm>;
 import <chrono>;
-import <iostream>;
 import <mutex>;
 import <thread>;
+import <GLFW/glfw3.h>;
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -52,14 +52,11 @@ void UserInput::Subscribe(IInputObserver* observer)
 void UserInput::Unsubscribe(IInputObserver* observer)
 {
   std::scoped_lock lock(observersMutex);
-  observers.erase(
-      std::remove(observers.begin(), observers.end(), observer), observers.end());
+  std::erase(observers, observer);
 }
 
 void UserInput::NotifyKeyEvent(const KeyEvent& event)
 {
-  std::cerr << "Key event: " << static_cast<int>(event.key)
-            << ", action: " << static_cast<int>(event.action) << std::endl;
   std::scoped_lock lock(observersMutex);
   for (auto* observer : observers)
   {
@@ -100,10 +97,8 @@ void UserInput::Start()
   {
     return;
   }
-
   running.store(true);
-  inputThread = std::thread(&UserInput::InputThread, this);
-  std::cerr << "DeviceInputReceiver started" << std::endl;
+  thread = std::thread(&UserInput::InputThread, this);
 }
 
 void UserInput::Stop()
@@ -112,13 +107,11 @@ void UserInput::Stop()
   {
     return;
   }
-
   running.store(false);
   cv.notify_all();
-
-  if (inputThread.joinable())
+  if (thread.joinable())
   {
-    inputThread.join();
+    thread.join();
   }
 }
 
@@ -357,8 +350,8 @@ void UserInput::PollWindowsInput()
 
   for (int i = 0; i < 256; ++i)
   {
-    SHORT state = GetAsyncKeyState(i);
-    bool  isPressed = (state & 0x8000) != 0;
+    const SHORT state = GetAsyncKeyState(i);
+    const bool  isPressed = (state & 0x8000) != 0;
 
     int previousState = keyStates[i];
     keyStates[i] = isPressed ? 1 : 0;
@@ -384,20 +377,6 @@ void UserInput::PollWindowsInput()
       event.action = Action::Release;
       event.modifiers = 0;
       NotifyKeyEvent(event);
-    }
-  }
-
-  POINT cursorPos;
-  if (GetCursorPos(&cursorPos))
-  {
-    static POINT lastCursorPos = {0, 0};
-    if (cursorPos.x != lastCursorPos.x || cursorPos.y != lastCursorPos.y)
-    {
-      MouseMoveEvent event;
-      event.x = cursorPos.x;
-      event.y = cursorPos.y;
-      NotifyMouseMoveEvent(event);
-      lastCursorPos = cursorPos;
     }
   }
 }
@@ -613,7 +592,7 @@ Key X11KeyToInputKey(KeySym x11Key)
   }
 }
 
-void DeviceInputReceiver::PollLinuxInput()
+void UserInput::PollLinuxInput()
 {
   Display* dpy = static_cast<Display*>(display);
   if (!dpy)
@@ -667,7 +646,7 @@ void DeviceInputReceiver::PollLinuxInput()
 #endif
 
 #if defined(__APPLE__)
-void DeviceInputReceiver::PollMacInput()
+void UserInput::PollMacInput()
 {
   CGEventRef event = CGEventCreate(nullptr);
   CGPoint    cursor = CGEventGetLocation(event);
@@ -686,15 +665,234 @@ void DeviceInputReceiver::PollMacInput()
 #endif
 
 #if defined(__ANDROID__)
-void DeviceInputReceiver::PollAndroidInput()
+void UserInput::PollAndroidInput()
 {
 }
 #endif
 
 #if defined(__IOS__)
-void DeviceInputReceiver::PollIOSInput()
+void UserInput::PollIOSInput()
 {
 }
 #endif
+
+Input::Key GlfwKeyToInputKey(int glfwKey)
+{
+  switch (glfwKey)
+  {
+  case GLFW_KEY_SPACE:
+    return Input::Key::Space;
+  case GLFW_KEY_APOSTROPHE:
+    return Input::Key::Apostrophe;
+  case GLFW_KEY_COMMA:
+    return Input::Key::Comma;
+  case GLFW_KEY_MINUS:
+    return Input::Key::Minus;
+  case GLFW_KEY_PERIOD:
+    return Input::Key::Period;
+  case GLFW_KEY_SLASH:
+    return Input::Key::Slash;
+  case GLFW_KEY_0:
+    return Input::Key::Num0;
+  case GLFW_KEY_1:
+    return Input::Key::Num1;
+  case GLFW_KEY_2:
+    return Input::Key::Num2;
+  case GLFW_KEY_3:
+    return Input::Key::Num3;
+  case GLFW_KEY_4:
+    return Input::Key::Num4;
+  case GLFW_KEY_5:
+    return Input::Key::Num5;
+  case GLFW_KEY_6:
+    return Input::Key::Num6;
+  case GLFW_KEY_7:
+    return Input::Key::Num7;
+  case GLFW_KEY_8:
+    return Input::Key::Num8;
+  case GLFW_KEY_9:
+    return Input::Key::Num9;
+  case GLFW_KEY_SEMICOLON:
+    return Input::Key::Semicolon;
+  case GLFW_KEY_EQUAL:
+    return Input::Key::Equal;
+  case GLFW_KEY_A:
+    return Input::Key::A;
+  case GLFW_KEY_B:
+    return Input::Key::B;
+  case GLFW_KEY_C:
+    return Input::Key::C;
+  case GLFW_KEY_D:
+    return Input::Key::D;
+  case GLFW_KEY_E:
+    return Input::Key::E;
+  case GLFW_KEY_F:
+    return Input::Key::F;
+  case GLFW_KEY_G:
+    return Input::Key::G;
+  case GLFW_KEY_H:
+    return Input::Key::H;
+  case GLFW_KEY_I:
+    return Input::Key::I;
+  case GLFW_KEY_J:
+    return Input::Key::J;
+  case GLFW_KEY_K:
+    return Input::Key::K;
+  case GLFW_KEY_L:
+    return Input::Key::L;
+  case GLFW_KEY_M:
+    return Input::Key::M;
+  case GLFW_KEY_N:
+    return Input::Key::N;
+  case GLFW_KEY_O:
+    return Input::Key::O;
+  case GLFW_KEY_P:
+    return Input::Key::P;
+  case GLFW_KEY_Q:
+    return Input::Key::Q;
+  case GLFW_KEY_R:
+    return Input::Key::R;
+  case GLFW_KEY_S:
+    return Input::Key::S;
+  case GLFW_KEY_T:
+    return Input::Key::T;
+  case GLFW_KEY_U:
+    return Input::Key::U;
+  case GLFW_KEY_V:
+    return Input::Key::V;
+  case GLFW_KEY_W:
+    return Input::Key::W;
+  case GLFW_KEY_X:
+    return Input::Key::X;
+  case GLFW_KEY_Y:
+    return Input::Key::Y;
+  case GLFW_KEY_Z:
+    return Input::Key::Z;
+  case GLFW_KEY_LEFT_BRACKET:
+    return Input::Key::LeftBracket;
+  case GLFW_KEY_BACKSLASH:
+    return Input::Key::Backslash;
+  case GLFW_KEY_RIGHT_BRACKET:
+    return Input::Key::RightBracket;
+  case GLFW_KEY_GRAVE_ACCENT:
+    return Input::Key::GraveAccent;
+  case GLFW_KEY_ESCAPE:
+    return Input::Key::Escape;
+  case GLFW_KEY_ENTER:
+    return Input::Key::Enter;
+  case GLFW_KEY_TAB:
+    return Input::Key::Tab;
+  case GLFW_KEY_BACKSPACE:
+    return Input::Key::Backspace;
+  case GLFW_KEY_INSERT:
+    return Input::Key::Insert;
+  case GLFW_KEY_DELETE:
+    return Input::Key::Delete;
+  case GLFW_KEY_RIGHT:
+    return Input::Key::Right;
+  case GLFW_KEY_LEFT:
+    return Input::Key::Left;
+  case GLFW_KEY_DOWN:
+    return Input::Key::Down;
+  case GLFW_KEY_UP:
+    return Input::Key::Up;
+  case GLFW_KEY_PAGE_UP:
+    return Input::Key::PageUp;
+  case GLFW_KEY_PAGE_DOWN:
+    return Input::Key::PageDown;
+  case GLFW_KEY_HOME:
+    return Input::Key::Home;
+  case GLFW_KEY_END:
+    return Input::Key::End;
+  case GLFW_KEY_CAPS_LOCK:
+    return Input::Key::CapsLock;
+  case GLFW_KEY_SCROLL_LOCK:
+    return Input::Key::ScrollLock;
+  case GLFW_KEY_NUM_LOCK:
+    return Input::Key::NumLock;
+  case GLFW_KEY_PRINT_SCREEN:
+    return Input::Key::PrintScreen;
+  case GLFW_KEY_PAUSE:
+    return Input::Key::Pause;
+  case GLFW_KEY_F1:
+    return Input::Key::F1;
+  case GLFW_KEY_F2:
+    return Input::Key::F2;
+  case GLFW_KEY_F3:
+    return Input::Key::F3;
+  case GLFW_KEY_F4:
+    return Input::Key::F4;
+  case GLFW_KEY_F5:
+    return Input::Key::F5;
+  case GLFW_KEY_F6:
+    return Input::Key::F6;
+  case GLFW_KEY_F7:
+    return Input::Key::F7;
+  case GLFW_KEY_F8:
+    return Input::Key::F8;
+  case GLFW_KEY_F9:
+    return Input::Key::F9;
+  case GLFW_KEY_F10:
+    return Input::Key::F10;
+  case GLFW_KEY_F11:
+    return Input::Key::F11;
+  case GLFW_KEY_F12:
+    return Input::Key::F12;
+  case GLFW_KEY_KP_0:
+    return Input::Key::Kp0;
+  case GLFW_KEY_KP_1:
+    return Input::Key::Kp1;
+  case GLFW_KEY_KP_2:
+    return Input::Key::Kp2;
+  case GLFW_KEY_KP_3:
+    return Input::Key::Kp3;
+  case GLFW_KEY_KP_4:
+    return Input::Key::Kp4;
+  case GLFW_KEY_KP_5:
+    return Input::Key::Kp5;
+  case GLFW_KEY_KP_6:
+    return Input::Key::Kp6;
+  case GLFW_KEY_KP_7:
+    return Input::Key::Kp7;
+  case GLFW_KEY_KP_8:
+    return Input::Key::Kp8;
+  case GLFW_KEY_KP_9:
+    return Input::Key::Kp9;
+  case GLFW_KEY_KP_DECIMAL:
+    return Input::Key::KpDecimal;
+  case GLFW_KEY_KP_DIVIDE:
+    return Input::Key::KpDivide;
+  case GLFW_KEY_KP_MULTIPLY:
+    return Input::Key::KpMultiply;
+  case GLFW_KEY_KP_SUBTRACT:
+    return Input::Key::KpSubtract;
+  case GLFW_KEY_KP_ADD:
+    return Input::Key::KpAdd;
+  case GLFW_KEY_KP_ENTER:
+    return Input::Key::KpEnter;
+  case GLFW_KEY_KP_EQUAL:
+    return Input::Key::KpEqual;
+  case GLFW_KEY_LEFT_SHIFT:
+    return Input::Key::LeftShift;
+  case GLFW_KEY_LEFT_CONTROL:
+    return Input::Key::LeftControl;
+  case GLFW_KEY_LEFT_ALT:
+    return Input::Key::LeftAlt;
+  case GLFW_KEY_LEFT_SUPER:
+    return Input::Key::LeftSuper;
+  case GLFW_KEY_RIGHT_SHIFT:
+    return Input::Key::RightShift;
+  case GLFW_KEY_RIGHT_CONTROL:
+    return Input::Key::RightControl;
+  case GLFW_KEY_RIGHT_ALT:
+    return Input::Key::RightAlt;
+  case GLFW_KEY_RIGHT_SUPER:
+    return Input::Key::RightSuper;
+  case GLFW_KEY_MENU:
+    return Input::Key::Menu;
+  default:
+    return Input::Key::Unknown;
+  }
+}
 
 } // namespace Rl::Input

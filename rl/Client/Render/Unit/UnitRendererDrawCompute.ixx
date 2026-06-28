@@ -11,6 +11,6 @@ namespace Rl::Client::Render
 
 export void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     Providers::UnitStateBinding&                                     vk,
-    Game::MainBinding&                                               context);
+    Main::MainBinding&                                               context);
 
 } // namespace Rl::Client::Render

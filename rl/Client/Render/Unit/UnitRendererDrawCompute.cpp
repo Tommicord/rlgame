@@ -3,7 +3,7 @@ import Rl.Client.Render.Unit.UnitRendererFrustum;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.State.UnitState;
 import Rl.Base.Binding;
-import Rl.Player.Camera;
+import Rl.Player.PlayerCamera;
 
 import <algorithm>;
 import <glm/glm.hpp>;
@@ -28,11 +28,11 @@ static glm::mat4 CalculateLightSpaceMatrix(
 
 void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     Providers::UnitStateBinding&                              vk,
-    Game::MainBinding&                                        context)
+    Main::MainBinding&                                        context)
 {
   // Get camera matrices for push constants
   UnitRenderUBO        ubo{};
-  const World::PlayerCamera& cam = resource.camera->GetObjectRef();
+  const Player::IPlayerCamera& cam = *resource.player.camera;
   ubo.model = cam.GetModelMatrix();
   ubo.view = cam.GetViewMatrix();
   ubo.projection = cam.GetProjectionMatrix();
@@ -43,7 +43,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
 
   // Update frustum data outside render pass
   UnitRenderFrustumPlanes frustum{};
-  UnitCameraToFrustumPlanes(frustum, resource.camera->GetObjectRef());
+  UnitCameraToFrustumPlanes(frustum, *resource.player.camera);
 
   constexpr VkDeviceSize frustumSize = sizeof(UnitRenderFrustumPlanes);
   vkCmdUpdateBuffer(
@@ -69,7 +69,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
 
   // Ambient and environment
   lightingData.ambientStrength = 0.15f;
-  World::ICamera::Eye eyePos = cam.eye;
+  Player::IPlayerCamera::Eye eyePos = cam.eye;
   lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
   lightingData.exposure = 1.25f;
 
