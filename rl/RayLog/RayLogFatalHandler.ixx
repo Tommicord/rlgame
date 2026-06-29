@@ -15,14 +15,11 @@ export class RayLogFatalHandler
   [[noreturn]]
   static void Handle(const std::string& message)
   {
-    auto frames = RayLogStackTrace::Capture(1);
-    auto demangled = RayLogSymbolDemangler::DemangleStackTrace(frames);
-    
+    const auto frames = RayLogStackTrace::Capture(1);
+    const auto demangled = RayLogSymbolDemangler::DemangleStackTrace(frames);
     std::string fatalMessage = "FATAL ERROR: " + message + "\n";
     fatalMessage += demangled;
-    
     RayLogPlatformOutput::WriteError(fatalMessage);
-    
     std::terminate();
   }
 

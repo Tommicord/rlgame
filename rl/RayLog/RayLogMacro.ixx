@@ -1,7 +1,9 @@
 export module Rl.RayLog.Macro;
 
 import Rl.RayLog.Logger;
-import Rl.RayLog.LogLevel;
+import Rl.RayLog.LevelPrinter;
+
+import <variant>;
 import <string>;
 import <vector>;
 

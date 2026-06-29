@@ -1,4 +1,4 @@
-export module Rl.RayLog.LogLevel;
+export module Rl.RayLog.LevelPrinter;
 
 import Rl.RayLog.IRayLogSerializable;
 
@@ -8,7 +8,7 @@ namespace Rl::RayLog
 {
 
 /* RayLogLevel: Trace, Debug, Info, Warning, Error, Fatal */
-enum class RayLogLevel : unsigned char
+export enum class RayLogLevel : unsigned char
 {
   Trace,
   Debug,
@@ -19,9 +19,11 @@ enum class RayLogLevel : unsigned char
 };
 
 /* RayLog logging level printer from RayLogLevel enum */
-export class RayLogLevelPrinter final : public IRayLogSerializable<RayLogLevel>
+export class RayLogColorPrinter final : public IRayLogSerializable<RayLogLevel>
 {
+public:
   /* Stringify a RayLogLevel enum value */
+  [[nodiscard]]
   constexpr const std::string& ToString(const RayLogLevel level) const override
   {
     switch (level)

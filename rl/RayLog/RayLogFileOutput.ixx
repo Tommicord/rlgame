@@ -1,6 +1,7 @@
 export module Rl.RayLog.FileOutput;
 
 import Rl.RayLog.Uuid;
+import Rl.RayLog.Config;
 import <fstream>;
 import <filesystem>;
 import <string>;
@@ -11,33 +12,42 @@ namespace Rl::RayLog
 
 export class RayLogFileOutput
 {
-  std::ofstream           logFile;
+  /* The log file */
+  std::ofstream           logf;
+
+  /* The file mutex for synchronization */
   std::mutex              fileMutex;
-  std::string             logFilePath;
+
+  /* The file path of the log file */
+  std::string             logfp;
+
+  /* The current size of the log file */
   size_t                  currentSize = 0;
-  RayLogUuid              logId;
-  static constexpr size_t MaxFileSize = 256 * 1024;
+
+  /* The UUID of the log */
+  RayLogUuid              logUuid;
 
   public:
   RayLogFileOutput()
   {
+    // This should not fail
     std::filesystem::create_directory(".log");
-    logFilePath = ".log/" + logId.ToString() + ".log";
-    logFile.open(logFilePath, std::ios::out | std::ios::app);
+    logfp = ".log/" + logUuid.ToString() + ".log";
+    logf.open(logfp, std::ios::out | std::ios::app);
   }
 
   ~RayLogFileOutput()
   {
-    if (logFile.is_open())
-      logFile.close();
+    if (logf.is_open())
+      logf.close();
   }
 
   void Write(const std::string& message)
   {
     std::scoped_lock lock(fileMutex);
-    if (!logFile.is_open())
+    if (!logf.is_open())
       return;
-    logFile << message << std::endl;
+    logf << message << std::endl;
     currentSize += message.size() + 1;
     if (currentSize >= MaxFileSize)
       RotateFile();
@@ -46,11 +56,12 @@ export class RayLogFileOutput
   private:
   void RotateFile()
   {
-    logFile.close();
+    logf.close();
     currentSize = 0;
-    logId = RayLogUuid();
-    logFilePath = ".log/" + logId.ToString() + ".log";
-    logFile.open(logFilePath, std::ios::out | std::ios::app);
+    logUuid = RayLogUuid();
+    std::sstr
+    logfp = ".log/" + logUuid.ToString() + ".log";
+    logf.open(logfp, std::ios::out | std::ios::app);
   }
 };
 

@@ -13,13 +13,13 @@ export class RayLogFormatter
 {
   public:
   [[nodiscard]]
-  static std::string FormatInt(int value)
+  static std::string FormatInt(const int value)
   {
     return std::to_string(value);
   }
 
   [[nodiscard]]
-  static std::string FormatFloat(float value, int precision = 6)
+  static std::string FormatFloat(const float value, const int precision = 4)
   {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(precision) << value;
@@ -33,7 +33,7 @@ export class RayLogFormatter
   }
 
   [[nodiscard]]
-  static std::string FormatHex(int value)
+  static std::string FormatHex(const int value)
   {
     std::stringstream ss;
     ss << "0x" << std::hex << value;
@@ -41,7 +41,7 @@ export class RayLogFormatter
   }
 
   [[nodiscard]]
-  static std::string FormatPointer(const void* ptr)
+  static std::string FormatPtr(const void* ptr)
   {
     std::stringstream ss;
     ss << "0x" << std::hex << reinterpret_cast<uintptr_t>(ptr);
@@ -49,7 +49,7 @@ export class RayLogFormatter
   }
 
   [[nodiscard]]
-  static std::string FormatBool(bool value)
+  static std::string FormatBool(const bool value)
   {
     return value ? "true" : "false";
   }

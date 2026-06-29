@@ -1,7 +1,6 @@
 export module Rl.RayLog.Logger;
 
 import Rl.RayLog.Config;
-import Rl.RayLog.LogLevel;
 import Rl.RayLog.RingBuffer;
 import Rl.RayLog.ThreadPool;
 import Rl.RayLog.Message;
@@ -12,6 +11,7 @@ import Rl.RayLog.FileOutput;
 import Rl.RayLog.PlatformOutput;
 import Rl.RayLog.FatalHandler;
 import Rl.RayLog.LevelPrinter;
+import <vector>;
 import <string>;
 import <sstream>;
 import <mutex>;
@@ -23,11 +23,10 @@ namespace Rl::RayLog
 export class RayLog
 {
   RayLogRingBuffer<RayLogMessage> messageQueue{MaxQueueSize};
-  RayLogThreadPool threadPool{WorkerThreads};
-  RayLogFileOutput fileOutput;
-  RayLogLevelPrinter levelPrinter;
-  std::mutex logMutex;
-  static RayLog* instance;
+  RayLogThreadPool                threadPool{WorkerThreads};
+  RayLogFileOutput                fileOutput;
+  RayLogColorPrinter              levelPrinter;
+  mutable std::mutex              logMutex;
 
   RayLog() = default;
 
@@ -41,14 +40,22 @@ export class RayLog
     return instance;
   }
 
-  void Log(RayLogLevel level, const std::string& tag, const std::string& format, 
-           const std::vector<std::variant<int, float, std::string, bool, void*, 
-           std::vector<int>, std::vector<float>, std::vector<std::string>>>& args)
+  void Log(const RayLogLevel          level,
+      const std::string&              tag,
+      const std::string&              format,
+      const std::vector<std::variant<int,
+          float,
+          std::string,
+          bool,
+          void*,
+          std::vector<int>,
+          std::vector<float>,
+          std::vector<std::string>>>& args)
   {
-    std::string formatted = FormatMessage(format, args);
-    
+    const std::string formatted = FormatMessage(format, args);
+
     RayLogMessage message(level, formatted, tag);
-    
+
     if (!messageQueue.Push(message))
     {
       FlushQueue();
@@ -70,20 +77,21 @@ export class RayLog
     RayLogMessage message;
     while (messageQueue.Pop(message))
     {
-      threadPool.Enqueue([this, message]
-      {
-        std::string logLine = BuildLogLine(message);
-        fileOutput.Write(logLine);
-        RayLogPlatformOutput::Write(logLine);
-      });
+      threadPool.Enqueue(
+          [this, message]
+          {
+            const std::string logLine = BuildLogLine(message);
+            fileOutput.Write(logLine);
+            RayLogPlatformOutput::Write(logLine);
+          });
     }
   }
 
   private:
-  std::string BuildLogLine(const RayLogMessage& message)
+  std::string BuildLogLine(const RayLogMessage& message) const
   {
     std::stringstream ss;
-    ss << "[Thread " << RayLogTimestamp::GetThreadId() << "] ";
+    ss << "[TID " << RayLogTimestamp::GetThreadId() << "] ";
     ss << RayLogTimestamp::Format() << " ";
     ss << levelPrinter.ToString(message.level) << " ";
     ss << message.tag << ": ";
@@ -91,23 +99,29 @@ export class RayLog
     return ss.str();
   }
 
-  std::string FormatMessage(const std::string& format, 
-                            const std::vector<std::variant<int, float, std::string, bool, 
-                            void*, std::vector<int>, std::vector<float>, std::vector<std::string>>>& args)
+  std::string FormatMessage(const std::string& format,
+      const std::vector<std::variant<int,
+          float,
+          std::string,
+          bool,
+          void*,
+          std::vector<int>,
+          std::vector<float>,
+          std::vector<std::string>>>&          args) const
   {
-    auto tokens = RayLogFormatParser::Parse(format);
+    auto              tokens = RayLogFormatParser::Parse(format);
     std::stringstream ss;
-    size_t argIndex = 0;
+    size_t            argIndex = 0;
 
-    for (const auto& token : tokens)
+    for (const auto& [isSpecifier, value] : tokens)
     {
-      if (!token.isSpecifier)
+      if (!isSpecifier)
       {
-        ss << token.value;
+        ss << value;
       }
       else if (argIndex < args.size())
       {
-        ss << FormatArgument(token.value, args[argIndex]);
+        ss << FormatArgument(value, args[argIndex]);
         argIndex++;
       }
     }
@@ -115,22 +129,46 @@ export class RayLog
     return ss.str();
   }
 
-  std::string FormatArgument(const std::string& specifier, 
-                            const std::variant<int, float, std::string, bool, void*,
-                            std::vector<int>, std::vector<float>, std::vector<std::string>>& arg)
+  std::string FormatArgument(const std::string& specifier,
+      const std::variant<int,
+          float,
+          std::string,
+          bool,
+          void*,
+          std::vector<int>,
+          std::vector<float>,
+          std::vector<std::string>>&            arg) const
   {
     if (specifier == "%s")
-      return RayLogFormatter::FormatString(std::get<std::string>(arg));
+      if (std::holds_alternative<std::string>(arg))
+      {
+        return RayLogFormatter::FormatString(std::get<std::string>(arg));
+      }
     if (specifier == "%d")
-      return RayLogFormatter::FormatInt(std::get<int>(arg));
+      if (std::holds_alternative<int>(arg))
+      {
+        return RayLogFormatter::FormatInt(std::get<int>(arg));
+      }
     if (specifier == "%f")
-      return RayLogFormatter::FormatFloat(std::get<float>(arg));
+      if (std::holds_alternative<float>(arg))
+      {
+        return RayLogFormatter::FormatFloat(std::get<float>(arg));
+      }
     if (specifier == "%h")
-      return RayLogFormatter::FormatHex(std::get<int>(arg));
+      if (std::holds_alternative<int>(arg))
+      {
+        return RayLogFormatter::FormatHex(std::get<int>(arg));
+      }
     if (specifier == "%p")
-      return RayLogFormatter::FormatPointer(std::get<void*>(arg));
+      if (std::holds_alternative<void*>(arg))
+      {
+        return RayLogFormatter::FormatPtr(std::get<void*>(arg));
+      }
     if (specifier == "%b")
-      return RayLogFormatter::FormatBool(std::get<bool>(arg));
+      if (std::holds_alternative<bool>(arg))
+      {
+        return RayLogFormatter::FormatBool(std::get<bool>(arg));
+      }
     if (specifier == "%a")
     {
       if (std::holds_alternative<std::vector<int>>(arg))
@@ -142,13 +180,11 @@ export class RayLog
     }
     if (specifier.starts_with("%f."))
     {
-      int precision = std::stoi(specifier.substr(3));
+      const int precision = std::stoi(specifier.substr(3));
       return RayLogFormatter::FormatFloat(std::get<float>(arg), precision);
     }
     return "?";
   }
 };
 
-RayLog* RayLog::instance = nullptr;
-
-}
+} // namespace Rl::RayLog

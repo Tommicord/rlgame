@@ -6,10 +6,9 @@ namespace Rl::RayLog
 {
 
 /* Abstract interface for serializable RayLog logging classes */
-export template<class T>
-class IRayLogSerializable
+export template <class T> class IRayLogSerializable
 {
-public:
+  public:
   /* Default destructor for the printer strategy */
   virtual ~IRayLogSerializable() = default;
 
@@ -26,4 +25,4 @@ public:
   };
 };
 
-}
+} // namespace Rl::RayLog

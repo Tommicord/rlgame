@@ -1,35 +1,34 @@
 export module Rl.RayLog.RingBuffer;
 
-import <atomic>;
 import <vector>;
 import <mutex>;
+import <cstddef>;
 
 namespace Rl::RayLog
 {
 
-template<typename T>
+export template<typename T>
 class RayLogRingBuffer
 {
   std::vector<T> buffer;
-  std::atomic<size_t> head{0};
-  std::atomic<size_t> tail{0};
-  std::mutex mutex;
+  size_t head{0};
+  size_t tail{0};
+  mutable std::mutex mutex;
   size_t capacity;
 
   public:
   explicit RayLogRingBuffer(size_t size) : buffer(size), capacity(size) {}
 
-  [[nodiscard]]
   bool Push(const T& item)
   {
     std::scoped_lock lock(mutex);
-    const size_t nextHead = (head.load() + 1) % capacity;
+    const size_t nextHead = (head + 1) % capacity;
     
-    if (nextHead == tail.load())
+    if (nextHead == tail)
       return false;
 
-    buffer[head.load()] = item;
-    head.store(nextHead);
+    buffer[head] = item;
+    head = nextHead;
     return true;
   }
 
@@ -37,32 +36,34 @@ class RayLogRingBuffer
   bool Pop(T& item)
   {
     std::scoped_lock lock(mutex);
-    if (tail.load() == head.load())
+    if (tail == head)
       return false;
-
-    item = buffer[tail.load()];
-    tail.store((tail.load() + 1) % capacity);
+    item = buffer[tail];
+    tail = (tail + 1) % capacity;
     return true;
   }
 
   [[nodiscard]]
   size_t Size() const
   {
-    if (head.load() >= tail.load())
-      return head.load() - tail.load();
-    return capacity - tail.load() + head.load();
+    std::scoped_lock lock(mutex);
+    if (head >= tail)
+      return head - tail;
+    return capacity - tail + head;
   }
 
   [[nodiscard]]
   bool IsEmpty() const
   {
-    return head.load() == tail.load();
+    std::scoped_lock lock(mutex);
+    return head == tail;
   }
 
   [[nodiscard]]
   bool IsFull() const
   {
-    return (head.load() + 1) % capacity == tail.load();
+    std::scoped_lock lock(mutex);
+    return (head + 1) % capacity == tail;
   }
 };
 

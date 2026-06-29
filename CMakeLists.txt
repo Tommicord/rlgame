@@ -131,6 +131,7 @@ set(CXX_MODULES
   rl/RayLog/IRayLogSerializable.ixx
   rl/RayLog/RayLogRingBuffer.ixx
   rl/RayLog/RayLogMessage.ixx
+  rl/RayLog/RayLogColorPrinter.ixx
   rl/RayLog/RayLogTimestamp.ixx
   rl/RayLog/RayLogPlatformOutput.ixx
   rl/RayLog/RayLogFormatter.ixx
