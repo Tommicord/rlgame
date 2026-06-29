@@ -132,6 +132,7 @@ set(CXX_MODULES
   rl/RayLog/RayLogMessage.ixx
   rl/RayLog/RayLogColorPrinter.ixx
   rl/RayLog/RayLogTimestamp.ixx
+  rl/RayLog/RayLogMessageBuilder.ixx
   rl/RayLog/RayLogPlatformOutput.ixx
   rl/RayLog/RayLogFormatter.ixx
   rl/RayLog/RayLogFormatParser.ixx
@@ -216,7 +217,7 @@ target_link_libraries(
 
 # Platform-specific libraries for input polling
 if (WIN32)
-  # Windows API is part of the OS, no additional libraries needed
+  target_link_libraries(rlgame PRIVATE dbghelp)
 elseif (UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
   target_link_libraries(rlgame PRIVATE X11::X11)
@@ -411,7 +412,7 @@ endfunction()
 
 target_add_resource(rlgame
   SOURCES
-    Public/Resources/Textures
+    Public/Textures
     ${CMAKE_CURRENT_BINARY_DIR}/Shaders
   DESTINATIONS
     CURRENT_DIR
@@ -420,7 +421,7 @@ target_add_resource(rlgame
 target_add_resource(
   rlgame_tests
   SOURCES
-    Public/Resources/Textures
+    Public/Textures
   DESTINATIONS
     CURRENT_DIR
 )

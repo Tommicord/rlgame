@@ -177,7 +177,7 @@ bool Texture2::IsFormatSupported(Texture2Format format)
 Texture2::Texture2() :
     data(nullptr), dataSize(0), width(0), height(0), channels(0), mipmapLevels(1), loaded(false)
 {
-  Initialize();
+  Create();
 }
 
 Texture2::Texture2(const std::string& filepath) : Texture2()
@@ -196,7 +196,7 @@ Texture2::~Texture2()
   Cleanup();
 }
 
-void Texture2::Initialize()
+void Texture2::Create()
 {
   data = nullptr;
   dataSize = 0;
@@ -252,7 +252,6 @@ void Texture2::CleanupBinding(const Main::MainBinding& context)
   }
 }
 
-// Loading functions
 bool Texture2::FromResource(const std::string& filepath)
 {
   return FromResource(filepath, properties);
@@ -278,7 +277,6 @@ bool Texture2::FromMemory(
   {
     return false;
   }
-
   return ProcessImageData(imageData, width, height, channels);
 }
 
@@ -321,7 +319,6 @@ bool Texture2::FromAndroidAsset(const std::string& assetPath)
 bool Texture2::FromIOSBundle(const std::string& resourcePath)
 {
 #ifdef RL_PLATFORM_IOS
-  // iOS-specific bundle resource loading
   CFBundleRef mainBundle = CFBundleGetMainBundle();
   if (!mainBundle)
   {
@@ -364,7 +361,7 @@ bool Texture2::FromIOSBundle(const std::string& resourcePath)
 bool Texture2::LoadImage(const std::string& filepath)
 {
   int width, height, channels;
-  // Load image with stb_image
+
   stbi_uc* imageData = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
 
   if (!imageData)
@@ -390,7 +387,6 @@ bool Texture2::ProcessImageData(uint8_t* imageData, int width, int height, int c
   this->height = height;
   this->channels = channels;
 
-  // Determine format based on channels
   switch (channels)
   {
   case 1:
@@ -409,14 +405,12 @@ bool Texture2::ProcessImageData(uint8_t* imageData, int width, int height, int c
     stbi_image_free(imageData);
     return false;
   }
-  // Calculate data size
   dataSize = width * height * channels;
   data = new uint8_t[dataSize];
   memcpy(data, imageData, dataSize);
-  // Free stb_image data
   stbi_image_free(imageData);
   loaded = true;
-  // Generate mipmaps if requested
+
   if (properties.generateMipmaps)
   {
     GenMipmaps();
@@ -431,14 +425,12 @@ void Texture2::GenMipmaps()
   {
     return;
   }
-  // Calculate number of mipmap levels
   const int maxDimension = width > height ? width : height;
   mipmapLevels = static_cast<int>(std::floor(std::log2(maxDimension))) + 1;
 
   // Generate mipmap data from RGBA array
   if (mipmapLevels > 1 && data)
   {
-    // Calculate total size needed for all mipmaps
     size_t totalMipmapSize = 0;
     int    mipWidth = width;
     int    mipHeight = height;
@@ -452,12 +444,9 @@ void Texture2::GenMipmaps()
       if (mipHeight > 1)
         mipHeight /= 2;
     }
-
-    // Allocate new buffer for mipmapped data
     uint8_t* mipmappedData = new uint8_t[totalMipmapSize];
     uint8_t* dst = mipmappedData;
 
-    // Copy base level
     mipWidth = width;
     mipHeight = height;
     size_t baseSize = width * height * channels;
@@ -521,7 +510,6 @@ void Texture2::GenMipmaps()
       dst += mipWidth * mipHeight * channels;
     }
 
-    // Replace old data with mipmapped data
     delete[] data;
     data = mipmappedData;
     dataSize = totalMipmapSize;

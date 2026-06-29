@@ -2,7 +2,6 @@ export module Rl.RayLog.SymbolDemangler;
 
 import <string>;
 import <vector>;
-
 #if defined(_WIN32)
 #include <windows.h>
 #include <dbghelp.h>
@@ -89,7 +88,6 @@ return mangledName ? mangledName : "??";
       result += "  #" + std::to_string(i) + " ??" + "\n";
     }
 #endif
-
     return result;
   }
 };

@@ -20,4 +20,4 @@ So it should run fast on most devices with a dedicated GPU or even old or new in
 
 - Example of Unit render graphics on **Intel HD Graphics 530**
 
-![Test Unit render graphics on Intel HD Graphics 530](Public/Resources/Examples/UnitRenderExample.png)
+![Test Unit render graphics on Intel HD Graphics 530](Public/Examples/UnitRenderExample.png)

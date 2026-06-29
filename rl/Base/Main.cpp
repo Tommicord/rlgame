@@ -9,7 +9,7 @@ int main()
   }
   catch (const std::exception& e)
   {
-    return EXIT_FAILURE;
+    return 1;
   }
-  return EXIT_SUCCESS;
+  return 0;
 }

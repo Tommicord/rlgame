@@ -151,11 +151,11 @@ export class UnitModel final : public IStateModel<World::IUnit,
   std::unique_ptr<UnitStateResource> resource;
   std::unique_ptr<UnitStateBinding>  binding;
   std::unique_ptr<World::IUnit>      ref;
-  Main::MainBinding*                 context;
+  Main::MainBinding&                 context;
 
   public:
   /* Constructs a model of the Camera class */
-  explicit UnitModel(Main::MainBinding& context) : IStateModel(context), context(&context)
+  explicit UnitModel(Main::MainBinding& context) : IStateModel(context), context(context)
   {
     drawable = std::make_shared<UnitStateDrawable>();
     binding = std::make_unique<UnitStateBinding>();
@@ -167,7 +167,7 @@ export class UnitModel final : public IStateModel<World::IUnit,
   /* Destructs a CameraModel */
   ~UnitModel() override
   {
-    drawable->OnDestroy(*resource, *binding, *context);
+    drawable->OnDestroy(*resource, *binding, context);
   }
 
   /* Gets the stored camera */

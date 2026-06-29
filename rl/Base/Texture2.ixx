@@ -78,61 +78,39 @@ export class Texture2
   // Texture data access
   [[nodiscard]]
   uint8_t* GetData() const
-  {
-    return data;
-  }
+  { return data; }
   [[nodiscard]]
   size_t GetDataSize() const
-  {
-    return dataSize;
-  }
+  { return dataSize; }
   // Texture properties
   [[nodiscard]]
   int GetWidth() const
-  {
-    return width;
-  }
+  { return width; }
   [[nodiscard]]
   int GetHeight() const
-  {
-    return height;
-  }
+  { return height; }
   [[nodiscard]]
   int GetChannels() const
-  {
-    return channels;
-  }
+  { return channels; }
   [[nodiscard]]
   Texture2Format GetFormat() const
-  {
-    return properties.format;
-  }
+  { return properties.format; }
   [[nodiscard]]
   int GetMipmapLevels() const
-  {
-    return mipmapLevels;
-  }
+  { return mipmapLevels; }
   // Texture configuration
   void SetProperties(const Texture2Properties& properties)
-  {
-    this->properties = properties;
-  }
+  { this->properties = properties; }
   [[nodiscard]]
   const Texture2Properties& GetProperties() const
-  {
-    return properties;
-  }
+  { return properties; }
   // Texture state
   [[nodiscard]]
   bool IsLoaded() const
-  {
-    return loaded;
-  }
+  { return loaded; }
   [[nodiscard]]
   bool HasMipmaps() const
-  {
-    return mipmapLevels > 1;
-  }
+  { return mipmapLevels > 1; }
   static bool        IsFormatSupported(Texture2Format format);
   static int         GetFormatSize(Texture2Format format);
   static std::string GetFormatName(Texture2Format format);
@@ -157,7 +135,7 @@ export class Texture2
   void CleanupBinding(const Main::MainBinding& context);
 
   private:
-  void Initialize();
+  void Create();
   bool LoadImage(const std::string& filepath);
   bool ProcessImageData(uint8_t* imageData, int width, int height, int channels);
   void CreateBindingImage(Main::MainBinding& context);
@@ -187,8 +165,8 @@ export class Texture2
 export Texture2* GenerateLightningTexture(
     Texture2* baseTexture, const Texture2Properties& properties);
 export Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture,
-    const glm::vec3&                                       lightDirection,
-    const Texture2Properties&                              properties);
+    const glm::vec3&                                             lightDirection,
+    const Texture2Properties&                                    properties);
 export Texture2* GenerateNormalTexture(
     Texture2* baseTexture, const Texture2Properties& properties);
 

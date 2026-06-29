@@ -52,7 +52,7 @@ export inline void LogFatal(const std::string& tag, const std::string& format,
   RayLog::GetInstance().Log(RayLogLevel::Fatal, tag, format, args);
 }
 
-export inline void Flush()
+export inline void LogFlush()
 {
   RayLog::GetInstance().FlushQueue();
 }
