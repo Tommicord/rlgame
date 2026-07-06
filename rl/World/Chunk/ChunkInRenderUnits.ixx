@@ -8,11 +8,34 @@ import <memory>;
 import <vector>;
 import <mutex>;
 import <atomic>;
+import <stdexcept>;
 
 namespace Rl::World::Chunk
 {
 
-/* Delta for GPU synchronization - represents a single unit change */
+/* System health status */
+export enum class SystemHealth : uint32_t
+{
+  HEALTHY = 0,
+  DEGRADED = 1,
+  UNHEALTHY = 2
+};
+
+/* System statistics for monitoring */
+export struct ChunkSystemStats
+{
+  uint32_t activeChunks;
+  uint32_t totalChunkSlots;
+  uint32_t pendingTransactions;
+  uint32_t pendingDeltas;
+  uint64_t totalTransactionsProcessed;
+  uint64_t totalDeltasGenerated;
+  uint64_t failedTransactions;
+  double averageProcessingTimeMs;
+  SystemHealth health;
+};
+
+/* Delta for GPU synchronization, represents a single unit change */
 export struct ChunkDelta
 {
   uint32_t chunkIndex;      // Index of the chunk
@@ -22,6 +45,7 @@ export struct ChunkDelta
   uint32_t oldUnitId;       // Previous unit ID
   uint32_t newUnitId;       // New unit ID
   uint64_t frameNumber;     // Frame number for synchronization
+  uint64_t timestamp;       // Delta creation timestamp
 };
 
 /* Chunk coordinate in world space */
@@ -30,9 +54,23 @@ export struct WorldChunkCoord
   int32_t chunkX;
   int32_t chunkY;
   int32_t chunkZ;
+  
+  /* Equality operator for coordinate comparison */
+  [[nodiscard]]
+  bool operator==(const WorldChunkCoord& other) const
+  {
+    return chunkX == other.chunkX && chunkY == other.chunkY && chunkZ == other.chunkZ;
+  }
+  
+  /* Inequality operator */
+  [[nodiscard]]
+  bool operator!=(const WorldChunkCoord& other) const
+  {
+    return !(*this == other);
+  }
 };
 
-/* Global manager for chunks in render distance */
+/* Global manager for chunks in render distance with robustness features */
 export class ChunkInRenderUnits
 {
   public:
@@ -50,42 +88,49 @@ export class ChunkInRenderUnits
   ChunkInRenderUnits(ChunkInRenderUnits&& other) noexcept;
   ChunkInRenderUnits& operator=(ChunkInRenderUnits&& other) noexcept;
   
-  /* Initialize the chunk system */
-  void Initialize();
+  /* Initialize the chunk system with error handling */
+  [[nodiscard]]
+  bool Initialize();
   
-  /* Shutdown the chunk system */
-  void Shutdown();
+  /* Shutdown the chunk system safely */
+  [[nodiscard]]
+  bool Shutdown();
   
-  /* Add a chunk to the render distance */
+  /* Check if system is initialized */
+  [[nodiscard]]
+  bool IsInitialized() const;
+  
+  /* Add a chunk to the render distance with validation */
   [[nodiscard]]
   bool AddChunk(const WorldChunkCoord& coord, UnitChunkBuffer& chunkBuffer);
   
-  /* Remove a chunk from the render distance */
+  /* Remove a chunk from the render distance safely */
   [[nodiscard]]
   bool RemoveChunk(const WorldChunkCoord& coord);
   
-  /* Get chunk buffer at world coordinates */
+  /* Get chunk buffer at world coordinates with bounds checking */
   [[nodiscard]]
   UnitChunkBuffer* GetChunkBuffer(const WorldChunkCoord& coord);
   
-  /* Get chunk buffer at index */
+  /* Get chunk buffer at index with bounds checking */
   [[nodiscard]]
   UnitChunkBuffer* GetChunkBuffer(uint32_t index);
   
-  /* Safe read operation with bounds checking */
+  /* Safe read operation with comprehensive validation */
   [[nodiscard]]
   TransactionResult ReadUnitId(const WorldChunkCoord& coord, int32_t localX, int32_t localY, int32_t localZ);
   
-  /* Safe write operation with bounds checking and transaction */
+  /* Safe write operation with validation and transaction */
   [[nodiscard]]
   TransactionResult WriteUnitId(const WorldChunkCoord& coord, int32_t localX, int32_t localY, int32_t localZ, uint32_t newUnitId);
   
-  /* Enqueue a transaction for processing */
+  /* Enqueue a transaction for processing with validation */
   [[nodiscard]]
   bool EnqueueTransaction(const ChunkTransaction& transaction);
   
-  /* Process all pending transactions */
-  void ProcessTransactions();
+  /* Process all pending transactions with error handling */
+  [[nodiscard]]
+  bool ProcessTransactions();
   
   /* Get all pending deltas for GPU synchronization */
   [[nodiscard]]
@@ -109,13 +154,28 @@ export class ChunkInRenderUnits
   /* Get the total number of pending transactions */
   [[nodiscard]]
   uint32_t GetPendingTransactionCount() const;
+  
+  /* Get system statistics */
+  [[nodiscard]]
+  ChunkSystemStats GetSystemStats() const;
+  
+  /* Get system health status */
+  [[nodiscard]]
+  SystemHealth GetSystemHealth() const;
+  
+  /* Validate system integrity */
+  [[nodiscard]]
+  bool ValidateSystemIntegrity() const;
+  
+  /* Force emergency shutdown if system is in critical state */
+  void EmergencyShutdown();
 
   private:
-  /* Convert world chunk coordinates to flat index */
+  /* Convert world chunk coordinates to flat index with validation */
   [[nodiscard]]
   uint32_t WorldCoordToIndex(const WorldChunkCoord& coord) const;
   
-  /* Convert flat index to world chunk coordinates */
+  /* Convert flat index to world chunk coordinates with validation */
   [[nodiscard]]
   WorldChunkCoord IndexToWorldCoord(uint32_t index) const;
   
@@ -123,8 +183,15 @@ export class ChunkInRenderUnits
   [[nodiscard]]
   bool IsInChunkBounds(int32_t localX, int32_t localY, int32_t localZ) const;
   
-  /* Add a delta to the pending list */
+  /* Add a delta to the pending list with thread safety */
   void AddDelta(const ChunkDelta& delta);
+  
+  /* Validate chunk buffer before adding */
+  [[nodiscard]]
+  bool ValidateChunkBuffer(const UnitChunkBuffer& buffer) const;
+  
+  /* Update system health based on current state */
+  void UpdateSystemHealth();
   
   /* Render distance dimensions */
   int32_t renderDistanceX;
@@ -160,6 +227,20 @@ export class ChunkInRenderUnits
   
   /* Flag indicating if system is initialized */
   std::atomic<bool> initialized;
+  
+  /* Flag indicating if system is shutting down */
+  std::atomic<bool> shuttingDown;
+  
+  /* System health status */
+  std::atomic<SystemHealth> systemHealth;
+  
+  /* Statistics tracking */
+  std::atomic<uint64_t> totalTransactionsProcessed;
+  std::atomic<uint64_t> totalDeltasGenerated;
+  std::atomic<uint64_t> failedTransactions;
+  
+  /* Sequence number generator for transactions */
+  std::atomic<uint64_t> transactionSequenceCounter;
 };
 
 } // namespace Rl::World::Chunk

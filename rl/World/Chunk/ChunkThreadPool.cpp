@@ -34,7 +34,6 @@ ChunkThreadPool& ChunkThreadPool::operator=(ChunkThreadPool&& other) noexcept
   if (this != &other)
   {
     Stop();
-    
     workers = std::move(other.workers);
     tasks = std::move(other.tasks);
     stop.store(other.stop.load());
