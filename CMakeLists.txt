@@ -123,6 +123,13 @@ set(CXX_MODULES
   rl/Client/Render/Unit/UnitRendererVertices.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
   rl/World/Chunk/UnitGPUSimplexNoise.ixx
+  rl/World/Chunk/UnitChunkBufferFBM.ixx
+  rl/World/Chunk/ChunkErrorRecovery.ixx
+  rl/World/Chunk/ChunkInRenderUnits.ixx
+  rl/World/Chunk/ChunkThreadPool.ixx
+  rl/World/Chunk/ChunkLogger.ixx
+  rl/World/Chunk/ChunkTransaction.ixx
+  rl/World/Chunk/ChunkTransactionRingBuffer.ixx
   rl/RayLog/RayLogConfig.ixx
   rl/RayLog/RayLogPlatform.ixx
   rl/RayLog/RayLogUuid.ixx
@@ -187,6 +194,11 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertices.cpp
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitGPUSimplexNoise.cpp
+  rl/World/Chunk/ChunkInRenderUnits.cpp
+  rl/World/Chunk/ChunkErrorRecovery.cpp
+  rl/World/Chunk/ChunkLogger.cpp
+  rl/World/Chunk/ChunkThreadPool.cpp
+  rl/World/Chunk/ChunkTransactionRingBuffer.cpp
 )
 
 add_subdirectory(Deps/glfw)
