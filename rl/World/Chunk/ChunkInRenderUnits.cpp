@@ -3,6 +3,11 @@ import Rl.World.Chunk.ChunkInRenderUnits;
 import <algorithm>;
 import <stdexcept>;
 import <chrono>;
+import <atomic>;
+import <mutex>;
+
+import Rl.World.Chunk.UnitChunkBuffer;
+import Rl.World.Chunk.ChunkTransaction;
 
 namespace Rl::World::Chunk
 {
@@ -117,7 +122,7 @@ bool ChunkInRenderUnits::Initialize()
   
   try
   {
-    std::lock_guard<std::mutex> lock(chunkMutex);
+    std::scoped_lock lock(chunkMutex);
     
     chunkBuffers = std::make_unique<UnitChunkBuffer[]>(totalChunks);
     chunkCoords = std::make_unique<WorldChunkCoord[]>(totalChunks);
@@ -127,10 +132,8 @@ bool ChunkInRenderUnits::Initialize()
     {
       chunkActive[i].store(false, std::memory_order_release);
     }
-    
     initialized.store(true, std::memory_order_release);
     systemHealth.store(SystemHealth::HEALTHY, std::memory_order_release);
-    
     return true;
   }
   catch (const std::exception& e)
@@ -149,7 +152,7 @@ bool ChunkInRenderUnits::Shutdown()
   
   try
   {
-    std::lock_guard<std::mutex> lock(chunkMutex);
+    std::scoped_lock lock(chunkMutex);
     
     // Process remaining transactions before shutdown
     ProcessTransactions();
@@ -195,7 +198,7 @@ bool ChunkInRenderUnits::AddChunk(const WorldChunkCoord& coord, UnitChunkBuffer&
   if (index >= totalChunks)
     return false;
   
-  std::lock_guard<std::mutex> lock(chunkMutex);
+  std::scoped_lock lock(chunkMutex);
   
   if (chunkActive[index].load(std::memory_order_acquire))
     return false; // Chunk already exists at this location
@@ -225,7 +228,7 @@ bool ChunkInRenderUnits::RemoveChunk(const WorldChunkCoord& coord)
   if (index >= totalChunks)
     return false;
   
-  std::lock_guard<std::mutex> lock(chunkMutex);
+  std::scoped_lock lock(chunkMutex);
   
   if (!chunkActive[index].load(std::memory_order_acquire))
     return false; // Chunk doesn't exist at this location
@@ -253,7 +256,7 @@ UnitChunkBuffer* ChunkInRenderUnits::GetChunkBuffer(const WorldChunkCoord& coord
   if (index >= totalChunks)
     return nullptr;
   
-  std::lock_guard<std::mutex> lock(chunkMutex);
+  std::scoped_lock lock(chunkMutex);
   
   if (!chunkActive[index].load(std::memory_order_acquire))
     return nullptr;
@@ -272,7 +275,7 @@ UnitChunkBuffer* ChunkInRenderUnits::GetChunkBuffer(uint32_t index)
   if (index >= totalChunks)
     return nullptr;
   
-  std::lock_guard<std::mutex> lock(chunkMutex);
+  std::scoped_lock lock(chunkMutex);
   
   if (!chunkActive[index].load(std::memory_order_acquire))
     return nullptr;
@@ -346,7 +349,7 @@ TransactionResult ChunkInRenderUnits::WriteUnitId(const WorldChunkCoord& coord, 
   }
   
   // Enqueue transaction
-  if (!EnqueueTransaction(transaction))
+  if (!EnqueueTransaction(std::move(transaction)))
   {
     failedTransactions.fetch_add(1, std::memory_order_release);
     return TransactionResult::Error("Failed to enqueue transaction", ValidationResult::VALID);
@@ -355,12 +358,12 @@ TransactionResult ChunkInRenderUnits::WriteUnitId(const WorldChunkCoord& coord, 
   return TransactionResult::Ok(newUnitId, sequence);
 }
 
-bool ChunkInRenderUnits::EnqueueTransaction(const ChunkTransaction& transaction)
+bool ChunkInRenderUnits::EnqueueTransaction(ChunkTransaction transaction)
 {
   if (shuttingDown.load())
     return false;
   
-  return transactionBuffer.Push(transaction);
+  return transactionBuffer.Push(std::move(transaction));
 }
 
 bool ChunkInRenderUnits::ProcessTransactions()
@@ -434,13 +437,13 @@ bool ChunkInRenderUnits::ProcessTransactions()
 
 std::vector<ChunkDelta> ChunkInRenderUnits::GetPendingDeltas()
 {
-  std::lock_guard<std::mutex> lock(deltaMutex);
+  std::scoped_lock lock(deltaMutex);
   return pendingDeltas;
 }
 
 void ChunkInRenderUnits::ClearProcessedDeltas()
 {
-  std::lock_guard<std::mutex> lock(deltaMutex);
+  std::scoped_lock lock(deltaMutex);
   pendingDeltas.clear();
 }
 
@@ -483,7 +486,7 @@ ChunkSystemStats ChunkInRenderUnits::GetSystemStats() const
   stats.pendingTransactions = transactionBuffer.Size();
   
   {
-    std::lock_guard<std::mutex> lock(deltaMutex);
+    std::scoped_lock lock(deltaMutex);
     stats.pendingDeltas = static_cast<uint32_t>(pendingDeltas.size());
   }
   
@@ -533,7 +536,7 @@ void ChunkInRenderUnits::EmergencyShutdown()
   
   try
   {
-    std::lock_guard<std::mutex> lock(chunkMutex);
+    std::scoped_lock lock(chunkMutex);
     
     chunkBuffers.reset();
     chunkCoords.reset();
@@ -574,7 +577,7 @@ bool ChunkInRenderUnits::IsInChunkBounds(int32_t localX, int32_t localY, int32_t
 
 void ChunkInRenderUnits::AddDelta(const ChunkDelta& delta)
 {
-  std::lock_guard<std::mutex> lock(deltaMutex);
+  std::scoped_lock lock(deltaMutex);
   pendingDeltas.push_back(delta);
 }
 
@@ -596,10 +599,9 @@ void ChunkInRenderUnits::UpdateSystemHealth()
   // Check failure rate
   uint64_t totalProcessed = totalTransactionsProcessed.load(std::memory_order_acquire);
   uint64_t totalFailed = failedTransactions.load(std::memory_order_acquire);
-  
   if (totalProcessed > 0)
   {
-    double failureRate = static_cast<double>(totalFailed) / static_cast<double>(totalProcessed);
+    const double failureRate = static_cast<double>(totalFailed) / static_cast<double>(totalProcessed);
     if (failureRate > 0.1) // More than 10% failure rate
     {
       currentHealth = SystemHealth::UNHEALTHY;
@@ -610,9 +612,8 @@ void ChunkInRenderUnits::UpdateSystemHealth()
         currentHealth = SystemHealth::DEGRADED;
     }
   }
-  
   // Check pending transactions
-  uint32_t pendingTrans = transactionBuffer.Size();
+  const uint32_t pendingTrans = transactionBuffer.Size();
   if (pendingTrans > transactionBuffer.Capacity() * 0.9) // More than 90% full
   {
     if (currentHealth == SystemHealth::HEALTHY)

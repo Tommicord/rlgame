@@ -32,9 +32,9 @@ export class ChunkThreadPool
   
   /* Submit a task to the thread pool */
   template<typename F, typename... Args>
-  auto Submit(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>
+  auto Submit(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>>
   {
-    using ReturnType = typename std::result_of<F(Args...)>::type;
+    using ReturnType = std::invoke_result_t<F, Args...>;
     
     auto task = std::make_shared<std::packaged_task<ReturnType()>>(
         std::bind(std::forward<F>(f), std::forward<Args>(args)...)
@@ -44,12 +44,10 @@ export class ChunkThreadPool
     
     {
       std::unique_lock<std::mutex> lock(queueMutex);
-      
       if (stop)
       {
         throw std::runtime_error("Cannot submit task to stopped thread pool");
       }
-      
       tasks.emplace([task]() { (*task)(); });
     }
     

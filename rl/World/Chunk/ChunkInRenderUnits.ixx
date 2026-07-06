@@ -126,7 +126,7 @@ export class ChunkInRenderUnits
   
   /* Enqueue a transaction for processing with validation */
   [[nodiscard]]
-  bool EnqueueTransaction(const ChunkTransaction& transaction);
+  bool EnqueueTransaction(ChunkTransaction transaction);
   
   /* Process all pending transactions with error handling */
   [[nodiscard]]
@@ -217,7 +217,7 @@ export class ChunkInRenderUnits
   std::vector<ChunkDelta> pendingDeltas;
   
   /* Mutex for delta operations */
-  std::mutex deltaMutex;
+  mutable std::mutex deltaMutex;
   
   /* Mutex for chunk array operations */
   mutable std::mutex chunkMutex;

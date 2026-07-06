@@ -3,10 +3,12 @@ export module Rl.World.Chunk.ChunkLogger;
 import Rl.RayLog.Macro;
 import Rl.RayLog.Logger;
 import Rl.RayLog.Config;
+import Rl.RayLog.LevelPrinter;
 
 import <cstdint>;
 import <string>;
 import <vector>;
+import <atomic>;
 
 namespace Rl::World::Chunk
 {

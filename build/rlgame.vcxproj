@@ -1125,8 +1125,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBuffer.cpp">
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBuffer.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.cpp">
-      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp.obj</ObjectFileName>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitGPUSimplexNoise.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitGPUSimplexNoise.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkInRenderUnits.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkInRenderUnits.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkErrorRecovery.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkErrorRecovery.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkLogger.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkLogger.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkThreadPool.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkThreadPool.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkTransactionRingBuffer.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkTransactionRingBuffer.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkAccessor.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkAccessor.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Biome\IBiome.ixx" />
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferFBM.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.vert.spv">
     </None>
@@ -1537,14 +1562,74 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkBuffer.ixx.module.json</ModuleDependenciesFile>
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBuffer.ixx.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.ixx">
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitGPUSimplexNoise.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.obj</ObjectFileName>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitGPUSimplexNoise.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitGPUSimplexNoise.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitGPUSimplexNoise.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkErrorRecovery.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/ChunkErrorRecovery.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/ChunkErrorRecovery.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkErrorRecovery.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkInRenderUnits.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/ChunkInRenderUnits.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/ChunkInRenderUnits.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkInRenderUnits.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkThreadPool.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/ChunkThreadPool.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/ChunkThreadPool.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkThreadPool.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkLogger.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/ChunkLogger.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/ChunkLogger.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkLogger.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkTransaction.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkTransactionRingBuffer.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/ChunkTransactionRingBuffer.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/ChunkTransactionRingBuffer.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/ChunkTransactionRingBuffer.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkAccessor.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitChunkAccessor.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkAccessor.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkAccessor.ixx.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogConfig.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>

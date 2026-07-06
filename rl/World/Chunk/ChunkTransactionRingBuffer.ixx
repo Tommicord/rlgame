@@ -38,11 +38,11 @@ export class ChunkTransactionRingBuffer
   
   /* Push a transaction to the ring buffer with retry logic */
   [[nodiscard]]
-  bool Push(const ChunkTransaction& transaction);
+  bool Push(ChunkTransaction transaction);
   
   /* Push with timeout, returns false if timeout expires */
   [[nodiscard]]
-  bool PushWithTimeout(const ChunkTransaction& transaction, uint32_t timeoutMs);
+  bool PushWithTimeout(ChunkTransaction transaction, uint32_t timeoutMs);
   
   /* Pop a transaction from the ring buffer */
   [[nodiscard]]

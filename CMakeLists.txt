@@ -130,6 +130,7 @@ set(CXX_MODULES
   rl/World/Chunk/ChunkLogger.ixx
   rl/World/Chunk/ChunkTransaction.ixx
   rl/World/Chunk/ChunkTransactionRingBuffer.ixx
+  rl/World/Chunk/UnitChunkAccessor.ixx
   rl/RayLog/RayLogConfig.ixx
   rl/RayLog/RayLogPlatform.ixx
   rl/RayLog/RayLogUuid.ixx
@@ -199,6 +200,7 @@ set(SOURCES
   rl/World/Chunk/ChunkLogger.cpp
   rl/World/Chunk/ChunkThreadPool.cpp
   rl/World/Chunk/ChunkTransactionRingBuffer.cpp
+  rl/World/Chunk/UnitChunkAccessor.cpp
 )
 
 add_subdirectory(Deps/glfw)

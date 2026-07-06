@@ -85,7 +85,7 @@ ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(ChunkTransacti
   return *this;
 }
 
-bool ChunkTransactionRingBuffer::Push(const ChunkTransaction& transaction)
+bool ChunkTransactionRingBuffer::Push(ChunkTransaction transaction)
 {
   const uint32_t currentHead = head.load(std::memory_order_acquire);
   const uint32_t nextHead = NextIndex(currentHead);
@@ -98,7 +98,7 @@ bool ChunkTransactionRingBuffer::Push(const ChunkTransaction& transaction)
     return false;
   }
   
-  buffer[currentHead] = transaction;
+  buffer[currentHead] = std::move(transaction);
   head.store(nextHead, std::memory_order_release);
   totalPushes.fetch_add(1, std::memory_order_release);
   
@@ -108,14 +108,14 @@ bool ChunkTransactionRingBuffer::Push(const ChunkTransaction& transaction)
   return true;
 }
 
-bool ChunkTransactionRingBuffer::PushWithTimeout(const ChunkTransaction& transaction, const uint32_t timeoutMs)
+bool ChunkTransactionRingBuffer::PushWithTimeout(ChunkTransaction transaction, const uint32_t timeoutMs)
 {
   const auto startTime = std::chrono::steady_clock::now();
   const auto timeoutDuration = std::chrono::milliseconds(timeoutMs);
   
   while (true)
   {
-    if (Push(transaction))
+    if (Push(std::move(transaction)))
     {
       return true;
     }
@@ -140,7 +140,7 @@ bool ChunkTransactionRingBuffer::Pop(ChunkTransaction& transaction)
     return false;
   }
   
-  transaction = buffer[currentTail];
+  transaction = std::move(buffer[currentTail]);
   tail.store(NextIndex(currentTail), std::memory_order_release);
   totalPops.fetch_add(1, std::memory_order_release);
   

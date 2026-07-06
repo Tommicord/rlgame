@@ -60,6 +60,46 @@ export struct ChunkTransaction
   {
   }
   
+  /* Delete copy constructor: atomic<bool> is not copyable */
+  ChunkTransaction(const ChunkTransaction&) = delete;
+  ChunkTransaction& operator=(const ChunkTransaction&) = delete;
+  
+  /* Move constructor */
+  ChunkTransaction(ChunkTransaction&& other) noexcept
+      : chunkIndex(other.chunkIndex),
+        localX(other.localX),
+        localY(other.localY),
+        localZ(other.localZ),
+        oldUnitId(other.oldUnitId),
+        newUnitId(other.newUnitId),
+        type(other.type),
+        state(other.state),
+        timestamp(other.timestamp),
+        sequenceNumber(other.sequenceNumber),
+        completed(other.completed.load(std::memory_order_acquire))
+  {
+  }
+  
+  /* Move assignment operator */
+  ChunkTransaction& operator=(ChunkTransaction&& other) noexcept
+  {
+    if (this != &other)
+    {
+      chunkIndex = other.chunkIndex;
+      localX = other.localX;
+      localY = other.localY;
+      localZ = other.localZ;
+      oldUnitId = other.oldUnitId;
+      newUnitId = other.newUnitId;
+      type = other.type;
+      state = other.state;
+      timestamp = other.timestamp;
+      sequenceNumber = other.sequenceNumber;
+      completed.store(other.completed.load(std::memory_order_acquire), std::memory_order_release);
+    }
+    return *this;
+  }
+  
   /* Validate transaction data */
   [[nodiscard]]
   ValidationResult Validate(int32_t chunkWidth, int32_t chunkHeight, int32_t chunkDepth) const
@@ -131,7 +171,7 @@ export struct ChunkTransaction
   }
   
   /* Set transaction state */
-  void SetState(TransactionState newState)
+  void SetState(const TransactionState newState)
   {
     state = newState;
   }

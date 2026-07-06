@@ -2,7 +2,9 @@ export module Rl.World.Unit.UnitGrass;
 
 import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
+
 import <type_traits>;
+import <string_view>;
 
 namespace Rl::World
 {

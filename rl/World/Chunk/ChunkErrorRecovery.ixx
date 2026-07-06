@@ -4,6 +4,7 @@ import Rl.World.Chunk.ChunkTransaction;
 import <cstdint>;
 import <atomic>;
 import <chrono>;
+import <thread>;
 
 namespace Rl::World::Chunk
 {
