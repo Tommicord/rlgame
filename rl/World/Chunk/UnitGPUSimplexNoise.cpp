@@ -1,4 +1,4 @@
-import Rl.World.Chunk.UnitChunkBufferGPUSimplex;
+import Rl.World.Chunk.UnitGPUSimplexNoise;
 import Rl.Base.Shader;
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 
@@ -9,7 +9,7 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::World::Chunk
 {
 
-void UnitChunkBufferGPUSimplex::Create(
+void UnitGPUSimplexNoise::Create(
     VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed)
 {
   if (isInitialized)
@@ -170,7 +170,7 @@ void UnitChunkBufferGPUSimplex::Create(
   isInitialized = true;
 }
 
-void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
+void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
     VkPhysicalDevice                                       physicalDevice,
     uint32_t                                               width,
     uint32_t                                               height,
@@ -211,7 +211,7 @@ void UnitChunkBufferGPUSimplex::CreateNoiseBuffer(VkDevice device,
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
 }
 
-void UnitChunkBufferGPUSimplex::GenNoise(
+void UnitGPUSimplexNoise::GenNoise(
     VkDevice device, VkCommandBuffer commandBuffer, const SimplexNoisePushConstants& params) const
 {
   if (!isInitialized)
@@ -293,7 +293,7 @@ void UnitChunkBufferGPUSimplex::GenNoise(
   vkDestroyPipelineLayout(device, genPipelineLayout, nullptr);
 }
 
-void UnitChunkBufferGPUSimplex::Destroy(VkDevice device)
+void UnitGPUSimplexNoise::Destroy(VkDevice device)
 {
   if (noiseBuffer != VK_NULL_HANDLE)
   {

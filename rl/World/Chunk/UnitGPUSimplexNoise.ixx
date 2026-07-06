@@ -1,4 +1,4 @@
-export module Rl.World.Chunk.UnitChunkBufferGPUSimplex;
+export module Rl.World.Chunk.UnitGPUSimplexNoise;
 
 import <cstddef>;
 import <vulkan/vulkan.hpp>;
@@ -25,14 +25,14 @@ export struct SimplexNoisePushConstants
 };
 
 /* GPU Simplex noise buffer manager for chunk generation */
-export class UnitChunkBufferGPUSimplex
+export class UnitGPUSimplexNoise
 {
   public:
   /* Default constructor for initialize a GPU powered Simplex Noise compute */
-  UnitChunkBufferGPUSimplex() = default;
+  UnitGPUSimplexNoise() = default;
 
   /* Destructs a UnitChunkBufferGPUSimplex instance (this don't free the Vulkan resources) */
-  ~UnitChunkBufferGPUSimplex() = default;
+  ~UnitGPUSimplexNoise() = default;
 
   /* Initialize Simplex noise resources like permutation tables, etc. */
   void Create(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
@@ -56,99 +56,6 @@ export class UnitChunkBufferGPUSimplex
   VkDeviceMemory GetNoiseBufferMemory() const
   {
     return noiseBufferMemory;
-  }
-  
-  /* Helper to create standard FBM noise parameters */
-  static SimplexNoisePushConstants CreateFBMParams(
-      uint32_t dimension,
-      float scale,
-      float offsetX,
-      float offsetY,
-      float offsetZ,
-      uint32_t width,
-      uint32_t height,
-      uint32_t depth,
-      uint32_t octaves = 6,
-      float persistence = 0.5f,
-      float lacunarity = 2.0f)
-  {
-    SimplexNoisePushConstants params{};
-    params.dimension = dimension;
-    params.scale = scale;
-    params.offsetX = offsetX;
-    params.offsetY = offsetY;
-    params.offsetZ = offsetZ;
-    params.width = width;
-    params.height = height;
-    params.depth = depth;
-    params.time = 0;
-    params.octaves = octaves;
-    params.persistence = persistence;
-    params.lacunarity = lacunarity;
-    params.noiseType = 1; // FBM
-    return params;
-  }
-  
-  /* Helper to create ridged noise parameters */
-  static SimplexNoisePushConstants CreateRidgedParams(
-      uint32_t dimension,
-      float scale,
-      float offsetX,
-      float offsetY,
-      float offsetZ,
-      uint32_t width,
-      uint32_t height,
-      uint32_t depth,
-      uint32_t octaves = 6,
-      float persistence = 0.5f,
-      float lacunarity = 2.0f)
-  {
-    SimplexNoisePushConstants params{};
-    params.dimension = dimension;
-    params.scale = scale;
-    params.offsetX = offsetX;
-    params.offsetY = offsetY;
-    params.offsetZ = offsetZ;
-    params.width = width;
-    params.height = height;
-    params.depth = depth;
-    params.time = 0;
-    params.octaves = octaves;
-    params.persistence = persistence;
-    params.lacunarity = lacunarity;
-    params.noiseType = 2; // Ridged
-    return params;
-  }
-  
-  /* Helper to create turbulence noise parameters */
-  static SimplexNoisePushConstants CreateTurbulenceParams(
-      uint32_t dimension,
-      float scale,
-      float offsetX,
-      float offsetY,
-      float offsetZ,
-      uint32_t width,
-      uint32_t height,
-      uint32_t depth,
-      uint32_t octaves = 6,
-      float persistence = 0.5f,
-      float lacunarity = 2.0f)
-  {
-    SimplexNoisePushConstants params{};
-    params.dimension = dimension;
-    params.scale = scale;
-    params.offsetX = offsetX;
-    params.offsetY = offsetY;
-    params.offsetZ = offsetZ;
-    params.width = width;
-    params.height = height;
-    params.depth = depth;
-    params.time = 0;
-    params.octaves = octaves;
-    params.persistence = persistence;
-    params.lacunarity = lacunarity;
-    params.noiseType = 3; // Turbulence
-    return params;
   }
   
   void Destroy(VkDevice device);

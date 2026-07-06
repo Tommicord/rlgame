@@ -122,7 +122,7 @@ set(CXX_MODULES
   rl/Client/Render/Unit/UnitRendererVertexInput.ixx
   rl/Client/Render/Unit/UnitRendererVertices.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
-  rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx
+  rl/World/Chunk/UnitGPUSimplexNoise.ixx
   rl/RayLog/RayLogConfig.ixx
   rl/RayLog/RayLogPlatform.ixx
   rl/RayLog/RayLogUuid.ixx
@@ -186,7 +186,7 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertexInput.cpp
   rl/Client/Render/Unit/UnitRendererVertices.cpp
   rl/World/Chunk/UnitChunkBuffer.cpp
-  rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp
+  rl/World/Chunk/UnitGPUSimplexNoise.cpp
 )
 
 add_subdirectory(Deps/glfw)
@@ -194,7 +194,8 @@ add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
 
 add_executable(rlgame rl/Base/Main.cpp ${SOURCES}
-  rl/World/Biome/IBiome.ixx)
+  rl/World/Biome/IBiome.ixx
+  rl/World/Chunk/UnitChunkBufferFBM.ixx)
 
 target_sources(
   rlgame
