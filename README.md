@@ -12,12 +12,6 @@ RL (Real Game) is a game written in C++ using Vulkan for graphics rendering. The
 - Written in C++ using Vulkan for graphics rendering (high performance)
 - Open source and free to use
 
-## Highly optimized for older devices
-
-When tested the cheap ray-tracing, PBR, Cook-Torrance, Reflections, etc.
-Run very fast on my computer IGPU: Intel HD Graphics 530
-So it should run fast on most devices with a dedicated GPU or even old or new integrated graphics, this Videogame is designed to be lightweight and optimized for performance, ensuring a smooth gaming experience even on older hardware, doesn't require a powerful GPU or CPU to run
-
-- Example of Unit render graphics on **Intel HD Graphics 530**
+# Example
 
 ![Test Unit render graphics on Intel HD Graphics 530](Public/Examples/UnitRenderExample.png)
