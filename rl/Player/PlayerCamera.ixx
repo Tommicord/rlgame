@@ -13,7 +13,7 @@ namespace Rl::Player
 
 using namespace Rl::Providers;
 
-export class IPlayerCamera
+export class IPlayerCamera : public IUpdatable
 {
   public:
   struct Eye
@@ -30,7 +30,7 @@ export class IPlayerCamera
   float  aspectRatio;
   float  zoom;
   float  pitch, yaw;
-  virtual ~IPlayerCamera() = default;
+  ~IPlayerCamera() override = default;
   IPlayerCamera() = default;
   IPlayerCamera(const IPlayerCamera& other) = delete;
   virtual void SetPVMMatrix(const Matrix& mvp) = 0;
@@ -51,6 +51,12 @@ export class IPlayerCamera
   virtual glm::mat4 GetModelMatrix() const = 0;
   [[nodiscard]]
   virtual glm::mat4 GetPVMMatrix() const = 0;
+  [[nodiscard]]
+  virtual glm::vec3 GetFrontVector() const = 0;
+  [[nodiscard]]
+  virtual glm::vec3 GetRightVector() const = 0;
+  [[nodiscard]]
+  virtual glm::vec3 GetUpVector() const = 0;
 };
 
 export struct PlayerCameraInput : Input::IInputObserver
@@ -64,8 +70,7 @@ export struct PlayerCameraInput : Input::IInputObserver
   void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override = 0;
 };
 
-export class PlayerCamera final : public IPlayerCamera,
-                                  public IUpdatable
+export class PlayerCamera final : public IPlayerCamera
 {
   public:
   PlayerCamera();
@@ -89,6 +94,12 @@ export class PlayerCamera final : public IPlayerCamera,
   glm::mat4 GetModelMatrix() const override;
   [[nodiscard]]
   glm::mat4 GetPVMMatrix() const override;
+  [[nodiscard]]
+  glm::vec3 GetFrontVector() const override;
+  [[nodiscard]]
+  glm::vec3 GetRightVector() const override;
+  [[nodiscard]]
+  glm::vec3 GetUpVector() const override;
 
   private:
   glm::mat4 model;

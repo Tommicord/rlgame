@@ -6,6 +6,7 @@
 #include "simplex.common.glsl"
 #include "simplex.noise2d.glsl"
 #include "simplex.noise3d.glsl"
+#include "simplex.octaves.glsl"
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
@@ -25,6 +26,10 @@ layout(push_constant) uniform PushConstants {
     uint height;         // Grid height
     uint depth;          // Grid depth
     uint time;           // Time offset for animated noise
+    uint octaves;        // Number of octaves for FBM (default: 1)
+    float persistence;   // Amplitude multiplier per octave (default: 0.5)
+    float lacunarity;    // Frequency multiplier per octave (default: 2.0)
+    uint noiseType;      // 0: Standard, 1: FBM, 2: Ridged, 3: Turbulence
 } pc;
 
 void main() {
@@ -45,10 +50,58 @@ void main() {
 
     float noiseValue = 0.0;
     
+    // Default values for single octave
+    int octaves = int(pc.octaves);
+    float persistence = pc.persistence;
+    float lacunarity = pc.lacunarity;
+    
+    // Ensure at least 1 octave
+    if (octaves < 1) {
+        octaves = 1;
+    }
+    
     if (pc.dimension == 2) {
-        noiseValue = Noise2D(worldX, worldY);
+        if (pc.noiseType == 0) {
+            // Standard noise
+            if (octaves == 1) {
+                noiseValue = Noise2D(worldX, worldY);
+            } else {
+                noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
+            }
+        } else if (pc.noiseType == 1) {
+            // FBM
+            noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
+        } else if (pc.noiseType == 2) {
+            // Ridged
+            noiseValue = RidgedNoise2D(worldX, worldY, octaves, persistence, lacunarity);
+        } else if (pc.noiseType == 3) {
+            // Turbulence
+            noiseValue = Turbulence2D(worldX, worldY, octaves, persistence, lacunarity);
+        } else {
+            // Default to FBM
+            noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
+        }
     } else if (pc.dimension == 3) {
-        noiseValue = Noise3D(worldX, worldY, worldZ);
+        if (pc.noiseType == 0) {
+            // Standard noise
+            if (octaves == 1) {
+                noiseValue = Noise3D(worldX, worldY, worldZ);
+            } else {
+                noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
+            }
+        } else if (pc.noiseType == 1) {
+            // FBM
+            noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
+        } else if (pc.noiseType == 2) {
+            // Ridged
+            noiseValue = RidgedNoise3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
+        } else if (pc.noiseType == 3) {
+            // Turbulence
+            noiseValue = Turbulence3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
+        } else {
+            // Default to FBM
+            noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
+        }
     }
 
     noiseValues[index] = noiseValue;

@@ -57,9 +57,11 @@ public:
   std::string FormatMessage(const std::string& format,
       const std::vector<std::variant<int,
           float,
+          double,
           std::string,
           bool,
           void*,
+          const void*,
           std::vector<int>,
           std::vector<float>,
           std::vector<std::string>>>&          args) const
@@ -87,9 +89,11 @@ public:
   std::string FormatArgument(const std::string& specifier,
       const std::variant<int,
           float,
+          double,
           std::string,
           bool,
           void*,
+          const void*,
           std::vector<int>,
           std::vector<float>,
           std::vector<std::string>>&            arg) const
@@ -105,20 +109,24 @@ public:
         return RayLogFormatter::FormatInt(std::get<int>(arg));
       }
     if (specifier == "%f")
+    {
       if (std::holds_alternative<float>(arg))
-      {
         return RayLogFormatter::FormatFloat(std::get<float>(arg));
-      }
+      if (std::holds_alternative<double>(arg))
+        return RayLogFormatter::FormatDouble(std::get<double>(arg));
+    }
     if (specifier == "%h")
       if (std::holds_alternative<int>(arg))
       {
         return RayLogFormatter::FormatHex(std::get<int>(arg));
       }
     if (specifier == "%p")
+    {
       if (std::holds_alternative<void*>(arg))
-      {
         return RayLogFormatter::FormatPtr(std::get<void*>(arg));
-      }
+      if (std::holds_alternative<const void*>(arg))
+        return RayLogFormatter::FormatPtr(std::get<const void*>(arg));
+    }
     if (specifier == "%b")
       if (std::holds_alternative<bool>(arg))
       {
@@ -136,7 +144,10 @@ public:
     if (specifier.starts_with("%f."))
     {
       const int precision = std::stoi(specifier.substr(3));
-      return RayLogFormatter::FormatFloat(std::get<float>(arg), precision);
+      if (std::holds_alternative<float>(arg))
+        return RayLogFormatter::FormatFloat(std::get<float>(arg), precision);
+      if (std::holds_alternative<double>(arg))
+        return RayLogFormatter::FormatDouble(std::get<double>(arg), precision);
     }
     return "?";
   }

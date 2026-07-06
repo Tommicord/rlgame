@@ -27,7 +27,8 @@ IPlayer& PlayerProvider::GetInstance()
 
 Player::Player() noexcept
 {
-  cX = cY = cZ = 0;
+  cX = cY = 0;
+  cZ = 5000L;
   CreateInputCameraController();
   CreateInputPlayerController();
 }
@@ -52,9 +53,9 @@ void Player::CreateInputPlayerController() noexcept
 Player::~Player()
 {
   // Delete camera controller using the ~IPlayerCameraController
-  cameraControl->~IPlayerCameraController();
+  cameraControl.reset();
   // Delete player controller using the ~IPlayerCameraController
-  playerControl->~IPlayerController();
+  playerControl.reset();
 }
 
 } // namespace Rl::Player

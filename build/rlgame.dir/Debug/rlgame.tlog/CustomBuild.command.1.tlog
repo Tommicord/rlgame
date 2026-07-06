@@ -34,11 +34,11 @@ endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd
-^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.CURVE.COMP.SPV.RULE
+^C:\USERS\USUARIO\IDEAPROJECTS\RL\BUILD\CMAKEFILES\F7289CFEB62AED14CB5283489EB2FB8A\UNIT.TESSEL.COMP.SPV.RULE
 setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.tessel.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.tessel.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

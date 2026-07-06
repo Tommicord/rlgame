@@ -81,7 +81,7 @@ void PlayerController::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 
 void PlayerController::Update() const
 {
-  constexpr double coordScale = 1000.0;
+  constexpr double coordScale = 0.0001;
 
   if (moveForward)
     player.cZ += static_cast<IPlayer::Coord>(moveSpeed * coordScale);

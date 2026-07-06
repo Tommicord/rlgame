@@ -129,9 +129,18 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Copying test assets to the build directory</Message>
+      <Message>Copying C:/Users/USUARIO/IdeaProjects/RL/Public/Textures to C:/Users/USUARIO/IdeaProjects/RL/build/Debug	Copying C:/Users/USUARIO/IdeaProjects/RL/build/Shaders to C:/Users/USUARIO/IdeaProjects/RL/build/Debug/Shaders/</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Resources/Textures/ C:/Users/USUARIO/IdeaProjects/RL/build/Debug/
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Textures C:/Users/USUARIO/IdeaProjects/RL/build/Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders C:/Users/USUARIO/IdeaProjects/RL/build/Debug/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -141,7 +150,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Debug\glfw3.lib;Deps\glm\glm\Debug\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Debug\glfw3.lib;Deps\glm\glm\Debug\glm.lib;dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <DataExecutionPrevention></DataExecutionPrevention>
@@ -204,9 +213,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Copying test assets to the build directory</Message>
+      <Message>Copying C:/Users/USUARIO/IdeaProjects/RL/Public/Textures to C:/Users/USUARIO/IdeaProjects/RL/build/Release	Copying C:/Users/USUARIO/IdeaProjects/RL/build/Shaders to C:/Users/USUARIO/IdeaProjects/RL/build/Release/Shaders/</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Resources/Textures/ C:/Users/USUARIO/IdeaProjects/RL/build/Release/
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Textures C:/Users/USUARIO/IdeaProjects/RL/build/Release
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders C:/Users/USUARIO/IdeaProjects/RL/build/Release/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -216,7 +234,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Release\glfw3.lib;Deps\glm\glm\Release\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\Release\glfw3.lib;Deps\glm\glm\Release\glm.lib;dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <DataExecutionPrevention></DataExecutionPrevention>
@@ -279,9 +297,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Copying test assets to the build directory</Message>
+      <Message>Copying C:/Users/USUARIO/IdeaProjects/RL/Public/Textures to C:/Users/USUARIO/IdeaProjects/RL/build/MinSizeRel	Copying C:/Users/USUARIO/IdeaProjects/RL/build/Shaders to C:/Users/USUARIO/IdeaProjects/RL/build/MinSizeRel/Shaders/</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Resources/Textures/ C:/Users/USUARIO/IdeaProjects/RL/build/MinSizeRel/
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Textures C:/Users/USUARIO/IdeaProjects/RL/build/MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders C:/Users/USUARIO/IdeaProjects/RL/build/MinSizeRel/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -291,7 +318,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\MinSizeRel\glfw3.lib;Deps\glm\glm\MinSizeRel\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\MinSizeRel\glfw3.lib;Deps\glm\glm\MinSizeRel\glm.lib;dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <DataExecutionPrevention></DataExecutionPrevention>
@@ -353,9 +380,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Copying test assets to the build directory</Message>
+      <Message>Copying C:/Users/USUARIO/IdeaProjects/RL/Public/Textures to C:/Users/USUARIO/IdeaProjects/RL/build/RelWithDebInfo	Copying C:/Users/USUARIO/IdeaProjects/RL/build/Shaders to C:/Users/USUARIO/IdeaProjects/RL/build/RelWithDebInfo/Shaders/</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Resources/Textures/ C:/Users/USUARIO/IdeaProjects/RL/build/RelWithDebInfo/
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/Public/Textures C:/Users/USUARIO/IdeaProjects/RL/build/RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders C:/Users/USUARIO/IdeaProjects/RL/build/RelWithDebInfo/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -365,7 +401,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
     </PostBuildEvent>
     <Link>
-      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\RelWithDebInfo\glfw3.lib;Deps\glm\glm\RelWithDebInfo\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.4.341.1\Lib\vulkan-1.lib;Deps\glfw\src\RelWithDebInfo\glfw3.lib;Deps\glm\glm\RelWithDebInfo\glm.lib;dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <DataExecutionPrevention></DataExecutionPrevention>
@@ -587,13 +623,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.curve.comp.spv.rule">
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RL\build\CMakeFiles\f7289cfeb62aed14cb5283489eb2fb8a\unit.tessel.comp.spv.rule">
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader unit.curve.comp</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling shader unit.tessel.comp</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.tessel.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.tessel.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -601,15 +637,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.curve.comp;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.tessel.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.tessel.comp.spv</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader unit.curve.comp</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling shader unit.tessel.comp</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.tessel.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.tessel.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -617,15 +653,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.curve.comp;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.tessel.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.tessel.comp.spv</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader unit.curve.comp</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Compiling shader unit.tessel.comp</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.tessel.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.tessel.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -633,15 +669,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.curve.comp;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.tessel.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.tessel.comp.spv</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
       <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader unit.curve.comp</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Compiling shader unit.tessel.comp</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/
 if %errorlevel% neq 0 goto :cmEnd
-C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.curve.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.curve.comp.spv
+C:\VulkanSDK\1.4.341.1\Bin\glslc.exe C:/Users/USUARIO/IdeaProjects/RL/rl/Shaders/unit.tessel.comp -o C:/Users/USUARIO/IdeaProjects/RL/build/Shaders/unit.tessel.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -649,8 +685,8 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.curve.comp;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\rl\Shaders\unit.tessel.comp;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.tessel.comp.spv</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
@@ -984,14 +1020,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Main.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.cpp">
       <ObjectFileName>$(IntDir)rl/Base/Game.cpp.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.cpp">
       <ObjectFileName>$(IntDir)rl/Base/Shader.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.cpp">
-      <ObjectFileName>$(IntDir)rl/Base/InputReceiver.cpp.obj</ObjectFileName>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\UserInput.cpp">
+      <ObjectFileName>$(IntDir)rl/Base/UserInput.cpp.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.cpp">
       <ObjectFileName>$(IntDir)rl/Base/SimplexNoise.cpp.obj</ObjectFileName>
@@ -1002,21 +1039,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Lightning.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Normal.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Texture2Binding.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\CameraRenderer.cpp" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.cpp">
-      <ObjectFileName>$(IntDir)rl/Client/State/CameraState.cpp.obj</ObjectFileName>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerCameraController.cpp">
+      <ObjectFileName>$(IntDir)rl/Player/PlayerCameraController.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.cpp">
-      <ObjectFileName>$(IntDir)rl/Client/State/UnitState.cpp.obj</ObjectFileName>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerController.cpp">
+      <ObjectFileName>$(IntDir)rl/Player/PlayerController.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.cpp">
-      <ObjectFileName>$(IntDir)rl/World/Camera.cpp.obj</ObjectFileName>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerCamera.cpp">
+      <ObjectFileName>$(IntDir)rl/Player/PlayerCamera.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\Player.cpp">
+      <ObjectFileName>$(IntDir)rl/Player/Player.cpp.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.cpp">
       <ObjectFileName>$(IntDir)rl/World/Unit/Unit.cpp.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitGrass.cpp">
-      <ObjectFileName>$(IntDir)rl/World/Unit/UnitGrass.cpp.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp">
       <ObjectFileName>$(IntDir)rl/World/Unit/UnitDynamicTexture.cpp.obj</ObjectFileName>
@@ -1092,31 +1128,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferGPUSimplex.cpp">
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Binding.ixx">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-    </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitAir.ixx">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitAir.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitAir.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/World/Unit/UnitAir.ixx.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitAir.cpp">
-      <ObjectFileName>$(IntDir)rl/World/Unit/UnitAir.cpp.obj</ObjectFileName>
-    </ClCompile>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.vert.spv">
     </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.frag.spv">
     </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.face.comp.spv">
     </None>
-    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.curve.comp.spv">
+    <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.tessel.comp.spv">
     </None>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.frag.spv">
     </None>
@@ -1138,6 +1156,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ModuleDependenciesFile>$(IntDir)/rl/Base/Game.ixx.module.json</ModuleDependenciesFile>
       <ObjectFileName>$(IntDir)rl/Base/Game.ixx.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Binding.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Shader.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
@@ -1147,14 +1171,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ModuleDependenciesFile>$(IntDir)/rl/Base/Shader.ixx.module.json</ModuleDependenciesFile>
       <ObjectFileName>$(IntDir)rl/Base/Shader.ixx.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\InputReceiver.ixx">
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\UserInput.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/Base/InputReceiver.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/Base/InputReceiver.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/Base/InputReceiver.ixx.obj</ObjectFileName>
+      <ModuleOutputFile>$(IntDir)/rl/Base/UserInput.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Base/UserInput.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Base/UserInput.ixx.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\SimplexNoise.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
@@ -1192,32 +1216,71 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\CameraState.ixx">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/Client/State/CameraState.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/Client/State/CameraState.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/Client/State/CameraState.ixx.obj</ObjectFileName>
-    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\State\UnitState.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/Client/State/UnitState.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/Client/State/UnitState.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/Client/State/UnitState.ixx.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Camera.ixx">
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerCamera.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/World/Camera.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/World/Camera.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/World/Camera.ixx.obj</ObjectFileName>
+      <ModuleOutputFile>$(IntDir)/rl/Player/PlayerCamera.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Player/PlayerCamera.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Player/PlayerCamera.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerCameraController.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Player/PlayerCameraController.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Player/PlayerCameraController.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Player/PlayerCameraController.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerController.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Player/PlayerController.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Player/PlayerController.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Player/PlayerController.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\PlayerProvider.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\IPlayer.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\IPlayerController.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\IPlayerCameraController.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Player\Player.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/Player/Player.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/Player/Player.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/Player/Player.ixx.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\Unit.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
@@ -1245,9 +1308,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
-      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitGrass.ixx.ifc</ModuleOutputFile>
-      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitGrass.ixx.module.json</ModuleDependenciesFile>
-      <ObjectFileName>$(IntDir)rl/World/Unit/UnitGrass.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitAir.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
@@ -1479,6 +1545,126 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.ifc</ModuleOutputFile>
       <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.module.json</ModuleDependenciesFile>
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkBufferGPUSimplex.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogConfig.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogPlatform.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogUuid.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogLevelPrinter.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\IRayLogSerializable.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogRingBuffer.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogMessage.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogColorPrinter.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogTimestamp.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogMessageBuilder.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogPlatformOutput.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogFormatter.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogFormatParser.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogThreadPool.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogFileOutput.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogStackTrace.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogSymbolDemangler.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogFatalHandler.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLog.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\RayLog\RayLogMacro.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
   </ItemGroup>
   <ItemGroup />

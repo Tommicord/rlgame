@@ -39,11 +39,11 @@ void PlayerCamera::Update()
   up = glm::normalize(glm::cross(right, front));
 
   // View matrix, look at position + front
-  const glm::vec3 cameraPos = glm::vec3(eye.x, eye.y, eye.z);
+  const auto cameraPos = glm::vec3(eye.x, eye.y, eye.z);
   view = glm::lookAt(cameraPos, cameraPos + front, up);
-  // Projection matrix
+  // Projection matrix (Vulkan: depth range 0-1, Y flipped)
   const float adjustedFov = fov / zoom;
-  projection = glm::perspective(glm::radians(adjustedFov), aspectRatio,
+  projection = glm::perspectiveRH_ZO(glm::radians(adjustedFov), aspectRatio,
       static_cast<float>(near), static_cast<float>(far));
   // Model matrix (identity for camera)
   model = glm::mat4(1.0f);
@@ -60,6 +60,7 @@ void PlayerCamera::SetPVMMatrix(const Matrix& mvp)
 void PlayerCamera::SetRotateXYZ(const Eye& rotation)
 {
   pitch = static_cast<float>(rotation.x);
+  pitch = std::clamp(pitch, -89.0f, 89.0f);
   yaw = static_cast<float>(rotation.y);
   Update();
 }
@@ -103,28 +104,27 @@ void PlayerCamera::SetZoom(const float zoom)
 }
 
 float PlayerCamera::GetAspectRatio() const
-{
-  return aspectRatio;
-}
+{ return aspectRatio; }
 
 glm::mat4 PlayerCamera::GetViewMatrix() const
-{
-  return view;
-}
+{ return view; }
 
 glm::mat4 PlayerCamera::GetProjectionMatrix() const
-{
-  return projection;
-}
+{ return projection; }
 
 glm::mat4 PlayerCamera::GetModelMatrix() const
-{
-  return model;
-}
+{ return model; }
 
 glm::mat4 PlayerCamera::GetPVMMatrix() const
-{
-  return matrix;
-}
+{ return matrix; }
+
+glm::vec3 PlayerCamera::GetFrontVector() const
+{ return front; }
+
+glm::vec3 PlayerCamera::GetRightVector() const
+{ return right; }
+
+glm::vec3 PlayerCamera::GetUpVector() const
+{ return up; }
 
 } // namespace Rl::Player

@@ -1,19 +1,235 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "c:\\users\\usuario\\ideaprojects\\rl\\rl\\client\\render\\unit\\unitrenderersampler.cpp",
+        "Source": "c:\\users\\usuario\\ideaprojects\\rl\\rl\\base\\game.cpp",
         "ProvidedModule": "",
         "Includes": [],
         "ImportedModules": [
             {
-                "Name": "Rl.Client.Render.Unit.UnitRendererSampler",
-                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Client\\Render\\Unit\\UnitRendererSampler.ixx.ifc"
+                "Name": "Rl.Base.Game",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\Game.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.Shader",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\Shader.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.Binding",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\Binding.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.UserInput",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\UserInput.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Client.State.UnitState",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\UnitState.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.PlayerCamera",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Player\\PlayerCamera.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.CameraController",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Player\\PlayerCameraController.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.PlayerProvider",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\PlayerProvider.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.Macro",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogMacro.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.IPlayer",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IPlayer.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.IPlayerCameraController",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IPlayerCameraController.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Player.IPlayerController",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IPlayerController.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.Logger",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLog.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.RingBuffer",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogRingBuffer.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.Message",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogMessage.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.MessageBuilder",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogMessageBuilder.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.LevelPrinter",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogLevelPrinter.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.ISerializable",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IRayLogSerializable.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.ColorPrinter",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogColorPrinter.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.ThreadPool",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogThreadPool.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.FileOutput",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogFileOutput.ixx.ifc"
+            },
+            {
+                "Name": "Rl.RayLog.Uuid",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\RayLogUuid.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.IModel",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IStateModel.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.IUpdatable",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IUpdatable.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.IDrawable",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\IStateDrawable.ixx.ifc"
+            },
+            {
+                "Name": "Rl.World.Unit",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\World\\Unit\\Unit.ixx.ifc"
+            },
+            {
+                "Name": "Rl.World.Unit.UnitRegistry",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\UnitRegistry.ixx.ifc"
+            },
+            {
+                "Name": "Rl.World.Unit.UnitResourceName",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\UnitResourceName.ixx.ifc"
+            },
+            {
+                "Name": "Rl.Base.Texture2",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\Texture2.ixx.ifc"
             }
         ],
         "ImportedHeaderUnits": [
             {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\algorithm",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\algorithm_VJDZOAC0WKFGBLNN.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\cstdint",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\cstdint_IZX859T1Y9FIK0J5.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\cstdlib",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\cstdlib_3LOADI29Y62K1414.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\iostream",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\iostream_C065HB12PTZFD9IF.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\set",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\set_K0XAY8A3G3H1M884.ifc"
+            },
+            {
+                "Header": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glfw\\include\\glfw\\glfw3.h",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\glfw3.h_2NVQMPFW0701Y9DG.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\stdexcept",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\stdexcept_1ZXC368MQDJR1HPE.ifc"
+            },
+            {
                 "Header": "c:\\vulkansdk\\1.4.341.1\\include\\vulkan\\vulkan.hpp",
                 "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\vulkan.hpp_UPYL2OYLXKE7L2F3.ifc"
+            },
+            {
+                "Header": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glm\\glm\\glm.hpp",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\glm.hpp_K84AI2PEXPITC76X.ifc"
+            },
+            {
+                "Header": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glm\\glm\\gtc\\type_ptr.hpp",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\type_ptr.hpp_2YJYU8BUL3MJKS7G.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\vector",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\vector_ZB5PUF150NIU6STS.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\condition_variable",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\condition_variable_96JFN14VH0I54G4F.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\optional",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\World\\Unit\\optional_QM6E065G71HW43ZC.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\thread",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\thread_XSQIYBQT8PXLT7VX.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\memory",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Player\\memory_3NSUH12XUP6VSJ5D.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\array",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\array_RB56RR856TTD5DK8.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\iomanip",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\iomanip_4HUP5T0IFNMUY2FD.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\string",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\World\\Unit\\string_NRRGA8QZX7ZPQQ1I.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\mutex",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\mutex_8M0LME06B0AYN321.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\chrono",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\chrono_ATLTNDVOPG9R7OWX.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\variant",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\variant_IBV48KVLGJGRKKDE.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\queue",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\queue_86V3VE387JT2Z9HV.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\future",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\future_LPKYUQXNQNXCN2KZ.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\fstream",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\fstream_760WLB5JVCP23QQZ.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\sstream",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\Base\\sstream_82LG9M3177AL5WIK.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\type_traits",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\type_traits_CEK88BVNVWRAFVDJ.ifc"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\string_view",
+                "BMI": "C:\\Users\\USUARIO\\IdeaProjects\\RL\\build\\rlgame.dir\\Debug\\rl\\World\\Unit\\string_view_7SRSWRD16R1OT3ZR.ifc"
             }
         ]
     }

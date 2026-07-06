@@ -4,12 +4,13 @@ import Rl.Base.UserInput;
 
 import <glm/glm.hpp>;
 import <cmath>;
+import <algorithm>;
 
 namespace Rl::Player
 {
 
 PlayerCameraController::PlayerCameraController(IPlayerCamera& camera) noexcept :
-    IPlayerCameraController(*this), camera(camera)
+    IPlayerCameraController(*this), IInputObserver(*this), camera(camera)
 {
 }
 
@@ -71,71 +72,67 @@ void PlayerCameraController::OnKeyEvent(const Input::KeyEvent& event)
 
 void PlayerCameraController::OnMouseButtonEvent(const Input::MouseButtonEvent& event)
 {
-  if (event.button == Input::MouseButton::Right)
-  {
-    mouseCaptured = (event.action == Input::Action::Press);
-  }
 }
 
 void PlayerCameraController::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
 {
-  if (!mouseCaptured)
+  const auto yawOffset = static_cast<float>(event.x * lookSensitivity);
+  const auto pitchOffset = static_cast<float>(event.y * lookSensitivity);
+
+  if (event.x != 0.0 || event.y != 0.0)
   {
-    lastMouseX = event.x;
-    lastMouseY = event.y;
-    return;
+    IPlayerCamera::Eye rotation{};
+    rotation.x = camera.pitch + pitchOffset;
+    // Prevent gimbal lock
+    rotation.x = std::clamp(rotation.x, -89.0, 89.0);
+    rotation.y = camera.yaw + yawOffset;
+    rotation.z = 0.0;
+    camera.SetRotateXYZ(rotation);
   }
-
-  const double deltaX = event.x - lastMouseX;
-  const double deltaY = event.y - lastMouseY;
-
-  lastMouseX = event.x;
-  lastMouseY = event.y;
-
-  const auto yawOffset = static_cast<float>(deltaX * lookSensitivity);
-  const auto pitchOffset = static_cast<float>(deltaY * lookSensitivity);
-
-  IPlayerCamera::Eye rotation{};
-  rotation.x = pitchOffset;
-  rotation.y = yawOffset;
-  rotation.z = 0.0;
-
-  camera.SetRotateXYZ(rotation);
 }
 
 void PlayerCameraController::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 {
-  const auto  zoomOffset = static_cast<float>(event.yOffset * 0.1f);
-  const float newZoom = glm::clamp(camera.zoom + zoomOffset, 0.1f, 10.0f);
+  const float zoomFactor = 0.25f;
+  const auto  zoomOffset = static_cast<float>(event.yOffset * zoomFactor);
+  const float newZoom = glm::clamp(camera.zoom + zoomOffset, 0.5f, 3.0f);
   camera.SetZoom(newZoom);
 }
 
 void PlayerCameraController::Update() const
 {
   glm::vec3 movement(0.0f);
-
+  glm::vec3 right = camera.GetRightVector();
+  glm::vec3 up = camera.GetUpVector();
+  
+  // Project right onto horizontal plane (remove Y component)
+  glm::vec3 horizontalRight = glm::vec3(right.x, 0.0f, right.z);
+  if (glm::length(horizontalRight) > 0.0f)
+    horizontalRight = glm::normalize(horizontalRight);
+  
+  // Calculate horizontal front from horizontal right (cross with world up, negated)
+  glm::vec3 horizontalFront = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), horizontalRight));
+  
   if (moveForward)
-    movement.z += 1.0f;
+    movement += horizontalFront;
   if (moveBackward)
-    movement.z -= 1.0f;
+    movement -= horizontalFront;
   if (moveRight)
-    movement.x += 1.0f;
+    movement += horizontalRight;
   if (moveLeft)
-    movement.x -= 1.0f;
+    movement -= horizontalRight;
   if (moveUp)
-    movement.y += 1.0f;
+    movement -= up;
   if (moveDown)
-    movement.y -= 1.0f;
-
+    movement += up;
+  
   if (glm::length(movement) > 0.0f)
   {
     movement = glm::normalize(movement) * moveSpeed;
-
     IPlayerCamera::Eye position{};
     position.x = camera.eye.x + movement.x;
     position.y = camera.eye.y + movement.y;
     position.z = camera.eye.z + movement.z;
-
     camera.SetEyePosition(position);
   }
 }

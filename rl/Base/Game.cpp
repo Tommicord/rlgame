@@ -5,6 +5,8 @@ import Rl.Base.UserInput;
 import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
 import Rl.Player.CameraController;
+import Rl.Player.PlayerProvider;
+import Rl.RayLog.Macro;
 
 import <algorithm>;
 import <cstdint>;
@@ -15,6 +17,7 @@ import <GLFW/glfw3.h>;
 import <stdexcept>;
 import <vulkan/vulkan.hpp>;
 import <glm/glm.hpp>;
+import <glm/gtc/type_ptr.hpp>;
 import <vector>;
 
 namespace Rl::Main
@@ -48,6 +51,23 @@ void Game::Run()
   while (!glfwWindowShouldClose(window))
   {
     glfwPollEvents();
+    // For now this
+    auto& player = Player::PlayerProvider::GetInstance();
+    const float pitch = player.camera->pitch;
+    const float yaw = player.camera->yaw;
+    
+    RayLog::LogTrace(
+      "Game",
+      "Pitch: %f, Yaw: %f", pitch, yaw
+    );
+    if (player.cameraControl)
+    {
+      player.cameraControl->Update();
+    }
+    if (player.playerControl)
+    {
+      player.playerControl->Update();
+    }
     Draw();
   }
   vkDeviceWaitIdle(binding.device);
@@ -120,8 +140,9 @@ void Game::InitWindow()
       {
         const Game&           game = GetInstance();
         Input::MouseMoveEvent event{};
-        event.x = xpos;
-        event.y = ypos;
+        event.x = xpos - (width / 2.0);
+        event.y = ypos - (height / 2.0);
+        glfwSetCursorPos(window, width / 2.0, height / 2.0);
         game.input.NotifyMouseMoveEvent(event);
       });
 

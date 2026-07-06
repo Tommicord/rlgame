@@ -1,16 +1,17 @@
 export module Rl.Player.CameraController;
 
-import Rl.Player.PlayerCamera;
 import Rl.Base.UserInput;
+import Rl.Player.PlayerCamera;
 import Rl.Player.IPlayerCameraController;
 
 namespace Rl::Player
 {
 
 /* Controls camera rotation and movement from input */
-export class PlayerCameraController final : public IPlayerCameraController
+export class PlayerCameraController final : public IPlayerCameraController,
+                                            public Input::IInputObserver
 {
-public:
+  public:
   /* Constructs controller with camera reference */
   explicit PlayerCameraController(IPlayerCamera& camera) noexcept;
 
@@ -27,23 +28,22 @@ public:
   void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override;
 
   /* Updates camera state from input */
-  void Update() const;
+  void Update() const override;
 
-private:
+  private:
   /* The player camera object reference */
   IPlayerCamera& camera;
 
-  bool           mouseCaptured{false};
-  double         lastMouseX{0.0};
-  double         lastMouseY{0.0};
-  float          moveSpeed{5.0f};
-  float          lookSensitivity{0.1f};
-  bool           moveForward{false};
-  bool           moveBackward{false};
-  bool           moveLeft{false};
-  bool           moveRight{false};
-  bool           moveUp{false};
-  bool           moveDown{false};
+  double lastMouseX{0.0};
+  double lastMouseY{0.0};
+  float  moveSpeed{0.05f};
+  float  lookSensitivity{0.1f};
+  bool   moveForward{false};
+  bool   moveBackward{false};
+  bool   moveLeft{false};
+  bool   moveRight{false};
+  bool   moveUp{false};
+  bool   moveDown{false};
 };
 
-}
+} // namespace Rl::Player

@@ -19,16 +19,22 @@
                     "logical-name": "Rl.Base.Binding"
                 },
                 {
-                    "logical-name": "Rl.Base.InputReceiver"
-                },
-                {
-                    "logical-name": "Rl.Client.State.CameraState"
+                    "logical-name": "Rl.Base.UserInput"
                 },
                 {
                     "logical-name": "Rl.Client.State.UnitState"
                 },
                 {
-                    "logical-name": "Rl.World.Camera"
+                    "logical-name": "Rl.Player.PlayerCamera"
+                },
+                {
+                    "logical-name": "Rl.Player.CameraController"
+                },
+                {
+                    "logical-name": "Rl.Player.PlayerProvider"
+                },
+                {
+                    "logical-name": "Rl.RayLog.Macro"
                 },
                 {
                     "logical-name": "algorithm",
@@ -81,6 +87,12 @@
                 {
                     "logical-name": "glm/glm.hpp",
                     "source-path": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glm\\glm\\glm.hpp",
+                    "lookup-method": "include-angle",
+                    "unique-on-source-path": true
+                },
+                {
+                    "logical-name": "glm/gtc/type_ptr.hpp",
+                    "source-path": "c:\\users\\usuario\\ideaprojects\\rl\\deps\\glm\\glm\\gtc\\type_ptr.hpp",
                     "lookup-method": "include-angle",
                     "unique-on-source-path": true
                 },

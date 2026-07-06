@@ -193,7 +193,8 @@ add_subdirectory(Deps/glfw)
 add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
 
-add_executable(rlgame rl/Base/Main.cpp ${SOURCES})
+add_executable(rlgame rl/Base/Main.cpp ${SOURCES}
+  rl/World/Biome/IBiome.ixx)
 
 target_sources(
   rlgame
