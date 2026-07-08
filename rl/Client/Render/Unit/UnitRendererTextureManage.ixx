@@ -9,9 +9,9 @@ namespace Rl::Client::Render
 {
 
 // Update graphics descriptor set with unit textures
-export void UnitUpdateUnitTextures(VkDevice  device,
-    VkDescriptorSet                   descriptorSet,
-    const World::UnitTextureMaterial& textures,
-    Main::MainBinding&              context);
+export void UnitUpdateUnitTextures(VkDevice device,
+    VkDescriptorSet                         descriptorSet,
+    World::UnitTextureMaterial&             textures,
+    Main::MainBinding&                      context);
 
 } // namespace Rl::Client::Render

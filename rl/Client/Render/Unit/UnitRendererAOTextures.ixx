@@ -13,7 +13,7 @@ namespace Rl::Client::Render
 export void UnitGenerateAOTextures(VkDevice    device,
     Main::MainBinding&                context,
     Providers::UnitStateBinding& vk,
-    const World::UnitTextureMaterial&   textures);
+    World::UnitTextureMaterial&   textures);
 
 export void UnitUpdateAOTextureDescriptor(VkDevice device,
     VkDescriptorSet                         descriptorSet,

@@ -11,10 +11,10 @@ export class UnitResourceName
 {
   protected:
   /* Identifies the unit resource name, for example: rl.world.UnitGrass */
-  char*  name;
+  char*  name = nullptr;
 
   /* Stores the length of the unit resource name */
-  size_t nameLen;
+  size_t nameLen = 0;
 
   public:
   /* The prefix of the resource name */
@@ -22,6 +22,18 @@ export class UnitResourceName
 
   /* Creates a basic unit resource name for registry identifiers */
   explicit UnitResourceName(const std::vector<std::string_view>& name) noexcept;
+
+  /* Performs deep copy of name buffer */
+  UnitResourceName(const UnitResourceName& other);
+
+  /* Performs deep copy of name buffer */
+  UnitResourceName& operator=(const UnitResourceName& other);
+
+  /* Move constructor */
+  UnitResourceName(UnitResourceName&& other) noexcept;
+
+  /* Move assignment */
+  UnitResourceName& operator=(UnitResourceName&& other) noexcept;
 
   /* Destroys a basic resource name object */
   ~UnitResourceName();
@@ -31,7 +43,7 @@ export class UnitResourceName
 
   /* Splits the resource name into smaller tokens */
   [[nodiscard]]
-  std::vector<char*> SplitResourceName() const;
+  std::vector<std::string> SplitResourceName() const;
 
   /* Gets the stored resource name */
   [[nodiscard]]

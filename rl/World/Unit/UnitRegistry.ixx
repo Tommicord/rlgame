@@ -49,7 +49,7 @@ class UnitRegistryPair3
 {
   protected:
   short    regId;
-  const K& regKey;
+  K        regKey;
   V        regValue;
 
   public:
@@ -57,7 +57,7 @@ class UnitRegistryPair3
   explicit UnitRegistryPair3(const K& defaultRegKey);
 
   /* Registers a Unit into the registry */
-  void Register(unsigned short id, K& key, V& value);
+  void Register(unsigned short id, const K& key, V& value);
 
   /* Gets the name we use to identify the object */
   [[nodiscard]]
@@ -72,7 +72,6 @@ class UnitRegistryPair3
   static std::optional<V> GetObjectById(unsigned short id);
 };
 
-// Template implementations
 template <class K, class V>
 UnitRegistryPair3<K, V>::UnitRegistryPair3(const K& defaultRegKey) : regId(0), regKey(defaultRegKey), regValue(V{})
 {
@@ -80,9 +79,10 @@ UnitRegistryPair3<K, V>::UnitRegistryPair3(const K& defaultRegKey) : regId(0), r
 }
 
 template <class K, class V>
-void UnitRegistryPair3<K, V>::Register(unsigned short id, K& key, V& value)
+void UnitRegistryPair3<K, V>::Register(unsigned short id, const K& key, V& value)
 {
   regId    = id;
+  regKey   = key;
   regValue = value;
   UnitRegisters<K, V>::PutPair(*this);
 }

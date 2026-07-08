@@ -6,24 +6,6 @@ import <vector>;
 
 namespace Rl::World::Biome
 {
-
-/* Biome type enumeration */
-export enum class BiomeType : uint32_t
-{
-  OCEAN = 0,
-  BEACH = 1,
-  PLAINS = 2,
-  FOREST = 3,
-  DESERT = 4,
-  MOUNTAINS = 5,
-  TUNDRA = 6,
-  JUNGLE = 7,
-  SWAMP = 8,
-  RIVER = 9,
-  LAKE = 10,
-  CUSTOM = 255
-};
-
 /* Noise layer configuration for biome generation */
 export struct BiomeNoiseLayer
 {
@@ -48,16 +30,16 @@ export struct BiomeUnitRule
   float maxTemperature;  // Maximum temperature threshold
   float minMoisture;     // Minimum moisture threshold
   float maxMoisture;     // Maximum moisture threshold
-  float minElevation;   // Minimum elevation threshold
-  float maxElevation;   // Maximum elevation threshold
-  float probability;    // Probability of placement (0.0-1.0)
+  float minElevation;    // Minimum elevation threshold
+  float maxElevation;    // Maximum elevation threshold
+  float probability;     // Probability of placement (0.0-1.0)
   float density;         // Density of placement (0.0-1.0)
 };
 
 /* GPU-compatible biome parameters structure */
 export struct BiomeGPUParams
 {
-  BiomeType biomeType;
+  uint32_t biomeType;
   float temperatureBase;
   float temperatureVariation;
   float moistureBase;
@@ -76,7 +58,7 @@ export class IBiome
 
   /* Gets the biome type identifier */
   [[nodiscard]]
-  virtual BiomeType GetBiomeType() const = 0;
+  virtual uint32_t GetBiomeType() const = 0;
 
   /* Gets the biome name for debugging */
   [[nodiscard]]
@@ -97,10 +79,6 @@ export class IBiome
   /* Gets the unit generation rules for this biome */
   [[nodiscard]]
   virtual const std::vector<BiomeUnitRule>& GetUnitRules() const = 0;
-
-  /* Gets GPU-compatible parameters for shader consumption */
-  [[nodiscard]]
-  virtual BiomeGPUParams GetGPUParams() const = 0;
 
   /* Classifies a position as belonging to this biome based on noise values */
   [[nodiscard]]

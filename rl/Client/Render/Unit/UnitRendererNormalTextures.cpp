@@ -10,25 +10,27 @@ namespace Rl::Client::Render
 {
 
 void UnitGenerateNormalTextures(VkDevice device,
-    Main::MainBinding&                 context,
-    Providers::UnitStateBinding&  vk,
-    const World::UnitTextureMaterial&    textures)
+    Main::MainBinding&                   context,
+    Providers::UnitStateBinding&         vk,
+    World::UnitTextureMaterial&          textures)
 {
   if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
   {
     Providers::Texture2Properties normalProperties;
-    normalProperties.format          = Providers::Texture2Format::RGBA8;
+    normalProperties.format = Providers::Texture2Format::RGBA8;
     normalProperties.generateMipmaps = true;
-    normalProperties.minFilter       = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
-    normalProperties.magFilter       = Providers::Texture2Filter::LINEAR;
-    normalProperties.sRGB            = false;
+    normalProperties.minFilter = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
+    normalProperties.magFilter = Providers::Texture2Filter::LINEAR;
+    normalProperties.sRGB = false;
 
-    Providers::Texture2* normalTextures[6] = {GenerateNormalTexture(textures.top, normalProperties),
-        GenerateNormalTexture(textures.down, normalProperties),
-        GenerateNormalTexture(textures.left, normalProperties),
-        GenerateNormalTexture(textures.right, normalProperties),
-        GenerateNormalTexture(textures.front, normalProperties),
-        GenerateNormalTexture(textures.back, normalProperties)};
+    const auto&          faces = textures.GetFaces();
+    Providers::Texture2* normalTextures[6] = {
+        GenerateNormalTexture(faces.top, normalProperties),
+        GenerateNormalTexture(faces.down, normalProperties),
+        GenerateNormalTexture(faces.left, normalProperties),
+        GenerateNormalTexture(faces.right, normalProperties),
+        GenerateNormalTexture(faces.front, normalProperties),
+        GenerateNormalTexture(faces.back, normalProperties)};
 
     // Create Vulkan resources for generated normal textures
     for (int i = 0; i < 6; ++i)
@@ -36,24 +38,24 @@ void UnitGenerateNormalTextures(VkDevice device,
       if (normalTextures[i] && normalTextures[i]->IsLoaded())
       {
         normalTextures[i]->GetImageView(context);
-        vk.normalTextures[i]       = normalTextures[i]->binding.vkImage;
+        vk.normalTextures[i] = normalTextures[i]->binding.vkImage;
         vk.normalTexturesMemory[i] = normalTextures[i]->binding.vkImageMemory;
-        vk.normalTexturesView[i]   = normalTextures[i]->binding.vkImageView;
+        vk.normalTexturesView[i] = normalTextures[i]->binding.vkImageView;
 
         // Clear handles from temporary Texture2 to prevent double-deletion
-        normalTextures[i]->binding.vkImage       = VK_NULL_HANDLE;
+        normalTextures[i]->binding.vkImage = VK_NULL_HANDLE;
         normalTextures[i]->binding.vkImageMemory = VK_NULL_HANDLE;
-        normalTextures[i]->binding.vkImageView   = VK_NULL_HANDLE;
+        normalTextures[i]->binding.vkImageView = VK_NULL_HANDLE;
       }
     }
 
     // Clean up generated textures
-    for (int i = 0; i < 6; ++i)
+    for (auto & normalTexture : normalTextures)
     {
-      if (normalTextures[i])
+      if (normalTexture)
       {
-        normalTextures[i]->CleanupBinding(context);
-        delete normalTextures[i];
+        normalTexture->CleanupBinding(context);
+        delete normalTexture;
       }
     }
   }
@@ -66,17 +68,17 @@ void UnitUpdateNormalTextureDescriptor(VkDevice device,
 {
   VkDescriptorImageInfo normalImageInfo{};
   normalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  normalImageInfo.imageView   = normalTextureView[0];
-  normalImageInfo.sampler     = sampler;
+  normalImageInfo.imageView = normalTextureView[0];
+  normalImageInfo.sampler = sampler;
 
   VkWriteDescriptorSet normalTextureWrite{};
-  normalTextureWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  normalTextureWrite.dstSet          = descriptorSet;
-  normalTextureWrite.dstBinding      = 11;
+  normalTextureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  normalTextureWrite.dstSet = descriptorSet;
+  normalTextureWrite.dstBinding = 11;
   normalTextureWrite.dstArrayElement = 0;
-  normalTextureWrite.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  normalTextureWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   normalTextureWrite.descriptorCount = 1;
-  normalTextureWrite.pImageInfo      = &normalImageInfo;
+  normalTextureWrite.pImageInfo = &normalImageInfo;
 
   vkUpdateDescriptorSets(device, 1, &normalTextureWrite, 0, nullptr);
 }

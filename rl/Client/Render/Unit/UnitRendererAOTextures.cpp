@@ -9,10 +9,10 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitGenerateAOTextures(VkDevice  device,
-    Main::MainBinding&                context,
-    Providers::UnitStateBinding&      vk,
-    const World::UnitTextureMaterial& textures)
+void UnitGenerateAOTextures(VkDevice device,
+    Main::MainBinding&               context,
+    Providers::UnitStateBinding&     vk,
+    World::UnitTextureMaterial&      textures)
 {
   if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
   {
@@ -22,13 +22,14 @@ void UnitGenerateAOTextures(VkDevice  device,
     aoProperties.minFilter = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
     aoProperties.magFilter = Providers::Texture2Filter::LINEAR;
 
+    const auto& faces = textures.GetFaces();
     Providers::Texture2* aoTextures[6] = {
-        GenerateLightningTexture(textures.top, aoProperties),
-        GenerateLightningTexture(textures.down, aoProperties),
-        GenerateLightningTexture(textures.left, aoProperties),
-        GenerateLightningTexture(textures.right, aoProperties),
-        GenerateLightningTexture(textures.front, aoProperties),
-        GenerateLightningTexture(textures.back, aoProperties)};
+        GenerateLightningTexture(faces.top, aoProperties),
+        GenerateLightningTexture(faces.down, aoProperties),
+        GenerateLightningTexture(faces.left, aoProperties),
+        GenerateLightningTexture(faces.right, aoProperties),
+        GenerateLightningTexture(faces.front, aoProperties),
+        GenerateLightningTexture(faces.back, aoProperties)};
 
     // Create Vulkan resources for generated AO textures
     for (int i = 0; i < 6; ++i)
@@ -40,14 +41,11 @@ void UnitGenerateAOTextures(VkDevice  device,
         vk.aoTexturesMemory[i] = aoTextures[i]->binding.vkImageMemory;
         vk.aoTexturesView[i] = aoTextures[i]->binding.vkImageView;
 
-        // Clear handles from temporary Texture2 to prevent
-        // double-deletion
         aoTextures[i]->binding.vkImage = VK_NULL_HANDLE;
         aoTextures[i]->binding.vkImageMemory = VK_NULL_HANDLE;
         aoTextures[i]->binding.vkImageView = VK_NULL_HANDLE;
       }
     }
-
     // Clean up generated textures
     for (auto& aoTexture : aoTextures)
     {

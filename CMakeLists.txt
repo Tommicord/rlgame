@@ -99,6 +99,7 @@ set(CXX_MODULES
   rl/World/Unit/UnitDynamicTexture.ixx
   rl/World/Unit/UnitPropertyStrategy.ixx
   rl/World/Unit/UnitRegister.ixx
+  rl/World/Unit/UnitTextureFactory.ixx
   rl/Client/Render/Unit/UnitRendererAOTextures.ixx
   rl/Client/Render/Unit/UnitRendererBarriers.ixx
   rl/Client/Render/Unit/UnitRendererBasicBuffer.ixx
@@ -168,6 +169,7 @@ set(SOURCES
   rl/Player/Player.cpp
   rl/World/Unit/Unit.cpp
   rl/World/Unit/UnitDynamicTexture.cpp
+  rl/World/Unit/UnitTextureFactory.cpp
   rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/Unit/UnitRendererAOTextures.cpp
   rl/Client/Render/Unit/UnitRendererBarriers.cpp
@@ -207,9 +209,7 @@ add_subdirectory(Deps/glfw)
 add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
 
-add_executable(rlgame rl/Base/Main.cpp ${SOURCES}
-  rl/World/Biome/IBiome.ixx
-  rl/World/Chunk/UnitChunkBufferFBM.ixx)
+add_executable(rlgame rl/Base/Main.cpp ${SOURCES})
 
 target_sources(
   rlgame

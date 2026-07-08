@@ -4,7 +4,7 @@ import Rl.Base.Texture2;
 
 import <cstring>;
 import <stdexcept>;
-import <vulkan/vulkan.h>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::Providers
 {

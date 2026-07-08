@@ -12,9 +12,9 @@ namespace Rl::Client::Render
 
 // Generate normal textures from unit textures
 export void UnitGenerateNormalTextures(VkDevice device,
-    Main::MainBinding&                 context,
-    Providers::UnitStateBinding&  vk,
-    const World::UnitTextureMaterial&    textures);
+    Main::MainBinding&                          context,
+    Providers::UnitStateBinding&                vk,
+    World::UnitTextureMaterial&                 textures);
 
 // Update normal texture descriptor
 export void UnitUpdateNormalTextureDescriptor(VkDevice device,

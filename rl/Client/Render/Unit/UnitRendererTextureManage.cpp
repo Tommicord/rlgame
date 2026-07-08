@@ -8,13 +8,13 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitUpdateUnitTextures(VkDevice  device,
-    VkDescriptorSet                   descriptorSet,
-    const World::UnitTextureMaterial& textures,
-    Main::MainBinding&                context)
+void UnitUpdateUnitTextures(VkDevice device,
+    VkDescriptorSet                  descriptorSet,
+    World::UnitTextureMaterial&      textures,
+    Main::MainBinding&               context)
 {
   VkDescriptorImageInfo imageInfos[6]{};
-  auto                  gen = [&imageInfos, &context](Providers::Texture2* texture, const int index)
+  auto                  genSampler = [&imageInfos, &context](Providers::Texture2* texture, const int index)
   {
     if (texture)
     {
@@ -32,12 +32,13 @@ void UnitUpdateUnitTextures(VkDevice  device,
     }
   };
   // Get texture image views and samplers (order: top, down, left, right, front, back)
-  gen(textures.top, 0);
-  gen(textures.down, 1);
-  gen(textures.left, 2);
-  gen(textures.right, 3);
-  gen(textures.front, 4);
-  gen(textures.back, 5);
+  const auto& faces = textures.GetFaces();
+  genSampler(faces.top, 0);
+  genSampler(faces.down, 1);
+  genSampler(faces.left, 2);
+  genSampler(faces.right, 3);
+  genSampler(faces.front, 4);
+  genSampler(faces.back, 5);
 
   VkWriteDescriptorSet textureWrite{};
   textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

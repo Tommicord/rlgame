@@ -261,7 +261,7 @@ bool Texture2::FromResource(const std::string& filepath, const Texture2Propertie
 {
   this->properties = properties;
   this->filepath = filepath;
-  return LoadImage(filepath);
+  return Load(filepath);
 }
 
 bool Texture2::FromMemory(
@@ -358,7 +358,7 @@ bool Texture2::FromIOSBundle(const std::string& resourcePath)
 #endif
 }
 
-bool Texture2::LoadImage(const std::string& filepath)
+bool Texture2::Load(const std::string& filepath)
 {
   int width, height, channels;
 
@@ -497,7 +497,6 @@ void Texture2::GenMipmaps()
                     ph /= 2;
                 }
                 prevLevelOffset += srcOffset + c;
-
                 sum += data[prevLevelOffset];
                 count++;
               }

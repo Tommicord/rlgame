@@ -55,10 +55,11 @@ void Game::Run()
     auto& player = Player::PlayerProvider::GetInstance();
     const float pitch = player.camera->pitch;
     const float yaw = player.camera->yaw;
+    const float zoom = player.camera->zoom;
     
     RayLog::LogTrace(
       "Game",
-      "Pitch: %f, Yaw: %f", pitch, yaw
+      "Pitch: %f, Yaw: %f, Zoom: %f", pitch, yaw, zoom
     );
     if (player.cameraControl)
     {

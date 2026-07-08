@@ -47,8 +47,8 @@ export enum class Texture2Wrap {
 export struct Texture2Properties
 {
   Texture2Format format = Texture2Format::RGBA8;
-  Texture2Filter minFilter = Texture2Filter::LINEAR_MIPMAP_LINEAR;
-  Texture2Filter magFilter = Texture2Filter::LINEAR;
+  Texture2Filter minFilter = Texture2Filter::NEAREST_MIPMAP_LINEAR;
+  Texture2Filter magFilter = Texture2Filter::NEAREST;
   Texture2Wrap   wrapS = Texture2Wrap::REPEAT;
   Texture2Wrap   wrapT = Texture2Wrap::REPEAT;
   bool           generateMipmaps = true;
@@ -136,7 +136,7 @@ export class Texture2
 
   private:
   void Create();
-  bool LoadImage(const std::string& filepath);
+  bool Load(const std::string& filepath);
   bool ProcessImageData(uint8_t* imageData, int width, int height, int channels);
   void CreateBindingImage(Main::MainBinding& context);
   void CreateBindingSampler(Main::MainBinding& context);

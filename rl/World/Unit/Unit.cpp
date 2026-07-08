@@ -2,6 +2,7 @@ import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
+import Rl.World.Unit.UnitTextureFactory;
 import Rl.Base.Texture2;
 
 import <algorithm>;
@@ -26,11 +27,70 @@ UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) no
   fullName.emplace_back(prefix);
   fullName.insert(fullName.end(), name.begin(), name.end());
   ConstructResourceName(fullName, maxSize);
+  // Validate nameLen after construction
+  if (this->nameLen >= maxSize)
+  {
+    this->nameLen = maxSize - 1;
+    this->name[this->nameLen] = 0x00;
+  }
 }
 
 UnitResourceName::~UnitResourceName()
+{ delete[] name; }
+
+UnitResourceName::UnitResourceName(const UnitResourceName& other)
+  : nameLen(other.nameLen)
 {
-  delete[] name;
+  if (other.name && other.nameLen > 0)
+  {
+    name = new char[other.nameLen + 1];
+    std::memcpy(name, other.name, other.nameLen);
+    name[other.nameLen] = 0x00;
+  }
+  else
+  {
+    name = nullptr;
+  }
+}
+
+UnitResourceName& UnitResourceName::operator=(const UnitResourceName& other)
+{
+  if (this != &other)
+  {
+    delete[] name;
+    nameLen = other.nameLen;
+    if (other.name && other.nameLen > 0)
+    {
+      name = new char[other.nameLen + 1];
+      std::memcpy(name, other.name, other.nameLen);
+      name[other.nameLen] = 0x00;
+    }
+    else
+    {
+      name = nullptr;
+    }
+  }
+  return *this;
+}
+
+UnitResourceName::UnitResourceName(UnitResourceName&& other) noexcept
+  : name(other.name), nameLen(other.nameLen)
+{
+  other.name = nullptr;
+  other.nameLen = 0;
+}
+
+UnitResourceName& UnitResourceName::operator=(UnitResourceName&& other) noexcept
+{
+  if (this != &other)
+  {
+    delete[] name;
+    name = other.name;
+    nameLen = other.nameLen;
+    other.name = nullptr;
+    other.nameLen = 0;
+  }
+  return *this;
 }
 
 void UnitResourceName::ConstructResourceName(
@@ -44,11 +104,11 @@ void UnitResourceName::ConstructResourceName(
   {
     std::string_view view = base[i];
     size_t           count = view.length();
-    if (count > 255)
+    if (count > maxSize)
     {
-      count = 255;
+      count = maxSize;
     }
-    if (this->nameLen + count + 1 >= maxSize)
+    if (this->nameLen + count + 1 > maxSize)
     {
       break;
     }
@@ -62,42 +122,40 @@ void UnitResourceName::ConstructResourceName(
   }
   this->name[this->nameLen] = 0x00;
 }
-std::vector<char*> UnitResourceName::SplitResourceName() const
+std::vector<std::string> UnitResourceName::SplitResourceName() const
 {
-  std::string        nm(name);
-  std::vector<char*> res;
+  if (!name || nameLen == 0)
+    return {};
+  constexpr size_t maxSafeLength = 1024;
+  if (nameLen > maxSafeLength)
+    return {};
+  std::string              nm(name, nameLen);
+  std::vector<std::string> res;
   // Reserve space to avoid reallocations
-  const size_t dotcount = std::ranges::count_if(nm, [](const char c) { return c == '.'; });
+  const size_t dotcount =
+      std::ranges::count_if(nm, [](const char c) { return c == '.'; });
   res.reserve(dotcount + 1);
   size_t start = 0;
   for (size_t i = 0; i < nm.size(); ++i)
   {
     if (nm[i] == '.' || i == nm.size() - 1)
     {
-      size_t length = (nm[i] == '.') ? (i - start) : (i - start + 1);
+      const size_t length = (nm[i] == '.') ? (i - start) : (i - start + 1);
       if (length > 0)
       {
-        auto segment = new char[length + 1];
-        std::memcpy(segment, nm.data() + start, length);
-        segment[length] = 0x00;
-        res.push_back(segment);
+        res.push_back(nm.substr(start, length));
       }
       start = i + 1;
     }
   }
-
   return res;
 }
 
 char* UnitResourceName::GetResourceName() const
-{
-  return name;
-}
+{ return name; }
 
 size_t UnitResourceName::GetResourceNameLength() const
-{
-  return nameLen;
-}
+{ return nameLen; }
 
 bool UnitResourceName::Equals(const UnitResourceName& resource) const
 {
@@ -108,38 +166,20 @@ bool UnitResourceName::Equals(const UnitResourceName& resource) const
   return std::memcmp(this->name, resource.name, this->nameLen);
 }
 
-UnitTextureMaterial::UnitTextureMaterial(Providers::Texture2* top,
-    Providers::Texture2*                                      down,
-    Providers::Texture2*                                      left,
-    Providers::Texture2*                                      right,
-    Providers::Texture2*                                      front,
-    Providers::Texture2*                                      back)
-{
-  this->top = top;
-  this->down = down;
-  this->left = left;
-  this->right = right;
-  this->front = front;
-  this->back = back;
-  hasMaterial = true;
-}
-
 UnitTextureMaterial::~UnitTextureMaterial()
 {
-  if (!hasMaterial)
-    return;
-  delete top;
-  top = nullptr;
-  delete down;
-  down = nullptr;
-  delete left;
-  left = nullptr;
-  delete right;
-  right = nullptr;
-  delete front;
-  front = nullptr;
-  delete back;
-  back = nullptr;
+  if (heap)
+  {
+    for (auto& face : textures.faces)
+    {
+      delete face;
+    }
+  }
+}
+
+void IUnit::RegisterDerivedCallback(unsigned short id)
+{
+  UnitTextureFactory::FromUnit(id);
 }
 
 } // namespace Rl::World
