@@ -46,6 +46,9 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitTextureFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -145,12 +148,6 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Biome\IBiome.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferFBM.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Base\Game.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -229,6 +226,9 @@
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitRegister.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitTextureFactory.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -299,6 +299,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitGPUSimplexNoise.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferFBM.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkErrorRecovery.ixx">

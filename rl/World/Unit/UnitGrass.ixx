@@ -2,9 +2,12 @@ export module Rl.World.Unit.UnitGrass;
 
 import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
-
+import Rl.World.Unit.UnitGrassGrowBehavior;
+import Rl.World.Chunk.UnitChunkAccessor;
 import <type_traits>;
 import <string_view>;
+import <memory>;
+import Rl.World.Unit.UnitGrassGrowBehavior;
 
 namespace Rl::World
 {
@@ -17,9 +20,6 @@ export class IUnitGrowable
 
   /* Returns if the Grass unit can grow */
   virtual bool InGrowState() = 0;
-
-  /* Returns if the Grass unit can grow */
-  virtual void Grow() = 0;
 };
 
 export class UnitGrass final : public IUnit,
@@ -27,21 +27,29 @@ export class UnitGrass final : public IUnit,
                                public IUnitIdentifiable<UnitGrass>
 {
   public:
-  UnitGrass() noexcept :
-      IUnit(IUnitIdentifiable<UnitGrass>::GetClassId()), IUnitGrowable(), IUnitIdentifiable<UnitGrass>()
-  {
-    RegisterDerived<UnitGrass>(*this);
-  }
+  explicit UnitGrass(const Unit::GrassGrowConfig& config = Unit::GetGrassConfig()) noexcept;
+  ~UnitGrass() override = default;
+
+  /* Disable copy operations */
+  UnitGrass(const UnitGrass&) = delete;
+  UnitGrass& operator=(const UnitGrass&) = delete;
+
+  /* Enable move operations */
+  UnitGrass(UnitGrass&&) noexcept = default;
+  UnitGrass& operator=(UnitGrass&&) noexcept = default;
+
+  /* Update grass growth behavior */
+  void Update(Chunk::UnitChunkAccessor& accessor) const;
+
+  /* Update growth configuration */
+  void UpdateConfig(const Unit::GrassGrowConfig& newConfig);
+
+  /* Get current growth configuration */
+  [[nodiscard]]
+  const Unit::GrassGrowConfig& GetConfig() const;
 
   protected:
-  bool UnitGrass::InGrowState() override
-  {
-    return true;
-  }
-
-  void UnitGrass::Grow() override
-  {
-  }
+  bool UnitGrass::InGrowState() override;
 
   private:
   [[nodiscard]]
@@ -55,6 +63,8 @@ export class UnitGrass final : public IUnit,
   {
     return IUnitIdentifiable<UnitGrass>::SimpleClassName();
   }
+
+  std::unique_ptr<Unit::UnitGrassGrowBehavior> growBehavior;
 };
 
 } // namespace Rl::World

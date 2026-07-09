@@ -5,6 +5,8 @@ import Rl.Base.Binding;
 import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
 import Rl.Player.CameraController;
+import Rl.World.ServiceUpdaterRegistry;
+import Rl.World.ServiceUpdaterRegister;
 
 import <GLFW/glfw3.h>;
 import <optional>;
@@ -15,28 +17,10 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Main
 {
 
-/* The GLFWwindow alias type */
-export using WindowT = GLFWwindow;
-
-/* The MainBinding alias type */
-export using ContextT = MainBinding;
-
-/* The UserInput alias type */
-export using InputT = Input::UserInput;
-
-/* Width of the window */
-export constexpr unsigned int width = 1800;
-
-/* Height of the window */
-export constexpr unsigned int height = 900;
-
-/* The unique input receiver in the Game */
-export InputT& input = Input::UserInput::GetInstance();
-
 export class Game
 {
-
   std::unique_ptr<Providers::UnitModel> unitModel;
+  std::unique_ptr<World::ServiceUpdaterRegistry> serviceUpdaterRegistry;
 
   public:
   void         Run();
@@ -45,15 +29,16 @@ export class Game
   void         InitGraphics();
   void         InitWindow();
   void         UpdateModels();
+  void         UpdateServices();
   static Game& GetInstance();
   MainBinding& GetMainBinding();
   ~Game();
 
   private:
   Game();
-  WindowT* window;
-  InputT&  input;
-  ContextT binding;
+  GLFWwindow* window;
+  Input::UserInput& input;
+  MainBinding binding;
 
   void CreateInstance();
   void CreateSurface();
@@ -85,4 +70,4 @@ export class Game
   std::vector<const char*> GetRequiredExtensions() const;
 };
 
-} // namespace Rl::Game
+} // namespace Rl::Main

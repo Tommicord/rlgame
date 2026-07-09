@@ -132,7 +132,6 @@ bool UnitChunkAccessor::WorldToChunkLocal(const UnitPosition& worldPos, WorldChu
 {
   // Convert world coordinates to chunk coordinates
   // Assuming chunks are UnitChunkBuffer::W x UnitChunkBuffer::H x UnitChunkBuffer::D in size
-  
   chunkCoord.chunkX = worldPos.worldX / UnitChunkBuffer::W;
   chunkCoord.chunkY = worldPos.worldY / UnitChunkBuffer::H;
   chunkCoord.chunkZ = worldPos.worldZ / UnitChunkBuffer::D;

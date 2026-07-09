@@ -7,6 +7,8 @@ import Rl.Player.PlayerCamera;
 import Rl.Player.CameraController;
 import Rl.Player.PlayerProvider;
 import Rl.RayLog.Macro;
+import Rl.World.ServiceUpdaterRegistry;
+import Rl.World.ServiceUpdaterRegister;
 
 import <algorithm>;
 import <cstdint>;
@@ -25,6 +27,9 @@ namespace Rl::Main
 
 using namespace Rl::Providers;
 
+constexpr unsigned int width = 1800;
+constexpr unsigned int height = 900;
+
 const std::vector validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 #ifdef NDEBUG
@@ -33,7 +38,7 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-Game::Game() : input(Input::UserInput::GetInstance())
+Game::Game() : input(Input::UserInput::GetInstance()), serviceUpdaterRegistry(std::make_unique<World::ServiceUpdaterRegistry>())
 {
 }
 
@@ -47,28 +52,14 @@ void Game::Run()
 {
   InitWindow();
   InitGraphics();
+  
+  // Register standard services
+  World::RegisterStandardServices(*serviceUpdaterRegistry, 1);
 
   while (!glfwWindowShouldClose(window))
   {
     glfwPollEvents();
-    // For now this
-    auto& player = Player::PlayerProvider::GetInstance();
-    const float pitch = player.camera->pitch;
-    const float yaw = player.camera->yaw;
-    const float zoom = player.camera->zoom;
-    
-    RayLog::LogTrace(
-      "Game",
-      "Pitch: %f, Yaw: %f, Zoom: %f", pitch, yaw, zoom
-    );
-    if (player.cameraControl)
-    {
-      player.cameraControl->Update();
-    }
-    if (player.playerControl)
-    {
-      player.playerControl->Update();
-    }
+    UpdateServices();
     Draw();
   }
   vkDeviceWaitIdle(binding.device);
@@ -129,21 +120,21 @@ void Game::InitWindow()
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-  window = glfwCreateWindow(width, height, "The Real Game", nullptr, nullptr);
+  window = glfwCreateWindow(Rl::Main::width, Rl::Main::height, "The Real Game", nullptr, nullptr);
   GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-  glfwSetWindowPos(window, (mode->width - width) / 2, (mode->height - height) / 2);
+  glfwSetWindowPos(window, (mode->width - Rl::Main::width) / 2, (mode->height - Rl::Main::height) / 2);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPos(window, width / 2.0, height / 2.0);
+  glfwSetCursorPos(window, Rl::Main::width / 2.0, Rl::Main::height / 2.0);
 
   glfwSetCursorPosCallback(window,
       [](GLFWwindow* window, const double xpos, const double ypos)
       {
         const Game&           game = GetInstance();
         Input::MouseMoveEvent event{};
-        event.x = xpos - (width / 2.0);
-        event.y = ypos - (height / 2.0);
-        glfwSetCursorPos(window, width / 2.0, height / 2.0);
+        event.x = xpos - (Rl::Main::width / 2.0);
+        event.y = ypos - (Rl::Main::height / 2.0);
+        glfwSetCursorPos(window, Rl::Main::width / 2.0, Rl::Main::height / 2.0);
         game.input.NotifyMouseMoveEvent(event);
       });
 
@@ -184,6 +175,14 @@ void Game::InitWindow()
 void Game::UpdateModels()
 {
   unitModel->Update(binding);
+}
+
+void Game::UpdateServices()
+{
+  if (serviceUpdaterRegistry)
+  {
+    serviceUpdaterRegistry->UpdateAll();
+  }
 }
 
 Game& Game::GetInstance()
@@ -345,7 +344,7 @@ void Game::CreateSwapChain()
   constexpr VkSurfaceFormatKHR surfaceFormat = {
       VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
   constexpr VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
-  constexpr VkExtent2D       extent = {width, height};
+  constexpr VkExtent2D       extent = {Rl::Main::width, Rl::Main::height};
 
   uint32_t imageCount = caps.minImageCount + 1;
   if (caps.maxImageCount > 0 && imageCount > caps.maxImageCount)

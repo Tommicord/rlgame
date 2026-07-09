@@ -66,6 +66,7 @@ function(target_configure TARGET)
         "/arch:AVX2"
         "/Zm200"
         "/MP2"
+        "/FS"
       )
     endif ()
   endif ()
@@ -132,6 +133,13 @@ set(CXX_MODULES
   rl/World/Chunk/ChunkTransaction.ixx
   rl/World/Chunk/ChunkTransactionRingBuffer.ixx
   rl/World/Chunk/UnitChunkAccessor.ixx
+  rl/World/Time/TimeSystem.ixx
+  rl/World/Skybox/SkyboxSystem.ixx
+  rl/World/ServiceLocator.ixx
+  rl/World/ServiceUpdater.ixx
+  rl/World/ServiceUpdaterRegistry.ixx
+  rl/World/ServiceUpdaterRegister.ixx
+  rl/World/Unit/UnitGrassGrowBehavior.ixx
   rl/RayLog/RayLogConfig.ixx
   rl/RayLog/RayLogPlatform.ixx
   rl/RayLog/RayLogUuid.ixx
@@ -170,6 +178,7 @@ set(SOURCES
   rl/World/Unit/Unit.cpp
   rl/World/Unit/UnitDynamicTexture.cpp
   rl/World/Unit/UnitTextureFactory.cpp
+  rl/World/Unit/UnitGrass.cpp
   rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/Unit/UnitRendererAOTextures.cpp
   rl/Client/Render/Unit/UnitRendererBarriers.cpp
@@ -203,6 +212,13 @@ set(SOURCES
   rl/World/Chunk/ChunkThreadPool.cpp
   rl/World/Chunk/ChunkTransactionRingBuffer.cpp
   rl/World/Chunk/UnitChunkAccessor.cpp
+  rl/World/Time/TimeSystem.cpp
+  rl/World/Skybox/SkyboxSystem.cpp
+  rl/World/ServiceLocator.cpp
+  rl/World/ServiceUpdater.cpp
+  rl/World/ServiceUpdaterRegistry.cpp
+  rl/World/ServiceUpdaterRegister.cpp
+  rl/World/Unit/UnitGrassGrowBehavior.cpp
 )
 
 add_subdirectory(Deps/glfw)

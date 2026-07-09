@@ -87,7 +87,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200 /FS</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -170,7 +170,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200 /FS</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -254,7 +254,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200 /FS</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -338,7 +338,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Users\USUARIO\IdeaProjects\RL\Deps\glm;C:\Users\USUARIO\IdeaProjects\RL\Deps\stb;C:\Users\USUARIO\IdeaProjects\RL;C:\Users\USUARIO\IdeaProjects\RL\Deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/VulkanSDK/1.4.341.1/include" /Zm200 /FS</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -1057,6 +1057,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitDynamicTexture.cpp">
       <ObjectFileName>$(IntDir)rl/World/Unit/UnitDynamicTexture.cpp.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitTextureFactory.cpp">
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitTextureFactory.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRenderer.cpp" />
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.cpp">
       <ObjectFileName>$(IntDir)rl/Client/Render/Unit/UnitRendererAOTextures.cpp.obj</ObjectFileName>
@@ -1145,13 +1148,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkAccessor.cpp">
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitChunkAccessor.cpp.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Biome\IBiome.ixx" />
-    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferFBM.ixx">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <None Include="C:\Users\USUARIO\IdeaProjects\RL\build\Shaders\unit.shadow.vert.spv">
     </None>
@@ -1360,6 +1356,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Unit\UnitTextureFactory.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
+      <ModuleOutputFile>$(IntDir)/rl/World/Unit/UnitTextureFactory.ixx.ifc</ModuleOutputFile>
+      <ModuleDependenciesFile>$(IntDir)/rl/World/Unit/UnitTextureFactory.ixx.module.json</ModuleDependenciesFile>
+      <ObjectFileName>$(IntDir)rl/World/Unit/UnitTextureFactory.ixx.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\Client\Render\Unit\UnitRendererAOTextures.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
@@ -1570,6 +1575,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ModuleOutputFile>$(IntDir)/rl/World/Chunk/UnitGPUSimplexNoise.ixx.ifc</ModuleOutputFile>
       <ModuleDependenciesFile>$(IntDir)/rl/World/Chunk/UnitGPUSimplexNoise.ixx.module.json</ModuleDependenciesFile>
       <ObjectFileName>$(IntDir)rl/World/Chunk/UnitGPUSimplexNoise.ixx.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\UnitChunkBufferFBM.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RL\rl\World\Chunk\ChunkErrorRecovery.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>

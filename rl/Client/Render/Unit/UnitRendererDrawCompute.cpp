@@ -4,6 +4,8 @@ import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.State.UnitState;
 import Rl.Base.Binding;
 import Rl.Player.PlayerCamera;
+import Rl.World.ServiceLocator;
+import Rl.World.Skybox.SkyboxSystem;
 
 import <algorithm>;
 import <glm/glm.hpp>;
@@ -50,9 +52,37 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
       context.commandBuffers[0], vk.frustumBuffer, 0, frustumSize, &frustum);
 
   UnitRenderLightingUniforms lightingData{};
-  lightingData.sunDirection = glm::normalize(glm::vec4(0.5f, 0.8f, 0.6f, 0.0));
-  lightingData.sunColor = glm::vec4(1.0f, 0.95f, 0.8f, 0.0f);
-  lightingData.sunIntensity = 3.5f;
+  
+  // Try to get skybox data from service locator
+  auto skyboxSystem = World::WorldServiceLocator::GetSkyboxSystem();
+  if (skyboxSystem)
+  {
+    // Update skybox system
+    skyboxSystem->Update();
+    
+    // Get skybox state
+    World::Skybox::SkyboxState skyboxState = skyboxSystem->GetSkyboxState();
+    
+    // Use skybox data for lighting
+    lightingData.sunDirection = glm::vec4(skyboxState.sun.direction, 0.0f);
+    lightingData.sunColor = glm::vec4(skyboxState.sun.color, 0.0f);
+    lightingData.sunIntensity = skyboxState.sun.intensity;
+    lightingData.ambientStrength = skyboxState.ambientStrength;
+    lightingData.exposure = skyboxState.exposure;
+    lightingData.skyColor = glm::vec4(skyboxState.skyColor, 0.0f);
+    lightingData.groundColor = glm::vec4(skyboxState.groundColor, 0.0f);
+  }
+  else
+  {
+    // Fallback to hardcoded values if skybox system is not available
+    lightingData.sunDirection = glm::normalize(glm::vec4(0.5f, 0.8f, 0.6f, 0.0));
+    lightingData.sunColor = glm::vec4(1.0f, 0.95f, 0.8f, 0.0f);
+    lightingData.sunIntensity = 3.5f;
+    lightingData.ambientStrength = 0.15f;
+    lightingData.exposure = 1.25f;
+    lightingData.skyColor = glm::vec4(0.53f, 0.81f, 0.92f, 0.0f);
+    lightingData.groundColor = glm::vec4(0.15f, 0.12f, 0.1f, 0.0f);
+  }
 
   // Additional lights (fill lights for more realistic lighting)
   lightingData.additionalLightCount = 2;
@@ -67,17 +97,13 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   lightingData.additionalLights[1].color = glm::vec3(1.0f, 0.8f, 0.6f);
   lightingData.additionalLights[1].intensity = 4.5f;
 
-  // Ambient and environment
-  lightingData.ambientStrength = 0.15f;
+  // Camera position
   Player::IPlayerCamera::Eye eyePos = cam.eye;
   lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
-  lightingData.exposure = 1.25f;
 
   // These are pre-computed approximations for sky/ground lighting
-  lightingData.shCoefficients[0] =
-      glm::vec4(0.53f, 0.81f, 0.92f, 0.0f) * 0.09f; // L0 - sky
-  lightingData.shCoefficients[1] =
-      glm::vec4(0.15f, 0.12f, 0.1f, 0.0f) * 0.05f; // L1 - ground
+  lightingData.shCoefficients[0] = lightingData.skyColor * 0.09f; // L0 - sky
+  lightingData.shCoefficients[1] = lightingData.groundColor * 0.05f; // L1 - ground
   lightingData.shCoefficients[2] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L1
   lightingData.shCoefficients[3] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L1
   lightingData.shCoefficients[4] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L2
@@ -86,9 +112,6 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   lightingData.shCoefficients[7] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L2
   lightingData.shCoefficients[8] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L2
 
-  // Environment colors
-  lightingData.groundColor = glm::vec4(0.15f, 0.12f, 0.1f, 0.0f);
-  lightingData.skyColor = glm::vec4(0.53f, 0.81f, 0.92f, 0.0f);
   lightingData.lightSpaceMatrix =
       CalculateLightSpaceMatrix(lightingData.sunDirection, lightingData.cameraPosition);
   lightingData.lodDistanceNear = 30.0f; // High quality within 30 units
