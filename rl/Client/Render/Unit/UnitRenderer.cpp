@@ -1,6 +1,7 @@
 import Rl.Base.Game;
 import Rl.Base.Shader;
 import Rl.Base.Binding;
+import Rl.World.ServiceLocator;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.Render.Unit.UnitRendererAOTextures;
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
@@ -26,6 +27,7 @@ import Rl.Client.State.UnitState;
 import <glm/glm.hpp>;
 import <glm/gtc/matrix_transform.hpp>;
 import <vulkan/vulkan.hpp>;
+import Rl.Player.PlayerCamera;
 
 namespace Rl::Providers
 {
@@ -123,15 +125,18 @@ void UnitStateDrawable::OnCreate(
       vk.triplanarSettingsBufferMemory);
 
   // Create shadow map resources
-  Client::Render::UnitShadowMapConfig    shadowConfig{};
-  Client::Render::UnitShadowMapResources shadowResources{};
-  Client::Render::UnitCreateShadowMapResources(
+  Client::Render::UnitCascadeShadowMapConfig    shadowConfig{};
+  Client::Render::UnitCascadeShadowMapResources shadowResources{};
+  Client::Render::UnitCreateCascadeShadowMapResources(
       context.device, context.physicalDevice, shadowConfig, shadowResources);
 
-  // Assign shadow map resources to vk struct
-  vk.shadowMapImage = shadowResources.shadowMapImage;
-  vk.shadowMapMemory = shadowResources.shadowMapMemory;
-  vk.shadowMapView = shadowResources.shadowMapView;
+  Client::Render::UnitCreateBuffer(context.device, context.physicalDevice,
+      sizeof(Client::Render::UnitCascadeShadowLightingUniforms),
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk.shadowCascadeMatricesBuffer, vk.shadowCascadeMatricesMemory);
+
+  vk.shadowMapCascades = shadowResources.shadowMapCascades;
   vk.shadowMapSampler = shadowResources.shadowMapSampler;
   vk.shadowMapFramebuffer = shadowResources.shadowMapFramebuffer;
   vk.shadowMapRenderPass = shadowResources.shadowMapRenderPass;
@@ -153,8 +158,9 @@ void UnitStateDrawable::OnCreate(
       vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Update graphics descriptor set with shadow map
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(
-      context.device, vk.descriptorSet, vk.shadowMapView, vk.shadowMapSampler);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(context.device,
+      vk.descriptorSet, vk.shadowMapSampler, vk.shadowMapCascades,
+      vk.shadowCascadeMatricesBuffer);
 
   // Create vertex input state
   auto vertexInputBinding = Client::Render::UnitCreateVertexInputBindingDescription();
@@ -171,12 +177,32 @@ void UnitStateDrawable::OnUpdate(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
   // Visible count reset is now handled in OnDrawCompute using vkCmdFillBuffer (GPU-side)
+  const Player::IPlayerCamera&            camera = *resource.player.camera;
   Client::Render::UnitRenderFrustumPlanes frustum{};
-  Client::Render::UnitCameraToFrustumPlanes(frustum, *resource.player.camera);
+  Client::Render::UnitCameraToFrustumPlanes(frustum, camera);
 
   // Update graphics descriptor set with textures from unit (only if textures changed)
   Client::Render::UnitUpdateUnitTextures(
       context.device, vk.descriptorSet, resource.unit.GetMaterial(), context);
+#pragma push_macro("near")
+
+#pragma push_macro("far")
+
+#undef near
+
+#undef far
+  const auto skyboxSun =
+      World::WorldServiceLocator::GetSkyboxSystem()->GetSunProperties();
+  Client::Render::UnitUpdateCascadeShadowMaps(camera.GetViewMatrix(),
+      camera.GetProjectionMatrix(), skyboxSun.direction, camera.aspectRatio, camera.near,
+      camera.far, static_cast<uint32_t>(vk.shadowMapCascades.size()),
+      vk.shadowCascadeLighting, vk.shadowCascadeSplits, vk.shadowCascadeCount);
+#pragma pop_macro("near")
+
+#pragma pop_macro("far")
+  Client::Render::UnitCopyDataToBuffer(context.device, vk.shadowCascadeMatricesMemory, 0,
+      sizeof(Client::Render::UnitCascadeShadowLightingUniforms),
+      &vk.shadowCascadeLighting);
 
   // Generate AO textures from unit textures (only if not already generated)
   if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
@@ -209,7 +235,7 @@ void UnitStateDrawable::OnDrawCompute(
   // Although this has nothing to do with a
   // compute shader, we need to render the
   // shadows outside the render pass.
-  Client::Render::UnitRenderShadowMap(resource, vk, context);
+  Client::Render::UnitRenderCascadeShadowMap(resource, vk, context);
 }
 
 void UnitStateDrawable::OnDestroy(

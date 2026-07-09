@@ -1,6 +1,8 @@
 import Rl.Client.Render.Unit.UnitRendererDescriptorSets;
 import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.Render.Unit.UnitRendererShadowMap;
 
+import <array>;
 import <stdexcept>;
 import <vulkan/vulkan.hpp>;
 
@@ -54,7 +56,7 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
 
 void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout)
 {
-  VkDescriptorSetLayoutBinding graphicsBindings[8]{};
+  std::array<VkDescriptorSetLayoutBinding, 12> graphicsBindings{};
   // Texture array (binding 2)
   graphicsBindings[0].binding = 2;
   graphicsBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -90,16 +92,23 @@ void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayou
   graphicsBindings[6].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   graphicsBindings[6].descriptorCount = 1;
   graphicsBindings[6].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Shadow map sampler (binding 13)
-  graphicsBindings[7].binding = 13;
-  graphicsBindings[7].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  graphicsBindings[7].descriptorCount = 1;
-  graphicsBindings[7].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  // Cascade Shadow samplers (binding 13-16)
+  for (int i = 0; i < 4; ++i) {
+    graphicsBindings[7 + i].binding = 13 + i;
+    graphicsBindings[7 + i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    graphicsBindings[7 + i].descriptorCount = 1;
+    graphicsBindings[7 + i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  }
+  // Cascade matrices buffer (binding 17)
+  graphicsBindings[11].binding = 17;
+  graphicsBindings[11].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  graphicsBindings[11].descriptorCount = 1;
+  graphicsBindings[11].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
   VkDescriptorSetLayoutCreateInfo graphicsLayoutInfo{};
   graphicsLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  graphicsLayoutInfo.bindingCount = 8;
-  graphicsLayoutInfo.pBindings = graphicsBindings;
+  graphicsLayoutInfo.bindingCount = static_cast<uint32_t>(graphicsBindings.size());
+  graphicsLayoutInfo.pBindings = graphicsBindings.data();
 
   if (vkCreateDescriptorSetLayout(device, &graphicsLayoutInfo, nullptr, &layout) !=
       VK_SUCCESS)
@@ -159,14 +168,11 @@ void UnitCreateDescriptorPool(VkDevice device, VkDescriptorPool& pool)
 {
   VkDescriptorPoolSize poolSizes[3]{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[0].descriptorCount =
-      11; // 5 SSBOs for face culling + 6 SSBOs for curvature compute
+  poolSizes[0].descriptorCount = 24; // compute + curvature + graphics shadow-matrix buffer
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSizes[1].descriptorCount = 10; // 6 textures + 1 lighting texture + 1 AO texture + 1
-                                     // normal texture + 1 shadow map
+  poolSizes[1].descriptorCount = 24; // textures + lighting + AO + normal + shadow cascades
   poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSizes[2].descriptorCount =
-      6; // 1 frustum + 1 lighting block + 1 settings + 1 triplanar + 2 extra
+  poolSizes[2].descriptorCount = 16; // frustum + lighting + settings + triplanar + extra buffers
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -542,24 +548,40 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
 
 void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
     VkDescriptorSet                                        set,
-    VkImageView                                            shadowMapView,
-    VkSampler                                              shadowMapSampler)
+    VkSampler                                              shadowMapSampler,
+    const std::vector<UnitCascadeShadowLevel>&            cascades,
+    VkBuffer                                               cascadeMatricesBuffer)
 {
-  VkDescriptorImageInfo shadowMapInfo{};
-  shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  shadowMapInfo.imageView = shadowMapView;
-  shadowMapInfo.sampler = shadowMapSampler;
+  std::vector<VkDescriptorImageInfo> shadowImageInfos(cascades.size());
+  std::vector<VkWriteDescriptorSet> shadowWrites(cascades.size() + 1);
 
-  VkWriteDescriptorSet shadowMapWrite{};
-  shadowMapWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  shadowMapWrite.dstSet = set;
-  shadowMapWrite.dstBinding = 13;
-  shadowMapWrite.dstArrayElement = 0;
-  shadowMapWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  shadowMapWrite.descriptorCount = 1;
-  shadowMapWrite.pImageInfo = &shadowMapInfo;
+  for (uint32_t i = 0; i < cascades.size(); ++i) {
+    shadowImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    shadowImageInfos[i].imageView = cascades[i].view;
+    shadowImageInfos[i].sampler = shadowMapSampler;
 
-  vkUpdateDescriptorSets(device, 1, &shadowMapWrite, 0, nullptr);
+    shadowWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    shadowWrites[i].dstSet = set;
+    shadowWrites[i].dstBinding = 13 + i;
+    shadowWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    shadowWrites[i].descriptorCount = 1;
+    shadowWrites[i].pImageInfo = &shadowImageInfos[i];
+  }
+
+  VkDescriptorBufferInfo cascadeMatricesInfo{};
+  cascadeMatricesInfo.buffer = cascadeMatricesBuffer;
+  cascadeMatricesInfo.offset = 0;
+  cascadeMatricesInfo.range = sizeof(glm::mat4) * 4;
+
+  shadowWrites[cascades.size()].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  shadowWrites[cascades.size()].dstSet = set;
+  shadowWrites[cascades.size()].dstBinding = 17;
+  shadowWrites[cascades.size()].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  shadowWrites[cascades.size()].descriptorCount = 1;
+  shadowWrites[cascades.size()].pBufferInfo = &cascadeMatricesInfo;
+
+  vkUpdateDescriptorSets(device, static_cast<uint32_t>(shadowWrites.size()),
+      shadowWrites.data(), 0, nullptr);
 }
 
 } // namespace Rl::Client::Render

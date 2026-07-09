@@ -29,11 +29,11 @@ Player::Player() noexcept
 {
   cX = cY = 0;
   cZ = 5000L;
-  CreateInputCameraController();
-  CreateInputPlayerController();
+  CreateInputCamera();
+  CreateInputPlayer();
 }
 
-void Player::CreateInputCameraController() noexcept
+void Player::CreateInputCamera() noexcept
 {
   // Set camera aspect
   camera = std::make_unique<PlayerCamera>();
@@ -45,7 +45,7 @@ void Player::CreateInputCameraController() noexcept
   cameraControl = std::make_unique<PlayerCameraController>(*camera);
 }
 
-void Player::CreateInputPlayerController() noexcept
+void Player::CreateInputPlayer() noexcept
 { playerControl = std::make_unique<PlayerController>(*this); }
 
 Player::~Player()

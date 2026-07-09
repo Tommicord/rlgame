@@ -16,10 +16,10 @@ export class Player final : public IPlayer
   Player() noexcept;
 
   /* Creates and configures the Player camera controller */
-  void CreateInputCameraController() noexcept override;
+  void CreateInputCamera() noexcept override;
 
   /* Creates and configures the Player controller */
-  void CreateInputPlayerController() noexcept override;
+  void CreateInputPlayer() noexcept override;
 
   ~Player() override;
 };

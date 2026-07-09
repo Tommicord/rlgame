@@ -4,10 +4,11 @@ import Rl.World.Unit;
 import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitGrassGrowBehavior;
 import Rl.World.Chunk.UnitChunkAccessor;
+import Rl.World.Unit.UnitGrassGrowBehavior;
+
 import <type_traits>;
 import <string_view>;
 import <memory>;
-import Rl.World.Unit.UnitGrassGrowBehavior;
 
 namespace Rl::World
 {
@@ -36,8 +37,8 @@ export class UnitGrass final : public IUnit,
   UnitGrass& operator=(const UnitGrass&) = delete;
 
   /* Enable move operations */
-  UnitGrass(UnitGrass&&) noexcept = default;
-  UnitGrass& operator=(UnitGrass&&) noexcept = default;
+  UnitGrass(UnitGrass&&) noexcept = delete;
+  UnitGrass& operator=(UnitGrass&&) noexcept = delete;
 
   /* Update grass growth behavior */
   void Update(Chunk::UnitChunkAccessor& accessor) const;
@@ -45,14 +46,14 @@ export class UnitGrass final : public IUnit,
   /* Update growth configuration */
   void UpdateConfig(const Unit::GrassGrowConfig& newConfig);
 
+  /* Describes if the block is in grow state */
+  bool UnitGrass::InGrowState() override;
+
   /* Get current growth configuration */
   [[nodiscard]]
   const Unit::GrassGrowConfig& GetConfig() const;
 
   protected:
-  bool UnitGrass::InGrowState() override;
-
-  private:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
   { return IUnitIdentifiable<UnitGrass>::GetClassId(); }

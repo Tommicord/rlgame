@@ -14,7 +14,7 @@ class UnitDynamicTextureTest : public ::testing::Test
   void SetUp() override
   {
     testTexture = new Texture2();
-    bool loaded = testTexture->FromResource("rl.unit.UnitDirt");
+    bool loaded = testTexture->FromResource("rl.unit.UnitDeepMantle");
     ASSERT_TRUE(loaded) << "Failed to load test texture data";
 
     options.noiseSc  = 0.1f;

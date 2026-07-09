@@ -4,16 +4,19 @@ import Rl.Base.IDrawable;
 import Rl.Base.IModel;
 import Rl.Base.Binding;
 import Rl.World.Unit;
+import Rl.World.Unit.UnitMantle;
 import Rl.Player.PlayerCamera;
 import Rl.Player.PlayerProvider;
 import Rl.Player.IPlayer;
-import Rl.World.Unit.UnitGrass;
+import Rl.Client.Render.Unit.UnitRendererShadowMap;
+
 
 import <cstdint>;
 import <memory>;
 import <string>;
 import <vector>;
 import <optional>;
+import <glm/glm.hpp>;
 import <vulkan/vulkan.hpp>;
 
 namespace Rl::Providers
@@ -103,15 +106,20 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   VkDescriptorSet       curveComputeDescriptorSet = VK_NULL_HANDLE;
 
   // Shadow map resources
-  VkImage          shadowMapImage = VK_NULL_HANDLE;
-  VkDeviceMemory   shadowMapMemory = VK_NULL_HANDLE;
-  VkImageView      shadowMapView = VK_NULL_HANDLE;
-  VkSampler        shadowMapSampler = VK_NULL_HANDLE;
+  std::vector<Client::Render::UnitCascadeShadowLevel> shadowMapCascades{};
+  VkDeviceMemory                                      shadowMapMemory = VK_NULL_HANDLE;
+  VkImageView                                         shadowMapView = VK_NULL_HANDLE;
+  VkSampler                                           shadowMapSampler = VK_NULL_HANDLE;
   VkFramebuffer    shadowMapFramebuffer = VK_NULL_HANDLE;
   VkRenderPass     shadowMapRenderPass = VK_NULL_HANDLE;
   VkPipeline       shadowPipeline = VK_NULL_HANDLE;
   VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
-  bool             shadowMapInitialized = false;
+  VkBuffer         shadowCascadeMatricesBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory   shadowCascadeMatricesMemory = VK_NULL_HANDLE;
+  Client::Render::UnitCascadeShadowLightingUniforms shadowCascadeLighting{};
+  glm::vec4                                         shadowCascadeSplits{0.0f};
+  uint32_t                                          shadowCascadeCount = 0;
+  bool                                              shadowMapInitialized = false;
 
   UnitStateBinding() = default;
 };
@@ -159,7 +167,7 @@ export class UnitModel final : public IStateModel<World::IUnit,
   {
     drawable = std::make_shared<UnitStateDrawable>();
     binding = std::make_unique<UnitStateBinding>();
-    ref = std::make_unique<World::UnitGrass>();
+    ref = std::make_unique<World::UnitDeepMantle>();
     resource = std::make_unique<UnitStateResource>(*ref);
     drawable->OnCreate(*resource, *binding, context);
   }

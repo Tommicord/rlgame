@@ -50,6 +50,7 @@ export struct alignas(16) UnitRenderLightingUniforms
   uint32_t  additionalLightCount;
   float     ambientStrength;
   float     exposure;
+  float     _padding;
 
   alignas(16) glm::vec3 cameraPosition;
 
@@ -58,13 +59,15 @@ export struct alignas(16) UnitRenderLightingUniforms
   alignas(16) glm::vec4 shCoefficients[9];
   alignas(16) glm::vec4 groundColor;
   alignas(16) glm::vec4 skyColor;
-  alignas(16) glm::mat4 lightSpaceMatrix;
+  alignas(16) glm::mat4 u_LightSpaceMatrix;
+
+  alignas(16) glm::vec4 u_CascadeSplits;
 
   // LOD settings
   float    lodDistanceNear; // Distance threshold for high quality
   float    lodDistanceFar; // Distance threshold for low quality
   uint32_t qualityLevel; // 0=low, 1=medium, 2=high
-  float    _padding; // Alignment padding
+  uint32_t numCascades;
 };
 
 /* Defines the triplanar settings */

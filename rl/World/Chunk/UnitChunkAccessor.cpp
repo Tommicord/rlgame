@@ -1,5 +1,9 @@
 import Rl.World.Chunk.UnitChunkAccessor;
 
+import Rl.World.Chunk.UnitChunkBuffer;
+import Rl.World.Chunk.ChunkInRenderUnits;
+import Rl.World.Chunk.ChunkTransaction;
+
 import <stdexcept>;
 
 namespace Rl::World::Chunk
@@ -27,7 +31,7 @@ TransactionResult UnitChunkAccessor::ReadRelative(const RelativeOffset& offset)
         "Relative position is out of bounds", ValidationResult::INVALID_COORDINATES);
   }
 
-  WorldChunkCoord chunkCoord;
+  WorldChunkCoord chunkCoord{};
   int32_t         localX, localY, localZ;
 
   if (!WorldToChunkLocal(absolutePos, chunkCoord, localX, localY, localZ))
@@ -50,7 +54,7 @@ TransactionResult UnitChunkAccessor::WriteRelative(
         "Relative position is out of bounds", ValidationResult::INVALID_COORDINATES);
   }
 
-  WorldChunkCoord chunkCoord;
+  WorldChunkCoord chunkCoord{};
   int32_t         localX, localY, localZ;
 
   if (!WorldToChunkLocal(absolutePos, chunkCoord, localX, localY, localZ))

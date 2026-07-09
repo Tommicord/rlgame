@@ -1,6 +1,7 @@
 export module Rl.World.ServiceUpdaterRegistry;
 
 import Rl.World.ServiceUpdater;
+
 import <memory>;
 import <vector>;
 import <string>;
@@ -12,6 +13,8 @@ namespace Rl::World
 /* Registry for managing service updaters */
 export class ServiceUpdaterRegistry
 {
+  protected:
+  static constexpr auto RAYLOG_TAG = "ServiceUpdaterRegistry";
   public:
   ServiceUpdaterRegistry() = default;
   ~ServiceUpdaterRegistry() = default;

@@ -1,14 +1,15 @@
 export module Rl.RayLog.SymbolDemangler;
 
-import <string>;
-import <vector>;
 #if defined(_WIN32)
-#include <dbghelp.h>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <dbghelp.h>
 #elif defined(__linux__) || defined(__APPLE__)
 #include <cxxabi.h>
 #include <execinfo.h>
 #endif
+import <string>;
+import <vector>;
 
 namespace Rl::RayLog
 {

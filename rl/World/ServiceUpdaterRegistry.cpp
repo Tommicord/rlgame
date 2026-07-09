@@ -16,11 +16,11 @@ void ServiceUpdaterRegistry::RegisterUpdater(
   if (updater)
   {
     updaters[name] = std::move(updater);
-    RayLog::LogInfo("ServiceUpdaterRegistry", "Registered updater: %s", name.c_str());
+    RayLog::LogInfo(RAYLOG_TAG, "Registered updater: %s", name.c_str());
   }
   else
   {
-    RayLog::LogWarning("ServiceUpdaterRegistry",
+    RayLog::LogWarning(RAYLOG_TAG,
         "Attempted to register null updater for: %s", name.c_str());
   }
 }
@@ -29,11 +29,11 @@ void ServiceUpdaterRegistry::UnregisterUpdater(const std::string& name)
 {
   if (updaters.erase(name) > 0)
   {
-    RayLog::LogInfo("ServiceUpdaterRegistry", "Unregistered updater: %s", name.c_str());
+    RayLog::LogInfo(RAYLOG_TAG, "Unregistered updater: %s", name.c_str());
   }
   else
   {
-    RayLog::LogWarning("ServiceUpdaterRegistry",
+    RayLog::LogWarning(RAYLOG_TAG,
         "Attempted to unregister non-existent updater: %s", name.c_str());
   }
 }
@@ -44,11 +44,11 @@ std::shared_ptr<ServiceUpdater> ServiceUpdaterRegistry::GetUpdater(
   auto it = updaters.find(name);
   if (it != updaters.end())
   {
-    RayLog::LogDebug("ServiceUpdaterRegistry", "Retrieved updater: %s", name.c_str());
+    RayLog::LogDebug(RAYLOG_TAG, "Retrieved updater: %s", name.c_str());
     return it->second;
   }
 
-  RayLog::LogWarning("ServiceUpdaterRegistry", "Updater not found: %s", name.c_str());
+  RayLog::LogWarning(RAYLOG_TAG, "Updater not found: %s", name.c_str());
   return nullptr;
 }
 
@@ -66,7 +66,7 @@ void ServiceUpdaterRegistry::UpdateAll()
     else
     {
       RayLog::LogWarning(
-          "ServiceUpdaterRegistry", "Null updater detected for: %s", name.c_str());
+          RAYLOG_TAG, "Null updater detected for: %s", name.c_str());
     }
   }
 }
@@ -78,7 +78,7 @@ void ServiceUpdaterRegistry::ClearAll()
 {
   const size_t count = updaters.size();
   updaters.clear();
-  RayLog::LogInfo("ServiceUpdaterRegistry", "Cleared %zu updaters", count);
+  RayLog::LogInfo(RAYLOG_TAG, "Cleared %zu updaters", count);
 }
 
 std::vector<std::string> ServiceUpdaterRegistry::GetUpdaterNames() const

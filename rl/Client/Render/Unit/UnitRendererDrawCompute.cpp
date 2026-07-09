@@ -112,8 +112,10 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   lightingData.shCoefficients[7] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L2
   lightingData.shCoefficients[8] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // L2
 
-  lightingData.lightSpaceMatrix =
-      CalculateLightSpaceMatrix(lightingData.sunDirection, lightingData.cameraPosition);
+  lightingData.u_LightSpaceMatrix = vk.shadowCascadeLighting.lightSpaceMatrices[0];
+  lightingData.u_CascadeSplits = glm::vec4(vk.shadowCascadeSplits.x,
+      vk.shadowCascadeSplits.y, vk.shadowCascadeSplits.z, vk.shadowCascadeSplits.w);
+  lightingData.numCascades = vk.shadowCascadeCount;
   lightingData.lodDistanceNear = 30.0f; // High quality within 30 units
   lightingData.lodDistanceFar = 60.0f; // Low quality beyond 60 units
   lightingData.qualityLevel = 1; // 0=low, 1=medium, 2=high

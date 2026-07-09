@@ -1,10 +1,13 @@
 import Rl.Client.Render.Unit.UnitRendererDraw;
 import Rl.Client.Render.Unit.UnitRendererShadowMap;
 import Rl.Client.Render.Unit.UnitRendererVertices;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
+import Rl.World.ServiceLocator;
 import Rl.Base.Binding;
 
+import <algorithm>;
 import <glm/glm.hpp>;
 import <glm/gtc/matrix_transform.hpp>;
 import <vulkan/vulkan.hpp>;
@@ -12,102 +15,148 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-static glm::mat4 CalculateLightSpaceMatrix(
-    const glm::vec3& sunDirection, const glm::vec3& targetPosition)
+void UnitUpdateCascadeShadowMaps(const glm::mat4& cameraView,
+    const glm::mat4&                              cameraPerspective,
+    const glm::vec3&                              sunDirection,
+    float                                         cameraAspect,
+    float                                         cameraNear,
+    float                                         cameraFar,
+    uint32_t                                      numCascades,
+    UnitCascadeShadowLightingUniforms&            shadowUniforms,
+    glm::vec4&                                    cascadeSplits,
+    uint32_t&                                     cascadeCount)
 {
-  float     orthoSize = 20.0f;
-  glm::mat4 lightProjection =
-      glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, 0.1f, 50.0f);
-  glm::vec3 shadowCameraPos = targetPosition + (sunDirection * 30.0f);
-  glm::mat4 lightView =
-      glm::lookAt(shadowCameraPos, targetPosition, glm::vec3(0.0f, 1.0f, 0.0));
-  return lightProjection * lightView;
+#pragma push_macro("min")
+
+#undef min
+  const uint32_t effectiveCascades = std::min(numCascades, 4u);
+#pragma pop_macro("min")
+
+  glm::vec3          lightDir = glm::normalize(sunDirection);
+  std::vector<float> splits;
+  splits.push_back(cameraNear);
+
+  for (uint32_t i = 1; i < effectiveCascades; ++i)
+  {
+    float lambda = i / static_cast<float>(effectiveCascades);
+    float linearSplit = cameraNear + (cameraFar - cameraNear) * lambda;
+    float logSplit = cameraNear * glm::pow(cameraFar / cameraNear, lambda);
+    float split = glm::mix(linearSplit, logSplit, 0.7f);
+    splits.push_back(split);
+  }
+  splits.push_back(cameraFar);
+  for (uint32_t i = 0; i < effectiveCascades; ++i)
+  {
+    float                  nearSplit = splits[i];
+    float                  farSplit = splits[i + 1];
+    std::vector<glm::vec3> frustumCorners;
+
+    float tanHalfFovY = 1.0f / cameraPerspective[1][1];
+    float tanHalfFovX = tanHalfFovY * cameraAspect;
+
+    // Generate corners
+    for (int corner = 0; corner < 8; ++corner)
+    {
+      float depth = (corner < 4) ? nearSplit : farSplit;
+      float xSign = (corner % 2 == 0) ? -1.0f : 1.0f;
+      float ySign = (corner % 4 < 2) ? 1.0f : -1.0f;
+
+      glm::vec3 cornerView;
+      cornerView.x = tanHalfFovX * depth * xSign;
+      cornerView.y = tanHalfFovY * depth * ySign;
+      cornerView.z = -depth;
+
+      glm::vec4 cornerWorld = glm::inverse(cameraView) * glm::vec4(cornerView, 1.0f);
+      frustumCorners.push_back(glm::vec3(cornerWorld) / cornerWorld.w);
+    }
+
+    glm::vec3 frustumCenter = glm::vec3(0.0f);
+    for (const auto& corner : frustumCorners)
+    {
+      frustumCenter += corner;
+    }
+    frustumCenter /= 8.0f;
+
+    glm::vec3 lightPos = frustumCenter - lightDir * 100.0f;
+    glm::mat4 lightView = glm::lookAt(lightPos, frustumCenter, glm::vec3(0, 1, 0));
+
+    // Calcular bounds en espacio de luz
+    float minX = FLT_MAX, maxX = -FLT_MAX;
+    float minY = FLT_MAX, maxY = -FLT_MAX;
+    float minZ = FLT_MAX, maxZ = -FLT_MAX;
+
+    for (const auto& corner : frustumCorners)
+    {
+      glm::vec4 lightSpace = lightView * glm::vec4(corner, 1.0f);
+#pragma push_macro("min")
+
+#undef min
+
+#pragma push_macro("max")
+
+#undef max
+      minX = glm::min(minX, lightSpace.x);
+      maxX = glm::max(maxX, lightSpace.x);
+      minY = glm::min(minY, lightSpace.y);
+      maxY = glm::max(maxY, lightSpace.y);
+      minZ = glm::min(minZ, lightSpace.z);
+      maxZ = glm::max(maxZ, lightSpace.z);
+    }
+#pragma pop_macro("min")
+
+#pragma pop_macro("max")
+    float     marginX = (maxX - minX) * 0.1f;
+    float     marginY = (maxY - minY) * 0.1f;
+    glm::mat4 lightProjection = glm::ortho(
+        minX - marginX, maxX + marginX, minY - marginY, maxY + marginY, minZ, maxZ);
+    shadowUniforms.lightSpaceMatrices[i] = lightProjection * lightView;
+  }
+
+  glm::vec4 splitValues(cameraFar, cameraFar, cameraFar, cameraFar);
+  if (effectiveCascades > 1)
+  {
+    splitValues.x = splits[1];
+  }
+  if (effectiveCascades > 2)
+  {
+    splitValues.y = splits[2];
+  }
+  if (effectiveCascades > 3)
+  {
+    splitValues.z = splits[3];
+    splitValues.w = splits[3];
+  }
+  cascadeSplits = splitValues;
+  cascadeCount = effectiveCascades;
 }
 
-void UnitRenderShadowMap(Providers::UnitStateResource& resource,
-    Providers::UnitStateBinding&                       vk,
-    Main::MainBinding&                                 context)
+void UnitRenderCascadeShadowMap(Providers::UnitStateResource& resource,
+    Providers::UnitStateBinding&                              vk,
+    Main::MainBinding&                                        context)
 {
   if (vk.shadowPipeline == VK_NULL_HANDLE || vk.shadowPipelineLayout == VK_NULL_HANDLE ||
-      vk.shadowMapRenderPass == VK_NULL_HANDLE ||
-      vk.shadowMapFramebuffer == VK_NULL_HANDLE)
+      vk.shadowMapRenderPass == VK_NULL_HANDLE || vk.shadowMapCascades.empty())
     return;
+  for (uint32_t i = 0; i < vk.shadowMapCascades.size(); ++i)
+  {
+    UnitBeginCascadeShadowMapRenderPass(context.commandBuffers[0], vk.shadowMapRenderPass,
+            vk.shadowMapCascades[i].framebuffer, 2048, 2048);
 
-  const Player::IPlayerCamera& cam = *resource.player.camera;
+    vkCmdBindPipeline(context.commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, vk.shadowPipeline);
 
-  // Calculate light space matrix
-  glm::vec3                  sunDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.6f));
-  Player::IPlayerCamera::Eye eyePos = cam.eye;
-  glm::vec3                  cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
-  glm::mat4 lightSpaceMatrix = CalculateLightSpaceMatrix(sunDirection, cameraPosition);
+    const VkBuffer vertexBuffers[] = {vk.vertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(context.commandBuffers[0], 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(context.commandBuffers[0], vk.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-  // Transition shadow map image to depth attachment layout
-  VkImageMemoryBarrier shadowBarrier{};
-  shadowBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  shadowBarrier.oldLayout = vk.shadowMapInitialized
-                                ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                                : VK_IMAGE_LAYOUT_UNDEFINED;
-  shadowBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-  shadowBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  shadowBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  shadowBarrier.image = vk.shadowMapImage;
-  shadowBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-  shadowBarrier.subresourceRange.baseMipLevel = 0;
-  shadowBarrier.subresourceRange.levelCount = 1;
-  shadowBarrier.subresourceRange.baseArrayLayer = 0;
-  shadowBarrier.subresourceRange.layerCount = 1;
-  shadowBarrier.srcAccessMask = vk.shadowMapInitialized ? VK_ACCESS_SHADER_READ_BIT : 0;
-  shadowBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    glm::mat4 lightSpaceMatrix = vk.shadowCascadeLighting.lightSpaceMatrices[i];
+    vkCmdPushConstants(context.commandBuffers[0], vk.shadowPipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &lightSpaceMatrix);
 
-  vkCmdPipelineBarrier(context.commandBuffers[0],
-      vk.shadowMapInitialized ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
-                              : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-          VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-      0, 0, nullptr, 0, nullptr, 1, &shadowBarrier);
+    vkCmdDrawIndexed(context.commandBuffers[0], 36, 1, 0, 0, 0);
 
-  // Mark as initialized after first transition
-  vk.shadowMapInitialized = true;
-
-  // Begin shadow map render pass
-  UnitBeginShadowMapRenderPass(context.commandBuffers[0], vk.shadowMapRenderPass,
-      vk.shadowMapFramebuffer, 1024, 1024);
-
-  // Bind shadow pipeline
-  vkCmdBindPipeline(
-      context.commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, vk.shadowPipeline);
-
-  // Bind vertex buffer
-  VkBuffer     vertexBuffers[] = {vk.vertexBuffer};
-  VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(context.commandBuffers[0], 0, 1, vertexBuffers, offsets);
-
-  // Bind index buffer
-  vkCmdBindIndexBuffer(
-      context.commandBuffers[0], vk.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-  // Push light space matrix
-  vkCmdPushConstants(context.commandBuffers[0], vk.shadowPipelineLayout,
-      VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &lightSpaceMatrix);
-
-  // Draw geometry
-  vkCmdDrawIndexed(context.commandBuffers[0], 36, 1, 0, 0, 0);
-
-  // End shadow map render pass
-  UnitEndShadowMapRenderPass(context.commandBuffers[0]);
-
-  // Transition shadow map image to shader read layout
-  shadowBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-  shadowBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  shadowBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-  shadowBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-  vkCmdPipelineBarrier(context.commandBuffers[0],
-      VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-          VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
-      &shadowBarrier);
+    UnitEndCascadeShadowMapRenderPass(context.commandBuffers[0]);
+  }
 }
 
 void UnitRender(Providers::UnitStateResource& resource,
@@ -131,7 +180,6 @@ void UnitRender(Providers::UnitStateResource& resource,
       break;
     }
   }
-
   // Bind graphics pipeline
   if (vk.pipeline != VK_NULL_HANDLE && vk.pipelineLayout != VK_NULL_HANDLE)
   {

@@ -59,10 +59,10 @@ export class IPlayer
   IPlayer() noexcept = default;
 
   /* Creates and configures the Player camera controller */
-  virtual void CreateInputCameraController() noexcept = 0;
+  virtual void CreateInputCamera() noexcept = 0;
 
   /* Creates and configures the Player controller */
-  virtual void CreateInputPlayerController() noexcept = 0;
+  virtual void CreateInputPlayer() noexcept = 0;
 
   IPlayer& operator=(const IPlayer& player) = delete;
   IPlayer& operator=(const IPlayer&& player) = delete;

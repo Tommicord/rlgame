@@ -36,6 +36,8 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
   vkFreeMemory(device, vk.placeholderSettingsBufferMemory, nullptr);
   vkDestroyBuffer(device, vk.placeholderLightingBuffer, nullptr);
   vkFreeMemory(device, vk.placeholderLightingBufferMemory, nullptr);
+  vkDestroyBuffer(device, vk.shadowCascadeMatricesBuffer, nullptr);
+  vkFreeMemory(device, vk.shadowCascadeMatricesMemory, nullptr);
 
   // Cleanup curvature compute buffers
   vkDestroyBuffer(device, vk.curvedVertexBuffer, nullptr);
@@ -92,12 +94,30 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
     }
   }
 
-  vkDestroySampler(device, vk.shadowMapSampler, nullptr);
-  vkDestroyFramebuffer(device, vk.shadowMapFramebuffer, nullptr);
-  vkDestroyRenderPass(device, vk.shadowMapRenderPass, nullptr);
-  vkDestroyImageView(device, vk.shadowMapView, nullptr);
-  vkDestroyImage(device, vk.shadowMapImage, nullptr);
-  vkFreeMemory(device, vk.shadowMapMemory, nullptr);
+  if (vk.shadowMapSampler != VK_NULL_HANDLE) {
+    vkDestroySampler(device, vk.shadowMapSampler, nullptr);
+  }
+  if (vk.shadowMapRenderPass != VK_NULL_HANDLE) {
+    vkDestroyRenderPass(device, vk.shadowMapRenderPass, nullptr);
+  }
+  for (auto& cascade : vk.shadowMapCascades) {
+    if (cascade.framebuffer != VK_NULL_HANDLE) {
+      vkDestroyFramebuffer(device, cascade.framebuffer, nullptr);
+    }
+    if (cascade.view != VK_NULL_HANDLE) {
+      vkDestroyImageView(device, cascade.view, nullptr);
+    }
+    if (cascade.image != VK_NULL_HANDLE) {
+      vkDestroyImage(device, cascade.image, nullptr);
+    }
+    if (cascade.memory != VK_NULL_HANDLE) {
+      vkFreeMemory(device, cascade.memory, nullptr);
+    }
+  }
+  vk.shadowMapCascades.clear();
+  if (vk.shadowMapFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(device, vk.shadowMapFramebuffer, nullptr);
+  }
 }
 
 void UnitCleanupSamplers(VkDevice device, Providers::UnitStateBinding& vk)

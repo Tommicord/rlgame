@@ -1,6 +1,8 @@
 export module Rl.Client.Render.Unit.UnitRendererDescriptorSets;
 
 import Rl.Base.Game;
+import Rl.Client.Render.Unit.UnitRendererShadowMap;
+import <vector>;
 import <vulkan/vulkan.hpp>;
 
 namespace Rl::Client::Render
@@ -69,7 +71,8 @@ export void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
 
 export void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
     VkDescriptorSet                                               set,
-    VkImageView                                                   shadowMapView,
-    VkSampler                                                     shadowMapSampler);
+    VkSampler                                                     shadowMapSampler,
+    const std::vector<UnitCascadeShadowLevel>&                    cascades,
+    VkBuffer                                                      cascadeMatricesBuffer);
 
 } // namespace Rl::Client::Render
