@@ -59,13 +59,9 @@ export class UnitTextureMaterial
   { return textures.material; }
   [[nodiscard]]
   bool GetHeap() const
-  {
-    return heap;
-  }
+  { return heap; }
   void SetHeap(const bool value)
-  {
-    heap = value;
-  }
+  { heap = value; }
 };
 
 // Forward reference to default block
@@ -80,9 +76,7 @@ export class IUnit : public IUpdatable
 
   /* Creates a basic WorldUnit, automatically registers the unit */
   explicit IUnit(unsigned short id) noexcept : IUnit()
-  {
-    textures = std::make_unique<UnitTextureMaterial>();
-  }
+  { textures = std::make_unique<UnitTextureMaterial>(); }
   IUnit(const IUnit& other) = delete;
   IUnit(const IUnit&& other) = delete;
   IUnit& operator=(const IUnit& other) = delete;
@@ -226,7 +220,6 @@ export class IUnit : public IUpdatable
   { return true; }
 
   protected:
-
   /* Registers in compile-time a Unit id into the registry */
   template <typename Derived> static void RegisterDerived(Derived& ptr)
   {

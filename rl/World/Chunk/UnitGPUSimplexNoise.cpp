@@ -24,7 +24,8 @@ void UnitGPUSimplexNoise::Create(
 
   Rl::Client::Render::UnitCreateBuffer(device, physicalDevice, permBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permGradIndex3DBuffer, permGradIndex3DBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permGradIndex3DBuffer,
+      permGradIndex3DBufferMemory);
 
   VkDescriptorPoolSize poolSizes[3] = {};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -67,7 +68,8 @@ void UnitGPUSimplexNoise::Create(
   layoutInfo.bindingCount = 3;
   layoutInfo.pBindings = bindings;
 
-  if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+  if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create descriptor set layout for Simplex noise");
   }
@@ -95,7 +97,8 @@ void UnitGPUSimplexNoise::Create(
   initLayoutInfo.pushConstantRangeCount = 1;
   initLayoutInfo.pPushConstantRanges = &initPushConstantRange;
 
-  if (vkCreatePipelineLayout(device, &initLayoutInfo, nullptr, &initPipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device, &initLayoutInfo, nullptr, &initPipelineLayout) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create init pipeline layout for Simplex noise");
   }
@@ -115,8 +118,8 @@ void UnitGPUSimplexNoise::Create(
   initPipelineInfo.stage = initShaderStageInfo;
   initPipelineInfo.layout = initPipelineLayout;
 
-  if (vkCreateComputePipelines(
-          device, VK_NULL_HANDLE, 1, &initPipelineInfo, nullptr, &initPipeline) != VK_SUCCESS)
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &initPipelineInfo, nullptr,
+          &initPipeline) != VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create init compute pipeline for Simplex noise");
   }
@@ -171,10 +174,10 @@ void UnitGPUSimplexNoise::Create(
 }
 
 void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
-    VkPhysicalDevice                                       physicalDevice,
-    uint32_t                                               width,
-    uint32_t                                               height,
-    uint32_t                                               depth)
+    VkPhysicalDevice                                 physicalDevice,
+    uint32_t                                         width,
+    uint32_t                                         height,
+    uint32_t                                         depth)
 {
   if (noiseBuffer != VK_NULL_HANDLE)
   {
@@ -211,8 +214,9 @@ void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
 }
 
-void UnitGPUSimplexNoise::GenNoise(
-    VkDevice device, VkCommandBuffer commandBuffer, const SimplexNoisePushConstants& params) const
+void UnitGPUSimplexNoise::GenNoise(VkDevice device,
+    VkCommandBuffer                         commandBuffer,
+    const SimplexNoisePushConstants&        params) const
 {
   if (!isInitialized)
   {
@@ -232,9 +236,11 @@ void UnitGPUSimplexNoise::GenNoise(
   genLayoutInfo.pPushConstantRanges = &genPushConstantRange;
 
   VkPipelineLayout genPipelineLayout;
-  if (vkCreatePipelineLayout(device, &genLayoutInfo, nullptr, &genPipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device, &genLayoutInfo, nullptr, &genPipelineLayout) !=
+      VK_SUCCESS)
   {
-    throw std::runtime_error("Failed to create generation pipeline layout for Simplex noise");
+    throw std::runtime_error(
+        "Failed to create generation pipeline layout for Simplex noise");
   }
 
   auto genShaderCode = Providers::ShaderObject::Shader("simplex.comp.spv");
@@ -252,16 +258,17 @@ void UnitGPUSimplexNoise::GenNoise(
   genPipelineInfo.layout = genPipelineLayout;
 
   VkPipeline genPipeline;
-  if (vkCreateComputePipelines(
-          device, VK_NULL_HANDLE, 1, &genPipelineInfo, nullptr, &genPipeline) != VK_SUCCESS)
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &genPipelineInfo, nullptr,
+          &genPipeline) != VK_SUCCESS)
   {
-    throw std::runtime_error("Failed to create generation compute pipeline for Simplex noise");
+    throw std::runtime_error(
+        "Failed to create generation compute pipeline for Simplex noise");
   }
   Providers::ShaderObject::DestroyShaderModule(device, genShaderModule);
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, genPipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, genPipelineLayout, 0, 1,
-      &descriptorSet, 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+      genPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
   // Push constants
   vkCmdPushConstants(commandBuffer, genPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,

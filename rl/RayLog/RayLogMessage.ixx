@@ -22,9 +22,8 @@ export struct RayLogMessage
 
   /* Creates a message for the RayLog logging */
   RayLogMessage(const RayLogLevel level, std::string msg, std::string tag) :
-      level(level), formattedMessage(std::move(msg)),
-      tid(std::this_thread::get_id()), timestamp(std::chrono::system_clock::now()),
-      tag(std::move(tag))
+      level(level), formattedMessage(std::move(msg)), tid(std::this_thread::get_id()),
+      timestamp(std::chrono::system_clock::now()), tag(std::move(tag))
   {
   }
 };

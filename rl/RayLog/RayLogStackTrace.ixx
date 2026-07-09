@@ -3,8 +3,8 @@ export module Rl.RayLog.StackTrace;
 import <vector>;
 import <string>;
 #if defined(_WIN32)
-#include <windows.h>;
 #include <DbgHelp.h>;
+#include <windows.h>;
 #elif defined(__linux__) || defined(__APPLE__)
 #include <execinfo.h>
 #endif
@@ -19,17 +19,18 @@ export class RayLogStackTrace
   static std::vector<void*> Capture(const int skipFrames = 0)
   {
 #if defined(__linux__) || defined(__APPLE__)
-    constexpr int MaxFrames = 64;
-    void* buffer[MaxFrames];
-    int count = backtrace(buffer, MaxFrames);
+    constexpr int      MaxFrames = 64;
+    void*              buffer[MaxFrames];
+    int                count = backtrace(buffer, MaxFrames);
     std::vector<void*> result;
     for (int i = skipFrames; i < count; ++i)
       result.push_back(buffer[i]);
     return result;
 #elif defined(_WIN32)
     constexpr int MaxFrames = 64;
-    void* buffer[MaxFrames];
-    const USHORT count = CaptureStackBackTrace(skipFrames + 1, MaxFrames, buffer, nullptr);
+    void*         buffer[MaxFrames];
+    const USHORT  count =
+        CaptureStackBackTrace(skipFrames + 1, MaxFrames, buffer, nullptr);
     std::vector result(buffer, buffer + count);
     return result;
 #else
@@ -54,8 +55,8 @@ export class RayLogStackTrace
   {
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "%p", ptr);
-    return { buffer };
+    return {buffer};
   }
 };
 
-}
+} // namespace Rl::RayLog

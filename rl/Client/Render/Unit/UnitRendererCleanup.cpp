@@ -91,7 +91,7 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
       vkFreeMemory(device, vk.normalTexturesMemory[i], nullptr);
     }
   }
-  
+
   vkDestroySampler(device, vk.shadowMapSampler, nullptr);
   vkDestroyFramebuffer(device, vk.shadowMapFramebuffer, nullptr);
   vkDestroyRenderPass(device, vk.shadowMapRenderPass, nullptr);
@@ -101,9 +101,7 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
 }
 
 void UnitCleanupSamplers(VkDevice device, Providers::UnitStateBinding& vk)
-{
-  vkDestroySampler(device, vk.globalTextureSampler, nullptr);
-}
+{ vkDestroySampler(device, vk.globalTextureSampler, nullptr); }
 
 void UnitCleanupPipelines(VkDevice device, Providers::UnitStateBinding& vk)
 {

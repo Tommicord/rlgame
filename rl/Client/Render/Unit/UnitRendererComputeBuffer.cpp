@@ -15,27 +15,30 @@ void UnitCreateCurvatureComputeBuffers(VkDevice device,
     size_t                                      vertexCount,
     Providers::UnitStateBinding&                vk)
 {
-  // Calculate maximum curved vertex count (tessellation level 8 = 9x9 = 81 vertices per curved
-  // face)
+  // Calculate maximum curved vertex count (tessellation level 8 = 9x9 = 81 vertices per
+  // curved face)
   const uint32_t tessellationLevel = 8;
   const uint32_t verticesPerEdge = tessellationLevel + 1;
   const uint32_t maxVerticesPerCurvedFace = verticesPerEdge * verticesPerEdge;
   const uint32_t maxCurvedVertices = maxVerticesPerCurvedFace * 6; // 6 faces
-  const uint32_t maxCurvedIndices = tessellationLevel * tessellationLevel * 6 * 6; // 6 faces
+  const uint32_t maxCurvedIndices =
+      tessellationLevel * tessellationLevel * 6 * 6; // 6 faces
 
   // Create curved vertex buffer
   VkDeviceSize curvedVertexBufferSize = sizeof(UnitRenderVertex) * maxCurvedVertices;
   UnitCreateBuffer(device, physicalDevice, curvedVertexBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk.curvedVertexBuffer, vk.curvedVertexBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk.curvedVertexBuffer,
+      vk.curvedVertexBufferMemory);
 
   // Create curved index buffer
   VkDeviceSize curvedIndexBufferSize = sizeof(uint32_t) * maxCurvedIndices;
   UnitCreateBuffer(device, physicalDevice, curvedIndexBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk.curvedIndexBuffer, vk.curvedIndexBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk.curvedIndexBuffer,
+      vk.curvedIndexBufferMemory);
 
   // Create counters buffer (vertexCount and indexCount)
   UnitCreateBuffer(device, physicalDevice, 2 * sizeof(uint32_t),
@@ -45,7 +48,8 @@ void UnitCreateCurvatureComputeBuffers(VkDevice device,
 
   // Initialize counters to 0
   uint32_t zeroCounters[2] = {0, 0};
-  UnitCopyDataToBuffer(device, vk.curveCountersBufferMemory, 0, 2 * sizeof(uint32_t), zeroCounters);
+  UnitCopyDataToBuffer(
+      device, vk.curveCountersBufferMemory, 0, 2 * sizeof(uint32_t), zeroCounters);
 
   // Create indirect draw buffer for curved geometry
   UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderDrawIndexedParams),

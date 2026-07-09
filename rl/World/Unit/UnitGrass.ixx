@@ -27,7 +27,8 @@ export class UnitGrass final : public IUnit,
                                public IUnitIdentifiable<UnitGrass>
 {
   public:
-  explicit UnitGrass(const Unit::GrassGrowConfig& config = Unit::GetGrassConfig()) noexcept;
+  explicit UnitGrass(
+      const Unit::GrassGrowConfig& config = Unit::GetGrassConfig()) noexcept;
   ~UnitGrass() override = default;
 
   /* Disable copy operations */
@@ -54,15 +55,11 @@ export class UnitGrass final : public IUnit,
   private:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
-  {
-    return IUnitIdentifiable<UnitGrass>::GetClassId();
-  }
+  { return IUnitIdentifiable<UnitGrass>::GetClassId(); }
 
   [[nodiscard]]
   std::string_view GetDerivedClassName() const override
-  {
-    return IUnitIdentifiable<UnitGrass>::SimpleClassName();
-  }
+  { return IUnitIdentifiable<UnitGrass>::SimpleClassName(); }
 
   std::unique_ptr<Unit::UnitGrassGrowBehavior> growBehavior;
 };

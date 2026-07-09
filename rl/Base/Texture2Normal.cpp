@@ -5,7 +5,8 @@ import Rl.Base.Texture2;
 namespace Rl::Providers
 {
 
-Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties& properties)
+Texture2* GenerateNormalTexture(
+    Texture2* baseTexture, const Texture2Properties& properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -14,8 +15,8 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
 
   // Get base texture data
   uint8_t* baseData = baseTexture->GetData();
-  int      width    = baseTexture->GetWidth();
-  int      height   = baseTexture->GetHeight();
+  int      width = baseTexture->GetWidth();
+  int      height = baseTexture->GetHeight();
   int      channels = baseTexture->GetChannels();
 
   if (!baseData || width <= 0 || height <= 0)
@@ -26,7 +27,7 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
   // Create new texture data for normal map (RGB format)
   int    outputChannels = 3; // Normal map is RGB
   size_t outputDataSize = width * height * outputChannels;
-  auto*  normalData     = new uint8_t[outputDataSize];
+  auto*  normalData = new uint8_t[outputDataSize];
 
   // Generate normal map from base texture using Sobel filter
   for (int y = 0; y < height; ++y)
@@ -36,9 +37,9 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
       // Calculate luminance from base texture
       auto getLuminance = [&](int px, int py) -> float
       {
-        px                  = std::clamp(px, 0, width - 1);
-        py                  = std::clamp(py, 0, height - 1);
-        int    baseIndex    = (py * width + px) * channels;
+        px = std::clamp(px, 0, width - 1);
+        py = std::clamp(py, 0, height - 1);
+        int    baseIndex = (py * width + px) * channels;
         size_t baseDataSize = width * height * channels;
 
         if (channels >= 3 && baseIndex + 2 < baseDataSize)
@@ -58,9 +59,9 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
       };
 
       // Sobel filter for gradient calculation
-      float left   = getLuminance(x - 1, y);
-      float right  = getLuminance(x + 1, y);
-      float top    = getLuminance(x, y - 1);
+      float left = getLuminance(x - 1, y);
+      float right = getLuminance(x + 1, y);
+      float top = getLuminance(x, y - 1);
       float bottom = getLuminance(x, y + 1);
 
       // Calculate gradients
@@ -91,7 +92,7 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
       int outputIndex = (y * width + x) * outputChannels;
       if (outputIndex + 2 < outputDataSize)
       {
-        normalData[outputIndex]     = static_cast<uint8_t>(nx * 255.0f);
+        normalData[outputIndex] = static_cast<uint8_t>(nx * 255.0f);
         normalData[outputIndex + 1] = static_cast<uint8_t>(ny * 255.0f);
         normalData[outputIndex + 2] = static_cast<uint8_t>(nz * 255.0f);
       }
@@ -99,18 +100,18 @@ Texture2* GenerateNormalTexture(Texture2* baseTexture, const Texture2Properties&
   }
 
   // Create new texture with the generated normal map data
-  Texture2*         normalTexture = new Texture2();
-  Texture2Properties normalProps   = properties;
-  normalProps.format              = Texture2Format::RGBA8; // Use RGBA8 for blit support
-  normalProps.generateMipmaps     = true;
-  normalProps.sRGB                = false; // Normal maps should not be in sRGB space
+  Texture2*          normalTexture = new Texture2();
+  Texture2Properties normalProps = properties;
+  normalProps.format = Texture2Format::RGBA8; // Use RGBA8 for blit support
+  normalProps.generateMipmaps = true;
+  normalProps.sRGB = false; // Normal maps should not be in sRGB space
 
   // Convert RGB to RGBA for Vulkan blit compatibility
   size_t rgbaDataSize = width * height * 4;
-  auto*  rgbaData     = new uint8_t[rgbaDataSize];
+  auto*  rgbaData = new uint8_t[rgbaDataSize];
   for (int i = 0; i < width * height; ++i)
   {
-    rgbaData[i * 4]     = normalData[i * 3];
+    rgbaData[i * 4] = normalData[i * 3];
     rgbaData[i * 4 + 1] = normalData[i * 3 + 1];
     rgbaData[i * 4 + 2] = normalData[i * 3 + 2];
     rgbaData[i * 4 + 3] = 255; // Alpha = 1.0

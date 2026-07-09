@@ -15,4 +15,4 @@ export constinit size_t WorkerThreads = 4;
 /* Flush mode, immediate or not immediate */
 export constinit bool ImmediateFlush = true;
 
-}
+} // namespace Rl::RayLog

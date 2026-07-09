@@ -49,6 +49,7 @@ export void UnitBeginShadowMapRenderPass(VkCommandBuffer commandBuffer,
 
 export void UnitEndShadowMapRenderPass(VkCommandBuffer commandBuffer);
 
-export void UnitCleanupShadowMapResources(VkDevice device, UnitShadowMapResources& resources);
+export void UnitCleanupShadowMapResources(
+    VkDevice device, UnitShadowMapResources& resources);
 
 } // namespace Rl::Client::Render

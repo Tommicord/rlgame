@@ -22,7 +22,7 @@ void UnitGenerateAOTextures(VkDevice device,
     aoProperties.minFilter = Providers::Texture2Filter::LINEAR_MIPMAP_LINEAR;
     aoProperties.magFilter = Providers::Texture2Filter::LINEAR;
 
-    const auto& faces = textures.GetFaces();
+    const auto&          faces = textures.GetFaces();
     Providers::Texture2* aoTextures[6] = {
         GenerateLightningTexture(faces.top, aoProperties),
         GenerateLightningTexture(faces.down, aoProperties),

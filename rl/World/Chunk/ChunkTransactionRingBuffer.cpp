@@ -9,10 +9,9 @@ import <cmath>;
 namespace Rl::World::Chunk
 {
 
-ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(const uint32_t capacity)
-    : capacity(capacity), head(0), tail(0),
-      totalPushes(0), totalPops(0), failedPushes(0), failedPops(0),
-      peakSize(0), overflows(0)
+ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(const uint32_t capacity) :
+    capacity(capacity), head(0), tail(0), totalPushes(0), totalPops(0), failedPushes(0),
+    failedPops(0), peakSize(0), overflows(0)
 {
   if (!IsValidCapacity(capacity))
   {
@@ -24,26 +23,20 @@ ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(const uint32_t capacity)
     }
     const_cast<uint32_t&>(capacity) = adjustedCapacity;
   }
-  
+
   buffer = std::make_unique<ChunkTransaction[]>(capacity);
 }
 
 ChunkTransactionRingBuffer::~ChunkTransactionRingBuffer()
-{
-  buffer.reset();
-}
+{ buffer.reset(); }
 
-ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(ChunkTransactionRingBuffer&& other) noexcept
-    : buffer(std::move(other.buffer)), 
-      capacity(other.capacity), 
-      head(other.head.load()), 
-      tail(other.tail.load()),
-      totalPushes(other.totalPushes.load()),
-      totalPops(other.totalPops.load()),
-      failedPushes(other.failedPushes.load()),
-      failedPops(other.failedPops.load()),
-      peakSize(other.peakSize.load()),
-      overflows(other.overflows.load())
+ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(
+    ChunkTransactionRingBuffer&& other) noexcept :
+    buffer(std::move(other.buffer)), capacity(other.capacity), head(other.head.load()),
+    tail(other.tail.load()), totalPushes(other.totalPushes.load()),
+    totalPops(other.totalPops.load()), failedPushes(other.failedPushes.load()),
+    failedPops(other.failedPops.load()), peakSize(other.peakSize.load()),
+    overflows(other.overflows.load())
 {
   other.capacity = 0;
   other.head.store(0);
@@ -56,7 +49,8 @@ ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(ChunkTransactionRingBuffe
   other.overflows.store(0);
 }
 
-ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(ChunkTransactionRingBuffer&& other) noexcept
+ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(
+    ChunkTransactionRingBuffer&& other) noexcept
 {
   if (this != &other)
   {
@@ -71,7 +65,7 @@ ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(ChunkTransacti
     failedPops.store(other.failedPops.load());
     peakSize.store(other.peakSize.load());
     overflows.store(other.overflows.load());
-    
+
     other.capacity = 0;
     other.head.store(0);
     other.tail.store(0);
@@ -89,7 +83,7 @@ bool ChunkTransactionRingBuffer::Push(ChunkTransaction transaction)
 {
   const uint32_t currentHead = head.load(std::memory_order_acquire);
   const uint32_t nextHead = NextIndex(currentHead);
-  
+
   // Check if buffer is full
   if (nextHead == tail.load(std::memory_order_acquire))
   {
@@ -97,35 +91,36 @@ bool ChunkTransactionRingBuffer::Push(ChunkTransaction transaction)
     overflows.fetch_add(1, std::memory_order_release);
     return false;
   }
-  
+
   buffer[currentHead] = std::move(transaction);
   head.store(nextHead, std::memory_order_release);
   totalPushes.fetch_add(1, std::memory_order_release);
-  
+
   const uint32_t currentSize = Size();
   UpdatePeakSize(currentSize);
-  
+
   return true;
 }
 
-bool ChunkTransactionRingBuffer::PushWithTimeout(ChunkTransaction transaction, const uint32_t timeoutMs)
+bool ChunkTransactionRingBuffer::PushWithTimeout(
+    ChunkTransaction transaction, const uint32_t timeoutMs)
 {
   const auto startTime = std::chrono::steady_clock::now();
   const auto timeoutDuration = std::chrono::milliseconds(timeoutMs);
-  
+
   while (true)
   {
     if (Push(std::move(transaction)))
     {
       return true;
     }
-    
+
     const auto elapsed = std::chrono::steady_clock::now() - startTime;
     if (elapsed >= timeoutDuration)
     {
       return false;
     }
-    
+
     std::this_thread::yield();
   }
 }
@@ -139,40 +134,39 @@ bool ChunkTransactionRingBuffer::Pop(ChunkTransaction& transaction)
     failedPops.fetch_add(1, std::memory_order_release);
     return false;
   }
-  
+
   transaction = std::move(buffer[currentTail]);
   tail.store(NextIndex(currentTail), std::memory_order_release);
   totalPops.fetch_add(1, std::memory_order_release);
-  
+
   return true;
 }
 
-bool ChunkTransactionRingBuffer::PopWithTimeout(ChunkTransaction& transaction, const uint32_t timeoutMs)
+bool ChunkTransactionRingBuffer::PopWithTimeout(
+    ChunkTransaction& transaction, const uint32_t timeoutMs)
 {
   const auto startTime = std::chrono::steady_clock::now();
   const auto timeoutDuration = std::chrono::milliseconds(timeoutMs);
-  
+
   while (true)
   {
     if (Pop(transaction))
     {
       return true;
     }
-    
+
     const auto elapsed = std::chrono::steady_clock::now() - startTime;
     if (elapsed >= timeoutDuration)
     {
       return false;
     }
-    
+
     std::this_thread::yield();
   }
 }
 
 bool ChunkTransactionRingBuffer::IsEmpty() const
-{
-  return tail.load(std::memory_order_acquire) == head.load(std::memory_order_acquire);
-}
+{ return tail.load(std::memory_order_acquire) == head.load(std::memory_order_acquire); }
 
 bool ChunkTransactionRingBuffer::IsFull() const
 {
@@ -184,7 +178,7 @@ uint32_t ChunkTransactionRingBuffer::Size() const
 {
   const uint32_t currentHead = head.load(std::memory_order_acquire);
   const uint32_t currentTail = tail.load(std::memory_order_acquire);
-  
+
   if (currentHead >= currentTail)
   {
     return currentHead - currentTail;
@@ -196,9 +190,7 @@ uint32_t ChunkTransactionRingBuffer::Size() const
 }
 
 uint32_t ChunkTransactionRingBuffer::Capacity() const
-{
-  return capacity;
-}
+{ return capacity; }
 
 void ChunkTransactionRingBuffer::Clear()
 {
@@ -216,18 +208,18 @@ RingBufferStats ChunkTransactionRingBuffer::GetStats() const
   stats.failedPops = failedPops.load(std::memory_order_acquire);
   stats.peakSize = peakSize.load(std::memory_order_acquire);
   stats.overflows = overflows.load(std::memory_order_acquire);
-  
+
   const uint64_t totalOps = stats.totalPushes + stats.totalPops;
   if (totalOps > 0)
   {
-    stats.averageSize = static_cast<double>(peakSize.load(std::memory_order_acquire)) / 
+    stats.averageSize = static_cast<double>(peakSize.load(std::memory_order_acquire)) /
                         static_cast<double>(totalOps);
   }
   else
   {
     stats.averageSize = 0.0;
   }
-  
+
   return stats;
 }
 
@@ -244,14 +236,15 @@ void ChunkTransactionRingBuffer::ResetStats()
 bool ChunkTransactionRingBuffer::IsHealthy() const
 {
   const RingBufferStats stats = GetStats();
-  
+
   // Check for excessive overflows (more than 1% of total pushes)
-  if (stats.totalPushes > 0 && 
-      static_cast<double>(stats.overflows) / static_cast<double>(stats.totalPushes) > 0.01)
+  if (stats.totalPushes > 0 &&
+      static_cast<double>(stats.overflows) / static_cast<double>(stats.totalPushes) >
+          0.01)
   {
     return false;
   }
-  
+
   // Check for excessive failed operations (more than 5% of total operations)
   const uint64_t totalOps = stats.totalPushes + stats.totalPops;
   if (totalOps > 0)
@@ -262,14 +255,14 @@ bool ChunkTransactionRingBuffer::IsHealthy() const
       return false;
     }
   }
-  
+
   // Check if buffer is consistently near capacity
-  if (stats.peakSize > 0 && 
+  if (stats.peakSize > 0 &&
       static_cast<double>(Size()) / static_cast<double>(capacity) > 0.9)
   {
     return false;
   }
-  
+
   return true;
 }
 
@@ -278,9 +271,8 @@ void ChunkTransactionRingBuffer::UpdatePeakSize(uint32_t currentSize)
   uint64_t currentPeak = peakSize.load(std::memory_order_acquire);
   while (currentSize > currentPeak)
   {
-    if (peakSize.compare_exchange_weak(currentPeak, currentSize, 
-                                       std::memory_order_release, 
-                                       std::memory_order_acquire))
+    if (peakSize.compare_exchange_weak(currentPeak, currentSize,
+            std::memory_order_release, std::memory_order_acquire))
     {
       break;
     }
@@ -291,7 +283,7 @@ bool ChunkTransactionRingBuffer::IsValidCapacity(uint32_t capacity)
 {
   if (capacity == 0)
     return false;
-  
+
   // Check if capacity is a power of 2
   return (capacity & (capacity - 1)) == 0;
 }

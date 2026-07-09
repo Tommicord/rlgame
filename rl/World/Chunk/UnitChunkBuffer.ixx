@@ -12,11 +12,9 @@ namespace Rl::World::Chunk
 export class UnitChunkBuffer
 {
   public:
-
-  using BufferUnit  = int;
+  using BufferUnit = int;
   /* Stores the chunk buffer dimensions */
-  template <int W, int H, int D>
-  struct ChunkBufferSizes
+  template <int W, int H, int D> struct ChunkBufferSizes
   {
     int w = W, h = H, d = D;
   };
@@ -28,16 +26,12 @@ export class UnitChunkBuffer
 
     /* Gets the Unit buffer */
     [[nodiscard]]
-   BufferUnit* Get() const noexcept
-    {
-      return b.get();
-    }
+    BufferUnit* Get() const noexcept
+    { return b.get(); }
 
     /* Deletes the Unit buffer */
     void Delete() noexcept
-    {
-      b.reset();
-    }
+    { b.reset(); }
   };
 
   /* Represents a 3D coordinate in the chunk */
@@ -56,7 +50,7 @@ export class UnitChunkBuffer
   static constexpr int D = 64;
 
   using BufferSizes = ChunkBufferSizes<W, H, D>;
-  using Buffer      = ChunkBuffer;
+  using Buffer = ChunkBuffer;
   BufferSizes bufferSizes;
   Buffer      buffer;
 
@@ -97,30 +91,22 @@ export class UnitChunkBuffer
   /* Gets the total number of blocks in the chunk */
   static [[nodiscard]]
   constexpr int GetTotalBlocks()
-  {
-    return W * H * D;
-  }
+  { return W * H * D; }
 
   /* Gets the raw buffer pointer (for GPU transfer) */
   [[nodiscard]]
   BufferUnit* GetRaw()
-  {
-    return buffer.Get();
-  }
+  { return buffer.Get(); }
 
   /* Gets the raw buffer pointer (const version) */
   [[nodiscard]]
   const BufferUnit* GetRaw() const
-  {
-    return buffer.Get();
-  }
+  { return buffer.Get(); }
 
   /* Gets the buffer size in bytes */
   [[nodiscard]]
   constexpr size_t GetBufferSizeBytes() const
-  {
-    return static_cast<size_t>(W * H * D) * sizeof(BufferUnit);
-  }
+  { return static_cast<size_t>(W * H * D) * sizeof(BufferUnit); }
 
   /* Checks if the buffer is valid (allocated) */
   [[nodiscard]]
@@ -132,20 +118,16 @@ export class UnitChunkBuffer
 };
 
 /* Maps a 3D coordinate to the chunk buffer array pos */
-export template<int W, int H>
+export template <int W, int H>
 [[nodiscard]]
 int IndexMap3d2(int x, int y, int z)
-{
-  return x + (y * W) + (z * W * H);
-}
+{ return x + (y * W) + (z * W * H); }
 
 /* Maps a ChunkCoord to the chunk buffer array pos */
-export template<int W, int H>
+export template <int W, int H>
 [[nodiscard]]
 int IndexMap3d2(const UnitChunkBuffer::ChunkCoord& coord)
-{
-  return IndexMap3d2<W, H>(coord.x, coord.y, coord.z);
-}
+{ return IndexMap3d2<W, H>(coord.x, coord.y, coord.z); }
 
 /* Checks a coordinate (is invalid if out of bounds in the chunk buffer) */
 export bool IndexVal(const int& x, int max);

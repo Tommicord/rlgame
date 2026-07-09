@@ -19,7 +19,7 @@ namespace Rl::Main
 
 export class Game
 {
-  std::unique_ptr<Providers::UnitModel> unitModel;
+  std::unique_ptr<Providers::UnitModel>          unitModel;
   std::unique_ptr<World::ServiceUpdaterRegistry> serviceUpdaterRegistry;
 
   public:
@@ -36,9 +36,9 @@ export class Game
 
   private:
   Game();
-  GLFWwindow* window;
+  GLFWwindow*       window;
   Input::UserInput& input;
-  MainBinding binding;
+  MainBinding       binding;
 
   void CreateInstance();
   void CreateSurface();

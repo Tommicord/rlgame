@@ -22,7 +22,7 @@ namespace Rl::Providers
 export struct UnitStateResource final : public IStateResource
 {
   /* The target Unit to render */
-  World::IUnit&    unit;
+  World::IUnit& unit;
 
   /* Needs Player to access Camera */
   Player::IPlayer& player;
@@ -166,37 +166,27 @@ export class UnitModel final : public IStateModel<World::IUnit,
 
   /* Destructs a CameraModel */
   ~UnitModel() override
-  {
-    drawable->OnDestroy(*resource, *binding, context);
-  }
+  { drawable->OnDestroy(*resource, *binding, context); }
 
   /* Gets the stored camera */
   [[nodiscard]]
   World::IUnit& GetObjectRef() const override
-  {
-    return *ref;
-  }
+  { return *ref; }
 
   /* Gets the stored camera */
   [[nodiscard]]
   UnitStateResource& GetResource() const override
-  {
-    return *resource;
-  }
+  { return *resource; }
 
   /* Gets the stored camera */
   [[nodiscard]]
   UnitStateDrawable& GetDrawable() const override
-  {
-    return *drawable;
-  }
+  { return *drawable; }
 
   /* Gets the stored camera */
   [[nodiscard]]
   UnitStateBinding& GetBinding() const override
-  {
-    return *binding;
-  }
+  { return *binding; }
 };
 
 }; // namespace Rl::Providers

@@ -37,9 +37,9 @@ void UnitCreateBuffer(VkDevice device,
     VkDeviceMemory&            bufferMemory)
 {
   VkBufferCreateInfo bufferInfo{};
-  bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size        = size;
-  bufferInfo.usage       = usage;
+  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  bufferInfo.size = size;
+  bufferInfo.usage = usage;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
   if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -51,9 +51,10 @@ void UnitCreateBuffer(VkDevice device,
   vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
-  allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocInfo.allocationSize  = memRequirements.size;
-  allocInfo.memoryTypeIndex = UnitFindMemoryTypeIndex(physicalDevice, memRequirements, properties);
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex =
+      UnitFindMemoryTypeIndex(physicalDevice, memRequirements, properties);
 
   if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
   {
@@ -88,8 +89,8 @@ void UnitCreateIndexBuffer(VkDevice device,
   VkBuffer       stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
   UnitCreateBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-      stagingBufferMemory);
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer, stagingBufferMemory);
 
   // Copy data to staging buffer
   UnitCopyDataToBuffer(device, stagingBufferMemory, 0, bufferSize, indices.data());
@@ -102,8 +103,8 @@ void UnitCreateIndexBuffer(VkDevice device,
 
   // Create temporary command pool for buffer copy
   VkCommandPoolCreateInfo commandPoolInfo{};
-  commandPoolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  commandPoolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+  commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
   commandPoolInfo.queueFamilyIndex = 0; // Assuming graphics queue family is 0
 
   VkCommandPool commandPool;
@@ -114,9 +115,9 @@ void UnitCreateIndexBuffer(VkDevice device,
 
   // Allocate command buffer
   VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool        = commandPool;
-  allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
@@ -137,7 +138,7 @@ void UnitCreateIndexBuffer(VkDevice device,
   VkBufferCopy copyRegion{};
   copyRegion.srcOffset = 0;
   copyRegion.dstOffset = 0;
-  copyRegion.size      = bufferSize;
+  copyRegion.size = bufferSize;
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, indexBuffer, 1, &copyRegion);
 
   vkEndCommandBuffer(commandBuffer);
@@ -148,9 +149,9 @@ void UnitCreateIndexBuffer(VkDevice device,
   vkGetDeviceQueue(device, 0, 0, &queue);
 
   VkSubmitInfo submitInfo{};
-  submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers    = &commandBuffer;
+  submitInfo.pCommandBuffers = &commandBuffer;
 
   vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(queue);
@@ -173,12 +174,12 @@ void UnitCreateUniformBuffers(
 
   // Initialize triplanar settings
   UnitRenderTriplanarSettings initialTriplanar{};
-  initialTriplanar.scale     = 1.0f;
+  initialTriplanar.scale = 1.0f;
   initialTriplanar.sharpness = 4.0f;
-  initialTriplanar.offsetX   = 0.0f;
-  initialTriplanar.offsetY   = 0.0f;
-  initialTriplanar.offsetZ   = 0.0f;
-  initialTriplanar.blendMix  = 1.0f;
+  initialTriplanar.offsetX = 0.0f;
+  initialTriplanar.offsetY = 0.0f;
+  initialTriplanar.offsetZ = 0.0f;
+  initialTriplanar.blendMix = 1.0f;
   UnitCopyDataToBuffer(device, vk.triplanarSettingsBufferMemory, 0,
       sizeof(UnitRenderTriplanarSettings), &initialTriplanar);
 }

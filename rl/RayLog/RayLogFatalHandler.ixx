@@ -15,8 +15,8 @@ export class RayLogFatalHandler
   [[noreturn]]
   static void Handle(const std::string& message)
   {
-    const auto frames = RayLogStackTrace::Capture(1);
-    const auto demangled = RayLogSymbolDemangler::DemangleStackTrace(frames);
+    const auto  frames = RayLogStackTrace::Capture(1);
+    const auto  demangled = RayLogSymbolDemangler::DemangleStackTrace(frames);
     std::string fatalMessage = "FATAL ERROR: " + message + "\n";
     fatalMessage += demangled;
     RayLogPlatformOutput::WriteError(fatalMessage);
@@ -25,9 +25,7 @@ export class RayLogFatalHandler
 
   [[noreturn]]
   static void Handle()
-  {
-    Handle("Unknown fatal error");
-  }
+  { Handle("Unknown fatal error"); }
 };
 
-}
+} // namespace Rl::RayLog

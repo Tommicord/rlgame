@@ -15,22 +15,16 @@ export class UnitAir final : public IUnit,
   public:
   UnitAir() noexcept :
       IUnit(IUnitIdentifiable<UnitAir>::GetClassId()), IUnitIdentifiable<UnitAir>()
-  {
-    RegisterDerived<UnitAir>(*this);
-  }
+  { RegisterDerived<UnitAir>(*this); }
 
   private:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
-  {
-    return IUnitIdentifiable<UnitAir>::GetClassId();
-  }
+  { return IUnitIdentifiable<UnitAir>::GetClassId(); }
 
   [[nodiscard]]
   std::string_view GetDerivedClassName() const override
-  {
-    return IUnitIdentifiable<UnitAir>::SimpleClassName();
-  }
+  { return IUnitIdentifiable<UnitAir>::SimpleClassName(); }
 };
 
 } // namespace Rl::World

@@ -18,7 +18,8 @@ export template <class Derived, template <typename...> class Base>
 concept IsDerivedTemplate =
     requires(Derived& derived) { []<class... Ts>(Base<Ts...>&) {}(derived); };
 
-/* Acts like the controller or manager of Resources, Drawable, and Bindings (Vulkan resources) */
+/* Acts like the controller or manager of Resources, Drawable, and Bindings (Vulkan
+ * resources) */
 export template <class T, class D, class R, class B>
   requires(IsUpdatable<T> && IsDerivedTemplate<D, IStateDrawable>)
 class IStateModel
@@ -46,15 +47,11 @@ class IStateModel
 
   /* Draws the drawable using the vulkan context */
   void Draw(Main::MainBinding& context)
-  {
-    static_cast<D&>(GetDrawable()).OnDraw(GetResource(), GetBinding(), context);
-  }
+  { static_cast<D&>(GetDrawable()).OnDraw(GetResource(), GetBinding(), context); }
 
   /* Dispatches compute shaders using the vulkan context */
   void DrawCompute(Main::MainBinding& context)
-  {
-    static_cast<D&>(GetDrawable()).OnDrawCompute(GetResource(), GetBinding(), context);
-  }
+  { static_cast<D&>(GetDrawable()).OnDrawCompute(GetResource(), GetBinding(), context); }
 
   /* Updates the drawable state */
   void Update(Main::MainBinding& context)

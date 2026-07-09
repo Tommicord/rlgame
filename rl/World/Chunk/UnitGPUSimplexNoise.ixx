@@ -31,7 +31,8 @@ export class UnitGPUSimplexNoise
   /* Default constructor for initialize a GPU powered Simplex Noise compute */
   UnitGPUSimplexNoise() = default;
 
-  /* Destructs a UnitChunkBufferGPUSimplex instance (this don't free the Vulkan resources) */
+  /* Destructs a UnitChunkBufferGPUSimplex instance (this don't free the Vulkan resources)
+   */
   ~UnitGPUSimplexNoise() = default;
 
   /* Initialize Simplex noise resources like permutation tables, etc. */
@@ -45,19 +46,16 @@ export class UnitGPUSimplexNoise
       uint32_t                    depth);
 
   /* Generates noise for a chunk using a GPU compute shader */
-  void GenNoise(
-      VkDevice device, VkCommandBuffer commandBuffer, const SimplexNoisePushConstants& params) const;
+  void GenNoise(VkDevice               device,
+      VkCommandBuffer                  commandBuffer,
+      const SimplexNoisePushConstants& params) const;
 
   /* Gets the noise buffer for reading results */
   VkBuffer GetNoiseBuffer() const
-  {
-    return noiseBuffer;
-  }
+  { return noiseBuffer; }
   VkDeviceMemory GetNoiseBufferMemory() const
-  {
-    return noiseBufferMemory;
-  }
-  
+  { return noiseBufferMemory; }
+
   void Destroy(VkDevice device);
 
   private:

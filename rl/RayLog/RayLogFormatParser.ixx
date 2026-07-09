@@ -12,7 +12,7 @@ export class RayLogFormatParser
   public:
   struct FormatToken
   {
-    bool isSpecifier;
+    bool        isSpecifier;
     std::string value;
   };
 
@@ -20,8 +20,8 @@ export class RayLogFormatParser
   static std::vector<FormatToken> Parse(const std::string& format)
   {
     std::vector<FormatToken> tokens;
-    std::string current;
-    constexpr char pc = 0x25; // '%' in ASCII
+    std::string              current;
+    constexpr char           pc = 0x25; // '%' in ASCII
     for (size_t i = 0; i < format.size(); ++i)
     {
       if (format[i] == pc && i + 1 < format.size())
@@ -46,7 +46,7 @@ export class RayLogFormatParser
         if (spec == 'f' && i + 2 < format.size() && format[i + 2] == '.')
         {
           std::string precision;
-          size_t j = i + 3;
+          size_t      j = i + 3;
           while (j < format.size() && std::isdigit(format[j]))
           {
             precision += format[j];
@@ -55,7 +55,8 @@ export class RayLogFormatParser
           tokens.push_back({true, "%f." + precision});
           i = j - 1;
         }
-        else if (spec == 's' || spec == 'd' || spec == 'f' || spec == 'h' || spec == 'p' || spec == 'b' || spec == 'a')
+        else if (spec == 's' || spec == 'd' || spec == 'f' || spec == 'h' ||
+                 spec == 'p' || spec == 'b' || spec == 'a')
         {
           tokens.push_back({true, std::string(1, spec)});
           i++;
@@ -76,4 +77,4 @@ export class RayLogFormatParser
   }
 };
 
-}
+} // namespace Rl::RayLog

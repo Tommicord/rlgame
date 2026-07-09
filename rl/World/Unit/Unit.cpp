@@ -38,8 +38,7 @@ UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) no
 UnitResourceName::~UnitResourceName()
 { delete[] name; }
 
-UnitResourceName::UnitResourceName(const UnitResourceName& other)
-  : nameLen(other.nameLen)
+UnitResourceName::UnitResourceName(const UnitResourceName& other) : nameLen(other.nameLen)
 {
   if (other.name && other.nameLen > 0)
   {
@@ -73,8 +72,8 @@ UnitResourceName& UnitResourceName::operator=(const UnitResourceName& other)
   return *this;
 }
 
-UnitResourceName::UnitResourceName(UnitResourceName&& other) noexcept
-  : name(other.name), nameLen(other.nameLen)
+UnitResourceName::UnitResourceName(UnitResourceName&& other) noexcept :
+    name(other.name), nameLen(other.nameLen)
 {
   other.name = nullptr;
   other.nameLen = 0;
@@ -178,8 +177,6 @@ UnitTextureMaterial::~UnitTextureMaterial()
 }
 
 void IUnit::RegisterDerivedCallback(unsigned short id)
-{
-  UnitTextureFactory::FromUnit(id);
-}
+{ UnitTextureFactory::FromUnit(id); }
 
 } // namespace Rl::World

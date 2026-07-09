@@ -6,10 +6,10 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitCreateSSBOBuffers(VkDevice     device,
-    VkPhysicalDevice                    physicalDevice,
-    size_t                              vertexCount,
-    Providers::UnitStateBinding& vk)
+void UnitCreateSSBOBuffers(VkDevice device,
+    VkPhysicalDevice                physicalDevice,
+    size_t                          vertexCount,
+    Providers::UnitStateBinding&    vk)
 {
   // Create output index buffer (host-visible for compute shader writes)
   VkDeviceSize outputIndexBufferSize = sizeof(uint32_t) * 36; // Max 36 indices for cube
@@ -31,7 +31,8 @@ void UnitCreateSSBOBuffers(VkDevice     device,
 
   // Initialize visible count to 0
   uint32_t initialCount = 0;
-  UnitCopyDataToBuffer(device, vk.visibleCountBufferMemory, 0, sizeof(uint32_t), &initialCount);
+  UnitCopyDataToBuffer(
+      device, vk.visibleCountBufferMemory, 0, sizeof(uint32_t), &initialCount);
 
   // Create indirect draw buffer
   UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderDrawIndexedParams),
@@ -42,19 +43,19 @@ void UnitCreateSSBOBuffers(VkDevice     device,
 
   // Initialize indirect draw buffer for indexed drawing
   UnitRenderDrawIndexedParams initialDrawParams{};
-  initialDrawParams.indexCount    = 36; // 6 faces × 6 indices per face
+  initialDrawParams.indexCount = 36; // 6 faces × 6 indices per face
   initialDrawParams.instanceCount = 1;
-  initialDrawParams.firstIndex    = 0;
-  initialDrawParams.vertexOffset  = 0;
+  initialDrawParams.firstIndex = 0;
+  initialDrawParams.vertexOffset = 0;
   initialDrawParams.firstInstance = 0;
-  UnitCopyDataToBuffer(device, vk.indirectDrawBufferMemory, 0, sizeof(UnitRenderDrawIndexedParams),
-      &initialDrawParams);
+  UnitCopyDataToBuffer(device, vk.indirectDrawBufferMemory, 0,
+      sizeof(UnitRenderDrawIndexedParams), &initialDrawParams);
 
   // Create frustum buffer
   UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderFrustumPlanes),
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vk.frustumBuffer,
-      vk.frustumBufferMemory);
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk.frustumBuffer, vk.frustumBufferMemory);
 }
 
 } // namespace Rl::Client::Render

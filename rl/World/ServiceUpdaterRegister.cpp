@@ -11,22 +11,25 @@ import <string>;
 namespace Rl::World
 {
 
-ServiceUpdaterRegister::ServiceUpdaterRegister(ServiceUpdaterRegistry& registry)
-    : registry(registry)
+ServiceUpdaterRegister::ServiceUpdaterRegister(ServiceUpdaterRegistry& registry) :
+    registry(registry)
 {
 }
 
-void ServiceUpdaterRegister::RegisterTimeSystemUpdater(const std::string& name, int64_t fragmentsPerUpdate)
+void ServiceUpdaterRegister::RegisterTimeSystemUpdater(
+    const std::string& name, int64_t fragmentsPerUpdate)
 {
   auto timeSystem = WorldServiceLocator::GetTimeSystem();
   if (!timeSystem)
   {
-    RayLog::LogWarning("ServiceUpdaterRegister", "TimeSystem not available in ServiceLocator, skipping registration");
+    RayLog::LogWarning("ServiceUpdaterRegister",
+        "TimeSystem not available in ServiceLocator, skipping registration");
     return;
   }
   auto updater = std::make_shared<TimeSystemUpdater>(timeSystem, fragmentsPerUpdate);
   registry.RegisterUpdater(name, updater);
-  RayLog::LogInfo("ServiceUpdaterRegister", "Registered TimeSystem updater with fragmentsPerUpdate: %d", fragmentsPerUpdate);
+  RayLog::LogInfo("ServiceUpdaterRegister",
+      "Registered TimeSystem updater with fragmentsPerUpdate: %d", fragmentsPerUpdate);
 }
 
 void ServiceUpdaterRegister::RegisterSkyboxSystemUpdater(const std::string& name)
@@ -34,7 +37,6 @@ void ServiceUpdaterRegister::RegisterSkyboxSystemUpdater(const std::string& name
   auto skyboxSystem = WorldServiceLocator::GetSkyboxSystem();
   if (!skyboxSystem)
     return;
-  
   auto updater = std::make_shared<SkyboxSystemUpdater>(skyboxSystem);
   registry.RegisterUpdater(name, updater);
 }
@@ -45,7 +47,8 @@ void ServiceUpdaterRegister::RegisterPlayerServicesUpdater(const std::string& na
   registry.RegisterUpdater(name, updater);
 }
 
-void ServiceUpdaterRegister::RegisterCustomUpdater(const std::string& name, std::shared_ptr<ServiceUpdater> updater)
+void ServiceUpdaterRegister::RegisterCustomUpdater(
+    const std::string& name, std::shared_ptr<ServiceUpdater> updater)
 {
   if (updater)
   {
@@ -55,21 +58,13 @@ void ServiceUpdaterRegister::RegisterCustomUpdater(const std::string& name, std:
 
 void ServiceUpdaterRegister::RegisterFromServiceLocator(int64_t timeFragmentsPerUpdate)
 {
-  // Register TimeSystem if available
-  if (WorldServiceLocator::HasTimeSystem())
-  {
-    RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
-  }
-  // Register SkyboxSystem if available
-  if (WorldServiceLocator::HasSkyboxSystem())
-  {
-    RegisterSkyboxSystemUpdater("SkyboxSystem");
-  }
-  // Register Player services
+  RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
+  RegisterSkyboxSystemUpdater("SkyboxSystem");
   RegisterPlayerServicesUpdater("PlayerServices");
 }
 
-void RegisterStandardServices(ServiceUpdaterRegistry& registry, std::int64_t timeFragmentsPerUpdate)
+void RegisterStandardServices(
+    ServiceUpdaterRegistry& registry, std::int64_t timeFragmentsPerUpdate)
 {
   ServiceUpdaterRegister registerer(registry);
   registerer.RegisterFromServiceLocator(timeFragmentsPerUpdate);

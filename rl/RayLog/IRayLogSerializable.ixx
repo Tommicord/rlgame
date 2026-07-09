@@ -17,9 +17,7 @@ export template <class T> class IRayLogSerializable
 
   /* Must inherit the ToString method (needs a value) */
   virtual constexpr std::string ToString(T type) const
-  {
-    return {};
-  };
+  { return {}; };
 };
 
 /*
@@ -28,16 +26,13 @@ export template <class T> class IRayLogSerializable
  */
 export class IRayLogSerializable2
 {
-public:
+  public:
   /* Default destructor for the printer strategy */
   virtual ~IRayLogSerializable2() = default;
 
   /* Must inherit the ToString method (needs a value) */
   virtual constexpr std::string ToString() const
-  {
-    return {};
-  };
+  { return {}; };
 };
-
 
 } // namespace Rl::RayLog

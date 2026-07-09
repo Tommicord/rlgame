@@ -33,7 +33,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     Main::MainBinding&                                        context)
 {
   // Get camera matrices for push constants
-  UnitRenderUBO        ubo{};
+  UnitRenderUBO                ubo{};
   const Player::IPlayerCamera& cam = *resource.player.camera;
   ubo.model = cam.GetModelMatrix();
   ubo.view = cam.GetViewMatrix();
@@ -52,17 +52,17 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
       context.commandBuffers[0], vk.frustumBuffer, 0, frustumSize, &frustum);
 
   UnitRenderLightingUniforms lightingData{};
-  
+
   // Try to get skybox data from service locator
   auto skyboxSystem = World::WorldServiceLocator::GetSkyboxSystem();
   if (skyboxSystem)
   {
     // Update skybox system
     skyboxSystem->Update();
-    
+
     // Get skybox state
     World::Skybox::SkyboxState skyboxState = skyboxSystem->GetSkyboxState();
-    
+
     // Use skybox data for lighting
     lightingData.sunDirection = glm::vec4(skyboxState.sun.direction, 0.0f);
     lightingData.sunColor = glm::vec4(skyboxState.sun.color, 0.0f);

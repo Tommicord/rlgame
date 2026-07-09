@@ -6,7 +6,8 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitBeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags flags)
+void UnitBeginCommandBuffer(
+    VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags flags)
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -29,9 +30,9 @@ void UnitEndCommandBuffer(VkCommandBuffer commandBuffer)
 void UnitSubmitCommandBuffer(VkQueue queue, VkCommandBuffer commandBuffer)
 {
   VkSubmitInfo submitInfo{};
-  submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers    = &commandBuffer;
+  submitInfo.pCommandBuffers = &commandBuffer;
 
   if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
   {
@@ -42,8 +43,8 @@ void UnitSubmitCommandBuffer(VkQueue queue, VkCommandBuffer commandBuffer)
 VkCommandPool UnitCreateTempCommandPool(VkDevice device, uint32_t queueFamilyIndex)
 {
   VkCommandPoolCreateInfo poolInfo{};
-  poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
   poolInfo.queueFamilyIndex = queueFamilyIndex;
 
   VkCommandPool commandPool;
@@ -58,9 +59,9 @@ VkCommandPool UnitCreateTempCommandPool(VkDevice device, uint32_t queueFamilyInd
 VkCommandBuffer UnitAllocateTempCommandBuffer(VkDevice device, VkCommandPool commandPool)
 {
   VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool        = commandPool;
-  allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
@@ -74,13 +75,9 @@ VkCommandBuffer UnitAllocateTempCommandBuffer(VkDevice device, VkCommandPool com
 
 void UnitFreeTempCommandBuffer(
     VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
-{
-  vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-}
+{ vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer); }
 
 void UnitDestroyTempCommandPool(VkDevice device, VkCommandPool commandPool)
-{
-  vkDestroyCommandPool(device, commandPool, nullptr);
-}
+{ vkDestroyCommandPool(device, commandPool, nullptr); }
 
 } // namespace Rl::Client::Render

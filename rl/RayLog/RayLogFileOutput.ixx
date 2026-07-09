@@ -13,19 +13,19 @@ namespace Rl::RayLog
 export class RayLogFileOutput
 {
   /* The log file */
-  std::ofstream           logf;
+  std::ofstream logf;
 
   /* The file mutex for synchronization */
-  std::mutex              fileMutex;
+  std::mutex fileMutex;
 
   /* The file path of the log file */
-  std::string             logfp;
+  std::string logfp;
 
   /* The current size of the log file */
-  size_t                  currentSize = 0;
+  size_t currentSize = 0;
 
   /* The UUID of the log */
-  RayLogUuid              logUuid;
+  RayLogUuid logUuid;
 
   public:
   RayLogFileOutput()

@@ -6,7 +6,8 @@ namespace Rl::Client::Render
 {
 
 // Create memory barrier for buffer operations
-export VkMemoryBarrier UnitCreateMemoryBarrier(VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
+export VkMemoryBarrier UnitCreateMemoryBarrier(
+    VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 
 // Create buffer memory barrier
 export VkBufferMemoryBarrier UnitCreateBufferMemoryBarrier(
@@ -14,9 +15,9 @@ export VkBufferMemoryBarrier UnitCreateBufferMemoryBarrier(
 
 // Create image memory barrier
 export VkImageMemoryBarrier UnitCreateImageMemoryBarrier(VkImage image,
-    VkAccessFlags                                         srcAccessMask,
-    VkAccessFlags                                         dstAccessMask,
-    VkImageLayout                                         oldLayout,
-    VkImageLayout                                         newLayout);
+    VkAccessFlags                                                srcAccessMask,
+    VkAccessFlags                                                dstAccessMask,
+    VkImageLayout                                                oldLayout,
+    VkImageLayout                                                newLayout);
 
 } // namespace Rl::Client::Render

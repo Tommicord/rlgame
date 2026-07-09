@@ -48,7 +48,8 @@ bool Texture2::IsMobilePlatform()
 
 bool Texture2::IsDesktopPlatform()
 {
-#if defined(RL_PLATFORM_WINDOWS) || defined(RL_PLATFORM_MACOS) || defined(RL_PLATFORM_LINUX)
+#if defined(RL_PLATFORM_WINDOWS) || defined(RL_PLATFORM_MACOS) ||                        \
+    defined(RL_PLATFORM_LINUX)
   return true;
 #else
   return false;
@@ -175,26 +176,22 @@ bool Texture2::IsFormatSupported(Texture2Format format)
 
 // Constructor/Destructor
 Texture2::Texture2() :
-    data(nullptr), dataSize(0), width(0), height(0), channels(0), mipmapLevels(1), loaded(false)
-{
-  Create();
-}
+    data(nullptr), dataSize(0), width(0), height(0), channels(0), mipmapLevels(1),
+    loaded(false)
+{ Create(); }
 
 Texture2::Texture2(const std::string& filepath) : Texture2()
-{
-  FromResource(filepath);
-}
+{ FromResource(filepath); }
 
-Texture2::Texture2(const std::string& filepath, const Texture2Properties& properties) : Texture2()
+Texture2::Texture2(const std::string& filepath, const Texture2Properties& properties) :
+    Texture2()
 {
   this->properties = properties;
   FromResource(filepath);
 }
 
 Texture2::~Texture2()
-{
-  Cleanup();
-}
+{ Cleanup(); }
 
 void Texture2::Create()
 {
@@ -253,11 +250,10 @@ void Texture2::CleanupBinding(const Main::MainBinding& context)
 }
 
 bool Texture2::FromResource(const std::string& filepath)
-{
-  return FromResource(filepath, properties);
-}
+{ return FromResource(filepath, properties); }
 
-bool Texture2::FromResource(const std::string& filepath, const Texture2Properties& properties)
+bool Texture2::FromResource(
+    const std::string& filepath, const Texture2Properties& properties)
 {
   this->properties = properties;
   this->filepath = filepath;
@@ -281,10 +277,10 @@ bool Texture2::FromMemory(
 }
 
 bool Texture2::FromData(const uint8_t* data,
-    int                                    width,
-    int                                    height,
-    Texture2Format                         format,
-    const Texture2Properties&              properties)
+    int                                width,
+    int                                height,
+    Texture2Format                     format,
+    const Texture2Properties&          properties)
 {
   this->properties = properties;
   this->properties.format = format;
@@ -325,8 +321,8 @@ bool Texture2::FromIOSBundle(const std::string& resourcePath)
     return false;
   }
 
-  CFStringRef cfPath =
-      CFStringCreateWithCString(kCFAllocatorDefault, resourcePath.c_str(), kCFStringEncodingUTF8);
+  CFStringRef cfPath = CFStringCreateWithCString(
+      kCFAllocatorDefault, resourcePath.c_str(), kCFStringEncodingUTF8);
   CFURLRef cfUrl = CFBundleCopyResourceURL(mainBundle, cfPath, NULL, NULL);
   CFRelease(cfPath);
 

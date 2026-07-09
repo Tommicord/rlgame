@@ -12,7 +12,6 @@ namespace Rl::Player
 export class Player final : public IPlayer
 {
   public:
-  
   /* Constructs a Player instance */
   Player() noexcept;
 

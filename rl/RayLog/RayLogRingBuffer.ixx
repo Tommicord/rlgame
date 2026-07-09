@@ -7,24 +7,24 @@ import <cstddef>;
 namespace Rl::RayLog
 {
 
-export template<typename T>
-class RayLogRingBuffer
+export template <typename T> class RayLogRingBuffer
 {
-  std::vector<T> buffer;
-  size_t head{0};
-  size_t tail{0};
+  std::vector<T>     buffer;
+  size_t             head{0};
+  size_t             tail{0};
   mutable std::mutex mutex;
-  size_t capacity;
+  size_t             capacity;
 
   public:
-  explicit RayLogRingBuffer(size_t size) :
-    buffer(size), capacity(size) {}
+  explicit RayLogRingBuffer(size_t size) : buffer(size), capacity(size)
+  {
+  }
 
   bool Push(const T& item)
   {
     std::scoped_lock lock(mutex);
-    const size_t nextHead = (head + 1) % capacity;
-    
+    const size_t     nextHead = (head + 1) % capacity;
+
     if (nextHead == tail)
       return false;
 
@@ -68,4 +68,4 @@ class RayLogRingBuffer
   }
 };
 
-}
+} // namespace Rl::RayLog

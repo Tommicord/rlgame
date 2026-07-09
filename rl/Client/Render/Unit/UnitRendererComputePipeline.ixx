@@ -9,8 +9,9 @@ namespace Rl::Client::Render
 {
 
 // Create compute pipeline layout
-export void UnitCreateComputePipelineLayout(
-    VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
+export void UnitCreateComputePipelineLayout(VkDevice device,
+    VkDescriptorSetLayout                            descriptorSetLayout,
+    VkPipelineLayout&                                pipelineLayout);
 
 // Create compute pipeline for face culling
 export void UnitCreateComputePipeline(

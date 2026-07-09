@@ -46,8 +46,7 @@ export class RayLog
   void Log(const RayLogLevel          level,
       const std::string&              tag,
       const std::string&              format,
-      const std::vector<
-        std::variant<int,
+      const std::vector<std::variant<int,
           float,
           double,
           std::string,
@@ -56,9 +55,7 @@ export class RayLog
           const void*,
           std::vector<int>,
           std::vector<float>,
-          std::vector<std::string>
-        >
-      >& args)
+          std::vector<std::string>>>& args)
   {
     const std::string   formatted = messageBuilder.FormatMessage(format, args);
     const RayLogMessage message(level, formatted, tag);

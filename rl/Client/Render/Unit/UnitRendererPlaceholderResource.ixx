@@ -7,39 +7,39 @@ namespace Rl::Client::Render
 {
 
 export void UnitCreatePlaceholderLightingTexture(VkDevice device,
-    VkPhysicalDevice                               physicalDevice,
-    VkImage&                                       texture,
-    VkDeviceMemory&                                textureMemory,
-    VkImageView&                                   textureView,
-    VkSampler&                                     sampler);
+    VkPhysicalDevice                                      physicalDevice,
+    VkImage&                                              texture,
+    VkDeviceMemory&                                       textureMemory,
+    VkImageView&                                          textureView,
+    VkSampler&                                            sampler);
 
 export void UnitCreatePlaceholderSettingsBuffer(VkDevice device,
-    VkPhysicalDevice                              physicalDevice,
-    VkBuffer&                                     buffer,
-    VkDeviceMemory&                               bufferMemory);
+    VkPhysicalDevice                                     physicalDevice,
+    VkBuffer&                                            buffer,
+    VkDeviceMemory&                                      bufferMemory);
 
 export void UnitCreatePlaceholderLightingBuffer(VkDevice device,
-    VkPhysicalDevice                              physicalDevice,
-    VkBuffer&                                     buffer,
-    VkDeviceMemory&                               bufferMemory);
+    VkPhysicalDevice                                     physicalDevice,
+    VkBuffer&                                            buffer,
+    VkDeviceMemory&                                      bufferMemory);
 
 export void UnitCreatePlaceholderAOTexture(VkDevice device,
-    VkPhysicalDevice                         physicalDevice,
-    VkImage&                                 texture,
-    VkDeviceMemory&                          textureMemory,
-    VkImageView&                             textureView,
-    VkSampler&                               sampler);
+    VkPhysicalDevice                                physicalDevice,
+    VkImage&                                        texture,
+    VkDeviceMemory&                                 textureMemory,
+    VkImageView&                                    textureView,
+    VkSampler&                                      sampler);
 
 export void UnitCreateTriplanarSettingsBuffer(VkDevice device,
-    VkPhysicalDevice                            physicalDevice,
-    VkBuffer&                                   buffer,
-    VkDeviceMemory&                             bufferMemory);
+    VkPhysicalDevice                                   physicalDevice,
+    VkBuffer&                                          buffer,
+    VkDeviceMemory&                                    bufferMemory);
 
 export void UnitCreatePlaceholderNormalTexture(VkDevice device,
-    VkPhysicalDevice                             physicalDevice,
-    VkImage&                                     texture,
-    VkDeviceMemory&                              textureMemory,
-    VkImageView&                                 textureView,
-    VkSampler&                                   sampler);
+    VkPhysicalDevice                                    physicalDevice,
+    VkImage&                                            texture,
+    VkDeviceMemory&                                     textureMemory,
+    VkImageView&                                        textureView,
+    VkSampler&                                          sampler);
 
 } // namespace Rl::Client::Render

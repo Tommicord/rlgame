@@ -8,8 +8,7 @@ namespace Rl::RayLog
 {
 
 /* RayLogLevel: Trace, Debug, Info, Warning, Error, Fatal */
-export enum class RayLogLevel : unsigned char
-{
+export enum class RayLogLevel : unsigned char {
   Trace,
   Debug,
   Info,
@@ -21,7 +20,7 @@ export enum class RayLogLevel : unsigned char
 /* RayLog logging level printer from RayLogLevel enum */
 export class RayLogLevelPrinter final : public IRayLogSerializable<RayLogLevel>
 {
-public:
+  public:
   /* Stringify a RayLogLevel enum value */
   [[nodiscard]]
   std::string ToString(const RayLogLevel level) const override

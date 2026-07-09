@@ -59,13 +59,11 @@ export template <typename T> class IUnitIdentifiable : public UnitRegister
   /* Compile-Evaluated function that gets the id of the Unit  */
   [[nodiscard]]
   consteval unsigned short GetClassId() const override
-  {
-    return GetStaticClassId();
-  }
+  { return GetStaticClassId(); }
 
   private:
   /* Helper function to get type name from signature */
-  template<typename U>
+  template <typename U>
   [[nodiscard]]
   static consteval std::string_view GetTypeName()
   {
@@ -75,7 +73,8 @@ export template <typename T> class IUnitIdentifiable : public UnitRegister
     constexpr std::string_view suffix = "]";
 #elif defined(__GNUC__)
     constexpr std::string_view name{__PRETTY_FUNCTION__};
-    constexpr std::string_view prefix = "constexpr std::string_view GetTypeName() [with U = ";
+    constexpr std::string_view prefix =
+        "constexpr std::string_view GetTypeName() [with U = ";
     constexpr std::string_view suffix = "]";
 #elif defined(_MSC_VER)
     constexpr std::string_view name{__FUNCSIG__};
@@ -118,9 +117,7 @@ export template <typename T> class IUnitIdentifiable : public UnitRegister
   public:
   [[nodiscard]]
   static consteval std::string_view SimpleClassName()
-  {
-    return GetTypeName<T>();
-  }
+  { return GetTypeName<T>(); }
 };
 
 } // namespace Rl::World

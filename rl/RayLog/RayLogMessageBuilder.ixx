@@ -24,13 +24,14 @@ namespace Rl::RayLog
 /* The message builder for the RayLog logging */
 export class RayLogMessageBuilder
 {
-protected:
+  protected:
   /* The logging level printer */
   RayLogLevelPrinter levelPrinter;
 
   /* The logging ANSI color printer */
   RayLogColorPrinter colorPrinter;
-public:
+
+  public:
   /* Builds a log line that represents a log */
   [[nodiscard]]
   std::string BuildLogLine(const RayLogMessage& message) const

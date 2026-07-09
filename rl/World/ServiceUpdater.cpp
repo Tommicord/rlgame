@@ -13,15 +13,13 @@ import <string>;
 namespace Rl::World
 {
 
-template<typename T>
-TypedServiceUpdater<T>::TypedServiceUpdater(std::shared_ptr<T> service, std::function<void(T&)> updateFunc)
-    : service(std::move(service)), updateFunc(std::move(updateFunc))
-{
-  RayLog::LogDebug("ServiceUpdater", "TypedServiceUpdater initialized");
-}
+template <typename T>
+TypedServiceUpdater<T>::TypedServiceUpdater(
+    std::shared_ptr<T> service, std::function<void(T&)> updateFunc) :
+    service(std::move(service)), updateFunc(std::move(updateFunc))
+{ RayLog::LogDebug("ServiceUpdater", "TypedServiceUpdater initialized"); }
 
-template<typename T>
-void TypedServiceUpdater<T>::Update()
+template <typename T> void TypedServiceUpdater<T>::Update()
 {
   if (service && updateFunc)
   {
@@ -29,19 +27,20 @@ void TypedServiceUpdater<T>::Update()
   }
   else
   {
-    RayLog::LogWarning("ServiceUpdater", "TypedServiceUpdater::Update called with null service or update function");
+    RayLog::LogWarning("ServiceUpdater",
+        "TypedServiceUpdater::Update called with null service or update function");
   }
 }
 
-template<typename T> std::string TypedServiceUpdater<T>::GetServiceName() const
-{
-  return "TypedService";
-}
+template <typename T> std::string TypedServiceUpdater<T>::GetServiceName() const
+{ return "TypedService"; }
 
-TimeSystemUpdater::TimeSystemUpdater(std::shared_ptr<Time::TimeSystem> timeSystem, int64_t fragmentsPerUpdate)
-    : timeSystem(std::move(timeSystem)), fragmentsPerUpdate(fragmentsPerUpdate)
+TimeSystemUpdater::TimeSystemUpdater(
+    std::shared_ptr<Time::TimeSystem> timeSystem, int64_t fragmentsPerUpdate) :
+    timeSystem(std::move(timeSystem)), fragmentsPerUpdate(fragmentsPerUpdate)
 {
-  RayLog::LogInfo("ServiceUpdater", "TimeSystemUpdater initialized with fragmentsPerUpdate: %d", fragmentsPerUpdate);
+  RayLog::LogInfo("ServiceUpdater",
+      "TimeSystemUpdater initialized with fragmentsPerUpdate: %d", fragmentsPerUpdate);
 }
 
 void TimeSystemUpdater::Update()
@@ -52,20 +51,18 @@ void TimeSystemUpdater::Update()
   }
   else
   {
-    RayLog::LogError("ServiceUpdater", "TimeSystemUpdater::Update called with null TimeSystem");
+    RayLog::LogError(
+        "ServiceUpdater", "TimeSystemUpdater::Update called with null TimeSystem");
   }
 }
 
 std::string TimeSystemUpdater::GetServiceName() const
-{
-  return "TimeSystem";
-}
+{ return "TimeSystem"; }
 
-SkyboxSystemUpdater::SkyboxSystemUpdater(std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem)
-    : skyboxSystem(std::move(skyboxSystem))
-{
-  RayLog::LogInfo("ServiceUpdater", "SkyboxSystemUpdater initialized");
-}
+SkyboxSystemUpdater::SkyboxSystemUpdater(
+    std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem) :
+    skyboxSystem(std::move(skyboxSystem))
+{ RayLog::LogInfo("ServiceUpdater", "SkyboxSystemUpdater initialized"); }
 
 void SkyboxSystemUpdater::Update()
 {
@@ -75,29 +72,26 @@ void SkyboxSystemUpdater::Update()
   }
   else
   {
-    RayLog::LogError("ServiceUpdater", "SkyboxSystemUpdater::Update called with null SkyboxSystem");
+    RayLog::LogError(
+        "ServiceUpdater", "SkyboxSystemUpdater::Update called with null SkyboxSystem");
   }
 }
 
 std::string SkyboxSystemUpdater::GetServiceName() const
-{
-  return "SkyboxSystem";
-}
+{ return "SkyboxSystem"; }
 
 PlayerServicesUpdater::PlayerServicesUpdater()
-{
-  RayLog::LogInfo("ServiceUpdater", "PlayerServicesUpdater initialized");
-}
+{ RayLog::LogInfo("ServiceUpdater", "PlayerServicesUpdater initialized"); }
 
 void PlayerServicesUpdater::Update()
 {
   auto& player = Player::PlayerProvider::GetInstance();
-  
+
   if (player.cameraControl)
   {
     player.cameraControl->Update();
   }
-  
+
   if (player.playerControl)
   {
     player.playerControl->Update();
@@ -105,9 +99,7 @@ void PlayerServicesUpdater::Update()
 }
 
 std::string PlayerServicesUpdater::GetServiceName() const
-{
-  return "PlayerServices";
-}
+{ return "PlayerServices"; }
 
 template class TypedServiceUpdater<Time::TimeSystem>;
 template class TypedServiceUpdater<Skybox::SkyboxSystem>;

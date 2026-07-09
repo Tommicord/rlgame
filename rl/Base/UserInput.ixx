@@ -226,9 +226,7 @@ export class IInputObserver
   public:
   /* Registers an InputObserver to the UserInput listeners */
   explicit IInputObserver(IInputObserver& observer)
-  {
-    UserInput::GetInstance().Subscribe(&observer);
-  }
+  { UserInput::GetInstance().Subscribe(&observer); }
   virtual ~IInputObserver() = default;
   virtual void OnKeyEvent(const KeyEvent& event) = 0;
   virtual void OnMouseButtonEvent(const MouseButtonEvent& event) = 0;

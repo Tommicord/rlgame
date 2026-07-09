@@ -17,27 +17,28 @@ export class ServiceUpdaterRegister
   public:
   explicit ServiceUpdaterRegister(ServiceUpdaterRegistry& registry);
   ~ServiceUpdaterRegister() = default;
-  
+
   /* Disable copy operations */
   ServiceUpdaterRegister(const ServiceUpdaterRegister&) = delete;
   ServiceUpdaterRegister& operator=(const ServiceUpdaterRegister&) = delete;
-  
+
   /* Enable move operations */
   ServiceUpdaterRegister(ServiceUpdaterRegister&& other) noexcept = default;
   ServiceUpdaterRegister& operator=(ServiceUpdaterRegister&& other) noexcept = default;
-  
+
   /* Register TimeSystem updater */
   void RegisterTimeSystemUpdater(const std::string& name, int64_t fragmentsPerUpdate);
-  
+
   /* Register SkyboxSystem updater */
   void RegisterSkyboxSystemUpdater(const std::string& name);
-  
+
   /* Register Player services updater */
   void RegisterPlayerServicesUpdater(const std::string& name);
-  
+
   /* Register custom updater */
-  void RegisterCustomUpdater(const std::string& name, std::shared_ptr<ServiceUpdater> updater);
-  
+  void RegisterCustomUpdater(
+      const std::string& name, std::shared_ptr<ServiceUpdater> updater);
+
   /* Register from ServiceLocator (auto-detects registered services) */
   void RegisterFromServiceLocator(int64_t timeFragmentsPerUpdate = 1);
 
@@ -46,6 +47,7 @@ export class ServiceUpdaterRegister
 };
 
 /* Convenience function to register all standard services */
-export void RegisterStandardServices(ServiceUpdaterRegistry& registry, int64_t timeFragmentsPerUpdate = 1);
+export void RegisterStandardServices(
+    ServiceUpdaterRegistry& registry, int64_t timeFragmentsPerUpdate = 1);
 
 } // namespace Rl::World

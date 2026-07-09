@@ -18,8 +18,8 @@ export void UnitGenerateNormalTextures(VkDevice device,
 
 // Update normal texture descriptor
 export void UnitUpdateNormalTextureDescriptor(VkDevice device,
-    VkDescriptorSet                             descriptorSet,
-    VkImageView                                 normalTextureView[6],
-    VkSampler                                   sampler);
+    VkDescriptorSet                                    descriptorSet,
+    VkImageView                                        normalTextureView[6],
+    VkSampler                                          sampler);
 
 } // namespace Rl::Client::Render

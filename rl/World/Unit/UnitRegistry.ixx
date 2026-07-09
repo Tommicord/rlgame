@@ -12,13 +12,11 @@ namespace Rl::World
 // Some forward references
 class IUnit;
 
-export template <class K, class V>
-class UnitRegistryPair3;
+export template <class K, class V> class UnitRegistryPair3;
 
 class UnitResourceName;
 
-export template <class K, class V>
-class UnitRegisters
+export template <class K, class V> class UnitRegisters
 {
   public:
   /* The pair type for the registry */
@@ -44,13 +42,12 @@ class UnitRegisters
   friend class UnitRegistryPair3<K, V>;
 };
 
-export template <class K, class V>
-class UnitRegistryPair3
+export template <class K, class V> class UnitRegistryPair3
 {
   protected:
-  short    regId;
-  K        regKey;
-  V        regValue;
+  short regId;
+  K     regKey;
+  V     regValue;
 
   public:
   /* Creates a basic register of world unit */
@@ -73,16 +70,15 @@ class UnitRegistryPair3
 };
 
 template <class K, class V>
-UnitRegistryPair3<K, V>::UnitRegistryPair3(const K& defaultRegKey) : regId(0), regKey(defaultRegKey), regValue(V{})
-{
-  UnitRegisters<K, V>::PutPair(*this);
-}
+UnitRegistryPair3<K, V>::UnitRegistryPair3(const K& defaultRegKey) :
+    regId(0), regKey(defaultRegKey), regValue(V{})
+{ UnitRegisters<K, V>::PutPair(*this); }
 
 template <class K, class V>
 void UnitRegistryPair3<K, V>::Register(unsigned short id, const K& key, V& value)
 {
-  regId    = id;
-  regKey   = key;
+  regId = id;
+  regKey = key;
   regValue = value;
   UnitRegisters<K, V>::PutPair(*this);
 }
@@ -100,8 +96,7 @@ std::optional<K> UnitRegistryPair3<K, V>::GetNameForObject(V& value)
   return std::nullopt;
 }
 
-template <class K, class V>
-std::optional<V> UnitRegistryPair3<K, V>::GetObject(K name)
+template <class K, class V> std::optional<V> UnitRegistryPair3<K, V>::GetObject(K name)
 {
   for (const auto& pair : UnitRegisters<K, V>::GetRegistry())
   {
@@ -131,21 +126,14 @@ std::vector<UnitRegistryPair3<K, V>> UnitRegisters<K, V>::registry;
 
 template <class K, class V>
 void UnitRegisters<K, V>::PutPair(UnitRegistryPair3<K, V>& reg) noexcept
-{
-  registry.push_back(reg);
-}
+{ registry.push_back(reg); }
 
-template <class K, class V>
-size_t UnitRegisters<K, V>::GetRegistrySize()
-{
-  return registry.size();
-}
+template <class K, class V> size_t UnitRegisters<K, V>::GetRegistrySize()
+{ return registry.size(); }
 
 template <class K, class V>
 const std::vector<UnitRegistryPair3<K, V>>& UnitRegisters<K, V>::GetRegistry()
-{
-  return registry;
-}
+{ return registry; }
 
 template class UnitRegistryPair3<UnitResourceName, IUnit*>;
 

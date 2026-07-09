@@ -3,8 +3,7 @@ import Rl.World.Time.TimeSystem;
 namespace Rl::World::Time
 {
 
-TimeSystem::TimeSystem()
-    : currentFragment(0), totalElapsedFragments(0), currentDay(0)
+TimeSystem::TimeSystem() : currentFragment(0), totalElapsedFragments(0), currentDay(0)
 {
 }
 
@@ -12,18 +11,19 @@ void TimeSystem::Update(int64_t fragmentsToAdd)
 {
   if (fragmentsToAdd <= 0)
     return;
-  
+
   int64_t oldFragment = currentFragment.load(std::memory_order_acquire);
   int64_t newFragment = oldFragment + fragmentsToAdd;
-  int64_t newTotal = totalElapsedFragments.load(std::memory_order_acquire) + fragmentsToAdd;
-  
+  int64_t newTotal =
+      totalElapsedFragments.load(std::memory_order_acquire) + fragmentsToAdd;
+
   // Check if we've completed a full cycle
   if (newFragment >= FULL_CYCLE_FRAGMENTS)
   {
     newFragment = newFragment % FULL_CYCLE_FRAGMENTS;
     currentDay.fetch_add(1, std::memory_order_release);
   }
-  
+
   currentFragment.store(newFragment, std::memory_order_release);
   totalElapsedFragments.store(newTotal, std::memory_order_release);
 }
@@ -42,19 +42,13 @@ TimeState TimeSystem::GetTimeState() const
 }
 
 int64_t TimeSystem::GetCurrentFragment() const
-{
-  return currentFragment.load(std::memory_order_acquire);
-}
+{ return currentFragment.load(std::memory_order_acquire); }
 
 int64_t TimeSystem::GetTotalElapsedFragments() const
-{
-  return totalElapsedFragments.load(std::memory_order_acquire);
-}
+{ return totalElapsedFragments.load(std::memory_order_acquire); }
 
 TimeOfDay TimeSystem::GetTimeOfDay() const
-{
-  return CalculateTimeOfDay(currentFragment.load(std::memory_order_acquire));
-}
+{ return CalculateTimeOfDay(currentFragment.load(std::memory_order_acquire)); }
 
 bool TimeSystem::IsDay() const
 {
@@ -63,24 +57,16 @@ bool TimeSystem::IsDay() const
 }
 
 bool TimeSystem::IsNight() const
-{
-  return !IsDay();
-}
+{ return !IsDay(); }
 
 float TimeSystem::GetDayProgress() const
-{
-  return CalculateDayProgress(currentFragment.load(std::memory_order_acquire));
-}
+{ return CalculateDayProgress(currentFragment.load(std::memory_order_acquire)); }
 
 float TimeSystem::GetNightProgress() const
-{
-  return CalculateNightProgress(currentFragment.load(std::memory_order_acquire));
-}
+{ return CalculateNightProgress(currentFragment.load(std::memory_order_acquire)); }
 
 uint32_t TimeSystem::GetCurrentDay() const
-{
-  return currentDay.load(std::memory_order_acquire);
-}
+{ return currentDay.load(std::memory_order_acquire); }
 
 void TimeSystem::Reset()
 {
@@ -111,7 +97,7 @@ float TimeSystem::CalculateDayProgress(int64_t fragment) const
 {
   if (fragment >= DAY_DURATION_FRAGMENTS)
     return 0.0f; // Not in day time
-  
+
   return static_cast<float>(fragment) / static_cast<float>(DAY_DURATION_FRAGMENTS);
 }
 
@@ -119,7 +105,7 @@ float TimeSystem::CalculateNightProgress(int64_t fragment) const
 {
   if (fragment < DAY_DURATION_FRAGMENTS)
     return 0.0f; // Not in night time
-  
+
   int64_t nightFragment = fragment - DAY_DURATION_FRAGMENTS;
   return static_cast<float>(nightFragment) / static_cast<float>(NIGHT_DURATION_FRAGMENTS);
 }
@@ -128,7 +114,7 @@ int64_t TimeSystem::NormalizeFragment(int64_t fragment) const
 {
   if (fragment < 0)
     fragment = 0;
-  
+
   return fragment % FULL_CYCLE_FRAGMENTS;
 }
 

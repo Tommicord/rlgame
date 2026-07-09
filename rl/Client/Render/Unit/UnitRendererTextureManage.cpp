@@ -14,7 +14,7 @@ void UnitUpdateUnitTextures(VkDevice device,
     Main::MainBinding&               context)
 {
   VkDescriptorImageInfo imageInfos[6]{};
-  auto                  genSampler = [&imageInfos, &context](Providers::Texture2* texture, const int index)
+  auto genSampler = [&imageInfos, &context](Providers::Texture2* texture, const int index)
   {
     if (texture)
     {

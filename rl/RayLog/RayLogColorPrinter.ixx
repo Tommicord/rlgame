@@ -8,8 +8,7 @@ namespace Rl::RayLog
 {
 
 /* Represents a color for a log message */
-export enum class RayLogColor : unsigned char
-{
+export enum class RayLogColor : unsigned char {
   Red,
   Blue,
   Cyan,

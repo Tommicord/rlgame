@@ -80,9 +80,7 @@ export class RayLogThreadPool
 
   [[nodiscard]]
   size_t WorkerCount() const
-  {
-    return workers.size();
-  }
+  { return workers.size(); }
 };
 
 } // namespace Rl::RayLog

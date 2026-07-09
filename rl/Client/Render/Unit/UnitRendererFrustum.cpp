@@ -9,12 +9,13 @@ import <glm/gtc/matrix_transform.hpp>;
 namespace Rl::Client::Render
 {
 
-void UnitCameraToFrustumPlanes(UnitRenderFrustumPlanes& frustum, const Player::IPlayerCamera& cam)
+void UnitCameraToFrustumPlanes(
+    UnitRenderFrustumPlanes& frustum, const Player::IPlayerCamera& cam)
 {
   // Extract frustum planes from view-projection matrix (world space)
   // Negate to get inward-pointing normals (points inside have positive distance)
   glm::mat4 vp = cam.GetProjectionMatrix() * cam.GetViewMatrix();
-  glm::mat4 m  = glm::transpose(vp);
+  glm::mat4 m = glm::transpose(vp);
 
   frustum.planes[0] = -(m[3] + m[0]); // Left
   frustum.planes[1] = -(m[3] - m[0]); // Right

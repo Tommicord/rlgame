@@ -11,6 +11,7 @@ namespace Rl::Client::Render
 export const std::vector<UnitRenderVertex>& UnitGetTestVertices();
 
 /* Generate cube indices dynamically for indexed drawing */
-export std::vector<uint32_t> UnitGenerateIndices(uint32_t verticesPerFace, uint32_t faceCount);
+export std::vector<uint32_t> UnitGenerateIndices(
+    uint32_t verticesPerFace, uint32_t faceCount);
 
 } // namespace Rl::Client::Render

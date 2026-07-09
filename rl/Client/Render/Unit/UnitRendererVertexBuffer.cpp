@@ -21,8 +21,8 @@ void UnitCreateVertexBuffer(VkDevice     device,
   VkBuffer       stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
   UnitCreateBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-      stagingBufferMemory);
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer, stagingBufferMemory);
 
   // Copy data to staging buffer
   UnitCopyDataToBuffer(device, stagingBufferMemory, 0, bufferSize, vertices.data());
@@ -35,8 +35,8 @@ void UnitCreateVertexBuffer(VkDevice     device,
 
   // Create temporary command pool for buffer copy
   VkCommandPoolCreateInfo commandPoolInfo{};
-  commandPoolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  commandPoolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+  commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
   commandPoolInfo.queueFamilyIndex = 0; // Assuming graphics queue family is 0
 
   VkCommandPool commandPool;
@@ -47,9 +47,9 @@ void UnitCreateVertexBuffer(VkDevice     device,
 
   // Allocate command buffer
   VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool        = commandPool;
-  allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
@@ -70,7 +70,7 @@ void UnitCreateVertexBuffer(VkDevice     device,
   VkBufferCopy copyRegion{};
   copyRegion.srcOffset = 0;
   copyRegion.dstOffset = 0;
-  copyRegion.size      = bufferSize;
+  copyRegion.size = bufferSize;
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, vertexBuffer, 1, &copyRegion);
 
   vkEndCommandBuffer(commandBuffer);
@@ -80,9 +80,9 @@ void UnitCreateVertexBuffer(VkDevice     device,
   vkGetDeviceQueue(device, 0, 0, &queue);
 
   VkSubmitInfo submitInfo{};
-  submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers    = &commandBuffer;
+  submitInfo.pCommandBuffers = &commandBuffer;
 
   vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
   vkQueueWaitIdle(queue);

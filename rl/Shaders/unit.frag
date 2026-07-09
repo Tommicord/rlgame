@@ -699,7 +699,7 @@ void main() {
     // Gamma correction with slight desaturation for more realistic look
     mappedColor = pow(mappedColor, vec3(1.0 / 2.2));
 
-    // Subtle color grading - slightly warm shadows, cool highlights
+    // Slightly warm shadows, cool highlights
     float luminance = dot(mappedColor, vec3(0.299, 0.587, 0.114));
     mappedColor = mix(mappedColor, mappedColor * vec3(1.05, 0.98, 0.95), 1.0 - luminance * 0.5);
 

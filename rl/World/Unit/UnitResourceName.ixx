@@ -11,7 +11,7 @@ export class UnitResourceName
 {
   protected:
   /* Identifies the unit resource name, for example: rl.world.UnitGrass */
-  char*  name = nullptr;
+  char* name = nullptr;
 
   /* Stores the length of the unit resource name */
   size_t nameLen = 0;
@@ -39,7 +39,8 @@ export class UnitResourceName
   ~UnitResourceName();
 
   /* Constructs the resource name from base identifier */
-  void ConstructResourceName(const std::vector<std::string_view>& base, size_t maxSize) noexcept;
+  void ConstructResourceName(
+      const std::vector<std::string_view>& base, size_t maxSize) noexcept;
 
   /* Splits the resource name into smaller tokens */
   [[nodiscard]]
@@ -60,9 +61,7 @@ export class UnitResourceName
   /* Equality operator for comparison */
   [[nodiscard]]
   bool operator==(const UnitResourceName& other) const
-  {
-    return Equals(other);
-  }
+  { return Equals(other); }
 };
 
 } // namespace Rl::World

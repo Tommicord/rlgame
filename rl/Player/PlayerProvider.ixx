@@ -11,17 +11,17 @@ namespace Rl::Player
 /* Provides a unique current player instance for the Game instance */
 export class PlayerProvider
 {
-public:
+  public:
   /* Gets the singleton player instance */
   [[nodiscard]]
   static IPlayer& GetInstance();
 
-  PlayerProvider(const PlayerProvider&)            = delete;
+  PlayerProvider(const PlayerProvider&) = delete;
   PlayerProvider& operator=(const PlayerProvider&) = delete;
-  PlayerProvider(PlayerProvider&&)                 = delete;
-  PlayerProvider& operator=(PlayerProvider&&)      = delete;
+  PlayerProvider(PlayerProvider&&) = delete;
+  PlayerProvider& operator=(PlayerProvider&&) = delete;
 
-private:
+  private:
   PlayerProvider() = default;
   ~PlayerProvider() = default;
 

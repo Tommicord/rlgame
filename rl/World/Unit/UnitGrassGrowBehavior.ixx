@@ -26,18 +26,18 @@ export struct GrassGrowConfig
   uint32_t maxGrowthHeight;
 
   /* Probability of growth per tick (0.0-1.0) */
-  float    growthProbability = 0.15f;
+  float growthProbability = 0.15f;
 
   /* Probability of spreading to adjacent blocks */
-  float    spreadProbability = 0.2f;
+  float spreadProbability = 0.2f;
 
   /* Whether grass requires light to grow */
-  bool     requireLight = true;
+  bool requireLight = true;
 
   /*
    * Minimum fragments between growth attempts (default 6 seconds = 600 fragments)
    */
-  int64_t  growthIntervalFragments = 600;
+  int64_t growthIntervalFragments = 600;
 
   /* Only grow during day time */
   bool growOnlyDuringDay = true;

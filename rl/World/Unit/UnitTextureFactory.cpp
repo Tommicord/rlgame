@@ -24,7 +24,7 @@ void UnitTextureFactory::FromUnit(unsigned short id)
   if (object.has_value())
   {
     const auto value_object = object.value();
-    auto& material = value_object->GetMaterial().GetTextures2();
+    auto&      material = value_object->GetMaterial().GetTextures2();
     const auto wrapped_name = IUnit::Registry::GetNameForObject(object.value());
 
     if (wrapped_name.has_value())
@@ -109,7 +109,7 @@ UnitTextureFactory::GetDefaultUnitTexture()
       side = true;
     }
     std::array<uint8_t, sidePixels> left{};
-    constexpr uint8_t black[4] = {0x00, 0x00, 0x00, 0xFF};
+    constexpr uint8_t               black[4] = {0x00, 0x00, 0x00, 0xFF};
     for (int j = 0; j < 8; ++j)
     {
       int offset = j * 4;

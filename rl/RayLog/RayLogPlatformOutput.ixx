@@ -20,24 +20,24 @@ namespace Rl::RayLog
 #if defined(_WIN32)
 namespace
 {
-  struct ConsoleInitializer
+struct ConsoleInitializer
+{
+  ConsoleInitializer()
   {
-    ConsoleInitializer()
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole != INVALID_HANDLE_VALUE)
     {
-      HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-      if (hConsole != INVALID_HANDLE_VALUE)
+      DWORD mode = 0;
+      if (GetConsoleMode(hConsole, &mode))
       {
-        DWORD mode = 0;
-        if (GetConsoleMode(hConsole, &mode))
-        {
-          mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-          SetConsoleMode(hConsole, mode);
-        }
+        mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(hConsole, mode);
       }
     }
-  };
-  static ConsoleInitializer consoleInit;
-}
+  }
+};
+static ConsoleInitializer consoleInit;
+} // namespace
 #endif
 
 export class RayLogPlatformOutput
@@ -74,4 +74,4 @@ export class RayLogPlatformOutput
   }
 };
 
-}
+} // namespace Rl::RayLog

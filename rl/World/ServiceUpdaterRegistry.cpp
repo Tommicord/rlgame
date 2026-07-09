@@ -10,7 +10,8 @@ import <memory>;
 namespace Rl::World
 {
 
-void ServiceUpdaterRegistry::RegisterUpdater(const std::string& name, std::shared_ptr<ServiceUpdater> updater)
+void ServiceUpdaterRegistry::RegisterUpdater(
+    const std::string& name, std::shared_ptr<ServiceUpdater> updater)
 {
   if (updater)
   {
@@ -19,7 +20,8 @@ void ServiceUpdaterRegistry::RegisterUpdater(const std::string& name, std::share
   }
   else
   {
-    RayLog::LogWarning("ServiceUpdaterRegistry", "Attempted to register null updater for: %s", name.c_str());
+    RayLog::LogWarning("ServiceUpdaterRegistry",
+        "Attempted to register null updater for: %s", name.c_str());
   }
 }
 
@@ -31,11 +33,13 @@ void ServiceUpdaterRegistry::UnregisterUpdater(const std::string& name)
   }
   else
   {
-    RayLog::LogWarning("ServiceUpdaterRegistry", "Attempted to unregister non-existent updater: %s", name.c_str());
+    RayLog::LogWarning("ServiceUpdaterRegistry",
+        "Attempted to unregister non-existent updater: %s", name.c_str());
   }
 }
 
-std::shared_ptr<ServiceUpdater> ServiceUpdaterRegistry::GetUpdater(const std::string& name) const
+std::shared_ptr<ServiceUpdater> ServiceUpdaterRegistry::GetUpdater(
+    const std::string& name) const
 {
   auto it = updaters.find(name);
   if (it != updaters.end())
@@ -43,15 +47,13 @@ std::shared_ptr<ServiceUpdater> ServiceUpdaterRegistry::GetUpdater(const std::st
     RayLog::LogDebug("ServiceUpdaterRegistry", "Retrieved updater: %s", name.c_str());
     return it->second;
   }
-  
+
   RayLog::LogWarning("ServiceUpdaterRegistry", "Updater not found: %s", name.c_str());
   return nullptr;
 }
 
 bool ServiceUpdaterRegistry::HasUpdater(const std::string& name) const
-{
-  return updaters.find(name) != updaters.end();
-}
+{ return updaters.find(name) != updaters.end(); }
 
 void ServiceUpdaterRegistry::UpdateAll()
 {
@@ -63,15 +65,14 @@ void ServiceUpdaterRegistry::UpdateAll()
     }
     else
     {
-      RayLog::LogWarning("ServiceUpdaterRegistry", "Null updater detected for: %s", name.c_str());
+      RayLog::LogWarning(
+          "ServiceUpdaterRegistry", "Null updater detected for: %s", name.c_str());
     }
   }
 }
 
 size_t ServiceUpdaterRegistry::GetUpdaterCount() const
-{
-  return updaters.size();
-}
+{ return updaters.size(); }
 
 void ServiceUpdaterRegistry::ClearAll()
 {
@@ -84,12 +85,12 @@ std::vector<std::string> ServiceUpdaterRegistry::GetUpdaterNames() const
 {
   std::vector<std::string> names;
   names.reserve(updaters.size());
-  
+
   for (const auto& name : updaters | std::views::keys)
   {
     names.push_back(name);
   }
-  
+
   return names;
 }
 

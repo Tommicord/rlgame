@@ -110,9 +110,7 @@ OpenSimplexNoiseGen::OpenSimplexNoiseGen() :
 }
 
 OpenSimplexNoiseGen::OpenSimplexNoiseGen(int64_t seed) : OpenSimplexNoiseGen()
-{
-  ResetSeed(seed);
-}
+{ ResetSeed(seed); }
 
 void OpenSimplexNoiseGen::ResetSeed(int64_t seed)
 {
@@ -126,15 +124,15 @@ void OpenSimplexNoiseGen::ResetSeed(int64_t seed)
   seed = seed * 6364136223846793005l + 1442695040888963407l;
   for (int i = 255; i >= 0; --i)
   {
-    seed  = seed * 6364136223846793005l + 1442695040888963407l;
+    seed = seed * 6364136223846793005l + 1442695040888963407l;
     int r = static_cast<int>((seed + 31) % (i + 1));
     if (r < 0)
     {
       r += (i + 1);
     }
-    perm[i]            = source[r];
+    perm[i] = source[r];
     permGradIndex3d[i] = static_cast<short>((perm[i] % (gradients3d.size() / 3)) * 3);
-    source[r]            = source[i];
+    source[r] = source[i];
   }
 }
 
@@ -142,8 +140,8 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
 {
   // Place input coordinates onto grid.
   double stretchOffset = (x + y) * stretch2d;
-  double xs            = x + stretchOffset;
-  double ys            = y + stretchOffset;
+  double xs = x + stretchOffset;
+  double ys = y + stretchOffset;
 
   // Floor to get grid coordinates of rhombus (stretched square) super-cell origin.
   int xsb = static_cast<int>(floor(xs));
@@ -151,8 +149,8 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
 
   // Skew out to get actual coordinates of rhombus origin. We'll need these later.
   double squishOffset = (xsb + ysb) * squish2d;
-  double xb           = xsb + squishOffset;
-  double yb           = ysb + squishOffset;
+  double xb = xsb + squishOffset;
+  double yb = ysb + squishOffset;
 
   // Compute grid coordinates relative to rhombus origin.
   double xins = xs - xsb;
@@ -172,8 +170,8 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
   double value = 0;
 
   // Contribution (1,0)
-  double dx1   = dx0 - 1 - squish2d;
-  double dy1   = dy0 - 0 - squish2d;
+  double dx1 = dx0 - 1 - squish2d;
+  double dy1 = dy0 - 0 - squish2d;
   double attn1 = 2 - dx1 * dx1 - dy1 * dy1;
   if (attn1 > 0)
   {
@@ -182,8 +180,8 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
   }
 
   // Contribution (0,1)
-  double dx2   = dx0 - 0 - squish2d;
-  double dy2   = dy0 - 1 - squish2d;
+  double dx2 = dx0 - 0 - squish2d;
+  double dy2 = dy0 - 1 - squish2d;
   double attn2 = 2 - dx2 * dx2 - dy2 * dy2;
   if (attn2 > 0)
   {
@@ -200,23 +198,23 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
       {
         xsv_ext = xsb + 1;
         ysv_ext = ysb - 1;
-        dx_ext  = dx0 - 1;
-        dy_ext  = dy0 + 1;
+        dx_ext = dx0 - 1;
+        dy_ext = dy0 + 1;
       }
       else
       {
         xsv_ext = xsb - 1;
         ysv_ext = ysb + 1;
-        dx_ext  = dx0 + 1;
-        dy_ext  = dy0 - 1;
+        dx_ext = dx0 + 1;
+        dy_ext = dy0 - 1;
       }
     }
     else
     { //(1,0) and (0,1) are the closest two vertices.
       xsv_ext = xsb + 1;
       ysv_ext = ysb + 1;
-      dx_ext  = dx0 - 1 - 2 * squish2d;
-      dy_ext  = dy0 - 1 - 2 * squish2d;
+      dx_ext = dx0 - 1 - 2 * squish2d;
+      dy_ext = dy0 - 1 - 2 * squish2d;
     }
   }
   else
@@ -228,21 +226,21 @@ float OpenSimplexNoiseGen::eval(const float x, const float y) const
       {
         xsv_ext = xsb + 2;
         ysv_ext = ysb + 0;
-        dx_ext  = dx0 - 2 - 2 * squish2d;
-        dy_ext  = dy0 + 0 - 2 * squish2d;
+        dx_ext = dx0 - 2 - 2 * squish2d;
+        dy_ext = dy0 + 0 - 2 * squish2d;
       }
       else
       {
         xsv_ext = xsb + 0;
         ysv_ext = ysb + 2;
-        dx_ext  = dx0 + 0 - 2 * squish2d;
-        dy_ext  = dy0 - 2 - 2 * squish2d;
+        dx_ext = dx0 + 0 - 2 * squish2d;
+        dy_ext = dy0 - 2 - 2 * squish2d;
       }
     }
     else
     { //(1,0) and (0,1) are the closest two vertices.
-      dx_ext  = dx0;
-      dy_ext  = dy0;
+      dx_ext = dx0;
+      dy_ext = dy0;
       xsv_ext = xsb;
       ysv_ext = ysb;
     }
@@ -275,21 +273,21 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
 {
   // Place input coordinates on simplectic honeycomb.
   double stretchOffset = (x + y + z) * stretch3d;
-  double xs            = x + stretchOffset;
-  double ys            = y + stretchOffset;
-  double zs            = z + stretchOffset;
+  double xs = x + stretchOffset;
+  double ys = y + stretchOffset;
+  double zs = z + stretchOffset;
 
-  // static_cast<int>(floor to get simplectic honeycomb coordinates of rhombohedron (stretched
-  // cube) super-cell origin.
+  // static_cast<int>(floor to get simplectic honeycomb coordinates of rhombohedron
+  // (stretched cube) super-cell origin.
   int xsb = static_cast<int>(floor(xs));
   int ysb = static_cast<int>(floor(ys));
   int zsb = static_cast<int>(floor(zs));
 
   // Skew out to get actual coordinates of rhombohedron origin. We'll need these later.
   double squishOffset = (xsb + ysb + zsb) * squish3d;
-  double xb           = xsb + squishOffset;
-  double yb           = ysb + squishOffset;
-  double zb           = zsb + squishOffset;
+  double xb = xsb + squishOffset;
+  double yb = ysb + squishOffset;
+  double zb = zsb + squishOffset;
 
   // Compute simplectic honeycomb coordinates relative to rhombohedral origin.
   double xins = xs - xsb;
@@ -330,21 +328,21 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       aPoint = 0x04;
     }
 
-    // Now we determine the two lattice points not part of the tetrahedron that may contribute.
-    // This depends on the closest two tetrahedral vertices, including (0,0,0)
+    // Now we determine the two lattice points not part of the tetrahedron that may
+    // contribute. This depends on the closest two tetrahedral vertices, including (0,0,0)
     double wins = 1 - inSum;
     if (wins > aScore || wins > bScore)
     { //(0,0,0) is one of the closest two tetrahedral vertices.
-      char c =
-          (bScore > aScore ? bPoint
-                           : aPoint); // Our other closest vertex is the closest out of a and b.
+      char c = (bScore > aScore
+                    ? bPoint
+                    : aPoint); // Our other closest vertex is the closest out of a and b.
 
       if ((c & 0x01) == 0)
       {
         xsv_ext0 = xsb - 1;
         xsv_ext1 = xsb;
-        dx_ext0  = dx0 + 1;
-        dx_ext1  = dx0;
+        dx_ext0 = dx0 + 1;
+        dx_ext1 = dx0;
       }
       else
       {
@@ -377,8 +375,8 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       {
         zsv_ext0 = zsb;
         zsv_ext1 = zsb - 1;
-        dz_ext0  = dz0;
-        dz_ext1  = dz0 + 1;
+        dz_ext0 = dz0;
+        dz_ext1 = dz0 + 1;
       }
       else
       {
@@ -395,42 +393,42 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       {
         xsv_ext0 = xsb;
         xsv_ext1 = xsb - 1;
-        dx_ext0  = dx0 - 2 * squish3d;
-        dx_ext1  = dx0 + 1 - squish3d;
+        dx_ext0 = dx0 - 2 * squish3d;
+        dx_ext1 = dx0 + 1 - squish3d;
       }
       else
       {
         xsv_ext0 = xsv_ext1 = xsb + 1;
-        dx_ext0             = dx0 - 1 - 2 * squish3d;
-        dx_ext1             = dx0 - 1 - squish3d;
+        dx_ext0 = dx0 - 1 - 2 * squish3d;
+        dx_ext1 = dx0 - 1 - squish3d;
       }
 
       if ((c & 0x02) == 0)
       {
         ysv_ext0 = ysb;
         ysv_ext1 = ysb - 1;
-        dy_ext0  = dy0 - 2 * squish3d;
-        dy_ext1  = dy0 + 1 - squish3d;
+        dy_ext0 = dy0 - 2 * squish3d;
+        dy_ext1 = dy0 + 1 - squish3d;
       }
       else
       {
         ysv_ext0 = ysv_ext1 = ysb + 1;
-        dy_ext0             = dy0 - 1 - 2 * squish3d;
-        dy_ext1             = dy0 - 1 - squish3d;
+        dy_ext0 = dy0 - 1 - 2 * squish3d;
+        dy_ext1 = dy0 - 1 - squish3d;
       }
 
       if ((c & 0x04) == 0)
       {
         zsv_ext0 = zsb;
         zsv_ext1 = zsb - 1;
-        dz_ext0  = dz0 - 2 * squish3d;
-        dz_ext1  = dz0 + 1 - squish3d;
+        dz_ext0 = dz0 - 2 * squish3d;
+        dz_ext1 = dz0 + 1 - squish3d;
       }
       else
       {
         zsv_ext0 = zsv_ext1 = zsb + 1;
-        dz_ext0             = dz0 - 1 - 2 * squish3d;
-        dz_ext1             = dz0 - 1 - squish3d;
+        dz_ext0 = dz0 - 1 - 2 * squish3d;
+        dz_ext1 = dz0 - 1 - squish3d;
       }
     }
 
@@ -443,9 +441,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,0,0)
-    double dx1   = dx0 - 1 - squish3d;
-    double dy1   = dy0 - 0 - squish3d;
-    double dz1   = dz0 - 0 - squish3d;
+    double dx1 = dx0 - 1 - squish3d;
+    double dy1 = dy0 - 0 - squish3d;
+    double dz1 = dz0 - 0 - squish3d;
     double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1;
     if (attn1 > 0)
     {
@@ -454,9 +452,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,1,0)
-    double dx2   = dx0 - 0 - squish3d;
-    double dy2   = dy0 - 1 - squish3d;
-    double dz2   = dz1;
+    double dx2 = dx0 - 0 - squish3d;
+    double dy2 = dy0 - 1 - squish3d;
+    double dz2 = dz1;
     double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2;
     if (attn2 > 0)
     {
@@ -465,9 +463,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,0,1)
-    double dx3   = dx2;
-    double dy3   = dy1;
-    double dz3   = dz0 - 1 - squish3d;
+    double dx3 = dx2;
+    double dy3 = dy1;
+    double dz3 = dz0 - 1 - squish3d;
     double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3;
     if (attn3 > 0)
     {
@@ -495,21 +493,21 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       aPoint = 0x03;
     }
 
-    // Now we determine the two lattice points not part of the tetrahedron that may contribute.
-    // This depends on the closest two tetrahedral vertices, including (1,1,1)
+    // Now we determine the two lattice points not part of the tetrahedron that may
+    // contribute. This depends on the closest two tetrahedral vertices, including (1,1,1)
     double wins = 3 - inSum;
     if (wins < aScore || wins < bScore)
     { //(1,1,1) is one of the closest two tetrahedral vertices.
-      char c =
-          (bScore < aScore ? bPoint
-                           : aPoint); // Our other closest vertex is the closest out of a and b.
+      char c = (bScore < aScore
+                    ? bPoint
+                    : aPoint); // Our other closest vertex is the closest out of a and b.
 
       if ((c & 0x01) != 0)
       {
         xsv_ext0 = xsb + 2;
         xsv_ext1 = xsb + 1;
-        dx_ext0  = dx0 - 2 - 3 * squish3d;
-        dx_ext1  = dx0 - 1 - 3 * squish3d;
+        dx_ext0 = dx0 - 2 - 3 * squish3d;
+        dx_ext1 = dx0 - 1 - 3 * squish3d;
       }
       else
       {
@@ -542,8 +540,8 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       {
         zsv_ext0 = zsb + 1;
         zsv_ext1 = zsb + 2;
-        dz_ext0  = dz0 - 1 - 3 * squish3d;
-        dz_ext1  = dz0 - 2 - 3 * squish3d;
+        dz_ext0 = dz0 - 1 - 3 * squish3d;
+        dz_ext1 = dz0 - 2 - 3 * squish3d;
       }
       else
       {
@@ -560,49 +558,49 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       {
         xsv_ext0 = xsb + 1;
         xsv_ext1 = xsb + 2;
-        dx_ext0  = dx0 - 1 - squish3d;
-        dx_ext1  = dx0 - 2 - 2 * squish3d;
+        dx_ext0 = dx0 - 1 - squish3d;
+        dx_ext1 = dx0 - 2 - 2 * squish3d;
       }
       else
       {
         xsv_ext0 = xsv_ext1 = xsb;
-        dx_ext0             = dx0 - squish3d;
-        dx_ext1             = dx0 - 2 * squish3d;
+        dx_ext0 = dx0 - squish3d;
+        dx_ext1 = dx0 - 2 * squish3d;
       }
 
       if ((c & 0x02) != 0)
       {
         ysv_ext0 = ysb + 1;
         ysv_ext1 = ysb + 2;
-        dy_ext0  = dy0 - 1 - squish3d;
-        dy_ext1  = dy0 - 2 - 2 * squish3d;
+        dy_ext0 = dy0 - 1 - squish3d;
+        dy_ext1 = dy0 - 2 - 2 * squish3d;
       }
       else
       {
         ysv_ext0 = ysv_ext1 = ysb;
-        dy_ext0             = dy0 - squish3d;
-        dy_ext1             = dy0 - 2 * squish3d;
+        dy_ext0 = dy0 - squish3d;
+        dy_ext1 = dy0 - 2 * squish3d;
       }
 
       if ((c & 0x04) != 0)
       {
         zsv_ext0 = zsb + 1;
         zsv_ext1 = zsb + 2;
-        dz_ext0  = dz0 - 1 - squish3d;
-        dz_ext1  = dz0 - 2 - 2 * squish3d;
+        dz_ext0 = dz0 - 1 - squish3d;
+        dz_ext1 = dz0 - 2 - 2 * squish3d;
       }
       else
       {
         zsv_ext0 = zsv_ext1 = zsb;
-        dz_ext0             = dz0 - squish3d;
-        dz_ext1             = dz0 - 2 * squish3d;
+        dz_ext0 = dz0 - squish3d;
+        dz_ext1 = dz0 - 2 * squish3d;
       }
     }
 
     // Contribution (1,1,0)
-    double dx3   = dx0 - 1 - 2 * squish3d;
-    double dy3   = dy0 - 1 - 2 * squish3d;
-    double dz3   = dz0 - 0 - 2 * squish3d;
+    double dx3 = dx0 - 1 - 2 * squish3d;
+    double dy3 = dy0 - 1 - 2 * squish3d;
+    double dz3 = dz0 - 0 - 2 * squish3d;
     double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3;
     if (attn3 > 0)
     {
@@ -611,9 +609,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,0,1)
-    double dx2   = dx3;
-    double dy2   = dy0 - 0 - 2 * squish3d;
-    double dz2   = dz0 - 1 - 2 * squish3d;
+    double dx2 = dx3;
+    double dy2 = dy0 - 0 - 2 * squish3d;
+    double dz2 = dz0 - 1 - 2 * squish3d;
     double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2;
     if (attn2 > 0)
     {
@@ -622,9 +620,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,1,1)
-    double dx1   = dx0 - 0 - 2 * squish3d;
-    double dy1   = dy3;
-    double dz1   = dz2;
+    double dx1 = dx0 - 0 - 2 * squish3d;
+    double dy1 = dy3;
+    double dz1 = dz2;
     double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1;
     if (attn1 > 0)
     {
@@ -633,9 +631,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,1,1)
-    dx0          = dx0 - 1 - 3 * squish3d;
-    dy0          = dy0 - 1 - 3 * squish3d;
-    dz0          = dz0 - 1 - 3 * squish3d;
+    dx0 = dx0 - 1 - 3 * squish3d;
+    dy0 = dy0 - 1 - 3 * squish3d;
+    dz0 = dz0 - 1 - 3 * squish3d;
     double attn0 = 2 - dx0 * dx0 - dy0 * dy0 - dz0 * dz0;
     if (attn0 > 0)
     {
@@ -656,14 +654,14 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     double p1 = xins + yins;
     if (p1 > 1)
     {
-      aScore         = p1 - 1;
-      aPoint         = 0x03;
+      aScore = p1 - 1;
+      aPoint = 0x03;
       aIsFurtherSide = true;
     }
     else
     {
-      aScore         = 1 - p1;
-      aPoint         = 0x04;
+      aScore = 1 - p1;
+      aPoint = 0x04;
       aIsFurtherSide = false;
     }
 
@@ -671,33 +669,33 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     double p2 = xins + zins;
     if (p2 > 1)
     {
-      bScore         = p2 - 1;
-      bPoint         = 0x05;
+      bScore = p2 - 1;
+      bPoint = 0x05;
       bIsFurtherSide = true;
     }
     else
     {
-      bScore         = 1 - p2;
-      bPoint         = 0x02;
+      bScore = 1 - p2;
+      bPoint = 0x02;
       bIsFurtherSide = false;
     }
 
-    // The closest out of the two (1,0,0) and (0,1,1) will replace the furthest out of the two
-    // decided above, if closer.
+    // The closest out of the two (1,0,0) and (0,1,1) will replace the furthest out of the
+    // two decided above, if closer.
     double p3 = yins + zins;
     if (p3 > 1)
     {
       double score = p3 - 1;
       if (aScore <= bScore && aScore < score)
       {
-        aScore         = score;
-        aPoint         = 0x06;
+        aScore = score;
+        aPoint = 0x06;
         aIsFurtherSide = true;
       }
       else if (aScore > bScore && bScore < score)
       {
-        bScore         = score;
-        bPoint         = 0x06;
+        bScore = score;
+        bPoint = 0x06;
         bIsFurtherSide = true;
       }
     }
@@ -706,14 +704,14 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       double score = 1 - p3;
       if (aScore <= bScore && aScore < score)
       {
-        aScore         = score;
-        aPoint         = 0x01;
+        aScore = score;
+        aPoint = 0x01;
         aIsFurtherSide = false;
       }
       else if (aScore > bScore && bScore < score)
       {
-        bScore         = score;
-        bPoint         = 0x01;
+        bScore = score;
+        bPoint = 0x01;
         bIsFurtherSide = false;
       }
     }
@@ -726,9 +724,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       { // Both closest points on (1,1,1) side
 
         // One of the two extra points is (1,1,1)
-        dx_ext0  = dx0 - 1 - 3 * squish3d;
-        dy_ext0  = dy0 - 1 - 3 * squish3d;
-        dz_ext0  = dz0 - 1 - 3 * squish3d;
+        dx_ext0 = dx0 - 1 - 3 * squish3d;
+        dy_ext0 = dy0 - 1 - 3 * squish3d;
+        dz_ext0 = dz0 - 1 - 3 * squish3d;
         xsv_ext0 = xsb + 1;
         ysv_ext0 = ysb + 1;
         zsv_ext0 = zsb + 1;
@@ -737,27 +735,27 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
         char c = static_cast<char>(aPoint & bPoint);
         if ((c & 0x01) != 0)
         {
-          dx_ext1  = dx0 - 2 - 2 * squish3d;
-          dy_ext1  = dy0 - 2 * squish3d;
-          dz_ext1  = dz0 - 2 * squish3d;
+          dx_ext1 = dx0 - 2 - 2 * squish3d;
+          dy_ext1 = dy0 - 2 * squish3d;
+          dz_ext1 = dz0 - 2 * squish3d;
           xsv_ext1 = xsb + 2;
           ysv_ext1 = ysb;
           zsv_ext1 = zsb;
         }
         else if ((c & 0x02) != 0)
         {
-          dx_ext1  = dx0 - 2 * squish3d;
-          dy_ext1  = dy0 - 2 - 2 * squish3d;
-          dz_ext1  = dz0 - 2 * squish3d;
+          dx_ext1 = dx0 - 2 * squish3d;
+          dy_ext1 = dy0 - 2 - 2 * squish3d;
+          dz_ext1 = dz0 - 2 * squish3d;
           xsv_ext1 = xsb;
           ysv_ext1 = ysb + 2;
           zsv_ext1 = zsb;
         }
         else
         {
-          dx_ext1  = dx0 - 2 * squish3d;
-          dy_ext1  = dy0 - 2 * squish3d;
-          dz_ext1  = dz0 - 2 - 2 * squish3d;
+          dx_ext1 = dx0 - 2 * squish3d;
+          dy_ext1 = dy0 - 2 * squish3d;
+          dz_ext1 = dz0 - 2 - 2 * squish3d;
           xsv_ext1 = xsb;
           ysv_ext1 = ysb;
           zsv_ext1 = zsb + 2;
@@ -767,9 +765,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       { // Both closest points on (0,0,0) side
 
         // One of the two extra points is (0,0,0)
-        dx_ext0  = dx0;
-        dy_ext0  = dy0;
-        dz_ext0  = dz0;
+        dx_ext0 = dx0;
+        dy_ext0 = dy0;
+        dz_ext0 = dz0;
         xsv_ext0 = xsb;
         ysv_ext0 = ysb;
         zsv_ext0 = zsb;
@@ -778,27 +776,27 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
         char c = static_cast<char>(aPoint | bPoint);
         if ((c & 0x01) == 0)
         {
-          dx_ext1  = dx0 + 1 - squish3d;
-          dy_ext1  = dy0 - 1 - squish3d;
-          dz_ext1  = dz0 - 1 - squish3d;
+          dx_ext1 = dx0 + 1 - squish3d;
+          dy_ext1 = dy0 - 1 - squish3d;
+          dz_ext1 = dz0 - 1 - squish3d;
           xsv_ext1 = xsb - 1;
           ysv_ext1 = ysb + 1;
           zsv_ext1 = zsb + 1;
         }
         else if ((c & 0x02) == 0)
         {
-          dx_ext1  = dx0 - 1 - squish3d;
-          dy_ext1  = dy0 + 1 - squish3d;
-          dz_ext1  = dz0 - 1 - squish3d;
+          dx_ext1 = dx0 - 1 - squish3d;
+          dy_ext1 = dy0 + 1 - squish3d;
+          dz_ext1 = dz0 - 1 - squish3d;
           xsv_ext1 = xsb + 1;
           ysv_ext1 = ysb - 1;
           zsv_ext1 = zsb + 1;
         }
         else
         {
-          dx_ext1  = dx0 - 1 - squish3d;
-          dy_ext1  = dy0 - 1 - squish3d;
-          dz_ext1  = dz0 + 1 - squish3d;
+          dx_ext1 = dx0 - 1 - squish3d;
+          dy_ext1 = dy0 - 1 - squish3d;
+          dz_ext1 = dz0 + 1 - squish3d;
           xsv_ext1 = xsb + 1;
           ysv_ext1 = ysb + 1;
           zsv_ext1 = zsb - 1;
@@ -822,36 +820,36 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
       // One contribution is a permutation of (1,1,-1)
       if ((c1 & 0x01) == 0)
       {
-        dx_ext0  = dx0 + 1 - squish3d;
-        dy_ext0  = dy0 - 1 - squish3d;
-        dz_ext0  = dz0 - 1 - squish3d;
+        dx_ext0 = dx0 + 1 - squish3d;
+        dy_ext0 = dy0 - 1 - squish3d;
+        dz_ext0 = dz0 - 1 - squish3d;
         xsv_ext0 = xsb - 1;
         ysv_ext0 = ysb + 1;
         zsv_ext0 = zsb + 1;
       }
       else if ((c1 & 0x02) == 0)
       {
-        dx_ext0  = dx0 - 1 - squish3d;
-        dy_ext0  = dy0 + 1 - squish3d;
-        dz_ext0  = dz0 - 1 - squish3d;
+        dx_ext0 = dx0 - 1 - squish3d;
+        dy_ext0 = dy0 + 1 - squish3d;
+        dz_ext0 = dz0 - 1 - squish3d;
         xsv_ext0 = xsb + 1;
         ysv_ext0 = ysb - 1;
         zsv_ext0 = zsb + 1;
       }
       else
       {
-        dx_ext0  = dx0 - 1 - squish3d;
-        dy_ext0  = dy0 - 1 - squish3d;
-        dz_ext0  = dz0 + 1 - squish3d;
+        dx_ext0 = dx0 - 1 - squish3d;
+        dy_ext0 = dy0 - 1 - squish3d;
+        dz_ext0 = dz0 + 1 - squish3d;
         xsv_ext0 = xsb + 1;
         ysv_ext0 = ysb + 1;
         zsv_ext0 = zsb - 1;
       }
 
       // One contribution is a permutation of (0,0,2)
-      dx_ext1  = dx0 - 2 * squish3d;
-      dy_ext1  = dy0 - 2 * squish3d;
-      dz_ext1  = dz0 - 2 * squish3d;
+      dx_ext1 = dx0 - 2 * squish3d;
+      dy_ext1 = dy0 - 2 * squish3d;
+      dz_ext1 = dz0 - 2 * squish3d;
       xsv_ext1 = xsb;
       ysv_ext1 = ysb;
       zsv_ext1 = zsb;
@@ -873,9 +871,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,0,0)
-    double dx1   = dx0 - 1 - squish3d;
-    double dy1   = dy0 - 0 - squish3d;
-    double dz1   = dz0 - 0 - squish3d;
+    double dx1 = dx0 - 1 - squish3d;
+    double dy1 = dy0 - 0 - squish3d;
+    double dz1 = dz0 - 0 - squish3d;
     double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1;
     if (attn1 > 0)
     {
@@ -884,9 +882,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,1,0)
-    double dx2   = dx0 - 0 - squish3d;
-    double dy2   = dy0 - 1 - squish3d;
-    double dz2   = dz1;
+    double dx2 = dx0 - 0 - squish3d;
+    double dy2 = dy0 - 1 - squish3d;
+    double dz2 = dz1;
     double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2;
     if (attn2 > 0)
     {
@@ -895,9 +893,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,0,1)
-    double dx3   = dx2;
-    double dy3   = dy1;
-    double dz3   = dz0 - 1 - squish3d;
+    double dx3 = dx2;
+    double dy3 = dy1;
+    double dz3 = dz0 - 1 - squish3d;
     double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3;
     if (attn3 > 0)
     {
@@ -906,9 +904,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,1,0)
-    double dx4   = dx0 - 1 - 2 * squish3d;
-    double dy4   = dy0 - 1 - 2 * squish3d;
-    double dz4   = dz0 - 0 - 2 * squish3d;
+    double dx4 = dx0 - 1 - 2 * squish3d;
+    double dy4 = dy0 - 1 - 2 * squish3d;
+    double dz4 = dz0 - 0 - 2 * squish3d;
     double attn4 = 2 - dx4 * dx4 - dy4 * dy4 - dz4 * dz4;
     if (attn4 > 0)
     {
@@ -917,9 +915,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (1,0,1)
-    double dx5   = dx4;
-    double dy5   = dy0 - 0 - 2 * squish3d;
-    double dz5   = dz0 - 1 - 2 * squish3d;
+    double dx5 = dx4;
+    double dy5 = dy0 - 0 - 2 * squish3d;
+    double dz5 = dz0 - 1 - 2 * squish3d;
     double attn5 = 2 - dx5 * dx5 - dy5 * dy5 - dz5 * dz5;
     if (attn5 > 0)
     {
@@ -928,9 +926,9 @@ float OpenSimplexNoiseGen::eval(float x, float y, float z) const
     }
 
     // Contribution (0,1,1)
-    double dx6   = dx0 - 0 - 2 * squish3d;
-    double dy6   = dy4;
-    double dz6   = dz5;
+    double dx6 = dx0 - 0 - 2 * squish3d;
+    double dy6 = dy4;
+    double dz6 = dz5;
     double attn6 = 2 - dx6 * dx6 - dy6 * dy6 - dz6 * dz6;
     if (attn6 > 0)
     {
@@ -971,7 +969,8 @@ double OpenSimplexNoiseGen::extrapolate(
     int xsb, int ysb, int zsb, double dx, double dy, double dz) const
 {
   const int index = permGradIndex3d[(perm[(perm[xsb & 0xFF] + ysb) & 0xFF] + zsb) & 0xFF];
-  return gradients3d[index] * dx + gradients3d[index + 1] * dy + gradients3d[index + 2] * dz;
+  return gradients3d[index] * dx + gradients3d[index + 1] * dy +
+         gradients3d[index + 2] * dz;
 }
 
 } // namespace Rl::Providers

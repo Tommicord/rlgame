@@ -8,10 +8,11 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::Client::Render
 {
 
-export void UnitCreateGraphicsPipelineLayout(
-    VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
+export void UnitCreateGraphicsPipelineLayout(VkDevice device,
+    VkDescriptorSetLayout                             descriptorSetLayout,
+    VkPipelineLayout&                                 pipelineLayout);
 
-export void UnitCreateGraphicsPipeline(VkDevice                     device,
+export void UnitCreateGraphicsPipeline(VkDevice              device,
     VkPipelineLayout                                         pipelineLayout,
     VkRenderPass                                             renderPass,
     VkExtent2D                                               swapChainExtent,

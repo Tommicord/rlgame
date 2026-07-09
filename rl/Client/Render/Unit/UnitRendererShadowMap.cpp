@@ -7,7 +7,8 @@ import <stdexcept>;
 namespace Rl::Client::Render
 {
 
-void UnitCreateShadowMapRenderPass(VkDevice device, VkFormat depthFormat, VkRenderPass& renderPass)
+void UnitCreateShadowMapRenderPass(
+    VkDevice device, VkFormat depthFormat, VkRenderPass& renderPass)
 {
   VkAttachmentDescription depthAttachment{};
   depthAttachment.format = depthFormat;
@@ -115,7 +116,8 @@ void UnitCreateShadowMapResources(VkDevice device,
   imageInfo.format = VK_FORMAT_D32_SFLOAT;
   imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
   imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  imageInfo.usage =
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
   imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
   imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -130,10 +132,11 @@ void UnitCreateShadowMapResources(VkDevice device,
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex =
-      UnitFindMemoryTypeIndex(physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  allocInfo.memoryTypeIndex = UnitFindMemoryTypeIndex(
+      physicalDevice, memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  if (vkAllocateMemory(device, &allocInfo, nullptr, &resources.shadowMapMemory) != VK_SUCCESS)
+  if (vkAllocateMemory(device, &allocInfo, nullptr, &resources.shadowMapMemory) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to allocate shadow map memory");
   }
@@ -152,17 +155,20 @@ void UnitCreateShadowMapResources(VkDevice device,
   viewInfo.subresourceRange.baseArrayLayer = 0;
   viewInfo.subresourceRange.layerCount = 1;
 
-  if (vkCreateImageView(device, &viewInfo, nullptr, &resources.shadowMapView) != VK_SUCCESS)
+  if (vkCreateImageView(device, &viewInfo, nullptr, &resources.shadowMapView) !=
+      VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create shadow map image view");
   }
 
   // Create render pass
-  UnitCreateShadowMapRenderPass(device, VK_FORMAT_D32_SFLOAT, resources.shadowMapRenderPass);
+  UnitCreateShadowMapRenderPass(
+      device, VK_FORMAT_D32_SFLOAT, resources.shadowMapRenderPass);
 
   // Create framebuffer
-  UnitCreateShadowMapFramebuffer(device, resources.shadowMapView, resources.shadowMapRenderPass,
-      config.width, config.height, resources.shadowMapFramebuffer);
+  UnitCreateShadowMapFramebuffer(device, resources.shadowMapView,
+      resources.shadowMapRenderPass, config.width, config.height,
+      resources.shadowMapFramebuffer);
 
   // Create sampler with PCF support
   UnitCreateShadowMapSampler(device, resources.shadowMapSampler);
@@ -190,9 +196,7 @@ void UnitBeginShadowMapRenderPass(VkCommandBuffer commandBuffer,
 }
 
 void UnitEndShadowMapRenderPass(VkCommandBuffer commandBuffer)
-{
-  vkCmdEndRenderPass(commandBuffer);
-}
+{ vkCmdEndRenderPass(commandBuffer); }
 
 void UnitCleanupShadowMapResources(VkDevice device, UnitShadowMapResources& resources)
 {

@@ -50,7 +50,7 @@ void UnitGenerateNormalTextures(VkDevice device,
     }
 
     // Clean up generated textures
-    for (auto & normalTexture : normalTextures)
+    for (auto& normalTexture : normalTextures)
     {
       if (normalTexture)
       {

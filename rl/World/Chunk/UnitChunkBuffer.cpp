@@ -31,7 +31,7 @@ UnitChunkBuffer::UnitChunkBuffer(UnitChunkBuffer&& other) noexcept :
     bufferSizes(other.bufferSizes), buffer(std::move(other.buffer)), owner(other.owner)
 {
   other.buffer.b = nullptr;
-  other.owner    = false;
+  other.owner = false;
 }
 
 UnitChunkBuffer& UnitChunkBuffer::operator=(const UnitChunkBuffer& other)
@@ -58,11 +58,11 @@ UnitChunkBuffer& UnitChunkBuffer::operator=(UnitChunkBuffer&& other) noexcept
     buffer.b.release();
   }
   bufferSizes = other.bufferSizes;
-  buffer      = std::move(other.buffer);
-  owner       = other.owner;
+  buffer = std::move(other.buffer);
+  owner = other.owner;
 
   other.buffer.b = nullptr;
-  other.owner    = false;
+  other.owner = false;
 
   return *this;
 }
@@ -87,34 +87,21 @@ std::optional<int> UnitChunkBuffer::GetUnitIdXYZ(int x, int y, int z) const
 }
 
 std::optional<int> UnitChunkBuffer::GetUnitId(const ChunkCoord& coord) const
-{
-  return GetUnitIdXYZ(coord.x, coord.y, coord.z);
-}
+{ return GetUnitIdXYZ(coord.x, coord.y, coord.z); }
 
 bool UnitChunkBuffer::IsInBounds(int x, int y, int z) const
-{
-  return IndexVal(x, W) && IndexVal(y, H) && IndexVal(z, D);
-}
+{ return IndexVal(x, W) && IndexVal(y, H) && IndexVal(z, D); }
 
 bool UnitChunkBuffer::IsInBounds(const ChunkCoord& coord) const
-{
-  return IsInBounds(coord.x, coord.y, coord.z);
-}
-
+{ return IsInBounds(coord.x, coord.y, coord.z); }
 
 bool UnitChunkBuffer::IsValid() const
-{
-  return !!buffer.b;
-}
+{ return !!buffer.b; }
 
 UnitChunkBuffer::ChunkCoord UnitChunkBuffer::GetDimensions() const
-{
-  return {W, H, D};
-}
+{ return {W, H, D}; }
 
 bool IndexVal(const int& x, const int max)
-{
-  return x >= 0 && x < max;
-}
+{ return x >= 0 && x < max; }
 
 } // namespace Rl::World::Chunk

@@ -34,14 +34,14 @@ void UnitStateDrawable::OnCreate(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
 {
   const auto& unitVertices = Client::Render::UnitGetTestVertices();
-  Client::Render::UnitCreateVertexBuffer(
-      context.device, context.physicalDevice, unitVertices, vk.vertexBuffer, vk.vertexBufferMemory);
+  Client::Render::UnitCreateVertexBuffer(context.device, context.physicalDevice,
+      unitVertices, vk.vertexBuffer, vk.vertexBufferMemory);
 
   // Create index buffer for indexed drawing
   std::vector<uint32_t> unitIndices =
       Client::Render::UnitGenerateIndices(4, 6); // 4 vertices per face, 6 faces
-  Client::Render::UnitCreateIndexBuffer(
-      context.device, context.physicalDevice, unitIndices, vk.indexBuffer, vk.indexBufferMemory);
+  Client::Render::UnitCreateIndexBuffer(context.device, context.physicalDevice,
+      unitIndices, vk.indexBuffer, vk.indexBufferMemory);
 
   // Create SSBO buffers
   Client::Render::UnitCreateSSBOBuffers(
@@ -57,21 +57,23 @@ void UnitStateDrawable::OnCreate(
   // Create descriptor set layouts
   Client::Render::UnitCreateComputeDescriptorSetLayout(
       context.device, vk.computeDescriptorSetLayout);
-  Client::Render::UnitCreateGraphicsDescriptorSetLayout(context.device, vk.descriptorSetLayout);
+  Client::Render::UnitCreateGraphicsDescriptorSetLayout(
+      context.device, vk.descriptorSetLayout);
 
   // Create descriptor pool
   Client::Render::UnitCreateDescriptorPool(context.device, vk.descriptorPool);
 
   // Allocate descriptor sets
-  Client::Render::UnitAllocateComputeDescriptorSet(
-      context.device, vk.descriptorPool, vk.computeDescriptorSetLayout, vk.computeDescriptorSet);
+  Client::Render::UnitAllocateComputeDescriptorSet(context.device, vk.descriptorPool,
+      vk.computeDescriptorSetLayout, vk.computeDescriptorSet);
   Client::Render::UnitAllocateGraphicsDescriptorSet(
       context.device, vk.descriptorPool, vk.descriptorSetLayout, vk.descriptorSet);
 
   // Create compute pipeline layout and pipeline
   Client::Render::UnitCreateComputePipelineLayout(
       context.device, vk.computeDescriptorSetLayout, vk.pipelineLayout);
-  Client::Render::UnitCreateComputePipeline(context.device, vk.pipelineLayout, vk.computePipeline);
+  Client::Render::UnitCreateComputePipeline(
+      context.device, vk.pipelineLayout, vk.computePipeline);
 
   // Update compute descriptor set
   Client::Render::UnitUpdateComputeDescriptorSet(context.device, vk.computeDescriptorSet,
@@ -87,31 +89,38 @@ void UnitStateDrawable::OnCreate(
       context.device, vk.curveComputePipelineLayout, vk.curveComputePipeline);
 
   // Allocate curvature compute descriptor set
-  Client::Render::UnitAllocateCurvatureComputeDescriptorSet(context.device, vk.descriptorPool,
-      vk.curveComputeDescriptorSetLayout, vk.curveComputeDescriptorSet);
+  Client::Render::UnitAllocateCurvatureComputeDescriptorSet(context.device,
+      vk.descriptorPool, vk.curveComputeDescriptorSetLayout,
+      vk.curveComputeDescriptorSet);
 
   // Update curvature compute descriptor set
   Client::Render::UnitUpdateCurvatureComputeDescriptorSet(context.device,
-      vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer, vk.curvedVertexBuffer,
-      vk.curvedIndexBuffer, vk.curveCountersBuffer, vk.curveIndirectDrawBuffer,
+      vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer,
+      vk.curvedVertexBuffer, vk.curvedIndexBuffer, vk.curveCountersBuffer,
+      vk.curveIndirectDrawBuffer,
       sizeof(Client::Render::UnitRenderVertex) * unitVertices.size(), unitIndices.size());
 
   // Create placeholder resources
-  Client::Render::UnitCreatePlaceholderLightingTexture(context.device, context.physicalDevice,
-      vk.placeholderLightingTexture, vk.placeholderLightingBufferMemory,
-      vk.placeholderLightingTextureView, vk.placeholderLightingSampler);
+  Client::Render::UnitCreatePlaceholderLightingTexture(context.device,
+      context.physicalDevice, vk.placeholderLightingTexture,
+      vk.placeholderLightingBufferMemory, vk.placeholderLightingTextureView,
+      vk.placeholderLightingSampler);
   Client::Render::UnitCreatePlaceholderAOTexture(context.device, context.physicalDevice,
       vk.placeholderAOTexture, vk.placeholderAOTextureMemory, vk.placeholderAOTextureView,
       vk.placeholderAOSampler);
-  Client::Render::UnitCreatePlaceholderNormalTexture(context.device, context.physicalDevice,
-      vk.placeholderNormalTexture, vk.placeholderNormalTextureMemory,
-      vk.placeholderNormalTextureView, vk.placeholderNormalSampler);
-  Client::Render::UnitCreatePlaceholderSettingsBuffer(context.device, context.physicalDevice,
-      vk.placeholderSettingsBuffer, vk.placeholderSettingsBufferMemory);
-  Client::Render::UnitCreatePlaceholderLightingBuffer(context.device, context.physicalDevice,
-      vk.placeholderLightingBuffer, vk.placeholderLightingBufferMemory);
-  Client::Render::UnitCreateTriplanarSettingsBuffer(context.device, context.physicalDevice,
-      vk.triplanarSettingsBuffer, vk.triplanarSettingsBufferMemory);
+  Client::Render::UnitCreatePlaceholderNormalTexture(context.device,
+      context.physicalDevice, vk.placeholderNormalTexture,
+      vk.placeholderNormalTextureMemory, vk.placeholderNormalTextureView,
+      vk.placeholderNormalSampler);
+  Client::Render::UnitCreatePlaceholderSettingsBuffer(context.device,
+      context.physicalDevice, vk.placeholderSettingsBuffer,
+      vk.placeholderSettingsBufferMemory);
+  Client::Render::UnitCreatePlaceholderLightingBuffer(context.device,
+      context.physicalDevice, vk.placeholderLightingBuffer,
+      vk.placeholderLightingBufferMemory);
+  Client::Render::UnitCreateTriplanarSettingsBuffer(context.device,
+      context.physicalDevice, vk.triplanarSettingsBuffer,
+      vk.triplanarSettingsBufferMemory);
 
   // Create shadow map resources
   Client::Render::UnitShadowMapConfig    shadowConfig{};
@@ -136,10 +145,11 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitCreateGlobalTextureSampler(context.device, vk.globalTextureSampler);
 
   // Update graphics descriptor set with placeholder resources
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithPlaceholders(context.device, vk.descriptorSet,
-      vk.placeholderLightingBuffer, vk.placeholderLightingTextureView,
-      vk.placeholderLightingSampler, vk.placeholderSettingsBuffer, vk.placeholderAOTextureView,
-      vk.placeholderAOSampler, vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithPlaceholders(context.device,
+      vk.descriptorSet, vk.placeholderLightingBuffer, vk.placeholderLightingTextureView,
+      vk.placeholderLightingSampler, vk.placeholderSettingsBuffer,
+      vk.placeholderAOTextureView, vk.placeholderAOSampler,
+      vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
       vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Update graphics descriptor set with shadow map
@@ -152,8 +162,9 @@ void UnitStateDrawable::OnCreate(
 
   Client::Render::UnitCreateGraphicsPipelineLayout(
       context.device, vk.descriptorSetLayout, vk.pipelineLayout);
-  Client::Render::UnitCreateGraphicsPipeline(context.device, vk.pipelineLayout, context.renderPass,
-      context.swapChainExtent, vertexInputBinding, vertexInputAttributes, vk.pipeline);
+  Client::Render::UnitCreateGraphicsPipeline(context.device, vk.pipelineLayout,
+      context.renderPass, context.swapChainExtent, vertexInputBinding,
+      vertexInputAttributes, vk.pipeline);
 }
 
 void UnitStateDrawable::OnUpdate(
@@ -188,9 +199,7 @@ void UnitStateDrawable::OnUpdate(
 
 void UnitStateDrawable::OnDraw(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
-{
-  Client::Render::UnitRender(resource, vk, context);
-}
+{ Client::Render::UnitRender(resource, vk, context); }
 
 void UnitStateDrawable::OnDrawCompute(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
@@ -205,9 +214,7 @@ void UnitStateDrawable::OnDrawCompute(
 
 void UnitStateDrawable::OnDestroy(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
-{
-  Client::Render::UnitCleanupResources(context.device, vk);
-}
+{ Client::Render::UnitCleanupResources(context.device, vk); }
 
 void UnitStateDrawable::OnPause()
 {

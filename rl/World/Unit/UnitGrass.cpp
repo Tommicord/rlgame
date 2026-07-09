@@ -7,14 +7,11 @@ import <memory>;
 namespace Rl::World
 {
 
-UnitGrass::UnitGrass(const Unit::GrassGrowConfig& config) noexcept
-    : IUnit(IUnitIdentifiable<UnitGrass>::GetClassId()), 
-      IUnitGrowable(), 
-      IUnitIdentifiable<UnitGrass>(),
-      growBehavior(std::make_unique<Unit::UnitGrassGrowBehavior>(config))
-{
-  RegisterDerived<UnitGrass>(*this);
-}
+UnitGrass::UnitGrass(const Unit::GrassGrowConfig& config) noexcept :
+    IUnit(IUnitIdentifiable<UnitGrass>::GetClassId()), IUnitGrowable(),
+    IUnitIdentifiable<UnitGrass>(),
+    growBehavior(std::make_unique<Unit::UnitGrassGrowBehavior>(config))
+{ RegisterDerived<UnitGrass>(*this); }
 
 void UnitGrass::Update(Chunk::UnitChunkAccessor& accessor) const
 {

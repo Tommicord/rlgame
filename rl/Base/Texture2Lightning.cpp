@@ -8,7 +8,8 @@ import <glm/glm.hpp>;
 namespace Rl::Providers
 {
 
-Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properties& properties)
+Texture2* GenerateLightningTexture(
+    Texture2* baseTexture, const Texture2Properties& properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -17,8 +18,8 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properti
 
   // Get base texture data
   uint8_t* baseData = baseTexture->GetData();
-  int      width    = baseTexture->GetWidth();
-  int      height   = baseTexture->GetHeight();
+  int      width = baseTexture->GetWidth();
+  int      height = baseTexture->GetHeight();
   int      channels = baseTexture->GetChannels();
 
   if (!baseData || width <= 0 || height <= 0)
@@ -29,7 +30,7 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properti
   // Create new texture data for lightning texture
   int    outputChannels = 1; // AO is single channel
   size_t outputDataSize = width * height * outputChannels;
-  auto*  lightningData  = new uint8_t[outputDataSize];
+  auto*  lightningData = new uint8_t[outputDataSize];
 
   // Generate lightning texture based on base texture
   // This creates a simple ambient occlusion effect
@@ -37,11 +38,11 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properti
   {
     for (int x = 0; x < width; ++x)
     {
-      int baseIndex   = (y * width + x) * channels;
+      int baseIndex = (y * width + x) * channels;
       int outputIndex = y * width + x;
 
       // Calculate luminance from base texture
-      float  luminance    = 0.0f;
+      float  luminance = 0.0f;
       size_t baseDataSize = width * height * channels;
       if (channels >= 3 && baseIndex + 2 < baseDataSize)
       {
@@ -80,12 +81,13 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properti
   }
 
   // Create new texture with the generated data
-  Texture2*         lightningTexture = new Texture2();
-  Texture2Properties lightningProps   = properties;
-  lightningProps.format              = Texture2Format::R8;
-  lightningProps.generateMipmaps     = true;
+  Texture2*          lightningTexture = new Texture2();
+  Texture2Properties lightningProps = properties;
+  lightningProps.format = Texture2Format::R8;
+  lightningProps.generateMipmaps = true;
 
-  lightningTexture->FromData(lightningData, width, height, Texture2Format::R8, lightningProps);
+  lightningTexture->FromData(
+      lightningData, width, height, Texture2Format::R8, lightningProps);
 
   // Clean up temporary data
   delete[] lightningData;
@@ -93,7 +95,9 @@ Texture2* GenerateLightningTexture(Texture2* baseTexture, const Texture2Properti
   return lightningTexture;
 }
 
-Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm::vec3& lightDirection, const Texture2Properties& properties)
+Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture,
+    const glm::vec3&                                      lightDirection,
+    const Texture2Properties&                             properties)
 {
   if (!baseTexture || !baseTexture->IsLoaded())
   {
@@ -102,8 +106,8 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
 
   // Get base texture data
   uint8_t* baseData = baseTexture->GetData();
-  int      width    = baseTexture->GetWidth();
-  int      height   = baseTexture->GetHeight();
+  int      width = baseTexture->GetWidth();
+  int      height = baseTexture->GetHeight();
   int      channels = baseTexture->GetChannels();
 
   if (!baseData || width <= 0 || height <= 0)
@@ -114,7 +118,7 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
   // Create new texture data for lighting texture
   int    outputChannels = 3; // RGB lighting
   size_t outputDataSize = width * height * outputChannels;
-  auto*  lightingData   = new uint8_t[outputDataSize];
+  auto*  lightingData = new uint8_t[outputDataSize];
 
   // Normalize light direction
   glm::vec3 normalizedLightDir = glm::normalize(lightDirection);
@@ -124,7 +128,7 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
   {
     for (int x = 0; x < width; ++x)
     {
-      int baseIndex   = (y * width + x) * channels;
+      int baseIndex = (y * width + x) * channels;
       int outputIndex = (y * width + x) * outputChannels;
 
       // Calculate simple normal from texture gradients
@@ -133,9 +137,9 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
 
       if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
       {
-        int leftIndex   = (y * width + (x - 1)) * channels;
-        int rightIndex  = (y * width + (x + 1)) * channels;
-        int topIndex    = ((y - 1) * width + x) * channels;
+        int leftIndex = (y * width + (x - 1)) * channels;
+        int rightIndex = (y * width + (x + 1)) * channels;
+        int topIndex = ((y - 1) * width + x) * channels;
         int bottomIndex = ((y + 1) * width + x) * channels;
 
         // Check bounds before accessing
@@ -144,9 +148,9 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
             bottomIndex >= 0 && bottomIndex < baseDataSize)
         {
 
-          float leftLum   = baseData[leftIndex] / 255.0f;
-          float rightLum  = baseData[rightIndex] / 255.0f;
-          float topLum    = baseData[topIndex] / 255.0f;
+          float leftLum = baseData[leftIndex] / 255.0f;
+          float rightLum = baseData[rightIndex] / 255.0f;
+          float topLum = baseData[topIndex] / 255.0f;
           float bottomLum = baseData[bottomIndex] / 255.0f;
 
           nx = leftLum - rightLum;
@@ -185,7 +189,7 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
       // Store as 8-bit values with bounds checking
       if (outputIndex + 2 < outputDataSize)
       {
-        lightingData[outputIndex]     = static_cast<uint8_t>(r * 255.0f);
+        lightingData[outputIndex] = static_cast<uint8_t>(r * 255.0f);
         lightingData[outputIndex + 1] = static_cast<uint8_t>(g * 255.0f);
         lightingData[outputIndex + 2] = static_cast<uint8_t>(b * 255.0f);
       }
@@ -193,12 +197,13 @@ Texture2* GenerateDirectionalLightTexture(const Texture2* baseTexture, const glm
   }
 
   // Create new texture with the generated data
-  Texture2*         lightingTexture = new Texture2();
-  Texture2Properties lightingProps   = properties;
-  lightingProps.format              = Texture2Format::RGB8;
-  lightingProps.generateMipmaps     = true;
+  Texture2*          lightingTexture = new Texture2();
+  Texture2Properties lightingProps = properties;
+  lightingProps.format = Texture2Format::RGB8;
+  lightingProps.generateMipmaps = true;
 
-  lightingTexture->FromData(lightingData, width, height, Texture2Format::RGB8, lightingProps);
+  lightingTexture->FromData(
+      lightingData, width, height, Texture2Format::RGB8, lightingProps);
 
   // Clean up temporary data
   delete[] lightingData;

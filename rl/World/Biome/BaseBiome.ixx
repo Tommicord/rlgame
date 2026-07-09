@@ -11,49 +11,36 @@ namespace Rl::World::Biome
 export class BaseBiome : public IBiome
 {
   public:
-  BaseBiome(BiomeType type, const char* name) 
-      : biomeType(type), biomeName(name)
+  BaseBiome(BiomeType type, const char* name) : biomeType(type), biomeName(name)
   {
   }
-  
+
   virtual ~BaseBiome() = default;
 
   // IBiome interface implementations
   [[nodiscard]]
   BiomeType GetBiomeType() const override
-  {
-    return biomeType;
-  }
+  { return biomeType; }
 
   [[nodiscard]]
   const char* GetBiomeName() const override
-  {
-    return biomeName;
-  }
+  { return biomeName; }
 
   [[nodiscard]]
   BiomeNoiseLayer GetTemperatureNoiseLayer() const override
-  {
-    return temperatureLayer;
-  }
+  { return temperatureLayer; }
 
   [[nodiscard]]
   BiomeNoiseLayer GetMoistureNoiseLayer() const override
-  {
-    return moistureLayer;
-  }
+  { return moistureLayer; }
 
   [[nodiscard]]
   BiomeNoiseLayer GetElevationNoiseLayer() const override
-  {
-    return elevationLayer;
-  }
+  { return elevationLayer; }
 
   [[nodiscard]]
   const std::vector<BiomeUnitRule>& GetUnitRules() const override
-  {
-    return unitRules;
-  }
+  { return unitRules; }
 
   /* Default classification based on threshold ranges */
   [[nodiscard]]
@@ -66,32 +53,33 @@ export class BaseBiome : public IBiome
 
   /* Default unit selection based on matching rules */
   [[nodiscard]]
-  uint32_t GetDominantUnit(float temperature, float moisture, float elevation, float height) const override
+  uint32_t GetDominantUnit(
+      float temperature, float moisture, float elevation, float height) const override
   {
     uint32_t bestUnitId = 0; // Default to air/unknown
-    float bestScore = 0.0f;
+    float    bestScore = 0.0f;
 
     for (const auto& rule : unitRules)
     {
       // Check if height matches
       if (height < rule.minHeight || height > rule.maxHeight)
         continue;
-      
+
       // Check if temperature matches
       if (temperature < rule.minTemperature || temperature > rule.maxTemperature)
         continue;
-      
+
       // Check if moisture matches
       if (moisture < rule.minMoisture || moisture > rule.maxMoisture)
         continue;
-      
+
       // Check if elevation matches
       if (elevation < rule.minElevation || elevation > rule.maxElevation)
         continue;
-      
+
       // Calculate score based on probability and density
       float score = rule.probability * rule.density;
-      
+
       if (score > bestScore)
       {
         bestScore = score;
@@ -104,24 +92,16 @@ export class BaseBiome : public IBiome
 
   // Configuration methods
   void SetTemperatureNoiseLayer(const BiomeNoiseLayer& layer)
-  {
-    temperatureLayer = layer;
-  }
+  { temperatureLayer = layer; }
 
   void SetMoistureNoiseLayer(const BiomeNoiseLayer& layer)
-  {
-    moistureLayer = layer;
-  }
+  { moistureLayer = layer; }
 
   void SetElevationNoiseLayer(const BiomeNoiseLayer& layer)
-  {
-    elevationLayer = layer;
-  }
+  { elevationLayer = layer; }
 
   void AddUnitRule(const BiomeUnitRule& rule)
-  {
-    unitRules.push_back(rule);
-  }
+  { unitRules.push_back(rule); }
 
   void SetTemperatureThresholds(float minTemp, float maxTemp)
   {
@@ -142,14 +122,14 @@ export class BaseBiome : public IBiome
   }
 
   protected:
-  BiomeType biomeType;
+  BiomeType   biomeType;
   const char* biomeName;
-  
-  BiomeNoiseLayer temperatureLayer{};
-  BiomeNoiseLayer moistureLayer{};
-  BiomeNoiseLayer elevationLayer{};
+
+  BiomeNoiseLayer            temperatureLayer{};
+  BiomeNoiseLayer            moistureLayer{};
+  BiomeNoiseLayer            elevationLayer{};
   std::vector<BiomeUnitRule> unitRules;
-  
+
   // Threshold ranges for biome classification
   float minTemperature = 0.0f;
   float maxTemperature = 1.0f;

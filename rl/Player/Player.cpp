@@ -46,9 +46,7 @@ void Player::CreateInputCameraController() noexcept
 }
 
 void Player::CreateInputPlayerController() noexcept
-{
-  playerControl = std::make_unique<PlayerController>(*this);
-}
+{ playerControl = std::make_unique<PlayerController>(*this); }
 
 Player::~Player()
 {

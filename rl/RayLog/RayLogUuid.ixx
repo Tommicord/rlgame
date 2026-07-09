@@ -21,8 +21,8 @@ export class RayLogUuid final : IRayLogSerializable2
   /* Constructs a UUID for RayLog logging thread */
   RayLogUuid()
   {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device                          rd;
+    std::mt19937                                gen(rd());
     std::uniform_int_distribution<unsigned int> dis(0, 255);
 
     for (auto& byte : data)
@@ -46,4 +46,4 @@ export class RayLogUuid final : IRayLogSerializable2
     return ss.str();
   }
 };
-}
+} // namespace Rl::RayLog

@@ -104,15 +104,16 @@ void PlayerCameraController::Update() const
   glm::vec3 movement(0.0f);
   glm::vec3 right = camera.GetRightVector();
   glm::vec3 up = camera.GetUpVector();
-  
+
   // Project right onto horizontal plane (remove Y component)
   glm::vec3 horizontalRight = glm::vec3(right.x, 0.0f, right.z);
   if (glm::length(horizontalRight) > 0.0f)
     horizontalRight = glm::normalize(horizontalRight);
-  
+
   // Calculate horizontal front from horizontal right (cross with world up, negated)
-  glm::vec3 horizontalFront = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), horizontalRight));
-  
+  glm::vec3 horizontalFront =
+      glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), horizontalRight));
+
   if (moveForward)
     movement += horizontalFront;
   if (moveBackward)
@@ -125,7 +126,7 @@ void PlayerCameraController::Update() const
     movement -= up;
   if (moveDown)
     movement += up;
-  
+
   if (glm::length(movement) > 0.0f)
   {
     movement = glm::normalize(movement) * moveSpeed;

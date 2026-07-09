@@ -65,19 +65,13 @@ void PlayerController::OnKeyEvent(const Input::KeyEvent& event)
 }
 
 void PlayerController::OnMouseButtonEvent(const Input::MouseButtonEvent& event)
-{
-  (void)event;
-}
+{ (void)event; }
 
 void PlayerController::OnMouseMoveEvent(const Input::MouseMoveEvent& event)
-{
-  (void)event;
-}
+{ (void)event; }
 
 void PlayerController::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
-{
-  (void)event;
-}
+{ (void)event; }
 
 void PlayerController::Update() const
 {

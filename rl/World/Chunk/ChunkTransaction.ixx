@@ -8,8 +8,7 @@ namespace Rl::World::Chunk
 {
 
 /* Transaction type for chunk modifications */
-export enum class TransactionType : uint32_t
-{
+export enum class TransactionType : uint32_t {
   READ = 0,
   WRITE = 1,
   READ_WRITE = 2,
@@ -17,8 +16,7 @@ export enum class TransactionType : uint32_t
 };
 
 /* Transaction state for lifecycle management */
-export enum class TransactionState : uint32_t
-{
+export enum class TransactionState : uint32_t {
   PENDING = 0,
   IN_PROGRESS = 1,
   COMPLETED = 2,
@@ -27,8 +25,7 @@ export enum class TransactionState : uint32_t
 };
 
 /* Transaction validation result */
-export enum class ValidationResult : uint32_t
-{
+export enum class ValidationResult : uint32_t {
   VALID = 0,
   INVALID_CHUNK_INDEX = 1,
   INVALID_COORDINATES = 2,
@@ -40,46 +37,39 @@ export enum class ValidationResult : uint32_t
 /* Single chunk modification transaction with robustness features */
 export struct ChunkTransaction
 {
-  uint32_t chunkIndex;      // Index of the chunk in the render distance
-  int32_t localX;           // Local X coordinate within chunk
-  int32_t localY;           // Local Y coordinate within chunk
-  int32_t localZ;           // Local Z coordinate within chunk
-  uint32_t oldUnitId;       // Previous unit ID (for rollback)
-  uint32_t newUnitId;       // New unit ID to write
-  TransactionType type;     // Transaction type
-  TransactionState state;    // Transaction state
-  uint64_t timestamp;       // Transaction timestamp
-  uint64_t sequenceNumber;  // Unique sequence number for ordering
+  uint32_t          chunkIndex; // Index of the chunk in the render distance
+  int32_t           localX; // Local X coordinate within chunk
+  int32_t           localY; // Local Y coordinate within chunk
+  int32_t           localZ; // Local Z coordinate within chunk
+  uint32_t          oldUnitId; // Previous unit ID (for rollback)
+  uint32_t          newUnitId; // New unit ID to write
+  TransactionType   type; // Transaction type
+  TransactionState  state; // Transaction state
+  uint64_t          timestamp; // Transaction timestamp
+  uint64_t          sequenceNumber; // Unique sequence number for ordering
   std::atomic<bool> completed; // Transaction completion flag
-  
-  ChunkTransaction() 
-      : chunkIndex(0), localX(0), localY(0), localZ(0), 
-        oldUnitId(0), newUnitId(0), type(TransactionType::READ),
-        state(TransactionState::PENDING), timestamp(0), sequenceNumber(0),
-        completed(false)
+
+  ChunkTransaction() :
+      chunkIndex(0), localX(0), localY(0), localZ(0), oldUnitId(0), newUnitId(0),
+      type(TransactionType::READ), state(TransactionState::PENDING), timestamp(0),
+      sequenceNumber(0), completed(false)
   {
   }
-  
+
   /* Delete copy constructor: atomic<bool> is not copyable */
   ChunkTransaction(const ChunkTransaction&) = delete;
   ChunkTransaction& operator=(const ChunkTransaction&) = delete;
-  
+
   /* Move constructor */
-  ChunkTransaction(ChunkTransaction&& other) noexcept
-      : chunkIndex(other.chunkIndex),
-        localX(other.localX),
-        localY(other.localY),
-        localZ(other.localZ),
-        oldUnitId(other.oldUnitId),
-        newUnitId(other.newUnitId),
-        type(other.type),
-        state(other.state),
-        timestamp(other.timestamp),
-        sequenceNumber(other.sequenceNumber),
-        completed(other.completed.load(std::memory_order_acquire))
+  ChunkTransaction(ChunkTransaction&& other) noexcept :
+      chunkIndex(other.chunkIndex), localX(other.localX), localY(other.localY),
+      localZ(other.localZ), oldUnitId(other.oldUnitId), newUnitId(other.newUnitId),
+      type(other.type), state(other.state), timestamp(other.timestamp),
+      sequenceNumber(other.sequenceNumber),
+      completed(other.completed.load(std::memory_order_acquire))
   {
   }
-  
+
   /* Move assignment operator */
   ChunkTransaction& operator=(ChunkTransaction&& other) noexcept
   {
@@ -95,32 +85,33 @@ export struct ChunkTransaction
       state = other.state;
       timestamp = other.timestamp;
       sequenceNumber = other.sequenceNumber;
-      completed.store(other.completed.load(std::memory_order_acquire), std::memory_order_release);
+      completed.store(
+          other.completed.load(std::memory_order_acquire), std::memory_order_release);
     }
     return *this;
   }
-  
+
   /* Validate transaction data */
   [[nodiscard]]
-  ValidationResult Validate(int32_t chunkWidth, int32_t chunkHeight, int32_t chunkDepth) const
+  ValidationResult Validate(
+      int32_t chunkWidth, int32_t chunkHeight, int32_t chunkDepth) const
   {
     if (completed.load(std::memory_order_acquire))
     {
       return ValidationResult::ALREADY_COMPLETED;
     }
-    
+
     if (type == TransactionType::INVALID)
     {
       return ValidationResult::INVALID_TYPE;
     }
-    
-    if (localX < 0 || localX >= chunkWidth ||
-        localY < 0 || localY >= chunkHeight ||
+
+    if (localX < 0 || localX >= chunkWidth || localY < 0 || localY >= chunkHeight ||
         localZ < 0 || localZ >= chunkDepth)
     {
       return ValidationResult::INVALID_COORDINATES;
     }
-    
+
     if (type == TransactionType::WRITE || type == TransactionType::READ_WRITE)
     {
       if (oldUnitId == newUnitId)
@@ -128,54 +119,49 @@ export struct ChunkTransaction
         // No-op transaction is valid but wasteful
       }
     }
-    
+
     return ValidationResult::VALID;
   }
-  
+
   /* Check if this transaction is valid */
   [[nodiscard]]
   bool IsValid() const
   {
-    return !completed.load(std::memory_order_acquire) && 
-           type != TransactionType::INVALID &&
-           state != TransactionState::FAILED &&
+    return !completed.load(std::memory_order_acquire) &&
+           type != TransactionType::INVALID && state != TransactionState::FAILED &&
            state != TransactionState::ROLLED_BACK;
   }
-  
+
   /* Mark transaction as completed */
   void Complete()
   {
     state = TransactionState::COMPLETED;
     completed.store(true, std::memory_order_release);
   }
-  
+
   /* Mark transaction as failed */
   void Fail()
   {
     state = TransactionState::FAILED;
     completed.store(true, std::memory_order_release);
   }
-  
+
   /* Rollback transaction */
   void Rollback()
   {
     state = TransactionState::ROLLED_BACK;
     completed.store(true, std::memory_order_release);
   }
-  
+
   /* Get transaction state */
   [[nodiscard]]
   TransactionState GetState() const
-  {
-    return state;
-  }
-  
+  { return state; }
+
   /* Set transaction state */
   void SetState(const TransactionState newState)
-  {
-    state = newState;
-  }
-  
+  { state = newState; }
+
   /* Reset transaction for reuse */
   void Reset()
   {
@@ -191,7 +177,7 @@ export struct ChunkTransaction
     sequenceNumber = 0;
     completed.store(false, std::memory_order_release);
   }
-  
+
   /* Create a copy for rollback purposes */
   [[nodiscard]]
   ChunkTransaction CreateRollbackCopy() const
@@ -201,8 +187,8 @@ export struct ChunkTransaction
     rollback.localX = localX;
     rollback.localY = localY;
     rollback.localZ = localZ;
-    rollback.oldUnitId = newUnitId;  // Swap for rollback
-    rollback.newUnitId = oldUnitId;  // Swap for rollback
+    rollback.oldUnitId = newUnitId; // Swap for rollback
+    rollback.newUnitId = oldUnitId; // Swap for rollback
     rollback.type = TransactionType::WRITE;
     rollback.state = TransactionState::PENDING;
     rollback.timestamp = timestamp;
@@ -214,18 +200,18 @@ export struct ChunkTransaction
 /* Transaction result for operations with enhanced error reporting */
 export struct TransactionResult
 {
-  bool success;
-  uint32_t readUnitId;
-  const char* errorMessage;
+  bool             success;
+  uint32_t         readUnitId;
+  const char*      errorMessage;
   ValidationResult validationCode;
-  uint64_t transactionSequence;
-  
-  TransactionResult() 
-      : success(false), readUnitId(0), errorMessage(nullptr),
-        validationCode(ValidationResult::VALID), transactionSequence(0)
+  uint64_t         transactionSequence;
+
+  TransactionResult() :
+      success(false), readUnitId(0), errorMessage(nullptr),
+      validationCode(ValidationResult::VALID), transactionSequence(0)
   {
   }
-  
+
   static TransactionResult Ok(uint32_t unitId = 0, uint64_t sequence = 0)
   {
     TransactionResult result;
@@ -235,8 +221,9 @@ export struct TransactionResult
     result.transactionSequence = sequence;
     return result;
   }
-  
-  static TransactionResult Error(const char* error, ValidationResult code = ValidationResult::VALID)
+
+  static TransactionResult Error(
+      const char* error, ValidationResult code = ValidationResult::VALID)
   {
     TransactionResult result;
     result.success = false;
@@ -244,28 +231,28 @@ export struct TransactionResult
     result.validationCode = code;
     return result;
   }
-  
+
   /* Get human-readable error message */
   [[nodiscard]]
   const char* GetErrorMessage() const
   {
     if (errorMessage)
       return errorMessage;
-    
+
     switch (validationCode)
     {
-      case ValidationResult::INVALID_CHUNK_INDEX:
-        return "Invalid chunk index";
-      case ValidationResult::INVALID_COORDINATES:
-        return "Invalid local coordinates";
-      case ValidationResult::INVALID_UNIT_ID:
-        return "Invalid unit ID";
-      case ValidationResult::INVALID_TYPE:
-        return "Invalid transaction type";
-      case ValidationResult::ALREADY_COMPLETED:
-        return "Transaction already completed";
-      default:
-        return "Unknown error";
+    case ValidationResult::INVALID_CHUNK_INDEX:
+      return "Invalid chunk index";
+    case ValidationResult::INVALID_COORDINATES:
+      return "Invalid local coordinates";
+    case ValidationResult::INVALID_UNIT_ID:
+      return "Invalid unit ID";
+    case ValidationResult::INVALID_TYPE:
+      return "Invalid transaction type";
+    case ValidationResult::ALREADY_COMPLETED:
+      return "Transaction already completed";
+    default:
+      return "Unknown error";
     }
   }
 };

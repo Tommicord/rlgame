@@ -44,23 +44,17 @@ export class IPlayer
   /* Gets horizontal coordinate floating-point version of coordinates */
   [[nodiscard]]
   constexpr FpCoord GetXfp() const
-  {
-    return GetFp(cX);
-  }
+  { return GetFp(cX); }
 
   /* Gets vertical coordinate floating-point version of coordinates */
   [[nodiscard]]
   constexpr FpCoord GetYfp() const
-  {
-    return GetFp(cY);
-  }
+  { return GetFp(cY); }
 
   /* Gets depth coordinate floating-point version of coordinates */
   [[nodiscard]]
   constexpr FpCoord GetZfp() const
-  {
-    return GetFp(cZ);
-  }
+  { return GetFp(cZ); }
 
   IPlayer() noexcept = default;
 
@@ -72,7 +66,7 @@ export class IPlayer
 
   IPlayer& operator=(const IPlayer& player) = delete;
   IPlayer& operator=(const IPlayer&& player) = delete;
-  
+
   virtual ~IPlayer() = default;
 };
 

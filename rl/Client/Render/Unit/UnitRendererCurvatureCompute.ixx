@@ -8,11 +8,13 @@ namespace Rl::Client::Render
 {
 
 // Create push constant range for curvature compute shader
-export void UnitCreateCurvatureComputePushConstantRange(VkPushConstantRange& pushConstantRange);
+export void UnitCreateCurvatureComputePushConstantRange(
+    VkPushConstantRange& pushConstantRange);
 
 // Create pipeline layout for curvature compute shader
-export void UnitCreateCurvatureComputePipelineLayout(
-    VkDevice device, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayout& pipelineLayout);
+export void UnitCreateCurvatureComputePipelineLayout(VkDevice device,
+    VkDescriptorSetLayout                                     descriptorSetLayout,
+    VkPipelineLayout&                                         pipelineLayout);
 
 // Create curvature compute pipeline
 export void UnitCreateCurvatureComputePipeline(
