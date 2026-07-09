@@ -1,4 +1,12 @@
 import Rl.World.ServiceUpdaterRegister;
+import Rl.World.ServiceLocator;
+import Rl.World.ServiceUpdaterRegistry;
+import Rl.World.ServiceUpdater;
+import Rl.RayLog.Macro;
+
+import <cstdint>;
+import <memory>;
+import <string>;
 
 namespace Rl::World
 {
@@ -12,10 +20,13 @@ void ServiceUpdaterRegister::RegisterTimeSystemUpdater(const std::string& name, 
 {
   auto timeSystem = WorldServiceLocator::GetTimeSystem();
   if (!timeSystem)
+  {
+    RayLog::LogWarning("ServiceUpdaterRegister", "TimeSystem not available in ServiceLocator, skipping registration");
     return;
-  
+  }
   auto updater = std::make_shared<TimeSystemUpdater>(timeSystem, fragmentsPerUpdate);
   registry.RegisterUpdater(name, updater);
+  RayLog::LogInfo("ServiceUpdaterRegister", "Registered TimeSystem updater with fragmentsPerUpdate: %d", fragmentsPerUpdate);
 }
 
 void ServiceUpdaterRegister::RegisterSkyboxSystemUpdater(const std::string& name)
@@ -49,18 +60,16 @@ void ServiceUpdaterRegister::RegisterFromServiceLocator(int64_t timeFragmentsPer
   {
     RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
   }
-  
   // Register SkyboxSystem if available
   if (WorldServiceLocator::HasSkyboxSystem())
   {
     RegisterSkyboxSystemUpdater("SkyboxSystem");
   }
-  
   // Register Player services
   RegisterPlayerServicesUpdater("PlayerServices");
 }
 
-void RegisterStandardServices(ServiceUpdaterRegistry& registry, int64_t timeFragmentsPerUpdate)
+void RegisterStandardServices(ServiceUpdaterRegistry& registry, std::int64_t timeFragmentsPerUpdate)
 {
   ServiceUpdaterRegister registerer(registry);
   registerer.RegisterFromServiceLocator(timeFragmentsPerUpdate);

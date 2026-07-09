@@ -4,9 +4,11 @@ import Rl.Base.IUpdatable;
 import Rl.World.Time.TimeSystem;
 import Rl.World.Skybox.SkyboxSystem;
 import Rl.Player.PlayerProvider;
+
 import <memory>;
 import <vector>;
 import <functional>;
+import <string>;
 
 namespace Rl::World
 {
@@ -15,14 +17,14 @@ namespace Rl::World
 export class ServiceUpdater : public Providers::IUpdatable
 {
   public:
-  virtual ~ServiceUpdater() = default;
+  ~ServiceUpdater() override = default;
   
   /* Update the service */
   void Update() override = 0;
   
   /* Get the service name for debugging */
   [[nodiscard]]
-  virtual const char* GetServiceName() const = 0;
+  virtual std::string GetServiceName() const = 0;
 };
 
 /* Template for creating service updaters */
@@ -35,7 +37,7 @@ class TypedServiceUpdater : public ServiceUpdater
   
   void Update() override;
   [[nodiscard]]
-  const char* GetServiceName() const override;
+  std::string GetServiceName() const override;
 
   private:
   std::shared_ptr<T> service;
@@ -51,7 +53,7 @@ export class TimeSystemUpdater : public ServiceUpdater
   
   void Update() override;
   [[nodiscard]]
-  const char* GetServiceName() const override;
+  std::string GetServiceName() const override;
 
   private:
   std::shared_ptr<Time::TimeSystem> timeSystem;
@@ -67,7 +69,7 @@ export class SkyboxSystemUpdater : public ServiceUpdater
   
   void Update() override;
   [[nodiscard]]
-  const char* GetServiceName() const override;
+  std::string GetServiceName() const override;
 
   private:
   std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem;
@@ -82,7 +84,7 @@ export class PlayerServicesUpdater : public ServiceUpdater
   
   void Update() override;
   [[nodiscard]]
-  const char* GetServiceName() const override;
+  std::string GetServiceName() const override;
 };
 
 } // namespace Rl::World
