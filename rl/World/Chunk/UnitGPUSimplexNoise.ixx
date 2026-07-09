@@ -167,8 +167,8 @@ export class UnitGPUSimplexNoise
   VkDescriptorSetLayout mappingDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSet       mappingDescriptorSet = VK_NULL_HANDLE;
 
-  VkPipeline       mappingPipeline = VK_NULL_HANDLE;
-  VkPipelineLayout mappingPipelineLayout = VK_NULL_HANDLE;
+  mutable VkPipeline       mappingPipeline = VK_NULL_HANDLE;
+  mutable VkPipelineLayout mappingPipelineLayout = VK_NULL_HANDLE;
 
   /* Describe if initialized */
   bool isInitialized = false;

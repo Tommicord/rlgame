@@ -14,4 +14,19 @@ RL (Real Game) is a game written in C++ using Vulkan for graphics rendering. The
 
 # Example
 
+Tested on a old PC with Intel HD Graphics 530, the game is able to render the world and units using Vulkan. The following screenshot shows the game running on this hardware without lag:
+
 ![Test Unit render graphics on Intel HD Graphics 530](Public/Examples/UnitRenderExample.png)
+
+# What is already implemented
+- Chunk system with procedural generation using Simplex noise
+- Rendering of units using Vulkan
+- Skybox, Time system with lighting and day/night cycle
+
+# What is not implemented yet
+- Multiplayer support
+- Spacecraft building
+- Space exploration
+- More biomes, creatures, and resources to discover
+- Physics system for interactions with the world
+- Production-ready implementation (currently in development and testing phase)

@@ -44,16 +44,11 @@ export class ChunkGPUNoiseGen
                             VkDevice            device,
                             VkPhysicalDevice    physicalDevice,
                             VkCommandBuffer     commandBuffer,
-                            int32_t             renderDistanceX,
-                            int32_t             renderDistanceY,
-                            int32_t             renderDistanceZ,
                             UnitGPUSimplexNoise::WorldNoisePushConstantArray worldParams)
   {
     if (!initialized)
       return false;
-
-    const WorldChunkCoord renderDistance{renderDistanceX, renderDistanceY,
-                                         renderDistanceZ};
+    const WorldChunkCoord renderDistance = chunkSystem.GetRenderDistance();
     if (renderDistance.chunkX <= 0 || renderDistance.chunkY <= 0 ||
         renderDistance.chunkZ <= 0)
       return false;
@@ -71,6 +66,7 @@ export class ChunkGPUNoiseGen
         "constants array length; "
         "Expected length: %d, found: %d", totalChunks, size
       );
+      return false;
     }
 
     if (!chunkSystem.Initialize())

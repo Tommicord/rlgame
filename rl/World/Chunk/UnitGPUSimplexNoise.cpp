@@ -3,11 +3,182 @@ import Rl.Base.Shader;
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 
 import <cstring>;
+import <limits>;
 import <stdexcept>;
+import <vector>;
 import <vulkan/vulkan.hpp>;
-
 namespace Rl::World::Chunk
 {
+
+namespace
+{
+void DispatchInitShader(VkDevice device,
+    VkPhysicalDevice                 physicalDevice,
+    VkPipelineLayout                 pipelineLayout,
+    VkPipeline                       initPipeline,
+    VkDescriptorSet                  descriptorSet,
+    uint32_t                         seed)
+{
+  uint32_t queueFamilyCount = 0;
+  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+
+  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+      queueFamilies.data());
+
+  uint32_t queueFamilyIndex = 0xFFFFFFFFu;
+  for (uint32_t i = 0; i < queueFamilyCount; ++i)
+  {
+    if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+    {
+      queueFamilyIndex = i;
+      break;
+    }
+  }
+#pragma pop_macro("min")
+
+#pragma pop_macro("max")
+  if (queueFamilyIndex == 0xFFFFFFFFu)
+  {
+    throw std::runtime_error("No compute-capable queue family found for simplex init");
+  }
+
+  VkCommandPoolCreateInfo poolInfo{};
+  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  poolInfo.queueFamilyIndex = queueFamilyIndex;
+  poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+  VkCommandPool commandPool = VK_NULL_HANDLE;
+  if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create command pool for simplex init");
+  }
+
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandBufferCount = 1;
+
+  VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+  {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to allocate command buffer for simplex init");
+  }
+
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to begin command buffer for simplex init");
+  }
+
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, initPipeline);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+      pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+
+  vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+      sizeof(uint32_t), &seed);
+
+  vkCmdDispatch(commandBuffer, 1, 1, 1);
+
+  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to end command buffer for simplex init");
+  }
+
+  VkQueue queue = VK_NULL_HANDLE;
+  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to submit simplex init command buffer");
+  }
+
+  if (vkQueueWaitIdle(queue) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to wait for simplex init queue idle");
+  }
+
+  vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+  vkDestroyCommandPool(device, commandPool, nullptr);
+}
+
+void CreateWorldMappingPipeline(VkDevice device,
+    VkDescriptorSetLayout                     descriptorSetLayout,
+    VkPipelineLayout&                        pipelineLayout,
+    VkPipeline&                              pipeline)
+{
+  if (pipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    pipelineLayout = VK_NULL_HANDLE;
+  }
+
+  if (pipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, pipeline, nullptr);
+    pipeline = VK_NULL_HANDLE;
+  }
+
+  VkPushConstantRange pcRange{};
+  pcRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  pcRange.offset = 0;
+  pcRange.size = sizeof(UnitGPUSimplexNoise::WorldNoisePushConstants);
+
+  VkPipelineLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  layoutInfo.setLayoutCount = 1;
+  layoutInfo.pSetLayouts = &descriptorSetLayout;
+  layoutInfo.pushConstantRangeCount = 1;
+  layoutInfo.pPushConstantRanges = &pcRange;
+
+  if (vkCreatePipelineLayout(device, &layoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create pipeline layout for world mapping");
+  }
+
+  auto shaderCode = Providers::ShaderObject::Shader("world.noise.comp.spv");
+  auto shaderModule = Providers::ShaderObject::Module(device, shaderCode);
+
+  VkPipelineShaderStageCreateInfo stageInfo{};
+  stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  stageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  stageInfo.module = shaderModule.module;
+  stageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  pipelineInfo.stage = stageInfo;
+  pipelineInfo.layout = pipelineLayout;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    pipelineLayout = VK_NULL_HANDLE;
+    throw std::runtime_error("Failed to create compute pipeline for world mapping");
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
+}
+} // namespace
 
 void UnitGPUSimplexNoise::Create(
     VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed)
@@ -167,9 +338,8 @@ void UnitGPUSimplexNoise::Create(
 
   vkUpdateDescriptorSets(device, 3, initWrites, 0, nullptr);
 
-  // Dispatch init shader to populate permutation tables
-  // Note: This requires a command buffer, which should be provided by the caller
-  // For now, we'll mark as initialized and the caller should dispatch the init shader
+  DispatchInitShader(device, physicalDevice, initPipelineLayout, initPipeline,
+      descriptorSet, seed);
   isInitialized = true;
 }
 
@@ -212,6 +382,25 @@ void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
   noiseWrite.pBufferInfo = &noiseBufferInfo;
 
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
+
+  if (mappingDescriptorSet != VK_NULL_HANDLE)
+  {
+    VkDescriptorBufferInfo noiseInfo{};
+    noiseInfo.buffer = noiseBuffer;
+    noiseInfo.offset = 0;
+    noiseInfo.range = VK_WHOLE_SIZE;
+
+    VkWriteDescriptorSet mappingNoiseWrite{};
+    mappingNoiseWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    mappingNoiseWrite.dstSet = mappingDescriptorSet;
+    mappingNoiseWrite.dstBinding = 0;
+    mappingNoiseWrite.dstArrayElement = 0;
+    mappingNoiseWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    mappingNoiseWrite.descriptorCount = 1;
+    mappingNoiseWrite.pBufferInfo = &noiseInfo;
+
+    vkUpdateDescriptorSets(device, 1, &mappingNoiseWrite, 0, nullptr);
+  }
 }
 
 void UnitGPUSimplexNoise::CreateWorldOutputBuffers(VkDevice device,
@@ -257,6 +446,17 @@ void UnitGPUSimplexNoise::CreateWorldOutputBuffers(VkDevice device,
   Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, elevationBuffer, elevationBufferMemory);
+
+  if (mappingPipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, mappingPipeline, nullptr);
+    mappingPipeline = VK_NULL_HANDLE;
+  }
+  if (mappingPipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, mappingPipelineLayout, nullptr);
+    mappingPipelineLayout = VK_NULL_HANDLE;
+  }
 
   // Create descriptor pool and layout for mapping shader
   VkDescriptorPoolSize poolSizes[4] = {};
@@ -358,6 +558,9 @@ void UnitGPUSimplexNoise::CreateWorldOutputBuffers(VkDevice device,
   writes[3].pBufferInfo = &elevInfo;
 
   vkUpdateDescriptorSets(device, 4, writes, 0, nullptr);
+
+  CreateWorldMappingPipeline(device, mappingDescriptorSetLayout, mappingPipelineLayout,
+      mappingPipeline);
 }
 
 void UnitGPUSimplexNoise::GenNoise(VkDevice device,
@@ -460,53 +663,17 @@ void UnitGPUSimplexNoise::GenWorldNoise(VkDevice device,
     throw std::runtime_error("World mapping descriptor set not created");
   }
 
-  VkPushConstantRange pcRange{};
-  pcRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  pcRange.offset = 0;
-  pcRange.size = sizeof(WorldNoisePushConstants);
-
-  VkPipelineLayoutCreateInfo layoutInfo{};
-  layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  layoutInfo.setLayoutCount = 1;
-  layoutInfo.pSetLayouts = &mappingDescriptorSetLayout;
-  layoutInfo.pushConstantRangeCount = 1;
-  layoutInfo.pPushConstantRanges = &pcRange;
-
-  VkPipelineLayout localLayout;
-  if (vkCreatePipelineLayout(device, &layoutInfo, nullptr, &localLayout) != VK_SUCCESS)
+  if (mappingPipelineLayout == VK_NULL_HANDLE || mappingPipeline == VK_NULL_HANDLE)
   {
-    throw std::runtime_error("Failed to create pipeline layout for world mapping");
+    CreateWorldMappingPipeline(device, mappingDescriptorSetLayout, mappingPipelineLayout,
+        mappingPipeline);
   }
 
-  auto shaderCode = Providers::ShaderObject::Shader("world.noise.comp.spv");
-  auto shaderModule = Providers::ShaderObject::Module(device, shaderCode);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mappingPipeline);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+      mappingPipelineLayout, 0, 1, &mappingDescriptorSet, 0, nullptr);
 
-  VkPipelineShaderStageCreateInfo stageInfo{};
-  stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  stageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-  stageInfo.module = shaderModule.module;
-  stageInfo.pName = "main";
-
-  VkComputePipelineCreateInfo pipelineInfo{};
-  pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  pipelineInfo.stage = stageInfo;
-  pipelineInfo.layout = localLayout;
-
-  VkPipeline localPipeline;
-  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &localPipeline) != VK_SUCCESS)
-  {
-    Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
-    vkDestroyPipelineLayout(device, localLayout, nullptr);
-    throw std::runtime_error("Failed to create compute pipeline for world mapping");
-  }
-
-  Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
-
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, localPipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, localLayout, 0, 1,
-      &mappingDescriptorSet, 0, nullptr);
-
-  vkCmdPushConstants(commandBuffer, localLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+  vkCmdPushConstants(commandBuffer, mappingPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
       sizeof(WorldNoisePushConstants), &params);
 
   const uint32_t workgroupSize = 8;
@@ -535,9 +702,6 @@ void UnitGPUSimplexNoise::GenWorldNoise(VkDevice device,
 
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 3, barriers, 0, nullptr);
-
-  vkDestroyPipeline(device, localPipeline, nullptr);
-  vkDestroyPipelineLayout(device, localLayout, nullptr);
 }
 
 void UnitGPUSimplexNoise::Destroy(VkDevice device)

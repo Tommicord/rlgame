@@ -21,6 +21,9 @@ import <vulkan/vulkan.hpp>;
 import <glm/glm.hpp>;
 import <glm/gtc/type_ptr.hpp>;
 import <vector>;
+import Rl.World.Chunk.ChunkGPUNoiseGen;
+import Rl.World.Chunk.ChunkInRenderUnits;
+import Rl.World.Chunk.UnitGPUSimplexNoise;
 
 namespace Rl::Main
 {

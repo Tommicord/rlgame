@@ -112,6 +112,7 @@ set(CXX_MODULES
   rl/World/Chunk/ChunkErrorRecovery.ixx
   rl/World/Chunk/ChunkInRenderUnits.ixx
   rl/World/Chunk/ChunkThreadPool.ixx
+  rl/World/Chunk/ChunkSystem.ixx
   rl/World/Chunk/ChunkLogger.ixx
   rl/World/Chunk/ChunkTransaction.ixx
   rl/World/Chunk/ChunkTransactionRingBuffer.ixx
@@ -190,6 +191,7 @@ set(SOURCES
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitGPUSimplexNoise.cpp
   rl/World/Chunk/ChunkInRenderUnits.cpp
+  rl/World/Chunk/ChunkSystem.cpp
   rl/World/Chunk/ChunkErrorRecovery.cpp
   rl/World/Chunk/ChunkLogger.cpp
   rl/World/Chunk/ChunkThreadPool.cpp
@@ -304,6 +306,7 @@ add_executable(
   Tests/ChunkErrorRecoveryTest.cpp
   Tests/ChunkInRenderUnitsTest.cpp
   Tests/ChunkLoggerTest.cpp
+  Tests/ChunkSystemTest.cpp
   Tests/ChunkThreadPoolTest.cpp
   Tests/ChunkTransactionRingBufferTest.cpp
   Tests/ChunkTransactionTest.cpp
