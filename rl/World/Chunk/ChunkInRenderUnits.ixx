@@ -93,11 +93,9 @@ export class ChunkInRenderUnits
   bool IsInitialized() const;
 
   /* Add a chunk to the render distance with validation */
-  [[nodiscard]]
   bool AddChunk(const WorldChunkCoord& coord, UnitChunkBuffer& chunkBuffer);
 
   /* Remove a chunk from the render distance safely */
-  [[nodiscard]]
   bool RemoveChunk(const WorldChunkCoord& coord);
 
   /* Get chunk buffer at world coordinates with bounds checking */

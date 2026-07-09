@@ -47,10 +47,10 @@ export class UnitGPUSimplexNoise
 
   /* Create output buffers (temperature, moisture, elevation) for world mapping */
   void CreateWorldOutputBuffers(VkDevice device,
-      VkPhysicalDevice            physicalDevice,
-      uint32_t                    width,
-      uint32_t                    height,
-      uint32_t                    depth);
+      VkPhysicalDevice                   physicalDevice,
+      uint32_t                           width,
+      uint32_t                           height,
+      uint32_t                           depth);
 
   /* Push constants for world mapping shader */
   struct WorldNoisePushConstants
@@ -68,15 +68,27 @@ export class UnitGPUSimplexNoise
     float    _pad0;
   };
 
+  /* Push constants for the Simplex noise generation */
+  struct WorldNoisePushConstantArray
+  {
+    std::vector<WorldNoisePushConstants> data{};
+  };
+
   /* Generate temperature/moisture/elevation from the existing noise buffer */
-  void GenWorldNoise(VkDevice device,
-      VkCommandBuffer                         commandBuffer,
-      const WorldNoisePushConstants&         params) const;
+  void GenWorldNoise(VkDevice        device,
+      VkCommandBuffer                commandBuffer,
+      const WorldNoisePushConstants& params) const;
 
   /* Getters for world output buffers */
-  VkBuffer GetTemperatureBuffer() const { return temperatureBuffer; }
-  VkBuffer GetMoistureBuffer() const { return moistureBuffer; }
-  VkBuffer GetElevationBuffer() const { return elevationBuffer; }
+  [[nodiscard]]
+  VkBuffer GetTemperatureBuffer() const
+  { return temperatureBuffer; }
+  [[nodiscard]]
+  VkBuffer GetMoistureBuffer() const
+  { return moistureBuffer; }
+  [[nodiscard]]
+  VkBuffer GetElevationBuffer() const
+  { return elevationBuffer; }
 
   /* Generates noise for a chunk using a GPU compute shader */
   void GenNoise(VkDevice               device,
@@ -84,8 +96,10 @@ export class UnitGPUSimplexNoise
       const SimplexNoisePushConstants& params) const;
 
   /* Gets the noise buffer for reading results */
+  [[nodiscard]]
   VkBuffer GetNoiseBuffer() const
   { return noiseBuffer; }
+  [[nodiscard]]
   VkDeviceMemory GetNoiseBufferMemory() const
   { return noiseBufferMemory; }
 
@@ -140,20 +154,20 @@ export class UnitGPUSimplexNoise
   /* The output noise buffer depth */
   uint32_t noiseDepth = 0;
 
-  VkBuffer temperatureBuffer = VK_NULL_HANDLE;
+  VkBuffer       temperatureBuffer = VK_NULL_HANDLE;
   VkDeviceMemory temperatureBufferMemory = VK_NULL_HANDLE;
 
-  VkBuffer moistureBuffer = VK_NULL_HANDLE;
+  VkBuffer       moistureBuffer = VK_NULL_HANDLE;
   VkDeviceMemory moistureBufferMemory = VK_NULL_HANDLE;
 
-  VkBuffer elevationBuffer = VK_NULL_HANDLE;
+  VkBuffer       elevationBuffer = VK_NULL_HANDLE;
   VkDeviceMemory elevationBufferMemory = VK_NULL_HANDLE;
 
-  VkDescriptorPool mappingDescriptorPool = VK_NULL_HANDLE;
+  VkDescriptorPool      mappingDescriptorPool = VK_NULL_HANDLE;
   VkDescriptorSetLayout mappingDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSet mappingDescriptorSet = VK_NULL_HANDLE;
+  VkDescriptorSet       mappingDescriptorSet = VK_NULL_HANDLE;
 
-  VkPipeline mappingPipeline = VK_NULL_HANDLE;
+  VkPipeline       mappingPipeline = VK_NULL_HANDLE;
   VkPipelineLayout mappingPipelineLayout = VK_NULL_HANDLE;
 
   /* Describe if initialized */

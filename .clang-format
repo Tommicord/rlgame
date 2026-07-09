@@ -1,11 +1,14 @@
 Language: Cpp
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
-AlignConsecutiveAssignments: false
+AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-AlignAfterOpenBracket: DontAlign
+AlignConsecutiveTableGenDefinitionColons: true
+AlignAfterOpenBracket: true
 AlignOperands: true
 AlignTrailingComments: false
+AlignConsecutiveBitFields: true
+AlignConsecutiveMacros: true
 AllowShortBlocksOnASingleLine: Always
 AllowBreakBeforeNoexceptSpecifier: Always
 AlwaysBreakTemplateDeclarations: Yes

@@ -107,6 +107,7 @@ set(CXX_MODULES
   rl/Client/Render/Unit/UnitRendererVertices.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
   rl/World/Chunk/UnitGPUSimplexNoise.ixx
+  rl/World/Chunk/ChunkGPUNoiseGen.ixx
   rl/World/Chunk/UnitChunkBufferFBM.ixx
   rl/World/Chunk/ChunkErrorRecovery.ixx
   rl/World/Chunk/ChunkInRenderUnits.ixx
