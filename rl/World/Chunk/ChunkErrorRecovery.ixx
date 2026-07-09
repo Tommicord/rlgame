@@ -113,6 +113,7 @@ export class TransactionRetryHandler
       catch (...)
       {
         attempt++;
+        totalRetries.fetch_add(1, std::memory_order_release);
         if (attempt >= config.maxRetryAttempts)
         {
           throw; // Re-throw on final attempt

@@ -214,6 +214,152 @@ void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
   vkUpdateDescriptorSets(device, 1, &noiseWrite, 0, nullptr);
 }
 
+void UnitGPUSimplexNoise::CreateWorldOutputBuffers(VkDevice device,
+    VkPhysicalDevice                                 physicalDevice,
+    uint32_t                                         width,
+    uint32_t                                         height,
+    uint32_t                                         depth)
+{
+  // Destroy existing outputs if any
+  if (temperatureBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, temperatureBuffer, nullptr);
+    vkFreeMemory(device, temperatureBufferMemory, nullptr);
+    temperatureBuffer = VK_NULL_HANDLE;
+    temperatureBufferMemory = VK_NULL_HANDLE;
+  }
+  if (moistureBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, moistureBuffer, nullptr);
+    vkFreeMemory(device, moistureBufferMemory, nullptr);
+    moistureBuffer = VK_NULL_HANDLE;
+    moistureBufferMemory = VK_NULL_HANDLE;
+  }
+  if (elevationBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, elevationBuffer, nullptr);
+    vkFreeMemory(device, elevationBufferMemory, nullptr);
+    elevationBuffer = VK_NULL_HANDLE;
+    elevationBufferMemory = VK_NULL_HANDLE;
+  }
+
+  const uint32_t totalElements = width * height * depth;
+  const VkDeviceSize bufferSize = totalElements * sizeof(float);
+
+  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, temperatureBuffer, temperatureBufferMemory);
+
+  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, moistureBuffer, moistureBufferMemory);
+
+  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, elevationBuffer, elevationBufferMemory);
+
+  // Create descriptor pool and layout for mapping shader
+  VkDescriptorPoolSize poolSizes[4] = {};
+  for (int i = 0; i < 4; ++i)
+  {
+    poolSizes[i].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    poolSizes[i].descriptorCount = 1;
+  }
+
+  VkDescriptorPoolCreateInfo poolInfo{};
+  poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.poolSizeCount = 4;
+  poolInfo.pPoolSizes = poolSizes;
+  poolInfo.maxSets = 1;
+
+  if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &mappingDescriptorPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create descriptor pool for world mapping");
+  }
+
+  // descriptor set layout: binding 0 = noise input, 1=temp,2=moist,3=elev
+  VkDescriptorSetLayoutBinding bindings[4] = {};
+  for (uint32_t i = 0; i < 4; ++i)
+  {
+    bindings[i].binding = i;
+    bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    bindings[i].descriptorCount = 1;
+    bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  }
+
+  VkDescriptorSetLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.bindingCount = 4;
+  layoutInfo.pBindings = bindings;
+
+  if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &mappingDescriptorSetLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create descriptor set layout for world mapping");
+  }
+
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = mappingDescriptorPool;
+  allocInfo.descriptorSetCount = 1;
+  allocInfo.pSetLayouts = &mappingDescriptorSetLayout;
+
+  if (vkAllocateDescriptorSets(device, &allocInfo, &mappingDescriptorSet) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to allocate descriptor set for world mapping");
+  }
+
+  VkDescriptorBufferInfo noiseInfo{};
+  noiseInfo.buffer = noiseBuffer;
+  noiseInfo.offset = 0;
+  noiseInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo tempInfo{};
+  tempInfo.buffer = temperatureBuffer;
+  tempInfo.offset = 0;
+  tempInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo moistInfo{};
+  moistInfo.buffer = moistureBuffer;
+  moistInfo.offset = 0;
+  moistInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo elevInfo{};
+  elevInfo.buffer = elevationBuffer;
+  elevInfo.offset = 0;
+  elevInfo.range = VK_WHOLE_SIZE;
+
+  VkWriteDescriptorSet writes[4] = {};
+  writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[0].dstSet = mappingDescriptorSet;
+  writes[0].dstBinding = 0;
+  writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[0].descriptorCount = 1;
+  writes[0].pBufferInfo = &noiseInfo;
+
+  writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[1].dstSet = mappingDescriptorSet;
+  writes[1].dstBinding = 1;
+  writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[1].descriptorCount = 1;
+  writes[1].pBufferInfo = &tempInfo;
+
+  writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[2].dstSet = mappingDescriptorSet;
+  writes[2].dstBinding = 2;
+  writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[2].descriptorCount = 1;
+  writes[2].pBufferInfo = &moistInfo;
+
+  writes[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[3].dstSet = mappingDescriptorSet;
+  writes[3].dstBinding = 3;
+  writes[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[3].descriptorCount = 1;
+  writes[3].pBufferInfo = &elevInfo;
+
+  vkUpdateDescriptorSets(device, 4, writes, 0, nullptr);
+}
+
 void UnitGPUSimplexNoise::GenNoise(VkDevice device,
     VkCommandBuffer                         commandBuffer,
     const SimplexNoisePushConstants&        params) const
@@ -300,6 +446,100 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
   vkDestroyPipelineLayout(device, genPipelineLayout, nullptr);
 }
 
+void UnitGPUSimplexNoise::GenWorldNoise(VkDevice device,
+    VkCommandBuffer                         commandBuffer,
+    const WorldNoisePushConstants&         params) const
+{
+  if (noiseBuffer == VK_NULL_HANDLE)
+  {
+    throw std::runtime_error("Noise buffer not created for world mapping");
+  }
+
+  if (mappingDescriptorSetLayout == VK_NULL_HANDLE)
+  {
+    throw std::runtime_error("World mapping descriptor set not created");
+  }
+
+  VkPushConstantRange pcRange{};
+  pcRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  pcRange.offset = 0;
+  pcRange.size = sizeof(WorldNoisePushConstants);
+
+  VkPipelineLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  layoutInfo.setLayoutCount = 1;
+  layoutInfo.pSetLayouts = &mappingDescriptorSetLayout;
+  layoutInfo.pushConstantRangeCount = 1;
+  layoutInfo.pPushConstantRanges = &pcRange;
+
+  VkPipelineLayout localLayout;
+  if (vkCreatePipelineLayout(device, &layoutInfo, nullptr, &localLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create pipeline layout for world mapping");
+  }
+
+  auto shaderCode = Providers::ShaderObject::Shader("world.noise.comp.spv");
+  auto shaderModule = Providers::ShaderObject::Module(device, shaderCode);
+
+  VkPipelineShaderStageCreateInfo stageInfo{};
+  stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  stageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  stageInfo.module = shaderModule.module;
+  stageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  pipelineInfo.stage = stageInfo;
+  pipelineInfo.layout = localLayout;
+
+  VkPipeline localPipeline;
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &localPipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
+    vkDestroyPipelineLayout(device, localLayout, nullptr);
+    throw std::runtime_error("Failed to create compute pipeline for world mapping");
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, shaderModule);
+
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, localPipeline);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, localLayout, 0, 1,
+      &mappingDescriptorSet, 0, nullptr);
+
+  vkCmdPushConstants(commandBuffer, localLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+      sizeof(WorldNoisePushConstants), &params);
+
+  const uint32_t workgroupSize = 8;
+  uint32_t workgroupsX = (params.width + workgroupSize - 1) / workgroupSize;
+  uint32_t workgroupsY = (params.height + workgroupSize - 1) / workgroupSize;
+  uint32_t workgroupsZ = (params.depth + workgroupSize - 1) / workgroupSize;
+
+  vkCmdDispatch(commandBuffer, workgroupsX, workgroupsY, workgroupsZ);
+
+  // Barrier to ensure shader writes are visible for transfer/read operations
+  VkBufferMemoryBarrier barriers[3] = {};
+  barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+  barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+  barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barriers[0].buffer = temperatureBuffer;
+  barriers[0].offset = 0;
+  barriers[0].size = VK_WHOLE_SIZE;
+
+  barriers[1] = barriers[0];
+  barriers[1].buffer = moistureBuffer;
+
+  barriers[2] = barriers[0];
+  barriers[2].buffer = elevationBuffer;
+
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 3, barriers, 0, nullptr);
+
+  vkDestroyPipeline(device, localPipeline, nullptr);
+  vkDestroyPipelineLayout(device, localLayout, nullptr);
+}
+
 void UnitGPUSimplexNoise::Destroy(VkDevice device)
 {
   if (noiseBuffer != VK_NULL_HANDLE)
@@ -360,6 +600,52 @@ void UnitGPUSimplexNoise::Destroy(VkDevice device)
   {
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
     descriptorPool = VK_NULL_HANDLE;
+  }
+  // mapping outputs cleanup
+  if (temperatureBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, temperatureBuffer, nullptr);
+    vkFreeMemory(device, temperatureBufferMemory, nullptr);
+    temperatureBuffer = VK_NULL_HANDLE;
+    temperatureBufferMemory = VK_NULL_HANDLE;
+  }
+  if (moistureBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, moistureBuffer, nullptr);
+    vkFreeMemory(device, moistureBufferMemory, nullptr);
+    moistureBuffer = VK_NULL_HANDLE;
+    moistureBufferMemory = VK_NULL_HANDLE;
+  }
+  if (elevationBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, elevationBuffer, nullptr);
+    vkFreeMemory(device, elevationBufferMemory, nullptr);
+    elevationBuffer = VK_NULL_HANDLE;
+    elevationBufferMemory = VK_NULL_HANDLE;
+  }
+
+  if (mappingPipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, mappingPipeline, nullptr);
+    mappingPipeline = VK_NULL_HANDLE;
+  }
+
+  if (mappingPipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, mappingPipelineLayout, nullptr);
+    mappingPipelineLayout = VK_NULL_HANDLE;
+  }
+
+  if (mappingDescriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(device, mappingDescriptorSetLayout, nullptr);
+    mappingDescriptorSetLayout = VK_NULL_HANDLE;
+  }
+
+  if (mappingDescriptorPool != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorPool(device, mappingDescriptorPool, nullptr);
+    mappingDescriptorPool = VK_NULL_HANDLE;
   }
   isInitialized = false;
 }

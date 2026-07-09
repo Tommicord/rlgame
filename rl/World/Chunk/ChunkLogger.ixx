@@ -14,7 +14,7 @@ namespace Rl::World::Chunk
 {
 
 /* Log severity levels - using RayLog's levels */
-using LogLevel = Rl::RayLog::RayLogLevel;
+export using LogLevel = Rl::RayLog::RayLogLevel;
 
 /* Log entry structure - wraps RayLogMessage with chunk coordinates */
 export struct LogEntry

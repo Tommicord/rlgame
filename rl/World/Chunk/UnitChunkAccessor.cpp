@@ -84,9 +84,17 @@ TransactionResult UnitChunkAccessor::WriteBelow(uint32_t newUnitId)
 bool UnitChunkAccessor::IsRelativePositionValid(const RelativeOffset& offset) const
 {
   UnitPosition absolutePos = GetAbsolutePosition(offset);
+  const auto& [x, y, z] = absolutePos;
 
-  // This is a basic check, the actual chunk system will do more thorough validation
-  if (absolutePos.worldY < 0) // Below world bottom
+  if (y > MAXY || y < MINY)
+    return false;
+
+  WorldChunkCoord chunkCoord{};
+  int32_t localX, localY, localZ;
+  if (!WorldToChunkLocal(absolutePos, chunkCoord, localX, localY, localZ))
+    return false;
+
+  if (!chunkSystem.IsInRenderDistance(chunkCoord))
     return false;
 
   return true;

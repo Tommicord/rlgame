@@ -27,6 +27,10 @@ UnitDynamicTexture::UnitDynamicTexture(
 
 std::vector<float> UnitDynamicTexture::GenNoiseValMap(const float scale) const
 {
+  if (!baseTexture->IsLoaded() || !baseTexture->GetData())
+  {
+    return {};
+  }
   std::vector<float> map;
   int                width = baseTexture->GetWidth();
   int                height = baseTexture->GetHeight();
@@ -135,6 +139,10 @@ std::vector<float> UnitDynamicTexture::GenNoiseValMap(const float scale) const
 
 std::vector<int> UnitDynamicTexture::GetTargetColorMap() const
 {
+  if (!baseTexture->IsLoaded() || !baseTexture->GetData())
+  {
+    return {};
+  }
   std::vector<int> clMap;
   uint8_t*         data = baseTexture->GetData();
   int              width = baseTexture->GetWidth();
@@ -269,25 +277,24 @@ void UnitDynamicTexture::ApplyNoiseVar(uint8_t& r,
   {
     __m128 noiseVec = _mm_loadu_ps(&noiseMap[index]);
     __m128 halfVec = _mm_set1_ps(0.5f);
-    __m128 twoVec = _mm_set1_ps(2.0f);
     __m128 colorVarVec = _mm_set1_ps(options.colorVar * 255.0f);
 
-    // Calculate variation: (noise - 0.5) * 2.0 * colorVar * 255.0
-    __m128 variation = _mm_sub_ps(noiseVec, halfVec);
-    variation = _mm_mul_ps(variation, twoVec);
-    variation = _mm_mul_ps(variation, colorVarVec);
+    // Bias noise from [-1,1] into [0,1] so the overall effect brightens the image.
+    __m128 adjustedNoise = _mm_add_ps(_mm_mul_ps(noiseVec, halfVec), halfVec);
+    __m128 variation = _mm_mul_ps(adjustedNoise, colorVarVec);
 
-    // Apply to RGB values
-    __m128 rgb = _mm_set_ps(0, b, g, r);
+    // Apply to RGB values in natural order.
+    __m128 rgb = _mm_setr_ps(static_cast<float>(r), static_cast<float>(g),
+        static_cast<float>(b), 0.0f);
     rgb = _mm_add_ps(rgb, variation);
-    rgb = _mm_max_ps(rgb, _mm_setzero_ps());
+    rgb = _mm_max_ps(rgb, _mm_set1_ps(0.0f));
     rgb = _mm_min_ps(rgb, _mm_set1_ps(255.0f));
 
     float result[4];
     _mm_storeu_ps(result, rgb);
-    r = static_cast<uint8_t>(result[3]);
-    g = static_cast<uint8_t>(result[2]);
-    b = static_cast<uint8_t>(result[1]);
+    r = static_cast<uint8_t>(result[0]);
+    g = static_cast<uint8_t>(result[1]);
+    b = static_cast<uint8_t>(result[2]);
     return;
   }
 #elif defined(ARM_)
@@ -296,13 +303,11 @@ void UnitDynamicTexture::ApplyNoiseVar(uint8_t& r,
   {
     float32x4_t noiseVec = vld1q_f32(&noiseMap[index]);
     float32x4_t halfVec = vdupq_n_f32(0.5f);
-    float32x4_t twoVec = vdupq_n_f32(2.0f);
     float32x4_t colorVarVec = vdupq_n_f32(options.colorVar * 255.0f);
 
-    // Calculate variation: (noise - 0.5) * 2.0 * colorVar * 255.0
-    float32x4_t variation = vsubq_f32(noiseVec, halfVec);
-    variation = vmulq_f32(variation, twoVec);
-    variation = vmulq_f32(variation, colorVarVec);
+    // Bias noise from [-1,1] into [0,1] so the overall effect brightens the image.
+    float32x4_t adjustedNoise = vaddq_f32(vmulq_f32(noiseVec, halfVec), halfVec);
+    float32x4_t variation = vmulq_f32(adjustedNoise, colorVarVec);
 
     // Apply to RGB values
     float32x4_t rgb =
@@ -324,9 +329,8 @@ void UnitDynamicTexture::ApplyNoiseVar(uint8_t& r,
   if (index < noiseMap.size())
   {
     const float noise = noiseMap[index];
-    // Use symmetric noise variation around 0 to preserve overall brightness
-    const float variation = (noise - 0.5f) * 2.0f * options.colorVar * 255.0f;
-    // Apply variation symmetrically to avoid darkening bias
+    // Bias noise from [-1,1] into [0,1] so the overall effect brightens the image
+    const float variation = (noise * 0.5f + 0.5f) * options.colorVar * 255.0f;
     r = ClampNoiseVar(r, variation);
     g = ClampNoiseVar(g, variation);
     b = ClampNoiseVar(b, variation);
@@ -358,9 +362,9 @@ void UnitDynamicTexture::BlendsBaseColorWithPalette(
 
     float res[4];
     _mm_storeu_ps(res, result);
-    r = static_cast<uint8_t>(res[3]);
-    g = static_cast<uint8_t>(res[2]);
-    b = static_cast<uint8_t>(res[1]);
+    r = static_cast<uint8_t>(res[0]);
+    g = static_cast<uint8_t>(res[1]);
+    b = static_cast<uint8_t>(res[2]);
     return;
   }
 #elif defined(ARM_)

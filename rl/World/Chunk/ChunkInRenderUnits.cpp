@@ -230,23 +230,17 @@ UnitChunkBuffer* ChunkInRenderUnits::GetChunkBuffer(const WorldChunkCoord& coord
 {
   if (!initialized.load())
     return nullptr;
-
   if (shuttingDown.load())
     return nullptr;
-
   if (!IsInRenderDistance(coord))
     return nullptr;
 
   uint32_t index = WorldCoordToIndex(coord);
-
   if (index >= totalChunks)
     return nullptr;
-
   std::scoped_lock lock(chunkMutex);
-
   if (!chunkActive[index].load(std::memory_order_acquire))
     return nullptr;
-
   return &chunkBuffers[index];
 }
 
@@ -352,7 +346,6 @@ TransactionResult ChunkInRenderUnits::WriteUnitId(const WorldChunkCoord& coord,
     return TransactionResult::Error(
         "Failed to enqueue transaction", ValidationResult::VALID);
   }
-
   return TransactionResult::Ok(newUnitId, sequence);
 }
 
@@ -395,7 +388,7 @@ bool ChunkInRenderUnits::ProcessTransactions()
         buffer[index] = static_cast<int>(transaction.newUnitId);
 
         // Add delta for GPU synchronization
-        ChunkDelta delta;
+        ChunkDelta delta{};
         delta.chunkIndex = transaction.chunkIndex;
         delta.localX = transaction.localX;
         delta.localY = transaction.localY;
@@ -474,7 +467,7 @@ uint32_t ChunkInRenderUnits::GetPendingTransactionCount() const
 
 ChunkSystemStats ChunkInRenderUnits::GetSystemStats() const
 {
-  ChunkSystemStats stats;
+  ChunkSystemStats stats{};
   stats.activeChunks = GetChunkCount();
   stats.totalChunkSlots = totalChunks;
   stats.pendingTransactions = transactionBuffer.Size();
@@ -552,10 +545,10 @@ uint32_t ChunkInRenderUnits::WorldCoordToIndex(const WorldChunkCoord& coord) con
 
 WorldChunkCoord ChunkInRenderUnits::IndexToWorldCoord(uint32_t index) const
 {
-  WorldChunkCoord coord;
+  WorldChunkCoord coord{};
   coord.chunkX = index % renderDistanceX;
   coord.chunkY = (index / renderDistanceX) % renderDistanceY;
-  coord.chunkZ = index / (renderDistanceX * renderDistanceY);
+  coord.chunkZ = (index / (renderDistanceX) * renderDistanceY);
   return coord;
 }
 

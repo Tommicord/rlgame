@@ -22,11 +22,11 @@ export class AbstractUnitDynamicTexture
   struct DynamicOptions
   {
     /* Stores the noise scale */
-    float noiseSc = 0.2f;
+    float noiseSc = 0.025f;
     /* Stores the color variation */
-    float colorVar = 0.05f;
+    float colorVar = 8.0f;
     /* Stores the palette blend ratio (0.0 = no blending, 1.0 = full blend) */
-    float paletteBlend = 0.3f;
+    float paletteBlend = 0.05f;
   };
   /* Describes a 64-bit seed value for the randomize texture process */
   using Seed = long long;
@@ -38,7 +38,7 @@ export class AbstractUnitDynamicTexture
 export class UnitDynamicTexture : public AbstractUnitDynamicTexture
 {
   /* Stores the color frequency map */
-  std::map<uint32_t, int> clFreqMap;
+  std::map<uint32_t, int> freqMap;
 
   public:
   /* Options for randomizing the texture adding noise */

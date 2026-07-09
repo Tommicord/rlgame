@@ -10,7 +10,6 @@ import Rl.Player.PlayerProvider;
 import Rl.Player.IPlayer;
 import Rl.Client.Render.Unit.UnitRendererShadowMap;
 
-
 import <cstdint>;
 import <memory>;
 import <string>;

@@ -66,22 +66,22 @@ void ChunkLogger::Log(
   switch (level)
   {
   case RayLog::RayLogLevel::Trace:
-    Rl::RayLog::LogTrace(category, "{}", message);
+    Rl::RayLog::LogTrace(category, "%s", message);
     break;
   case RayLog::RayLogLevel::Debug:
-    Rl::RayLog::LogDebug(category, "{}", message);
+    Rl::RayLog::LogDebug(category, "%s", message);
     break;
   case RayLog::RayLogLevel::Info:
-    Rl::RayLog::LogInfo(category, "{}", message);
+    Rl::RayLog::LogInfo(category, "%s", message);
     break;
   case RayLog::RayLogLevel::Warning:
-    Rl::RayLog::LogWarning(category, "{}", message);
+    Rl::RayLog::LogWarning(category, "%s", message);
     break;
   case RayLog::RayLogLevel::Error:
-    Rl::RayLog::LogError(category, "{}", message);
+    Rl::RayLog::LogError(category, "%s", message);
     break;
   case RayLog::RayLogLevel::Fatal:
-    Rl::RayLog::LogFatal(category, "{}", message);
+    Rl::RayLog::LogFatal(category, "%s", message);
     break;
   }
 
@@ -110,7 +110,7 @@ void ChunkLogger::LogChunk(RayLog::RayLogLevel level,
   if (!enabled.load(std::memory_order_acquire))
     return;
   const std::string chunkMsg = std::format(
-      "[Chunk {} @ ({},{},{})] {}", chunkIndex, localX, localY, localZ, message);
+      "[Chunk {} @({}, {}, {})] %s", chunkIndex, localX, localY, localZ, message);
   switch (level)
   {
   case RayLog::RayLogLevel::Trace:

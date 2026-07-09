@@ -14,19 +14,22 @@ class UnitDynamicTextureTest : public ::testing::Test
   void SetUp() override
   {
     testTexture = new Texture2();
-    bool loaded = testTexture->FromResource("rl.unit.UnitDeepMantle");
-    ASSERT_TRUE(loaded) << "Failed to load test texture data";
-
-    options.noiseSc  = 0.1f;
-    options.colorVar = 0.15f;
-    testSeed         = 12345;
-    generator        = new UnitDynamicTexture(*testTexture, testSeed, options);
+    bool loaded = testTexture->FromResource("rl.unit.UnitLowDirt");
+    if (!loaded)
+    {
+      FAIL();
+    }
+    options.noiseSc = 0.1f;
+    options.colorVar = 0.25f;
+    options.paletteBlend = 0.4f;
+    testSeed = 12345;
+    generator = new UnitDynamicTexture(*testTexture, testSeed, options);
   }
 
   void TearDown() override
   {
-    delete generator;
     delete testTexture;
+    delete generator;
   }
   Texture2*                          testTexture;
   UnitDynamicTexture::DynamicOptions options;
@@ -92,12 +95,12 @@ TEST_F(UnitDynamicTextureTest, GetTargetColorMapCorrectSize)
 {
   auto colorMap = generator->GetTargetColorMap();
   // Calculate expected size based on actual texture dimensions
-  int width = testTexture->GetWidth();
-  int height = testTexture->GetHeight();
+  int           width = testTexture->GetWidth();
+  int           height = testTexture->GetHeight();
   constexpr int blockSize = 4; // Must match implementation in UnitDynamicTexture.cpp
-  int blocksX = (width + blockSize - 1) / blockSize;
-  int blocksY = (height + blockSize - 1) / blockSize;
-  int expectedSize = blocksX * blocksY;
+  int           blocksX = (width + blockSize - 1) / blockSize;
+  int           blocksY = (height + blockSize - 1) / blockSize;
+  int           expectedSize = blocksX * blocksY;
   EXPECT_EQ(colorMap.size(), expectedSize);
 }
 
@@ -190,7 +193,7 @@ TEST(UnitDynamicTextureEdgeCases, ZeroNoiseScale)
   testTexture.FromData(testData, 8, 8, Texture2Format::RGB8, Texture2Properties());
 
   UnitDynamicTexture::DynamicOptions options;
-  options.noiseSc  = 0.0f;
+  options.noiseSc = 0.0f;
   options.colorVar = 0.0f;
 
   UnitDynamicTexture generator(testTexture, 12345, options);
@@ -208,7 +211,7 @@ TEST(UnitDynamicTextureEdgeCases, MaximumVariation)
   testTexture.FromData(testData, 8, 8, Texture2Format::RGB8, Texture2Properties());
 
   UnitDynamicTexture::DynamicOptions options;
-  options.noiseSc  = 1.0f;
+  options.noiseSc = 1.0f;
   options.colorVar = 1.0f;
 
   UnitDynamicTexture generator(testTexture, 12345, options);

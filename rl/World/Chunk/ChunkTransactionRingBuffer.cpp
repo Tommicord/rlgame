@@ -13,18 +13,21 @@ ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(const uint32_t capacity) 
     capacity(capacity), head(0), tail(0), totalPushes(0), totalPops(0), failedPushes(0),
     failedPops(0), peakSize(0), overflows(0)
 {
-  if (!IsValidCapacity(capacity))
+  uint32_t actualCapacity = capacity;
+  if (!IsValidCapacity(actualCapacity))
   {
     // Round up to next power of 2 for better performance
     uint32_t adjustedCapacity = 1;
-    while (adjustedCapacity < capacity)
+    while (adjustedCapacity < actualCapacity)
     {
       adjustedCapacity <<= 1;
     }
-    const_cast<uint32_t&>(capacity) = adjustedCapacity;
+    actualCapacity = adjustedCapacity;
+    this->capacity = actualCapacity;
   }
 
-  buffer = std::make_unique<ChunkTransaction[]>(capacity);
+  bufferSize = actualCapacity + 1;
+  buffer = std::make_unique<ChunkTransaction[]>(bufferSize);
 }
 
 ChunkTransactionRingBuffer::~ChunkTransactionRingBuffer()
@@ -32,13 +35,14 @@ ChunkTransactionRingBuffer::~ChunkTransactionRingBuffer()
 
 ChunkTransactionRingBuffer::ChunkTransactionRingBuffer(
     ChunkTransactionRingBuffer&& other) noexcept :
-    buffer(std::move(other.buffer)), capacity(other.capacity), head(other.head.load()),
-    tail(other.tail.load()), totalPushes(other.totalPushes.load()),
-    totalPops(other.totalPops.load()), failedPushes(other.failedPushes.load()),
-    failedPops(other.failedPops.load()), peakSize(other.peakSize.load()),
-    overflows(other.overflows.load())
+    buffer(std::move(other.buffer)), capacity(other.capacity), bufferSize(other.bufferSize),
+    head(other.head.load()), tail(other.tail.load()),
+    totalPushes(other.totalPushes.load()), totalPops(other.totalPops.load()),
+    failedPushes(other.failedPushes.load()), failedPops(other.failedPops.load()),
+    peakSize(other.peakSize.load()), overflows(other.overflows.load())
 {
   other.capacity = 0;
+  other.bufferSize = 0;
   other.head.store(0);
   other.tail.store(0);
   other.totalPushes.store(0);
@@ -57,6 +61,7 @@ ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(
     buffer.reset();
     buffer = std::move(other.buffer);
     capacity = other.capacity;
+    bufferSize = other.bufferSize;
     head.store(other.head.load());
     tail.store(other.tail.load());
     totalPushes.store(other.totalPushes.load());
@@ -67,6 +72,7 @@ ChunkTransactionRingBuffer& ChunkTransactionRingBuffer::operator=(
     overflows.store(other.overflows.load());
 
     other.capacity = 0;
+    other.bufferSize = 0;
     other.head.store(0);
     other.tail.store(0);
     other.totalPushes.store(0);
@@ -150,14 +156,19 @@ bool ChunkTransactionRingBuffer::PopWithTimeout(
 
   while (true)
   {
-    if (Pop(transaction))
+    const uint32_t currentTail = tail.load(std::memory_order_acquire);
+    if (currentTail != head.load(std::memory_order_acquire))
     {
+      transaction = std::move(buffer[currentTail]);
+      tail.store(NextIndex(currentTail), std::memory_order_release);
+      totalPops.fetch_add(1, std::memory_order_release);
       return true;
     }
 
     const auto elapsed = std::chrono::steady_clock::now() - startTime;
     if (elapsed >= timeoutDuration)
     {
+      failedPops.fetch_add(1, std::memory_order_release);
       return false;
     }
 
@@ -185,7 +196,7 @@ uint32_t ChunkTransactionRingBuffer::Size() const
   }
   else
   {
-    return capacity - currentTail + currentHead;
+    return bufferSize - currentTail + currentHead;
   }
 }
 

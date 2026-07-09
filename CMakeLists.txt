@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
-set(CMAKE_CXX_MODULE_STD ON)
 
 # Platform-specific defines for Vulkan
 if (WIN32)
@@ -32,23 +31,6 @@ find_package(Vulkan REQUIRED COMPONENTS glslc)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-function(target_add_header_units TARGET)
-  set(_headers ${ARGN})
-  foreach (H IN LISTS _headers)
-    if (IS_ABSOLUTE "${H}")
-      set(HEADER_PATH "${H}")
-    else ()
-      set(HEADER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${H}")
-    endif ()
-    target_sources(
-      ${TARGET}
-      PRIVATE FILE_SET
-      HEADERS FILES
-      "${HEADER_PATH}"
-    )
-  endforeach ()
-endfunction()
-
 function(target_configure TARGET)
   if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -56,17 +38,16 @@ function(target_configure TARGET)
     endif ()
   elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-      target_compile_options(${TARGET} PRIVATE -msse4.2 -mavx2)
+      target_compile_options(${TARGET} PRIVATE -msse4.2 -mavx2 -std=c++20 -fmodules-ts)
     elseif (MSVC)
       target_compile_options(
         ${TARGET}
         PRIVATE
-        "/experimental:module"
+        "/Zc:__cplusplus"
         "/Zc:preprocessor"
         "/arch:AVX2"
-        "/Zm200"
-        "/MP2"
-        "/FS"
+        "/MP" "/Zm200" "/FS"
+        "/std:c++20"
       )
     endif ()
   endif ()
@@ -96,6 +77,7 @@ set(CXX_MODULES
   rl/World/Unit/UnitRegistry.ixx
   rl/World/Unit/UnitResourceName.ixx
   rl/World/Unit/UnitGrass.ixx
+  rl/World/Unit/UnitMantle.ixx
   rl/World/Unit/UnitAir.ixx
   rl/World/Unit/UnitDynamicTexture.ixx
   rl/World/Unit/UnitPropertyStrategy.ixx
@@ -224,13 +206,14 @@ set(SOURCES
 add_subdirectory(Deps/glfw)
 add_subdirectory(Deps/glm)
 add_subdirectory(Deps/gtest)
+include(GoogleTest)
 
 add_executable(rlgame rl/Base/Main.cpp ${SOURCES})
 
 target_sources(
   rlgame
   PUBLIC
-    FILE_SET CXX_MODULES
+  FILE_SET CXX_MODULES
   FILES ${CXX_MODULES}
 )
 target_include_directories(
@@ -317,6 +300,13 @@ add_executable(
   Tests/RayLogLevelPrinterTest.cpp
   Tests/RayLogConfigTest.cpp
   Tests/RayLogPlatformTest.cpp
+  Tests/ChunkErrorRecoveryTest.cpp
+  Tests/ChunkInRenderUnitsTest.cpp
+  Tests/ChunkLoggerTest.cpp
+  Tests/ChunkThreadPoolTest.cpp
+  Tests/ChunkTransactionRingBufferTest.cpp
+  Tests/ChunkTransactionTest.cpp
+  Tests/UnitChunkAccessorTest.cpp
 )
 target_sources(
   rlgame_tests
@@ -336,19 +326,19 @@ target_compile_options(rlgame_tests PRIVATE /EHsc)
 set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD 20)
 set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set(EXTERN_IMPL 
-  GLFW_INCLUDE_VULKAN 
+set(EXTERN_IMPL
+  GLFW_INCLUDE_VULKAN
   STB_IMAGE_IMPLEMENTATION
 )
 
 target_compile_definitions(
-  rlgame 
-  PRIVATE 
+  rlgame
+  PRIVATE
   ${EXTERN_IMPL}
 )
 target_compile_definitions(
   rlgame_tests
-  PRIVATE 
+  PRIVATE
   ${EXTERN_IMPL}
 )
 target_link_libraries(
@@ -359,20 +349,12 @@ target_link_libraries(
   glm::glm
   glfw
 )
-if(WIN32)
+if (WIN32)
   target_link_libraries(rlgame_tests PRIVATE dbghelp)
-endif()
+endif ()
 
-set(HEADER_UNITS
-  Deps/stb/stb_image.h
-  Deps/glm/glm/glm.hpp
-  Deps/glfw/include/GLFW/glfw3.h)
 target_configure(rlgame)
 target_configure(rlgame_tests)
-
-# Precompile headers
-target_add_header_units(rlgame_tests ${HEADER_UNITS})
-target_add_header_units(rlgame ${HEADER_UNITS})
 
 # Enable SIMD instructions based on architecture for tests
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
@@ -389,8 +371,6 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
   endif ()
 endif ()
 
-include(GoogleTest)
-
 function(target_add_resource TARGET)
   set(options)
   set(oneValueArgs)
@@ -404,32 +384,32 @@ function(target_add_resource TARGET)
   )
   list(LENGTH PREFIX_SOURCES SRCS)
   list(LENGTH PREFIX_DESTINATIONS DSTS)
-  if(SRCS EQUAL 0 OR DSTS EQUAL 0 OR NOT SRCS EQUAL DSTS)
+  if (SRCS EQUAL 0 OR DSTS EQUAL 0 OR NOT SRCS EQUAL DSTS)
     message(
       FATAL_ERROR
       "Target: ${TARGET}, "
       "required at least one source "
       "and one destination"
     )
-  endif()
+  endif ()
 
   message(STATUS "Copying resources to build; target: ${TARGET}")
   foreach (SRC DST IN ZIP_LISTS PREFIX_SOURCES PREFIX_DESTINATIONS)
-    if(SRC STREQUAL "")
+    if (SRC STREQUAL "")
       message(FATAL_ERROR "The source cannot be empty")
     endif ()
 
-    if(IS_ABSOLUTE "${SRC}")
+    if (IS_ABSOLUTE "${SRC}")
       set(SRC_PATH "${SRC}")
-    else()
+    else ()
       set(SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${SRC}")
-    endif()
+    endif ()
 
-    if(DST STREQUAL "CURRENT_DIR")
+    if (DST STREQUAL "CURRENT_DIR")
       set(DEST_PATH "$<TARGET_FILE_DIR:${TARGET}>")
-    else()
+    else ()
       set(DEST_PATH "$<TARGET_FILE_DIR:${TARGET}>/${DST}")
-    endif()
+    endif ()
 
     add_custom_command(
       TARGET ${TARGET} POST_BUILD
@@ -439,23 +419,23 @@ function(target_add_resource TARGET)
       COMMENT "Copying ${SRC_PATH} to ${DEST_PATH}"
       VERBATIM
     )
-  endforeach()
+  endforeach ()
 endfunction()
 
 target_add_resource(rlgame
   SOURCES
-    Public/Textures
-    ${CMAKE_CURRENT_BINARY_DIR}/Shaders
+  Public/Textures
+  ${CMAKE_CURRENT_BINARY_DIR}/Shaders
   DESTINATIONS
-    CURRENT_DIR
-    Shaders/
+  CURRENT_DIR
+  Shaders/
 )
 target_add_resource(
   rlgame_tests
   SOURCES
-    Public/Textures
+  Public/Textures
   DESTINATIONS
-    CURRENT_DIR
+  CURRENT_DIR
 )
 
 gtest_discover_tests(rlgame_tests)

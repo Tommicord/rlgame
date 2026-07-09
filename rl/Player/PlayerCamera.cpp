@@ -13,10 +13,10 @@ PlayerCamera::PlayerCamera()
 {
   eye.x = 0.0;
   eye.y = 0.0;
-  eye.z = 3.0;
+  eye.z = 0.0;
   far = 1000.0, near = 0.1, fov = 45.0f;
   aspectRatio = 16.0f / 9.0f;
-  zoom = 1.0f, pitch = 0.0f;
+  zoom = 0.5f, pitch = 0.0f;
   yaw = 0.0f;
   model = glm::mat4(1.0f);
   view = glm::mat4(1.0f);

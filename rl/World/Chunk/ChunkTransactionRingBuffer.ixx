@@ -85,6 +85,7 @@ export class ChunkTransactionRingBuffer
   private:
   std::unique_ptr<ChunkTransaction[]> buffer;
   uint32_t                            capacity;
+  uint32_t                            bufferSize;
   std::atomic<uint32_t>               head;
   std::atomic<uint32_t>               tail;
 
@@ -99,7 +100,7 @@ export class ChunkTransactionRingBuffer
   /* Get next index with wraparound */
   [[nodiscard]]
   uint32_t NextIndex(const uint32_t current) const
-  { return (current + 1) % capacity; }
+  { return (current + 1) % bufferSize; }
 
   /* Update peak size statistics */
   void UpdatePeakSize(uint32_t currentSize);

@@ -65,43 +65,46 @@ export struct RelativeOffset
 
   /* Common relative positions */
   static RelativeOffset Current()
-  { return RelativeOffset(0, 0, 0); }
+  { return {0, 0, 0}; }
   static RelativeOffset Above()
-  { return RelativeOffset(0, 1, 0); }
+  { return {0, 1, 0}; }
   static RelativeOffset Below()
-  { return RelativeOffset(0, -1, 0); }
+  { return {0, -1, 0}; }
   static RelativeOffset North()
-  { return RelativeOffset(0, 0, -1); }
+  { return {0, 0, -1}; }
   static RelativeOffset South()
-  { return RelativeOffset(0, 0, 1); }
+  { return {0, 0, 1}; }
   static RelativeOffset East()
-  { return RelativeOffset(1, 0, 0); }
+  { return {1, 0, 0}; }
   static RelativeOffset West()
-  { return RelativeOffset(-1, 0, 0); }
+  { return {-1, 0, 0}; }
 
   /* Diagonal directions */
   static RelativeOffset NorthEast()
-  { return RelativeOffset(1, 0, -1); }
+  { return {1, 0, -1}; }
   static RelativeOffset NorthWest()
-  { return RelativeOffset(-1, 0, -1); }
+  { return {-1, 0, -1}; }
   static RelativeOffset SouthEast()
-  { return RelativeOffset(1, 0, 1); }
+  { return {1, 0, 1}; }
   static RelativeOffset SouthWest()
-  { return RelativeOffset(-1, 0, 1); }
+  { return {-1, 0, 1}; }
 
   /* Convert to UnitPosition */
   [[nodiscard]]
   UnitPosition ToAbsolute(const UnitPosition& base) const
-  {
-    return UnitPosition(
-        base.worldX + offsetX, base.worldY + offsetY, base.worldZ + offsetZ);
-  }
+  { return {base.worldX + offsetX, base.worldY + offsetY, base.worldZ + offsetZ}; }
 };
 
 /* Accessor for units to interact with chunk data using relative coordinates */
 export class UnitChunkAccessor
 {
   public:
+  /* The max Y for a valid vertical position in the world */
+  static constexpr long long MAXY = 12000000L; // 12000 KM
+
+  /* The min Y for a valid vertical position in the world */
+  static constexpr long long MINY = -4000000L; // 4000 KM
+
   /* Constructor with chunk system reference and unit position */
   UnitChunkAccessor(ChunkInRenderUnits& chunkSystem, const UnitPosition& unitPosition);
 

@@ -2,6 +2,7 @@ import Rl.Player.PlayerController;
 import Rl.Player;
 import Rl.Player.IPlayer;
 import Rl.Base.UserInput;
+import Rl.Player.PlayerCamera;
 
 namespace Rl::Player
 {
@@ -75,8 +76,7 @@ void PlayerController::OnMouseScrollEvent(const Input::MouseScrollEvent& event)
 
 void PlayerController::Update() const
 {
-  constexpr double coordScale = 0.0001;
-
+  constexpr double coordScale = 0.001;
   if (moveForward)
     player.cZ += static_cast<IPlayer::Coord>(moveSpeed * coordScale);
   if (moveBackward)

@@ -212,7 +212,7 @@ export struct TransactionResult
   {
   }
 
-  static TransactionResult Ok(uint32_t unitId = 0, uint64_t sequence = 0)
+  static TransactionResult Ok(uint32_t unitId, uint64_t sequence)
   {
     TransactionResult result;
     result.success = true;

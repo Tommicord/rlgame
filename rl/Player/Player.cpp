@@ -27,8 +27,7 @@ IPlayer& PlayerProvider::GetInstance()
 
 Player::Player() noexcept
 {
-  cX = cY = 0;
-  cZ = 5000L;
+  cX = cY = cZ = 0L;
   CreateInputCamera();
   CreateInputPlayer();
 }

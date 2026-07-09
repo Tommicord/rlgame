@@ -97,8 +97,8 @@ float SampleCascadeShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 geoNormal,
         projCoords.y < 0.0 || projCoords.y > 1.0) {
         return 1.0;
     }
-    float minBias = 0.0005;
-    float maxBias = 0.001;
+    float minBias = 0.005;
+    float maxBias = 0.01;
     float bias = max(maxBias * (1.0 - dot(geoNormal, lightDir)), minBias);
 
     float currentDepth = projCoords.z - bias;
