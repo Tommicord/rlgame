@@ -97,13 +97,22 @@ float SampleCascadeShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 geoNormal,
         projCoords.y < 0.0 || projCoords.y > 1.0) {
         return 1.0;
     }
-    float minBias = 0.005;
-    float maxBias = 0.01;
-    float bias = max(maxBias * (1.0 - dot(geoNormal, lightDir)), minBias);
+    float minBias = 0.002;
+    float maxBias = 0.015;
+    float bias = minBias + maxBias * (1.0 - dot(geoNormal, lightDir));
 
     float currentDepth = projCoords.z - bias;
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(u_ShadowMap0, 0);
+    vec2 texelSize;
+    if (cascadeIndex == 0) {
+        texelSize = 1.0 / textureSize(u_ShadowMap0, 0);
+    } else if (cascadeIndex == 1) {
+        texelSize = 1.0 / textureSize(u_ShadowMap1, 0);
+    } else if (cascadeIndex == 2) {
+        texelSize = 1.0 / textureSize(u_ShadowMap2, 0);
+    } else {
+        texelSize = 1.0 / textureSize(u_ShadowMap3, 0);
+    }
 
     for (int x = 0; x <= 2; ++x) {
         for (int y = 0; y <= 2; ++y) {
@@ -143,26 +152,22 @@ float CalculateCascadeShadow(vec3 fragPosWorldSpace, vec3 lightDir, vec3 geoNorm
 
 float CalculateSoftShadows(vec3 worldPos, vec3 normal, vec3 lightDir, vec3 geometricNormal) {
     float NdotL = max(dot(normal, lightDir), 0.0);
-    float selfShadow = smoothstep(0.0, 0.25, NdotL);
+    float selfShadow = smoothstep(0.0, 0.15, NdotL);
 
-    float inwardFactor = 1.0 - max(geometricNormal.y, 0.0);
-    float cavityShadow = 1.0 - inwardFactor * 0.4;
+    float verticality = abs(geometricNormal.y);
+    float cavityShadow = 1.0 - (1.0 - verticality) * 0.15;
 
     float shadow = selfShadow * cavityShadow;
-    shadow = mix(shadow, 1.0, 0.25);
 
-    return pow(shadow, 2.0);
+    return shadow;
 }
 
 // Ambient occlusion
 float CalculateAmbientOcclusion(vec3 normal, vec3 geometricNormal) {
-    float NdotV = max(dot(normal, geometricNormal), 0.0);
-    float ao = 1.0 - (1.0 - NdotV) * 0.4;
+    float verticality = max(geometricNormal.y, 0.0);
+    float cavity = 1.0 - (1.0 - verticality) * 0.2;
 
-    float cavity = 1.0 - max(0.0, dot(geometricNormal, vec3(0, 1, 0))) * 0.3;
-    ao *= cavity;
-
-    return clamp(ao, 0.2, 1.0);
+    return clamp(cavity, 0.3, 1.0);
 }
 
 // Distribution function (GGX)
@@ -369,8 +374,8 @@ vec4 TriplanarMapping(vec3 worldPos, vec3 geometricNormal, int faceIndex) {
     vec4 triplanarResult = colX * blend.x + colY * blend.y + colZ * blend.z;
     vec4 originalUVResult = texture(u_Texture[faceIndex], v_TexCoords);
 
-    float curvatureFactor = 1.0 - max(max(abs(geometricNormal.x), abs(geometricNormal.y)), abs(geometricNormal.z));
-    curvatureFactor = pow(curvatureFactor, 2.0);
+    float curvatureFactor = 1.0 - max(abs(geometricNormal.x), max(abs(geometricNormal.y), abs(geometricNormal.z)));
+    curvatureFactor = smoothstep(0.0, 0.5, curvatureFactor);
 
     vec4 result = mix(originalUVResult, triplanarResult, curvatureFactor);
     return result;
@@ -394,8 +399,8 @@ float TriplanarMappingSingle(vec3 worldPos, vec3 geometricNormal, sampler2D tex,
     float triplanarResult = colX * blend.x + colY * blend.y + colZ * blend.z;
     float originalUVResult = texture(tex, v_TexCoords).r;
 
-    float curvatureFactor = 1.0 - max(max(abs(geometricNormal.x), abs(geometricNormal.y)), abs(geometricNormal.z));
-    curvatureFactor = pow(curvatureFactor, 2.0);
+    float curvatureFactor = 1.0 - max(abs(geometricNormal.x), max(abs(geometricNormal.y), abs(geometricNormal.z)));
+    curvatureFactor = smoothstep(0.0, 0.5, curvatureFactor);
 
     float result = mix(originalUVResult, triplanarResult, curvatureFactor);
     return result;
@@ -461,7 +466,7 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     float shadowMap = CalculateCascadeShadow(worldPos, L, geoN);
 
     float softShadow = CalculateSoftShadows(worldPos, N, L, geoN);
-    float totalShadow = shadowMap * softShadow;
+    float totalShadow = min(shadowMap, softShadow);
     vec3 directLighting = sunLightDirect * totalShadow;
 
     // Additional lights
@@ -526,7 +531,8 @@ vec3 CalculatePBR(vec3 worldPos, vec3 normal, vec3 viewDir, PBRMaterial material
     // Subsurface scattering approximation
     if (material.metallic < 0.25 && lodFactor < 0.7) {
         float sssThickness = 1.0 - material.roughness;
-        float backLight = max(dot(-L, N), 0.0);
+        vec3 sunDir = normalize(lighting.u_SunDirection.xyz);
+        float backLight = max(dot(sunDir, -N), 0.0);
         float sssIntensity = mix(0.05, 0.15, 1.0 - lodFactor);
         vec3 sssColor = material.albedo * lighting.u_SunColor.xyz * backLight * sssThickness * sssIntensity;
         colorFinal += sssColor;

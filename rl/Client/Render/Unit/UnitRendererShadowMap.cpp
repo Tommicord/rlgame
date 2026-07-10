@@ -145,7 +145,7 @@ void UnitCreateCascadeShadowMapResources(VkDevice device,
             &resources.shadowMapCascades[i].view) != VK_SUCCESS)
     {
       throw std::runtime_error(
-          "Failed to create cascade shadow map image view " + std::to_string(i));
+          "Failed to create cascade shadow map image view");
     }
 
     // Framebuffer
@@ -162,7 +162,7 @@ void UnitCreateCascadeShadowMapResources(VkDevice device,
             &resources.shadowMapCascades[i].framebuffer) != VK_SUCCESS)
     {
       throw std::runtime_error(
-          "Failed to create cascade shadow map framebuffer " + std::to_string(i));
+          "Failed to create cascade shadow map framebuffer");
     }
   }
 }

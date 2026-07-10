@@ -35,9 +35,6 @@ void DispatchInitShader(VkDevice device,
       break;
     }
   }
-#pragma pop_macro("min")
-
-#pragma pop_macro("max")
   if (queueFamilyIndex == 0xFFFFFFFFu)
   {
     throw std::runtime_error("No compute-capable queue family found for simplex init");

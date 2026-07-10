@@ -1,0 +1,109 @@
+#version 450
+
+// world.heightmap.comp
+// Compute shader that converts elevation buffer into unit placement array
+// Output: 0 = don't place unit, 1 = place unit here
+// - Input:  binding=0, readonly float elevation[] (height values)
+// - Output: binding=1, writeonly uint placement[] (0 or 1)
+// Push constants configure chunk dimensions and placement threshold
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(std430, binding = 0) readonly buffer ElevationIn
+{
+  float elevation[];
+} inElev;
+
+layout(std430, binding = 1) writeonly buffer PlacementOut
+{
+  uint placement[];
+} outPlacement;
+
+layout(push_constant) uniform PC
+{
+  uint width;     // chunk width (x)
+  uint height;    // chunk height (y)
+  uint depth;     // chunk depth (z)
+
+  float seaLevel;       // sea level threshold
+  float surfaceThreshold; // threshold for surface placement
+  float undergroundThreshold; // threshold for underground placement
+
+  uint placementMode;   // 0: surface only, 1: surface + underground, 2: all
+  float _pad0;
+  float _pad1;
+  float _pad2;
+} pc;
+
+// Helper: compute linear index for (x,y,z) in row-major (x + y*W + z*W*H)
+uint ComputeIndex(uvec3 id)
+{
+  return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
+}
+
+// Simple hash function for probabilistic placement
+float Hash3D(uint x, uint y, uint z)
+{
+  uint seed = (x * 374761393u + y * 668265263u + z * 2504567u) ^ 2984356u;
+  seed = (seed ^ (seed >> 13u)) * 1274126177u;
+  return float(seed & 0x7FFFFFFFu) / float(0x7FFFFFFF);
+}
+
+void main()
+{
+  uvec3 gid = gl_GlobalInvocationID.xyz;
+
+  // Bounds check: dispatch might be larger than chunk dimensions
+  if (gid.x >= pc.width || gid.y >= pc.height || gid.z >= pc.depth)
+    return;
+
+  uint idx = ComputeIndex(gid);
+  float elev = inElev.elevation[idx];
+
+  uint shouldPlace = 0u;
+
+  // Determine if unit should be placed based on elevation and mode
+  if (pc.placementMode == 0u)
+  {
+    // Surface only: place if near surface level
+    float surfaceDist = abs(float(gid.y) - elev);
+    if (surfaceDist < pc.surfaceThreshold)
+    {
+      shouldPlace = 1u;
+    }
+  }
+  else if (pc.placementMode == 1u)
+  {
+    // Surface + underground: place if near surface OR below sea level
+    float surfaceDist = abs(float(gid.y) - elev);
+    if (surfaceDist < pc.surfaceThreshold)
+    {
+      shouldPlace = 1u;
+    }
+    else if (float(gid.y) < pc.seaLevel && elev > pc.seaLevel)
+    {
+      // Underground placement with probability
+      float prob = Hash3D(gid.x, gid.y, gid.z);
+      if (prob > 0.5f)
+      {
+        shouldPlace = 1u;
+      }
+    }
+  }
+  else if (pc.placementMode == 2u)
+  {
+    // All: place everywhere with probability based on elevation
+    float prob = Hash3D(gid.x, gid.y, gid.z);
+    
+    // Higher probability near surface, lower underground
+    float surfaceDist = abs(float(gid.y) - elev);
+    float probability = 1.0f - smoothstep(0.0f, 10.0f, surfaceDist);
+    
+    if (prob < probability)
+    {
+      shouldPlace = 1u;
+    }
+  }
+
+  outPlacement.placement[idx] = shouldPlace;
+}

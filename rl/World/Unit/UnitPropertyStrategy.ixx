@@ -71,9 +71,9 @@ export template <class T> class UnitPropertyStrategy
   static constexpr float GetDirtiness()
   { return 0.0f; }
 
-  /* Gets the wetness level (0.0 = dry, 1.0 = saturated) */
+  /* Gets the moisture level (0.0 = dry, 1.0 = saturated) */
   [[nodiscard]]
-  static constexpr float GetWetness()
+  static constexpr float GetMoisture()
   { return 0.0f; }
 
   /* Gets the temperature in Celsius */
