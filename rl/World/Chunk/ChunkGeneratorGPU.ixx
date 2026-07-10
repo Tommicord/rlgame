@@ -45,9 +45,13 @@ export class ChunkGeneratorGPU
   protected:
   static constexpr auto RAYLOG_TAG = "WorldGeneratorGPU";
 
-  static constexpr auto comparator = [](const ChunkGenRequest& a, const ChunkGenRequest& b) {
-    return a.priority < b.priority;
+  struct Comparator {
+    bool operator()(const ChunkGenRequest& a, const ChunkGenRequest& b) const noexcept {
+      return a.priority < b.priority;
+    };
   };
+
+  static constexpr Comparator comparator{};
 
   public:
   ChunkGeneratorGPU() = default;
@@ -199,7 +203,8 @@ export class ChunkGeneratorGPU
   uint32_t chunkDepth = 0;
 
   /* Async generation queue */
-  std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>, decltype(comparator)> asyncQueue;
+  std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>, Comparator>
+      asyncQueue;
 
   /* Queue mutex */
   mutable std::mutex queueMutex;

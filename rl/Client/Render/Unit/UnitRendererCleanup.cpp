@@ -51,7 +51,6 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
     vkFreeMemory(device, vk.polFenceArrayMemory, nullptr);
   }
 
-  // Cleanup curvature compute buffers
   vkDestroyBuffer(device, vk.curvedVertexBuffer, nullptr);
   vkFreeMemory(device, vk.curvedVertexBufferMemory, nullptr);
   vkDestroyBuffer(device, vk.curvedIndexBuffer, nullptr);
@@ -60,6 +59,23 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
   vkFreeMemory(device, vk.curveCountersBufferMemory, nullptr);
   vkDestroyBuffer(device, vk.curveIndirectDrawBuffer, nullptr);
   vkFreeMemory(device, vk.curveIndirectDrawBufferMemory, nullptr);
+
+  if (vk.meshGenPipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, vk.meshGenPipeline, nullptr);
+  }
+  if (vk.meshGenPipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, vk.meshGenPipelineLayout, nullptr);
+  }
+  if (vk.meshGenDescriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(device, vk.meshGenDescriptorSetLayout, nullptr);
+  }
+  if (vk.meshGenDescriptorPool != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorPool(device, vk.meshGenDescriptorPool, nullptr);
+  }
 }
 
 void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)

@@ -1,0 +1,128 @@
+#version 460
+
+// Unit Mesh Generation Compute Shader
+// Generates vertices for unit cubes with proper winding order for VK_FRONT_FACE_CLOCKWISE
+// and VK_CULL_MODE_BACK_BIT
+
+struct UnitRenderVertex {
+    vec4 position;      // 16 bytes
+    vec4 polRight;      // 16 bytes
+    vec4 polLeft;       // 16 bytes
+    vec2 texCoords;     // 8 bytes
+    uint lightingEmit;  // 4 bytes
+    uint transparencyLevel; // 4 bytes
+    uint faceIndex;     // 4 bytes
+    float roughness;     // 4 bytes
+    float metallic;     // 4 bytes
+    float padding;       // 4 bytes
+    vec4 polCurve;      // 16 bytes
+    vec4 albedo;        // 16 bytes
+    vec4 tangent;       // 16 bytes
+    vec4 bitangent;     // 16 bytes
+    vec4 normal;        // 16 bytes
+    uint unitId;        // 4 bytes
+};
+
+layout(std430, binding = 0) buffer VertexBuffer {
+    UnitRenderVertex vertices[];
+};
+
+layout(push_constant) uniform PushConstants {
+    uint unitId;
+    uint startVertex;
+};
+
+// Face definitions (clockwise winding when viewed from outside)
+// Each face has 4 vertices
+const vec3 faceVertices[6][4] = {
+    // Front face (Z+)
+    {vec3(-0.5, -0.5, 0.5), vec3(0.5, -0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(-0.5, 0.5, 0.5)},
+    // Back face (Z-)
+    {vec3(0.5, -0.5, -0.5), vec3(-0.5, -0.5, -0.5), vec3(-0.5, 0.5, -0.5), vec3(0.5, 0.5, -0.5)},
+    // Top face (Y+)
+    {vec3(-0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, -0.5), vec3(-0.5, 0.5, -0.5)},
+    // Bottom face (Y-)
+    {vec3(-0.5, -0.5, -0.5), vec3(0.5, -0.5, -0.5), vec3(0.5, -0.5, 0.5), vec3(-0.5, -0.5, 0.5)},
+    // Right face (X+)
+    {vec3(0.5, -0.5, 0.5), vec3(0.5, -0.5, -0.5), vec3(0.5, 0.5, -0.5), vec3(0.5, 0.5, 0.5)},
+    // Left face (X-)
+    {vec3(-0.5, -0.5, -0.5), vec3(-0.5, -0.5, 0.5), vec3(-0.5, 0.5, 0.5), vec3(-0.5, 0.5, -0.5)}
+};
+
+const vec3 faceNormals[6] = {
+    vec3(0, 0, 1),   // Front
+    vec3(0, 0, -1),  // Back
+    vec3(0, 1, 0),   // Top
+    vec3(0, -1, 0),  // Bottom
+    vec3(1, 0, 0),   // Right
+    vec3(-1, 0, 0)   // Left
+};
+
+const vec2 faceTexCoords[4] = {
+    vec2(0.0, 0.0),
+    vec2(1.0, 0.0),
+    vec2(1.0, 1.0),
+    vec2(0.0, 1.0)
+};
+
+// Tangent calculation (assuming standard UV mapping)
+const vec3 faceTangents[6] = {
+    vec3(1, 0, 0),   // Front
+    vec3(-1, 0, 0),  // Back
+    vec3(1, 0, 0),   // Top
+    vec3(1, 0, 0),   // Bottom
+    vec3(0, 0, -1),  // Right
+    vec3(0, 0, 1)    // Left
+};
+
+void main() {
+    uint globalId = gl_GlobalInvocationID.x;
+    uint vertexIndex = globalId - startVertex;
+    
+    // Calculate which face and vertex this invocation handles
+    uint faceIndex = vertexIndex / 4;
+    uint vertexInFace = vertexIndex % 4;
+    
+    if (faceIndex >= 6) return;
+    
+    UnitRenderVertex v;
+    
+    // Position
+    v.position = vec4(faceVertices[faceIndex][vertexInFace], 1.0);
+    
+    // Polygon data (zeros for now - can be set by other systems)
+    v.polRight = vec4(0.0);
+    v.polLeft = vec4(0.0);
+    
+    // Texture coordinates
+    v.texCoords = faceTexCoords[vertexInFace];
+    
+    // Material properties (defaults)
+    v.lightingEmit = 0;
+    v.transparencyLevel = 0;
+    v.faceIndex = faceIndex;
+    v.roughness = 0.95;
+    v.metallic = 0.0;
+    v.padding = 0.0;
+    
+    // Curvature (zeros for now)
+    v.polCurve = vec4(0.0);
+    
+    // Albedo (default brown/orange for dirt/stone)
+    v.albedo = vec4(0.6, 0.4, 0.2, 0.0);
+    
+    // Tangent, bitangent, normal
+    vec3 normal = normalize(faceNormals[faceIndex]);
+    vec3 tangent = normalize(faceTangents[faceIndex]);
+    vec3 bitangent = normalize(cross(normal, tangent));
+    
+    v.tangent = vec4(tangent, 0.0);
+    v.bitangent = vec4(bitangent, 0.0);
+    v.normal = vec4(normal, 0.0);
+    
+    // Unit ID for array-based rendering
+    v.unitId = unitId;
+    
+    // Write to output buffer
+    vertices[globalId] = v;
+}

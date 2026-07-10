@@ -18,6 +18,7 @@ import <thread>;
 import <unordered_map>;
 import <utility>;
 import <vector>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::World::Chunk
 {

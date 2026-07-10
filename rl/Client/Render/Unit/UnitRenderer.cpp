@@ -14,6 +14,7 @@ import Rl.Client.Render.Unit.UnitRendererDraw;
 import Rl.Client.Render.Unit.UnitRendererDrawCompute;
 import Rl.Client.Render.Unit.UnitRendererFrustum;
 import Rl.Client.Render.Unit.UnitRendererGraphicsPipeline;
+import Rl.Client.Render.Unit.UnitRendererMeshGen;
 import Rl.Client.Render.Unit.UnitRendererNormalTextures;
 import Rl.Client.Render.Unit.UnitRendererPlaceholderResource;
 import Rl.Client.Render.Unit.UnitRendererSampler;
@@ -119,6 +120,65 @@ void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Ma
 
   // Enable unit array mode with the converted data
   EnableUnitArrayMode(vk, context, unitData, fenceData);
+}
+
+void UnitStateDrawable::GenerateUnitMesh(UnitStateBinding& vk, Main::MainBinding& context, uint32_t unitId, uint32_t startVertex)
+{
+  if (vk.meshGenPipeline == VK_NULL_HANDLE)
+  {
+    // Initialize mesh generation pipeline on first use
+    Client::Render::UnitCreateMeshGenDescriptorSetLayout(context.device, vk.meshGenDescriptorSetLayout);
+    Client::Render::UnitCreateMeshGenPipeline(context.device, vk.meshGenDescriptorSetLayout,
+        vk.meshGenPipelineLayout, vk.meshGenPipeline);
+    
+    // Create descriptor pool for mesh generation
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    poolSize.descriptorCount = 1;
+    
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1;
+    
+    if (vkCreateDescriptorPool(context.device, &poolInfo, nullptr, &vk.meshGenDescriptorPool) != VK_SUCCESS)
+    {
+      return;
+    }
+    
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = vk.meshGenDescriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &vk.meshGenDescriptorSetLayout;
+    
+    if (vkAllocateDescriptorSets(context.device, &allocInfo, &vk.meshGenDescriptorSet) != VK_SUCCESS)
+    {
+      return;
+    }
+    
+    // Update descriptor set with vertex buffer
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = vk.vertexBuffer;
+    bufferInfo.offset = 0;
+    bufferInfo.range = VK_WHOLE_SIZE;
+    
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = vk.meshGenDescriptorSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+    
+    vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
+  }
+  
+  // Generate mesh using compute shader
+  Client::Render::UnitGenerateMesh(context.device, context.commandBuffers[0],
+      vk.meshGenPipeline, vk.meshGenPipelineLayout, vk.meshGenDescriptorSet, unitId, startVertex);
 }
 
 void UnitStateDrawable::OnCreate(

@@ -81,6 +81,9 @@ set(CXX_MODULES
   rl/World/Unit/UnitDynamicTexture.ixx
   rl/World/Unit/UnitPropertyStrategy.ixx
   rl/World/Unit/UnitRegister.ixx
+  rl/World/Unit/UnitGPUParams.ixx
+  rl/World/Unit/UnitRegistryGPU.ixx
+  rl/World/Unit/UnitGrassGrowBehavior.ixx
   rl/World/Unit/UnitTextureFactory.ixx
   rl/Client/State/UnitState.ixx
   rl/Client/Render/Unit/UnitRendererAOTextures.ixx
@@ -105,6 +108,7 @@ set(CXX_MODULES
   rl/Client/Render/Unit/UnitRendererTextureManage.ixx
   rl/Client/Render/Unit/UnitRendererVertexInput.ixx
   rl/Client/Render/Unit/UnitRendererVertices.ixx
+  rl/Client/Render/Unit/UnitRendererMeshGen.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
   rl/World/Chunk/UnitGPUSimplexNoise.ixx
   rl/World/Chunk/ChunkGPUNoiseGen.ixx
@@ -124,7 +128,6 @@ set(CXX_MODULES
   rl/World/ServiceUpdater.ixx
   rl/World/ServiceUpdaterRegistry.ixx
   rl/World/ServiceUpdaterRegister.ixx
-  rl/World/Unit/UnitGrassGrowBehavior.ixx
   rl/World/Biome/BaseBiome.ixx
   rl/World/Biome/BiomeGPUParams.ixx
   rl/World/Biome/BiomeRegistryGPU.ixx
@@ -167,6 +170,7 @@ set(SOURCES
   rl/World/Unit/Unit.cpp
   rl/World/Unit/UnitDynamicTexture.cpp
   rl/World/Unit/UnitTextureFactory.cpp
+  rl/World/Unit/UnitRegistryGPU.cpp
   rl/World/Unit/UnitGrass.cpp
   rl/Client/Render/Unit/UnitRenderer.cpp
   rl/Client/Render/Unit/UnitRendererAOTextures.cpp
@@ -193,6 +197,7 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertexBuffer.cpp
   rl/Client/Render/Unit/UnitRendererVertexInput.cpp
   rl/Client/Render/Unit/UnitRendererVertices.cpp
+  rl/Client/Render/Unit/UnitRendererMeshGen.cpp
   rl/World/Biome/BiomeRegistryGPU.cpp
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitGPUSimplexNoise.cpp
@@ -289,8 +294,14 @@ target_compile_shaders(
   rl/Shaders/unit.shadow.frag
   rl/Shaders/unit.face.comp
   rl/Shaders/unit.tessel.comp
+  rl/Shaders/unit.mesh.gen.comp
   rl/Shaders/unit.frag
   rl/Shaders/unit.vert
+  rl/Shaders/World/world.biome.comp
+  rl/Shaders/World/world.gen.pol.comp
+  rl/Shaders/World/world.heightmap.comp
+  rl/Shaders/World/world.noise.comp
+  rl/Shaders/World/world.unitplace.comp
   rl/Shaders/Simplex/simplex.comp
   rl/Shaders/Simplex/simplex.init.comp
 )

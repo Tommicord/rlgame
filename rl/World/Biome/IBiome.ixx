@@ -20,6 +20,11 @@ export struct BiomeNoiseLayer
   float    weight; // Layer weight in final classification
 };
 
+export struct BiomeType
+{
+  uint32_t value;
+};
+
 /* Unit generation rule for a biome */
 export struct BiomeUnitRule
 {
@@ -36,20 +41,6 @@ export struct BiomeUnitRule
   float    density; // Density of placement (0.0-1.0)
 };
 
-/* GPU-compatible biome parameters structure */
-export struct BiomeGPUParams
-{
-  uint32_t biomeType;
-  float    temperatureBase;
-  float    temperatureVariation;
-  float    moistureBase;
-  float    moistureVariation;
-  float    elevationBase;
-  float    elevationVariation;
-  uint32_t unitRuleCount;
-  float    padding[3]; // Alignment padding
-};
-
 /* Pure virtual interface for biome definition */
 export class IBiome
 {
@@ -58,7 +49,7 @@ export class IBiome
 
   /* Gets the biome type identifier */
   [[nodiscard]]
-  virtual uint32_t GetBiomeType() const = 0;
+  virtual BiomeType GetBiomeType() const = 0;
 
   /* Gets the biome name for debugging */
   [[nodiscard]]
@@ -82,13 +73,15 @@ export class IBiome
 
   /* Classifies a position as belonging to this biome based on noise values */
   [[nodiscard]]
-  virtual bool BelongsToBiome(
-      float temperature, float moisture, float elevation) const = 0;
+  virtual bool
+  BelongsToBiome(float temperature, float moisture, float elevation) const = 0;
 
   /* Gets the dominant unit ID for a given position in this biome */
   [[nodiscard]]
-  virtual uint32_t GetDominantUnit(
-      float temperature, float moisture, float elevation, float height) const = 0;
+  virtual uint32_t GetDominantUnit(float temperature,
+                                   float moisture,
+                                   float elevation,
+                                   float height) const = 0;
 };
 
 } // namespace Rl::World::Biome

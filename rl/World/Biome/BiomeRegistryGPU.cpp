@@ -8,6 +8,7 @@ import Rl.RayLog.Logger;
 import <cstring>;
 import <stdexcept>;
 import <vulkan/vulkan.hpp>;
+import Rl.World.Biome.BiomeGPUParams;
 
 namespace Rl::World::Biome
 {
@@ -25,15 +26,15 @@ bool BiomeRegistryGPU::Initialize(VkDevice device, VkPhysicalDevice physicalDevi
     return true;
   }
 
-  this->device = device;
+  this->device         = device;
   this->physicalDevice = physicalDevice;
 
   // Pre-allocate staging buffer (max expected size: 256 biomes * 64 bytes = 16KB)
   constexpr VkDeviceSize maxStagingSize = 65536; // 64KB
-  if (!CreateBuffer(device, physicalDevice, maxStagingSize,
-                   VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                   stagingBuffer, stagingMemory))
+  if (!CreateBuffer(
+          device, physicalDevice, maxStagingSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+          stagingBuffer, stagingMemory))
   {
     RayLog::LogError(RAYLOG_TAG, "Failed to create staging buffer");
     return false;
@@ -86,10 +87,10 @@ void BiomeRegistryGPU::Shutdown(VkDevice device)
 
   cpuBiomes.clear();
   cpuUnitRules.clear();
-  biomeBufferSize = 0;
+  biomeBufferSize     = 0;
   unitRulesBufferSize = 0;
-  gpuDirty = false;
-  initialized = false;
+  gpuDirty            = false;
+  initialized         = false;
 
   RayLog::LogInfo(RAYLOG_TAG, "BiomeRegistryGPU shutdown complete");
 }
@@ -107,22 +108,22 @@ void BiomeRegistryGPU::RegisterBiome(const IBiome& biome)
   params.biomeType = biome.GetBiomeType();
 
   // Extract temperature layer
-  auto tempLayer = biome.GetTemperatureNoiseLayer();
-  params.temperatureBase = 0.5f; // Default, can be customized
+  auto tempLayer              = biome.GetTemperatureNoiseLayer();
+  params.temperatureBase      = 0.5f; // Default, can be customized
   params.temperatureVariation = tempLayer.persistence;
 
   // Extract moisture layer
-  auto moistLayer = biome.GetMoistureNoiseLayer();
-  params.moistureBase = 0.5f; // Default, can be customized
+  auto moistLayer          = biome.GetMoistureNoiseLayer();
+  params.moistureBase      = 0.5f; // Default, can be customized
   params.moistureVariation = moistLayer.persistence;
 
   // Extract elevation layer
-  auto elevLayer = biome.GetElevationNoiseLayer();
-  params.elevationBase = 0.5f; // Default, can be customized
+  auto elevLayer            = biome.GetElevationNoiseLayer();
+  params.elevationBase      = 0.5f; // Default, can be customized
   params.elevationVariation = elevLayer.persistence;
 
   // Count unit rules
-  const auto& rules = biome.GetUnitRules();
+  const auto& rules    = biome.GetUnitRules();
   params.unitRuleCount = static_cast<uint32_t>(rules.size());
 
   cpuBiomes.push_back(params);
@@ -131,26 +132,26 @@ void BiomeRegistryGPU::RegisterBiome(const IBiome& biome)
   for (const auto& rule : rules)
   {
     BiomeUnitRuleGPU gpuRule{};
-    gpuRule.unitId = rule.unitId;
-    gpuRule.minHeight = rule.minHeight;
-    gpuRule.maxHeight = rule.maxHeight;
+    gpuRule.unitId         = rule.unitId;
+    gpuRule.minHeight      = rule.minHeight;
+    gpuRule.maxHeight      = rule.maxHeight;
     gpuRule.minTemperature = rule.minTemperature;
     gpuRule.maxTemperature = rule.maxTemperature;
-    gpuRule.minMoisture = rule.minMoisture;
-    gpuRule.maxMoisture = rule.maxMoisture;
-    gpuRule.minElevation = rule.minElevation;
-    gpuRule.maxElevation = rule.maxElevation;
-    gpuRule.probability = rule.probability;
-    gpuRule.density = rule.density;
-    gpuRule.padding[0] = 0.0f;
-    gpuRule.padding[1] = 0.0f;
+    gpuRule.minMoisture    = rule.minMoisture;
+    gpuRule.maxMoisture    = rule.maxMoisture;
+    gpuRule.minElevation   = rule.minElevation;
+    gpuRule.maxElevation   = rule.maxElevation;
+    gpuRule.probability    = rule.probability;
+    gpuRule.density        = rule.density;
+    gpuRule.padding[0]     = 0.0f;
+    gpuRule.padding[1]     = 0.0f;
 
     cpuUnitRules.push_back(gpuRule);
   }
 
   gpuDirty = true;
   RayLog::LogInfo(RAYLOG_TAG, "Registered biome: %s (ID: %u, Rules: %u)",
-                 biome.GetBiomeName(), params.biomeType, params.unitRuleCount);
+                  biome.GetBiomeName(), params.biomeType.value, params.unitRuleCount);
 }
 
 bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBuffer)
@@ -167,7 +168,7 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
   }
 
   // Calculate required buffer sizes
-  VkDeviceSize newBiomeSize = cpuBiomes.size() * sizeof(BiomeGPUParams);
+  VkDeviceSize newBiomeSize     = cpuBiomes.size() * sizeof(BiomeGPUParams);
   VkDeviceSize newUnitRulesSize = cpuUnitRules.size() * sizeof(BiomeUnitRuleGPU);
 
   // Recreate buffers if size changed or first time
@@ -179,10 +180,10 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
       vkFreeMemory(device, biomeMemory, nullptr);
     }
 
-    if (!CreateBuffer(device, physicalDevice, newBiomeSize,
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     biomeBuffer, biomeMemory))
+    if (!CreateBuffer(
+            device, physicalDevice, newBiomeSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, biomeBuffer, biomeMemory))
     {
       RayLog::LogError(RAYLOG_TAG, "Failed to create biome buffer");
       return false;
@@ -198,10 +199,10 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
       vkFreeMemory(device, unitRulesMemory, nullptr);
     }
 
-    if (!CreateBuffer(device, physicalDevice, newUnitRulesSize,
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                     unitRulesBuffer, unitRulesMemory))
+    if (!CreateBuffer(
+            device, physicalDevice, newUnitRulesSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, unitRulesBuffer, unitRulesMemory))
     {
       RayLog::LogError(RAYLOG_TAG, "Failed to create unit rules buffer");
       return false;
@@ -211,45 +212,51 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
 
   // Copy biome data to staging buffer
   void* stagingData = nullptr;
-  if (vkMapMemory(device, stagingMemory, 0, newBiomeSize + newUnitRulesSize, 0, &stagingData) != VK_SUCCESS)
+  if (vkMapMemory(device, stagingMemory, 0, newBiomeSize + newUnitRulesSize, 0,
+                  &stagingData) != VK_SUCCESS)
   {
     RayLog::LogError(RAYLOG_TAG, "Failed to map staging memory");
     return false;
   }
 
   memcpy(stagingData, cpuBiomes.data(), newBiomeSize);
-  memcpy(static_cast<uint8_t*>(stagingData) + newBiomeSize, cpuUnitRules.data(), newUnitRulesSize);
+  memcpy(static_cast<uint8_t*>(stagingData) + newBiomeSize, cpuUnitRules.data(),
+         newUnitRulesSize);
   vkUnmapMemory(device, stagingMemory);
 
   // Copy from staging to GPU buffers
   VkBufferCopy biomeCopy{};
   biomeCopy.srcOffset = 0;
   biomeCopy.dstOffset = 0;
-  biomeCopy.size = newBiomeSize;
+  biomeCopy.size      = newBiomeSize;
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, biomeBuffer, 1, &biomeCopy);
 
   VkBufferCopy rulesCopy{};
   rulesCopy.srcOffset = newBiomeSize;
   rulesCopy.dstOffset = 0;
-  rulesCopy.size = newUnitRulesSize;
+  rulesCopy.size      = newUnitRulesSize;
   vkCmdCopyBuffer(commandBuffer, stagingBuffer, unitRulesBuffer, 1, &rulesCopy);
 
   gpuDirty = false;
   RayLog::LogInfo(RAYLOG_TAG, "GPU buffers updated: %u biomes, %u unit rules",
-                 static_cast<uint32_t>(cpuBiomes.size()), static_cast<uint32_t>(cpuUnitRules.size()));
+                  static_cast<uint32_t>(cpuBiomes.size()),
+                  static_cast<uint32_t>(cpuUnitRules.size()));
 
   return true;
 }
 
-bool BiomeRegistryGPU::CreateBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
-                                    VkDeviceSize size, VkBufferUsageFlags usage,
+bool BiomeRegistryGPU::CreateBuffer(VkDevice              device,
+                                    VkPhysicalDevice      physicalDevice,
+                                    VkDeviceSize          size,
+                                    VkBufferUsageFlags    usage,
                                     VkMemoryPropertyFlags properties,
-                                    VkBuffer& buffer, VkDeviceMemory& memory)
+                                    VkBuffer&             buffer,
+                                    VkDeviceMemory&       memory)
 {
   VkBufferCreateInfo bufferInfo{};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = size;
-  bufferInfo.usage = usage;
+  bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  bufferInfo.size        = size;
+  bufferInfo.usage       = usage;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
   if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -262,9 +269,10 @@ bool BiomeRegistryGPU::CreateBuffer(VkDevice device, VkPhysicalDevice physicalDe
   vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
   VkMemoryAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+  allocInfo.memoryTypeIndex =
+      FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
   if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
   {
@@ -277,26 +285,31 @@ bool BiomeRegistryGPU::CreateBuffer(VkDevice device, VkPhysicalDevice physicalDe
   return true;
 }
 
-bool BiomeRegistryGPU::CopyBufferToGPU(VkDevice device, VkCommandBuffer commandBuffer,
-                                      VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+bool BiomeRegistryGPU::CopyBufferToGPU(VkDevice        device,
+                                       VkCommandBuffer commandBuffer,
+                                       VkBuffer        srcBuffer,
+                                       VkBuffer        dstBuffer,
+                                       VkDeviceSize    size)
 {
   VkBufferCopy copyRegion{};
   copyRegion.srcOffset = 0;
   copyRegion.dstOffset = 0;
-  copyRegion.size = size;
+  copyRegion.size      = size;
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
   return true;
 }
 
-uint32_t BiomeRegistryGPU::FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,
-                                         VkMemoryPropertyFlags properties)
+uint32_t BiomeRegistryGPU::FindMemoryType(VkPhysicalDevice      physicalDevice,
+                                          uint32_t              typeFilter,
+                                          VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
   {
-    if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+    if ((typeFilter & (1 << i)) &&
+        (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
     {
       return i;
     }

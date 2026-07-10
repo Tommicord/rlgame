@@ -1,5 +1,7 @@
 export module Rl.Client.Render.Unit.UnitRendererInfo;
 
+import Rl.World.Unit.UnitGPUParams;
+
 import <array>;
 import <cstddef>;
 import <glm/glm.hpp>;

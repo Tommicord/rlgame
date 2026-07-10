@@ -1,8 +1,10 @@
 export module Rl.World.Biome.BaseBiome;
 
 import Rl.World.Biome.IBiome;
+
 import <algorithm>;
 import <cmath>;
+import <vector>;
 
 namespace Rl::World::Biome
 {

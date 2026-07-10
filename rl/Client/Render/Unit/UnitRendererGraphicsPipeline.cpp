@@ -1,4 +1,5 @@
 import Rl.Client.Render.Unit.UnitRendererGraphicsPipeline;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Base.Shader;
 import Rl.Base.Binding;
 

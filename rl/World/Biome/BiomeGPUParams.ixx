@@ -1,5 +1,7 @@
 export module Rl.World.Biome.BiomeGPUParams;
 
+import Rl.World.Biome.IBiome;
+
 import <cstdint>;
 
 namespace Rl::World::Biome
@@ -8,15 +10,15 @@ namespace Rl::World::Biome
 /* GPU-compatible biome parameters structure for compute shaders */
 export struct BiomeGPUParams
 {
-  uint32_t biomeType;
-  float    temperatureBase;
-  float    temperatureVariation;
-  float    moistureBase;
-  float    moistureVariation;
-  float    elevationBase;
-  float    elevationVariation;
-  uint32_t unitRuleCount;
-  float    padding[3]; // Alignment padding to 16-byte boundary
+  BiomeType biomeType;
+  float     temperatureBase;
+  float     temperatureVariation;
+  float     moistureBase;
+  float     moistureVariation;
+  float     elevationBase;
+  float     elevationVariation;
+  uint32_t  unitRuleCount;
+  float     padding[3]; // Alignment padding to 16-byte boundary
 };
 
 /* GPU-compatible unit rule structure for compute shaders */

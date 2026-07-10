@@ -18,6 +18,7 @@ import <optional>;
 import <glm/glm.hpp>;
 import <vulkan/vulkan.hpp>;
 import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.World.Unit.UnitRegistryGPU;
 
 namespace Rl::Providers
 {
@@ -130,6 +131,13 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   bool           singleUnitMode = false;
   uint32_t       singleUnitId = 0;
 
+  // Mesh generation compute resources
+  VkPipeline            meshGenPipeline = VK_NULL_HANDLE;
+  VkPipelineLayout      meshGenPipelineLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout meshGenDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSet       meshGenDescriptorSet = VK_NULL_HANDLE;
+  VkDescriptorPool       meshGenDescriptorPool = VK_NULL_HANDLE;
+
   UnitStateBinding() = default;
 };
 
@@ -151,6 +159,9 @@ export class UnitStateDrawable final
 
   /* Disable unit array mode (revert to vertex data) */
   void DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context);
+
+  /* Generate unit mesh using compute shader */
+  void GenerateUnitMesh(UnitStateBinding& vk, Main::MainBinding& context, uint32_t unitId, uint32_t startVertex);
 
   /* Enable single unit rendering mode */
   void EnableSingleUnitMode(UnitStateBinding& vk, uint32_t unitId);
@@ -208,7 +219,7 @@ export class UnitModel final : public IStateModel<World::IUnit,
     drawable = std::make_shared<UnitStateDrawable>();
     binding = std::make_unique<UnitStateBinding>();
     ref = nullptr;
-    resource = std::make_unique<UnitStateResource>(nullptr);
+    resource = nullptr;
     drawable->OnCreate(*resource, *binding, context);
     drawable->EnableUnitArrayModeFromRegistry(*binding, context, unitRegistry);
     drawable->DisableSingleUnitMode(*binding);

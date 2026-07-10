@@ -1,5 +1,6 @@
 export module Rl.World.Unit.UnitRegistryGPU;
 
+import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitGPUParams;
 import Rl.RayLog.Macro;
 
@@ -11,7 +12,7 @@ import <vulkan/vulkan.hpp>;
 namespace Rl::World
 {
 
-/* Production-ready GPU unit registry for compute shader access */
+/* GPU unit registry for compute shader access */
 export class UnitRegistryGPU
 {
   protected:

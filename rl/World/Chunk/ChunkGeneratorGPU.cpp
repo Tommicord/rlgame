@@ -46,8 +46,7 @@ bool ChunkGeneratorGPU::Initialize(VkDevice device, VkPhysicalDevice physicalDev
   }
 
   // Initialize async queue with priority comparator
-  asyncQueue = std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>,
-                                   decltype(comparator)>(comparator);
+  asyncQueue = std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>, Comparator>(comparator);
 
   initialized = true;
   RayLog::LogInfo(RAYLOG_TAG, "WorldGeneratorGPU initialized successfully");
