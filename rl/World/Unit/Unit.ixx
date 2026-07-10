@@ -219,6 +219,15 @@ export class IUnit : public IUpdatable
   virtual bool IsStrategySolid() const
   { return true; }
 
+
+  /* Virtual function for derived classes to provide their class ID */
+  [[nodiscard]]
+  virtual unsigned short GetDerivedClassId() const = 0;
+
+  /* Virtual function for derived classes to provide their class name */
+  [[nodiscard]]
+  virtual std::string_view GetDerivedClassName() const = 0;
+
   protected:
   /* Registers in compile-time a Unit id into the registry */
   template <typename Derived> static void RegisterDerived(Derived& ptr)
@@ -241,14 +250,6 @@ export class IUnit : public IUpdatable
 
   /* Loads textures and do some other things when registered the Unit */
   static void RegisterDerivedCallback(unsigned short id);
-
-  /* Virtual function for derived classes to provide their class ID */
-  [[nodiscard]]
-  virtual unsigned short GetDerivedClassId() const = 0;
-
-  /* Virtual function for derived classes to provide their class name */
-  [[nodiscard]]
-  virtual std::string_view GetDerivedClassName() const = 0;
 
   /* Texture of the unit, back, front, left, right, bottom, top */
   std::unique_ptr<UnitTextureMaterial> textures;

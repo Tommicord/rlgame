@@ -59,4 +59,18 @@ export void UnitCreateCurvatureComputeBuffers(VkDevice device,
 export void UnitCreateUniformBuffers(
     VkDevice device, VkPhysicalDevice physicalDevice, Providers::UnitStateBinding& vk);
 
+/* Creates unit array buffer for GPU unit data */
+export void UnitCreateUnitArrayBuffer(VkDevice device,
+    VkPhysicalDevice                       physicalDevice,
+    const std::vector<UnitRenderUnitData>& unitData,
+    VkBuffer&                              unitArrayBuffer,
+    VkDeviceMemory&                        unitArrayMemory);
+
+/* Creates polygon fence array buffer for GPU fence data */
+export void UnitCreatePolFenceArrayBuffer(VkDevice device,
+    VkPhysicalDevice                       physicalDevice,
+    const std::vector<UnitRenderPolFence>& fenceData,
+    VkBuffer&                              fenceArrayBuffer,
+    VkDeviceMemory&                        fenceArrayMemory);
+
 } // namespace Rl::Client::Render

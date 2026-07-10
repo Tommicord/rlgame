@@ -4,6 +4,7 @@ import Rl.World.Chunk.ChunkInRenderUnits;
 import Rl.World.Chunk.ChunkThreadPool;
 import Rl.World.Chunk.UnitChunkAccessor;
 import Rl.World.Chunk.UnitChunkBuffer;
+import Rl.World.Chunk.ChunkGeneratorGPU;
 
 import <atomic>;
 import <chrono>;
@@ -41,6 +42,10 @@ protected:
   void SetRenderDistance(WorldChunkCoord distance);
   void SetChunkGenerator(ChunkGenerator generator);
 
+  /* Enable GPU-based world generation */
+  void EnableGPUGeneration(ChunkGeneratorGPU* gpuGenerator, VkDevice device, VkPhysicalDevice physicalDevice);
+  void DisableGPUGeneration();
+
   [[nodiscard]] bool IsRunning() const;
   [[nodiscard]] bool IsChunkGenerated(const WorldChunkCoord& coord) const;
   [[nodiscard]] bool HasPendingWork() const;
@@ -67,6 +72,12 @@ protected:
   mutable std::mutex stateMutex;
   std::unordered_map<uint64_t, WorldChunkCoord> generatedChunkStorageCoords;
   std::jthread generationThread;
+
+  /* GPU generation support */
+  ChunkGeneratorGPU* gpuGenerator = nullptr;
+  VkDevice gpuDevice = VK_NULL_HANDLE;
+  VkPhysicalDevice gpuPhysicalDevice = VK_NULL_HANDLE;
+  bool gpuGenerationEnabled = false;
 };
 
 } // namespace Rl::World::Chunk

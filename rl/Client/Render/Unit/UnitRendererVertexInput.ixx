@@ -10,7 +10,7 @@ namespace Rl::Client::Render
 export VkVertexInputBindingDescription UnitCreateVertexInputBindingDescription();
 
 /* Creates a binding attributes for a vertex input structure */
-export std::array<VkVertexInputAttributeDescription, 14>
+export std::array<VkVertexInputAttributeDescription, 15>
 UnitCreateVertexAttributeDescriptions();
 
 } // namespace Rl::Client::Render

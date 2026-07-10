@@ -28,6 +28,45 @@ export struct UnitRenderVertex
   glm::vec4 tangent; // 16 bytes (tanX, tanY, tanZ + padding)
   glm::vec4 bitangent; // 16 bytes (bitanX, bitanY, bitanZ + padding)
   glm::vec4 normal; // 16 bytes (normX, normY, normZ + padding)
+  uint32_t  unitId; // 4 bytes - Unit ID for array lookup
+};
+
+/* Unit data structure for GPU array (matches UnitGPUParams) */
+export struct alignas(16) UnitRenderUnitData
+{
+  uint32_t unitId;
+  float    temperature;
+  float    moisture;
+  float    roughness;
+  float    metallic;
+  float    albedoR;
+  float    albedoG;
+  float    albedoB;
+  float    reflectivity;
+  float    refractiveIndex;
+  float    dirtiness;
+  float    hardness;
+  float    explosionResistance;
+  float    transparency;
+  float    emissiveIntensity;
+  float    subsurfaceScattering;
+  float    flammability;
+  float    lightEmit;
+  float    lightOpacity;
+  float    ambientOcclusion;
+  float    lightAbsorption;
+  float    lightScattering;
+  float    humidity;
+  uint32_t isLiquid;
+  uint32_t isGas;
+  uint32_t isSolid;
+  float    padding[3];
+};
+
+/* Polygon fence structure for GPU array */
+export struct alignas(16) UnitRenderPolFence
+{
+  float t, d, b, f; // Top, Down, Back, Front
 };
 
 /* Defines a single light source */
@@ -104,5 +143,53 @@ export struct UnitRenderDrawIndexedParams
   int32_t  vertexOffset;
   uint32_t firstInstance;
 };
+
+/* Defines push constants for unit rendering */
+export struct UnitRenderPushConstants
+{
+  glm::mat4 model;
+  glm::mat4 view;
+  glm::mat4 projection;
+  uint32_t  useUnitArray; // 0 = use vertex data, 1 = use unit array
+  uint32_t  singleUnitMode; // 1 = render single unit only
+  uint32_t  singleUnitId; // unit ID for single unit mode
+  uint32_t  padding1;
+};
+
+/* Convert UnitGPUParams to UnitRenderUnitData for rendering */
+export inline UnitRenderUnitData ConvertGPUParamsToRenderData(const World::UnitGPUParams& params)
+{
+  UnitRenderUnitData renderData{};
+  renderData.unitId = params.unitId;
+  renderData.temperature = params.temperature;
+  renderData.moisture = params.moisture;
+  renderData.roughness = params.roughness;
+  renderData.metallic = params.metallic;
+  renderData.albedoR = params.albedoR;
+  renderData.albedoG = params.albedoG;
+  renderData.albedoB = params.albedoB;
+  renderData.reflectivity = params.reflectivity;
+  renderData.refractiveIndex = params.refractiveIndex;
+  renderData.dirtiness = params.dirtiness;
+  renderData.hardness = params.hardness;
+  renderData.explosionResistance = params.explosionResistance;
+  renderData.transparency = params.transparency;
+  renderData.emissiveIntensity = params.emissiveIntensity;
+  renderData.subsurfaceScattering = params.subsurfaceScattering;
+  renderData.flammability = params.flammability;
+  renderData.lightEmit = params.lightEmit;
+  renderData.lightOpacity = params.lightOpacity;
+  renderData.ambientOcclusion = params.ambientOcclusion;
+  renderData.lightAbsorption = params.lightAbsorption;
+  renderData.lightScattering = params.lightScattering;
+  renderData.humidity = params.humidity;
+  renderData.isLiquid = params.isLiquid;
+  renderData.isGas = params.isGas;
+  renderData.isSolid = params.isSolid;
+  renderData.padding[0] = params.padding[0];
+  renderData.padding[1] = params.padding[1];
+  renderData.padding[2] = params.padding[2];
+  return renderData;
+}
 
 } // namespace Rl::Client::Render

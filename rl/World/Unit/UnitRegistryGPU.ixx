@@ -89,6 +89,10 @@ export class UnitRegistryGPU
   [[nodiscard]]
   bool IsInitialized() const { return initialized; }
 
+  /* Get CPU-side unit data for rendering integration */
+  [[nodiscard]]
+  const std::vector<UnitGPUParams>& GetCPUUnits() const { return cpuUnits; }
+
   /* Disable copy operations */
   UnitRegistryGPU(const UnitRegistryGPU&) = delete;
   UnitRegistryGPU& operator=(const UnitRegistryGPU&) = delete;

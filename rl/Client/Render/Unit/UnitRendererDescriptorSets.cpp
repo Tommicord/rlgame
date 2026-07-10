@@ -56,7 +56,7 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
 
 void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout)
 {
-  std::array<VkDescriptorSetLayoutBinding, 12> graphicsBindings{};
+  std::array<VkDescriptorSetLayoutBinding, 14> graphicsBindings{};
   // Texture array (binding 2)
   graphicsBindings[0].binding = 2;
   graphicsBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -104,6 +104,16 @@ void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayou
   graphicsBindings[11].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   graphicsBindings[11].descriptorCount = 1;
   graphicsBindings[11].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  // Unit array buffer (binding 18)
+  graphicsBindings[12].binding = 18;
+  graphicsBindings[12].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  graphicsBindings[12].descriptorCount = 1;
+  graphicsBindings[12].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  // Polygon fence array buffer (binding 19)
+  graphicsBindings[13].binding = 19;
+  graphicsBindings[13].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  graphicsBindings[13].descriptorCount = 1;
+  graphicsBindings[13].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
   VkDescriptorSetLayoutCreateInfo graphicsLayoutInfo{};
   graphicsLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -168,7 +178,7 @@ void UnitCreateDescriptorPool(VkDevice device, VkDescriptorPool& pool)
 {
   VkDescriptorPoolSize poolSizes[3]{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[0].descriptorCount = 24; // compute + curvature + graphics shadow-matrix buffer
+  poolSizes[0].descriptorCount = 26; // compute + curvature + graphics shadow-matrix buffer + unit arrays (2 more)
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   poolSizes[1].descriptorCount = 24; // textures + lighting + AO + normal + shadow cascades
   poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -582,6 +592,44 @@ void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
 
   vkUpdateDescriptorSets(device, static_cast<uint32_t>(shadowWrites.size()),
       shadowWrites.data(), 0, nullptr);
+}
+
+void UnitUpdateGraphicsDescriptorSetWithUnitArrays(VkDevice device,
+    VkDescriptorSet                                               set,
+    VkBuffer                                                      unitArrayBuffer,
+    VkBuffer                                                      polFenceArrayBuffer)
+{
+  VkDescriptorBufferInfo unitArrayInfo{};
+  unitArrayInfo.buffer = unitArrayBuffer;
+  unitArrayInfo.offset = 0;
+  unitArrayInfo.range = VK_WHOLE_SIZE;
+
+  VkWriteDescriptorSet unitArrayWrite{};
+  unitArrayWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  unitArrayWrite.dstSet = set;
+  unitArrayWrite.dstBinding = 18;
+  unitArrayWrite.dstArrayElement = 0;
+  unitArrayWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  unitArrayWrite.descriptorCount = 1;
+  unitArrayWrite.pBufferInfo = &unitArrayInfo;
+
+  VkDescriptorBufferInfo polFenceArrayInfo{};
+  polFenceArrayInfo.buffer = polFenceArrayBuffer;
+  polFenceArrayInfo.offset = 0;
+  polFenceArrayInfo.range = VK_WHOLE_SIZE;
+
+  VkWriteDescriptorSet polFenceArrayWrite{};
+  polFenceArrayWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  polFenceArrayWrite.dstSet = set;
+  polFenceArrayWrite.dstBinding = 19;
+  polFenceArrayWrite.dstArrayElement = 0;
+  polFenceArrayWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  polFenceArrayWrite.descriptorCount = 1;
+  polFenceArrayWrite.pBufferInfo = &polFenceArrayInfo;
+
+  std::array<VkWriteDescriptorSet, 2> unitArrayWrites = {unitArrayWrite, polFenceArrayWrite};
+  vkUpdateDescriptorSets(device, static_cast<uint32_t>(unitArrayWrites.size()),
+      unitArrayWrites.data(), 0, nullptr);
 }
 
 } // namespace Rl::Client::Render

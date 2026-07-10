@@ -161,7 +161,6 @@ export class UnitDeepMantle final : public IUnit,
   [[nodiscard]]
   const Unit::GrassGrowConfig& GetConfig() const;
 
-  protected:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
   { return IUnitIdentifiable<UnitDeepMantle>::GetClassId(); }
@@ -319,7 +318,6 @@ export class UnitMantle final : public IUnit,
   [[nodiscard]]
   const Unit::GrassGrowConfig& GetConfig() const;
 
-  protected:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
   { return IUnitIdentifiable<UnitMantle>::GetClassId(); }

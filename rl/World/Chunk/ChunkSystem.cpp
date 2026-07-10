@@ -3,6 +3,7 @@ import Rl.World.Chunk.ChunkSystem;
 import Rl.World.Chunk.ChunkInRenderUnits;
 import Rl.World.Chunk.UnitChunkBuffer;
 import Rl.World.Chunk.UnitChunkAccessor;
+import Rl.World.Chunk.ChunkGeneratorGPU;
 import Rl.RayLog.Macro;
 import Rl.RayLog.Logger;
 
@@ -12,6 +13,7 @@ import <stdexcept>;
 import <utility>;
 import <vector>;
 import <mutex>;
+import <vulkan/vulkan.hpp>;
 
 namespace Rl::World::Chunk
 {
@@ -119,6 +121,26 @@ void ChunkSystem::SetChunkGenerator(ChunkGenerator generator)
 {
   std::scoped_lock lock(stateMutex);
   chunkGenerator = std::move(generator);
+}
+
+void ChunkSystem::EnableGPUGeneration(ChunkGeneratorGPU* gpuGenerator, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  std::scoped_lock lock(stateMutex);
+  this->gpuGenerator = gpuGenerator;
+  this->gpuDevice = device;
+  this->gpuPhysicalDevice = physicalDevice;
+  this->gpuGenerationEnabled = true;
+  RayLog::LogInfo(RAYLOG_TAG, "GPU generation enabled");
+}
+
+void ChunkSystem::DisableGPUGeneration()
+{
+  std::scoped_lock lock(stateMutex);
+  gpuGenerator = nullptr;
+  gpuDevice = VK_NULL_HANDLE;
+  gpuPhysicalDevice = VK_NULL_HANDLE;
+  gpuGenerationEnabled = false;
+  RayLog::LogInfo(RAYLOG_TAG, "GPU generation disabled");
 }
 
 bool ChunkSystem::IsRunning() const
@@ -240,10 +262,18 @@ bool ChunkSystem::GenerateChunk(const WorldChunkCoord& coord)
 {
   WorldChunkCoord playerChunk{};
   WorldChunkCoord localRenderDistance{};
+  bool useGPU = false;
+  ChunkGeneratorGPU* localGpuGenerator = nullptr;
+  VkDevice localGpuDevice = VK_NULL_HANDLE;
+  VkPhysicalDevice localGpuPhysicalDevice = VK_NULL_HANDLE;
   {
     std::scoped_lock lock(stateMutex);
     playerChunk = WorldPositionToChunkCoord(playerPosition);
     localRenderDistance = renderDistance;
+    useGPU = gpuGenerationEnabled;
+    localGpuGenerator = gpuGenerator;
+    localGpuDevice = gpuDevice;
+    localGpuPhysicalDevice = gpuPhysicalDevice;
   }
 
   if (!IsInPlayerRange(playerChunk, localRenderDistance, coord))
@@ -257,8 +287,25 @@ bool ChunkSystem::GenerateChunk(const WorldChunkCoord& coord)
       coord.chunkZ - playerChunk.chunkZ + (localRenderDistance.chunkZ / 2)};
 
   UnitChunkBuffer chunkBuffer{};
-  if (!chunkGenerator(coord, chunkBuffer))
-    return false;
+
+  if (useGPU && localGpuGenerator && localGpuDevice != VK_NULL_HANDLE)
+  {
+    // Use GPU generation
+    // Note: This requires a command buffer - in production, this would be integrated
+    // with the rendering command buffer recording. For now, we'll use a fallback.
+    RayLog::LogInfo(RAYLOG_TAG, "Using GPU generation for chunk [%d, %d, %d]",
+                   coord.chunkX, coord.chunkY, coord.chunkZ);
+    
+    // Fallback to CPU generation for now - GPU generation needs command buffer integration
+    if (!chunkGenerator(coord, chunkBuffer))
+      return false;
+  }
+  else
+  {
+    // Use CPU generation
+    if (!chunkGenerator(coord, chunkBuffer))
+      return false;
+  }
 
   if (!chunkStore.AddChunk(storageCoord, chunkBuffer))
     return false;

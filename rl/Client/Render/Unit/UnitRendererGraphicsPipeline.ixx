@@ -17,7 +17,7 @@ export void UnitCreateGraphicsPipeline(VkDevice              device,
     VkRenderPass                                             renderPass,
     VkExtent2D                                               swapChainExtent,
     const VkVertexInputBindingDescription&                   bindingDescription,
-    const std::array<VkVertexInputAttributeDescription, 14>& attributeDescriptions,
+    const std::array<VkVertexInputAttributeDescription, 15>& attributeDescriptions,
     VkPipeline&                                              pipeline);
 
 } // namespace Rl::Client::Render

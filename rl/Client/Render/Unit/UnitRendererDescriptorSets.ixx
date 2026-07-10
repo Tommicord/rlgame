@@ -75,4 +75,10 @@ export void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,
     const std::vector<UnitCascadeShadowLevel>&                    cascades,
     VkBuffer                                                      cascadeMatricesBuffer);
 
+/* Update graphics descriptor set with unit array buffers */
+export void UnitUpdateGraphicsDescriptorSetWithUnitArrays(VkDevice device,
+    VkDescriptorSet                                               set,
+    VkBuffer                                                      unitArrayBuffer,
+    VkBuffer                                                      polFenceArrayBuffer);
+
 } // namespace Rl::Client::Render

@@ -64,7 +64,6 @@ set(CXX_MODULES
   rl/Base/IStateModel.ixx
   rl/Base/IStateDrawable.ixx
   rl/Base/IUpdatable.ixx
-  rl/Client/State/UnitState.ixx
   rl/Player/PlayerCamera.ixx
   rl/Player/PlayerCameraController.ixx
   rl/Player/PlayerController.ixx
@@ -83,6 +82,7 @@ set(CXX_MODULES
   rl/World/Unit/UnitPropertyStrategy.ixx
   rl/World/Unit/UnitRegister.ixx
   rl/World/Unit/UnitTextureFactory.ixx
+  rl/Client/State/UnitState.ixx
   rl/Client/Render/Unit/UnitRendererAOTextures.ixx
   rl/Client/Render/Unit/UnitRendererBarriers.ixx
   rl/Client/Render/Unit/UnitRendererBasicBuffer.ixx
@@ -117,6 +117,7 @@ set(CXX_MODULES
   rl/World/Chunk/ChunkTransaction.ixx
   rl/World/Chunk/ChunkTransactionRingBuffer.ixx
   rl/World/Chunk/UnitChunkAccessor.ixx
+  rl/World/Chunk/ChunkGeneratorGPU.ixx
   rl/World/Time/TimeSystem.ixx
   rl/World/Skybox/SkyboxSystem.ixx
   rl/World/ServiceLocator.ixx
@@ -124,6 +125,10 @@ set(CXX_MODULES
   rl/World/ServiceUpdaterRegistry.ixx
   rl/World/ServiceUpdaterRegister.ixx
   rl/World/Unit/UnitGrassGrowBehavior.ixx
+  rl/World/Biome/BaseBiome.ixx
+  rl/World/Biome/BiomeGPUParams.ixx
+  rl/World/Biome/BiomeRegistryGPU.ixx
+  rl/World/Biome/IBiome.ixx
   rl/RayLog/RayLogConfig.ixx
   rl/RayLog/RayLogPlatform.ixx
   rl/RayLog/RayLogUuid.ixx
@@ -188,6 +193,7 @@ set(SOURCES
   rl/Client/Render/Unit/UnitRendererVertexBuffer.cpp
   rl/Client/Render/Unit/UnitRendererVertexInput.cpp
   rl/Client/Render/Unit/UnitRendererVertices.cpp
+  rl/World/Biome/BiomeRegistryGPU.cpp
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitGPUSimplexNoise.cpp
   rl/World/Chunk/ChunkInRenderUnits.cpp
@@ -197,6 +203,7 @@ set(SOURCES
   rl/World/Chunk/ChunkThreadPool.cpp
   rl/World/Chunk/ChunkTransactionRingBuffer.cpp
   rl/World/Chunk/UnitChunkAccessor.cpp
+  rl/World/Chunk/ChunkGeneratorGPU.cpp
   rl/World/Time/TimeSystem.cpp
   rl/World/Skybox/SkyboxSystem.cpp
   rl/World/ServiceLocator.cpp

@@ -140,7 +140,6 @@ export class UnitAir final : public IUnit,
   static constexpr bool IsSolid()
   { return false; }
 
-  private:
   [[nodiscard]]
   unsigned short GetDerivedClassId() const override
   { return IUnitIdentifiable<UnitAir>::GetClassId(); }

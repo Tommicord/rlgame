@@ -17,6 +17,7 @@ import <vector>;
 import <optional>;
 import <glm/glm.hpp>;
 import <vulkan/vulkan.hpp>;
+import Rl.Client.Render.Unit.UnitRendererInfo;
 
 namespace Rl::Providers
 {
@@ -120,6 +121,15 @@ export struct UnitStateBinding final : public IStateDrawableBinding
   uint32_t                                          shadowCascadeCount = 0;
   bool                                              shadowMapInitialized = false;
 
+  // Unit array buffers for GPU-based unit rendering
+  VkBuffer       unitArrayBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory unitArrayMemory = VK_NULL_HANDLE;
+  VkBuffer       polFenceArrayBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory polFenceArrayMemory = VK_NULL_HANDLE;
+  bool           useUnitArrayMode = false;
+  bool           singleUnitMode = false;
+  uint32_t       singleUnitId = 0;
+
   UnitStateBinding() = default;
 };
 
@@ -129,6 +139,24 @@ export class UnitStateDrawable final
   public:
   /* Stores the base class type */
   using Base = IStateDrawable;
+
+  /* Enable unit array mode with provided unit data */
+  void EnableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context,
+      const std::vector<Client::Render::UnitRenderUnitData>& unitData,
+      const std::vector<Client::Render::UnitRenderPolFence>& fenceData);
+
+  /* Enable unit array mode from UnitRegistryGPU */
+  void EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Main::MainBinding& context,
+      const World::UnitRegistryGPU& unitRegistry);
+
+  /* Disable unit array mode (revert to vertex data) */
+  void DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context);
+
+  /* Enable single unit rendering mode */
+  void EnableSingleUnitMode(UnitStateBinding& vk, uint32_t unitId);
+
+  /* Disable single unit rendering mode */
+  void DisableSingleUnitMode(UnitStateBinding& vk);
 
   void OnDraw(UnitStateResource& resource,
       UnitStateBinding&          vk,
@@ -161,7 +189,7 @@ export class UnitModel final : public IStateModel<World::IUnit,
   Main::MainBinding&                 context;
 
   public:
-  /* Constructs a model of the Camera class */
+  /* Constructs a test model of the Camera class */
   explicit UnitModel(Main::MainBinding& context) : IStateModel(context), context(context)
   {
     drawable = std::make_shared<UnitStateDrawable>();
@@ -169,6 +197,28 @@ export class UnitModel final : public IStateModel<World::IUnit,
     ref = std::make_unique<World::UnitDeepMantle>();
     resource = std::make_unique<UnitStateResource>(*ref);
     drawable->OnCreate(*resource, *binding, context);
+    drawable->DisableUnitArrayMode(*binding, context);
+    drawable->EnableSingleUnitMode(*binding,  ref->GetDerivedClassId());
+  }
+
+  /* Constructs a model with unit array mode from UnitRegistryGPU, prepared for procedural World generation */
+  explicit UnitModel(Main::MainBinding& context, const World::UnitRegistryGPU& unitRegistry) 
+      : IStateModel(context), context(context)
+  {
+    drawable = std::make_shared<UnitStateDrawable>();
+    binding = std::make_unique<UnitStateBinding>();
+    ref = nullptr;
+    resource = std::make_unique<UnitStateResource>(nullptr);
+    drawable->OnCreate(*resource, *binding, context);
+    drawable->EnableUnitArrayModeFromRegistry(*binding, context, unitRegistry);
+    drawable->DisableSingleUnitMode(*binding);
+  }
+
+  /* Enable unit array mode from UnitRegistryGPU */
+  void EnableUnitArrayMode(const World::UnitRegistryGPU& unitRegistry)
+  {
+    drawable->EnableUnitArrayModeFromRegistry(*binding, context, unitRegistry);
+    drawable->DisableSingleUnitMode(*binding);
   }
 
   /* Destructs a CameraModel */

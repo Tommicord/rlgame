@@ -39,6 +39,18 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
   vkDestroyBuffer(device, vk.shadowCascadeMatricesBuffer, nullptr);
   vkFreeMemory(device, vk.shadowCascadeMatricesMemory, nullptr);
 
+  // Cleanup unit array buffers
+  if (vk.unitArrayBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.unitArrayBuffer, nullptr);
+    vkFreeMemory(device, vk.unitArrayMemory, nullptr);
+  }
+  if (vk.polFenceArrayBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.polFenceArrayBuffer, nullptr);
+    vkFreeMemory(device, vk.polFenceArrayMemory, nullptr);
+  }
+
   // Cleanup curvature compute buffers
   vkDestroyBuffer(device, vk.curvedVertexBuffer, nullptr);
   vkFreeMemory(device, vk.curvedVertexBufferMemory, nullptr);

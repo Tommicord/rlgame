@@ -168,7 +168,15 @@ void UnitRender(Providers::UnitStateResource& resource,
   glm::mat4                    model = cam.GetModelMatrix();
   glm::mat4                    view = cam.GetViewMatrix();
   glm::mat4                    projection = cam.GetProjectionMatrix();
-  glm::mat4                    matrices[3] = {model, view, projection};
+
+  UnitRenderPushConstants pushConstants{};
+  pushConstants.model = model;
+  pushConstants.view = view;
+  pushConstants.projection = projection;
+  pushConstants.useUnitArray = vk.useUnitArrayMode ? 1 : 0;
+  pushConstants.singleUnitMode = vk.singleUnitMode ? 1 : 0;
+  pushConstants.singleUnitId = vk.singleUnitId;
+  pushConstants.padding1 = 0;
 
   // Check if any face has curvature
   bool hasCurvature = false;
@@ -180,7 +188,6 @@ void UnitRender(Providers::UnitStateResource& resource,
       break;
     }
   }
-  // Bind graphics pipeline
   if (vk.pipeline != VK_NULL_HANDLE && vk.pipelineLayout != VK_NULL_HANDLE)
   {
     vkCmdBindPipeline(
@@ -199,9 +206,9 @@ void UnitRender(Providers::UnitStateResource& resource,
       // Bind graphics descriptor set for textures
       vkCmdBindDescriptorSets(context.commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS,
           vk.pipelineLayout, 0, 1, &vk.descriptorSet, 0, nullptr);
-      // Push camera matrices for vertex shader
+      // Push camera matrices and unit array mode constants
       vkCmdPushConstants(context.commandBuffers[0], vk.pipelineLayout,
-          VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(matrices), matrices);
+          VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(UnitRenderPushConstants), &pushConstants);
       // Draw using indirect draw parameters from curvature compute shader
       vkCmdDrawIndexedIndirect(context.commandBuffers[0], vk.curveIndirectDrawBuffer, 0,
           1, sizeof(VkDrawIndexedIndirectCommand));
@@ -220,9 +227,9 @@ void UnitRender(Providers::UnitStateResource& resource,
       // Bind graphics descriptor set for textures
       vkCmdBindDescriptorSets(context.commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS,
           vk.pipelineLayout, 0, 1, &vk.descriptorSet, 0, nullptr);
-      // Push camera matrices for vertex shader
+      // Push camera matrices and unit array mode constants
       vkCmdPushConstants(context.commandBuffers[0], vk.pipelineLayout,
-          VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(matrices), matrices);
+          VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(UnitRenderPushConstants), &pushConstants);
       // Draw using indexed indirect draw parameters from compute shader
       vkCmdDrawIndexedIndirect(context.commandBuffers[0], vk.indirectDrawBuffer, 0, 1,
           sizeof(VkDrawIndexedIndirectCommand));

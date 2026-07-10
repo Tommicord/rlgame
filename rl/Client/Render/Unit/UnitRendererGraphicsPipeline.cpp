@@ -23,7 +23,7 @@ void UnitCreateGraphicsPipelineLayout(VkDevice device,
   graphicsPushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   graphicsPushConstantRange.offset = 0;
   graphicsPushConstantRange.size =
-      3 * sizeof(glm::mat4); // model, view, projection matrices
+      sizeof(UnitRenderPushConstants); // model, view, projection matrices + unit array mode flags
   graphicsPipelineLayoutInfo.pPushConstantRanges = &graphicsPushConstantRange;
 
   if (vkCreatePipelineLayout(
@@ -38,7 +38,7 @@ void UnitCreateGraphicsPipeline(VkDevice                     device,
     VkRenderPass                                             renderPass,
     VkExtent2D                                               swapChainExtent,
     const VkVertexInputBindingDescription&                   bindingDescription,
-    const std::array<VkVertexInputAttributeDescription, 14>& attributeDescriptions,
+    const std::array<VkVertexInputAttributeDescription, 15>& attributeDescriptions,
     VkPipeline&                                              pipeline)
 {
   auto vertShaderCode = Providers::ShaderObject::Shader("unit.vert.spv");

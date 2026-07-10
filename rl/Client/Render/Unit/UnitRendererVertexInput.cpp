@@ -15,9 +15,9 @@ VkVertexInputBindingDescription UnitCreateVertexInputBindingDescription()
   return inputBindingDescription;
 }
 
-std::array<VkVertexInputAttributeDescription, 14> UnitCreateVertexAttributeDescriptions()
+std::array<VkVertexInputAttributeDescription, 15> UnitCreateVertexAttributeDescriptions()
 {
-  std::array<VkVertexInputAttributeDescription, 14> inputAttributeDescriptions{};
+  std::array<VkVertexInputAttributeDescription, 15> inputAttributeDescriptions{};
 
   // Position (vec4)
   inputAttributeDescriptions[0].binding = 0;
@@ -102,6 +102,12 @@ std::array<VkVertexInputAttributeDescription, 14> UnitCreateVertexAttributeDescr
   inputAttributeDescriptions[13].location = 13;
   inputAttributeDescriptions[13].format = VK_FORMAT_R32G32B32A32_SFLOAT;
   inputAttributeDescriptions[13].offset = offsetof(UnitRenderVertex, normal);
+
+  // UnitId (uint)
+  inputAttributeDescriptions[14].binding = 0;
+  inputAttributeDescriptions[14].location = 14;
+  inputAttributeDescriptions[14].format = VK_FORMAT_R32_UINT;
+  inputAttributeDescriptions[14].offset = offsetof(UnitRenderVertex, unitId);
 
   return inputAttributeDescriptions;
 }

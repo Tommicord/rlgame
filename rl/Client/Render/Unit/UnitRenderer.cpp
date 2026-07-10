@@ -2,6 +2,7 @@ import Rl.Base.Game;
 import Rl.Base.Shader;
 import Rl.Base.Binding;
 import Rl.World.ServiceLocator;
+import Rl.World.Unit.UnitRegistryGPU;
 import Rl.Client.Render.Unit.UnitRendererInfo;
 import Rl.Client.Render.Unit.UnitRendererAOTextures;
 import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
@@ -31,6 +32,94 @@ import Rl.Player.PlayerCamera;
 
 namespace Rl::Providers
 {
+
+void UnitStateDrawable::EnableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context,
+    const std::vector<Client::Render::UnitRenderUnitData>& unitData,
+    const std::vector<Client::Render::UnitRenderPolFence>& fenceData)
+{
+  // Create unit array buffer
+  Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
+      unitData, vk.unitArrayBuffer, vk.unitArrayMemory);
+
+  // Create polygon fence array buffer
+  Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
+      fenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
+
+  // Update descriptor set with unit arrays
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
+      vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
+
+  vk.useUnitArrayMode = true;
+}
+
+void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context)
+{
+  // Cleanup unit array buffers
+  if (vk.unitArrayBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(context.device, vk.unitArrayBuffer, nullptr);
+    vkFreeMemory(context.device, vk.unitArrayMemory, nullptr);
+    vk.unitArrayBuffer = VK_NULL_HANDLE;
+    vk.unitArrayMemory = VK_NULL_HANDLE;
+  }
+
+  if (vk.polFenceArrayBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(context.device, vk.polFenceArrayBuffer, nullptr);
+    vkFreeMemory(context.device, vk.polFenceArrayMemory, nullptr);
+    vk.polFenceArrayBuffer = VK_NULL_HANDLE;
+    vk.polFenceArrayMemory = VK_NULL_HANDLE;
+  }
+
+  vk.useUnitArrayMode = false;
+}
+
+void UnitStateDrawable::EnableSingleUnitMode(UnitStateBinding& vk, uint32_t unitId)
+{
+  vk.singleUnitMode = true;
+  vk.singleUnitId = unitId;
+}
+
+void UnitStateDrawable::DisableSingleUnitMode(UnitStateBinding& vk)
+{
+  vk.singleUnitMode = false;
+  vk.singleUnitId = 0;
+}
+
+void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Main::MainBinding& context,
+    const World::UnitRegistryGPU& unitRegistry)
+{
+  if (!unitRegistry.IsInitialized())
+  {
+    return;
+  }
+
+  // Get CPU unit data from registry
+  const auto& gpuUnits = unitRegistry.GetCPUUnits();
+  
+  // Convert UnitGPUParams to UnitRenderUnitData
+  std::vector<Client::Render::UnitRenderUnitData> unitData;
+  unitData.reserve(gpuUnits.size());
+  
+  for (const auto& gpuUnit : gpuUnits)
+  {
+    unitData.push_back(Client::Render::ConvertGPUParamsToRenderData(gpuUnit));
+  }
+
+  // Create default polygon fence data (all zeros for now)
+  // In a full implementation, this would come from unit instances or biome data
+  std::vector<Client::Render::UnitRenderPolFence> fenceData(gpuUnits.size());
+  for (auto& fence : fenceData)
+  {
+    fence.t = 0.0f;
+    fence.d = 0.0f;
+    fence.b = 0.0f;
+    fence.f = 0.0f;
+  }
+
+  // Enable unit array mode with the converted data
+  EnableUnitArrayMode(vk, context, unitData, fenceData);
+}
 
 void UnitStateDrawable::OnCreate(
     UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
