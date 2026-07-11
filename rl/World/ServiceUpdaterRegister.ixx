@@ -23,8 +23,8 @@ export class ServiceUpdaterRegister
   ServiceUpdaterRegister& operator=(const ServiceUpdaterRegister&) = delete;
 
   /* Enable move operations */
-  ServiceUpdaterRegister(ServiceUpdaterRegister&& other) noexcept = default;
-  ServiceUpdaterRegister& operator=(ServiceUpdaterRegister&& other) noexcept = default;
+  ServiceUpdaterRegister(ServiceUpdaterRegister&& other) noexcept = delete;
+  ServiceUpdaterRegister& operator=(ServiceUpdaterRegister&& other) noexcept = delete;
 
   /* Register TimeSystem updater */
   void RegisterTimeSystemUpdater(const std::string& name, int64_t fragmentsPerUpdate);
@@ -34,6 +34,9 @@ export class ServiceUpdaterRegister
 
   /* Register Player services updater */
   void RegisterPlayerServicesUpdater(const std::string& name);
+
+  /* Register Chunk services updater */
+  void RegisterChunkServicesUpdater(const std::string& name);
 
   /* Register custom updater */
   void RegisterCustomUpdater(

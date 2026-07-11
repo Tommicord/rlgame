@@ -33,11 +33,11 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     Main::MainBinding&                                        context)
 {
   // Get camera matrices for push constants
-  UnitRenderUBO                ubo{};
+  UnitRenderPushConstants      pushConstants{};
   const Player::IPlayerCamera& cam = *resource.player.camera;
-  ubo.model = cam.GetModelMatrix();
-  ubo.view = cam.GetViewMatrix();
-  ubo.projection = cam.GetProjectionMatrix();
+  pushConstants.model = cam.GetModelMatrix();
+  pushConstants.view = cam.GetViewMatrix();
+  pushConstants.projection = cam.GetProjectionMatrix();
 
   // Reset visible vertex counter using vkCmdFillBuffer (GPU-side operation)
   vkCmdFillBuffer(
@@ -166,19 +166,38 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     // Dispatch one workgroup per face (6 faces)
     vkCmdDispatch(context.commandBuffers[0], 6, 1, 1);
 
-    VkBufferMemoryBarrier curveBarrier{};
-    curveBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-    curveBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-    curveBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    curveBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    curveBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    curveBarrier.buffer = vk.curvedVertexBuffer;
-    curveBarrier.offset = 0;
-    curveBarrier.size = VK_WHOLE_SIZE;
+    VkBufferMemoryBarrier curveBarriers[3]{};
+
+    curveBarriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    curveBarriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    curveBarriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    curveBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[0].buffer = vk.curvedVertexBuffer;
+    curveBarriers[0].offset = 0;
+    curveBarriers[0].size = VK_WHOLE_SIZE;
+
+    curveBarriers[1].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    curveBarriers[1].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    curveBarriers[1].dstAccessMask = VK_ACCESS_INDEX_READ_BIT;
+    curveBarriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[1].buffer = vk.curvedIndexBuffer;
+    curveBarriers[1].offset = 0;
+    curveBarriers[1].size = VK_WHOLE_SIZE;
+
+    curveBarriers[2].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    curveBarriers[2].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    curveBarriers[2].dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+    curveBarriers[2].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[2].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    curveBarriers[2].buffer = vk.curveIndirectDrawBuffer;
+    curveBarriers[2].offset = 0;
+    curveBarriers[2].size = VK_WHOLE_SIZE;
 
     vkCmdPipelineBarrier(context.commandBuffers[0], VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &curveBarrier, 0,
-        nullptr);
+        VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, 0, 0,
+        nullptr, 3, curveBarriers, 0, nullptr);
   }
 
   // Dispatch compute shader for frustum culling
@@ -189,8 +208,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     vkCmdBindDescriptorSets(context.commandBuffers[0], VK_PIPELINE_BIND_POINT_COMPUTE,
         vk.computePipelineLayout, 0, 1, &vk.computeDescriptorSet, 0, nullptr);
     vkCmdPushConstants(context.commandBuffers[0], vk.computePipelineLayout,
-        VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
-        sizeof(UnitRenderUBO), &ubo);
+        VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(UnitRenderPushConstants), &pushConstants);
 
     // Calculate workgroup count, each workgroup processes 64 triangles
     uint32_t triangleCount = 36 / 3; // 12 triangles

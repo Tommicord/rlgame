@@ -38,24 +38,6 @@ void UnitStateDrawable::EnableUnitArrayMode(UnitStateBinding& vk, Main::MainBind
     const std::vector<Client::Render::UnitRenderUnitData>& unitData,
     const std::vector<Client::Render::UnitRenderPolFence>& fenceData)
 {
-  // Create unit array buffer
-  Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
-      unitData, vk.unitArrayBuffer, vk.unitArrayMemory);
-
-  // Create polygon fence array buffer
-  Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
-      fenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
-
-  // Update descriptor set with unit arrays
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
-      vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
-
-  vk.useUnitArrayMode = true;
-}
-
-void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context)
-{
-  // Cleanup unit array buffers
   if (vk.unitArrayBuffer != VK_NULL_HANDLE)
   {
     vkDestroyBuffer(context.device, vk.unitArrayBuffer, nullptr);
@@ -72,6 +54,20 @@ void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBin
     vk.polFenceArrayMemory = VK_NULL_HANDLE;
   }
 
+  Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
+      unitData, vk.unitArrayBuffer, vk.unitArrayMemory);
+
+  Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
+      fenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
+
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
+      vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
+
+  vk.useUnitArrayMode = true;
+}
+
+void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context)
+{
   vk.useUnitArrayMode = false;
 }
 
@@ -117,7 +113,6 @@ void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Ma
     fence.b = 0.0f;
     fence.f = 0.0f;
   }
-
   // Enable unit array mode with the converted data
   EnableUnitArrayMode(vk, context, unitData, fenceData);
 }
@@ -311,6 +306,15 @@ void UnitStateDrawable::OnCreate(
       vk.descriptorSet, vk.shadowMapSampler, vk.shadowMapCascades,
       vk.shadowCascadeMatricesBuffer);
 
+  std::vector<Client::Render::UnitRenderUnitData> emptyUnitData(1);
+  std::vector<Client::Render::UnitRenderPolFence> emptyFenceData(1);
+
+  Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
+    emptyUnitData, vk.unitArrayBuffer, vk.unitArrayMemory);
+  Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
+    emptyFenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
+    vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
   // Create vertex input state
   auto vertexInputBinding = Client::Render::UnitCreateVertexInputBindingDescription();
   auto vertexInputAttributes = Client::Render::UnitCreateVertexAttributeDescriptions();

@@ -133,7 +133,7 @@ void main()
   // Check if below terrain surface
   if (float(gid.y) < height)
   {
-    // Underground - select based on temperature
+    // Underground: select based on temperature
     // Deeper = hotter, so find unit with highest temperature
     float depth = height - float(gid.y);
     float targetTemperature = depth * 50.0; // Temperature increases with depth

@@ -4,6 +4,8 @@
 // Generates vertices for unit cubes with proper winding order for VK_FRONT_FACE_CLOCKWISE
 // and VK_CULL_MODE_BACK_BIT
 
+layout(local_size_x = 24) in;
+
 struct UnitRenderVertex {
     vec4 position;      // 16 bytes
     vec4 polRight;      // 16 bytes
@@ -27,6 +29,59 @@ layout(std430, binding = 0) buffer VertexBuffer {
     UnitRenderVertex vertices[];
 };
 
+struct UnitData {
+    uint unitId;
+    float temperature;
+    float moisture;
+    float roughness;
+    float metallic;
+    float albedoR;
+    float albedoG;
+    float albedoB;
+    float reflectivity;
+    float refractiveIndex;
+    float dirtiness;
+    float hardness;
+    float explosionResistance;
+    float transparency;
+    float emissiveIntensity;
+    float subsurfaceScattering;
+    float flammability;
+    float lightEmit;
+    float lightOpacity;
+    float ambientOcclusion;
+    float lightAbsorption;
+    float lightScattering;
+    float humidity;
+    uint isLiquid;
+    uint isGas;
+    uint isSolid;
+    float padding[3];
+};
+
+struct PolFence {
+    float t;
+    float d;
+    float b;
+    float f;
+};
+
+layout(std430, binding = 1) readonly buffer UnitArray {
+    uint unitCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+    UnitData units[];
+} unitArray;
+
+layout(std430, binding = 2) readonly buffer PolFenceArray {
+    uint fenceCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+    PolFence fences[];
+} polFenceArray;
+
 layout(push_constant) uniform PushConstants {
     uint unitId;
     uint startVertex;
@@ -49,35 +104,13 @@ const vec3 faceVertices[6][4] = {
     {vec3(-0.5, -0.5, -0.5), vec3(-0.5, -0.5, 0.5), vec3(-0.5, 0.5, 0.5), vec3(-0.5, 0.5, -0.5)}
 };
 
-const vec3 faceNormals[6] = {
-    vec3(0, 0, 1),   // Front
-    vec3(0, 0, -1),  // Back
-    vec3(0, 1, 0),   // Top
-    vec3(0, -1, 0),  // Bottom
-    vec3(1, 0, 0),   // Right
-    vec3(-1, 0, 0)   // Left
-};
-
-const vec2 faceTexCoords[4] = {
-    vec2(0.0, 0.0),
-    vec2(1.0, 0.0),
-    vec2(1.0, 1.0),
-    vec2(0.0, 1.0)
-};
-
-// Tangent calculation (assuming standard UV mapping)
-const vec3 faceTangents[6] = {
-    vec3(1, 0, 0),   // Front
-    vec3(-1, 0, 0),  // Back
-    vec3(1, 0, 0),   // Top
-    vec3(1, 0, 0),   // Bottom
-    vec3(0, 0, -1),  // Right
-    vec3(0, 0, 1)    // Left
-};
-
 void main() {
     uint globalId = gl_GlobalInvocationID.x;
-    uint vertexIndex = globalId - startVertex;
+    uint outputIndex = startVertex + globalId;
+
+    if (outputIndex >= vertices.length()) {
+        return;
+    }
     
     // Calculate which face and vertex this invocation handles
     uint faceIndex = vertexIndex / 4;
@@ -86,30 +119,59 @@ void main() {
     if (faceIndex >= 6) return;
     
     UnitRenderVertex v;
+
+    // Default unit properties if none are found in the unit array
+    UnitData unitData;
+    unitData.unitId = unitId;
+    unitData.roughness = 0.95;
+    unitData.metallic = 0.0;
+    unitData.albedoR = 0.6;
+    unitData.albedoG = 0.4;
+    unitData.albedoB = 0.2;
+    unitData.transparency = 0.0;
+    unitData.lightEmit = 0.0;
+
+    PolFence fence;
+    fence.t = 0.0;
+    fence.d = 0.0;
+    fence.b = 0.0;
+    fence.f = 0.0;
+    bool foundUnit = false;
+
+    for (uint i = 0u; i < unitArray.unitCount; ++i) {
+        if (unitArray.units[i].unitId == unitId) {
+            unitData = unitArray.units[i];
+            if (i < polFenceArray.fenceCount) {
+                fence = polFenceArray.fences[i];
+            }
+            foundUnit = true;
+            break;
+        }
+    }
     
     // Position
     v.position = vec4(faceVertices[faceIndex][vertexInFace], 1.0);
     
-    // Polygon data (zeros for now - can be set by other systems)
-    v.polRight = vec4(0.0);
-    v.polLeft = vec4(0.0);
+    // Polygon fence data from unit chunk properties
+    v.polRight = vec4(fence.t, fence.d, fence.b, fence.f);
+    v.polLeft = vec4(fence.t, fence.d, fence.b, fence.f);
     
     // Texture coordinates
     v.texCoords = faceTexCoords[vertexInFace];
     
-    // Material properties (defaults)
-    v.lightingEmit = 0;
-    v.transparencyLevel = 0;
+    // Material properties from the unit array
+    v.lightingEmit = uint(clamp(unitData.lightEmit * 255.0, 0.0, 255.0));
+    v.transparencyLevel = uint(clamp(unitData.transparency * 255.0, 0.0, 255.0));
     v.faceIndex = faceIndex;
-    v.roughness = 0.95;
-    v.metallic = 0.0;
+    v.roughness = unitData.roughness;
+    v.metallic = unitData.metallic;
     v.padding = 0.0;
     
     // Curvature (zeros for now)
     v.polCurve = vec4(0.0);
     
-    // Albedo (default brown/orange for dirt/stone)
-    v.albedo = vec4(0.6, 0.4, 0.2, 0.0);
+    // Albedo from the unit array
+    v.albedo = vec4(unitData.albedoR, unitData.albedoG, unitData.albedoB, 1.0);
     
     // Tangent, bitangent, normal
     vec3 normal = normalize(faceNormals[faceIndex]);
@@ -123,6 +185,6 @@ void main() {
     // Unit ID for array-based rendering
     v.unitId = unitId;
     
-    // Write to output buffer
-    vertices[globalId] = v;
+    // Write to output buffer at the requested vertex offset
+    vertices[outputIndex] = v;
 }

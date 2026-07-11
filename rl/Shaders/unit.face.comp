@@ -27,30 +27,26 @@ struct VertexInput {
     vec4 tangent;      // 16 bytes (tanX, tanY, tanZ + padding)
     vec4 bitangent;    // 16 bytes (bitanX, bitanY, bitanZ + padding)
     vec4 normal;       // 16 bytes (normX, normY, normZ + padding)
+    uint unitId;       // 4 bytes, matches the CPU-side UnitRenderVertex layout
 };
 
-// Unit ID array for neighbor checking
-layout(std430, set = 0, binding = 0) readonly buffer UnitIdBuffer {
-    uint unitIds[];
-} inUnitIds;
-
 // Input buffer: all vertices from vertex buffer
-layout(set = 0, binding = 1) readonly buffer InputVertices {
+layout(std430, set = 0, binding = 0) readonly buffer InputVertices {
     VertexInput vertices[];
 };
 
 // Index buffer for indexed drawing
-layout(set = 0, binding = 2) readonly buffer IndexBuffer {
+layout(set = 0, binding = 1) readonly buffer IndexBuffer {
     uint indices[];
 };
 
 // Output buffer: visible indices after culling
-layout(std430, set = 0, binding = 3) buffer OutputIndices {
+layout(std430, set = 0, binding = 2) buffer OutputIndices {
     uint visibleIndices[];
 };
 
 // Atomic counter for visible index count
-layout(set = 0, binding = 4) buffer VisibleCount {
+layout(set = 0, binding = 3) buffer VisibleCount {
     uint visibleIndexCount;
 };
 
@@ -63,7 +59,7 @@ struct DrawIndexedParams {
     uint firstInstance;
 };
 
-layout(set = 0, binding = 5) buffer IndirectDraw {
+layout(set = 0, binding = 4) buffer IndirectDraw {
     DrawIndexedParams drawParams;
 };
 
@@ -72,72 +68,18 @@ layout(push_constant) uniform PushConstants {
     mat4 model;
     mat4 view;
     mat4 projection;
-    uint width;     // chunk width
-    uint height;    // chunk height
-    uint depth;     // chunk depth
-    uint airUnitId; // air unit ID to skip
+    uint useUnitArray; // unused in this shader
+    uint singleUnitMode; // unused in this shader
+    uint singleUnitId; // unused in this shader
+    uint padding1;
 } pc;
 
 // Frustum planes (left, right, top, bottom, near, far)
-layout(set = 0, binding = 6) uniform FrustumBlock {
+layout(set = 0, binding = 5) uniform FrustumBlock {
     vec4 u_FrustumPlanes[6];
 } frustum;
 
 const uint maxFaces = 6;
-
-// Helper: compute linear index for (x,y,z) in row-major (x + y*W + z*W*H)
-uint ComputeIndex(uvec3 id)
-{
-  return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
-}
-
-// Get unit ID at position with bounds checking
-uint GetUnitId(int x, int y, int z)
-{
-  if (x < 0 || x >= int(pc.width) ||
-      y < 0 || y >= int(pc.height) ||
-      z < 0 || z >= int(pc.depth))
-  {
-    return pc.airUnitId; // Return air for out of bounds
-  }
-  return inUnitIds.unitIds[ComputeIndex(uvec3(x, y, z))];
-}
-
-// Check if face should be rendered based on neighbor unit
-bool IsFaceVisible(int voxelX, int voxelY, int voxelZ, uint faceIndex)
-{
-  uint currentUnit = GetUnitId(voxelX, voxelY, voxelZ);
-
-  // Skip air blocks
-  if (currentUnit == pc.airUnitId)
-    return false;
-
-  // Get neighbor unit based on face direction
-  uint neighborUnit = pc.airUnitId;
-  switch (faceIndex) {
-    case 0: // Top face (+Y)
-      neighborUnit = GetUnitId(voxelX, voxelY + 1, voxelZ);
-      break;
-    case 1: // Bottom face (-Y)
-      neighborUnit = GetUnitId(voxelX, voxelY - 1, voxelZ);
-      break;
-    case 2: // Left face (-X)
-      neighborUnit = GetUnitId(voxelX - 1, voxelY, voxelZ);
-      break;
-    case 3: // Right face (+X)
-      neighborUnit = GetUnitId(voxelX + 1, voxelY, voxelZ);
-      break;
-    case 4: // Front face (+Z)
-      neighborUnit = GetUnitId(voxelX, voxelY, voxelZ + 1);
-      break;
-    case 5: // Back face (-Z)
-      neighborUnit = GetUnitId(voxelX, voxelY, voxelZ - 1);
-      break;
-  }
-
-  // Render if neighbor is different unit or air
-  return (neighborUnit != currentUnit);
-}
 
 // Apply polygon fence offset based on face index
 vec3 ApplyPolygonOffset(vec3 position, uint faceIndex, vec4 polRight, vec4 polLeft) {
@@ -218,11 +160,6 @@ void main() {
     int voxelX = int(v0.position.x);
     int voxelY = int(v0.position.y);
     int voxelZ = int(v0.position.z);
-
-    // Check if face should be rendered based on neighbor
-    if (!IsFaceVisible(voxelX, voxelY, voxelZ, v0.faceIndex)) {
-        return; // Skip this face
-    }
 
     vec3 rawPos0 = v0.position.xyz;
     vec3 rawPos1 = v1.position.xyz;

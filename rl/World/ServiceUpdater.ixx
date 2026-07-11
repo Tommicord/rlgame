@@ -3,6 +3,7 @@ export module Rl.World.ServiceUpdater;
 import Rl.Base.IUpdatable;
 import Rl.World.Time.TimeSystem;
 import Rl.World.Skybox.SkyboxSystem;
+import Rl.World.Chunk.ChunkSystem;
 import Rl.Player.PlayerProvider;
 
 import <memory>;
@@ -16,36 +17,27 @@ namespace Rl::World
 /* Base class for service updaters */
 export class ServiceUpdater : public Providers::IUpdatable
 {
+protected:
+  static constexpr auto RAYLOG_TAG = "ServiceUpdater";
   public:
   ~ServiceUpdater() override = default;
 
   /* Update the service */
   void Update() override = 0;
 
+  /* Gets the internal RayLog logging tag */
+  std::string GetRayLogTag() const
+  {
+    return RAYLOG_TAG;
+  }
+
   /* Get the service name for debugging */
   [[nodiscard]]
   virtual std::string GetServiceName() const = 0;
 };
 
-/* Template for creating service updaters */
-export template <typename T> class TypedServiceUpdater : public ServiceUpdater
-{
-  public:
-  explicit TypedServiceUpdater(
-      std::shared_ptr<T> service, std::function<void(T&)> updateFunc);
-  ~TypedServiceUpdater() override = default;
-
-  void Update() override;
-  [[nodiscard]]
-  std::string GetServiceName() const override;
-
-  private:
-  std::shared_ptr<T>      service;
-  std::function<void(T&)> updateFunc;
-};
-
 /* Convenience updater for TimeSystem */
-export class TimeSystemUpdater : public ServiceUpdater
+export class TimeSystemUpdater final : public ServiceUpdater
 {
   public:
   explicit TimeSystemUpdater(
@@ -62,7 +54,7 @@ export class TimeSystemUpdater : public ServiceUpdater
 };
 
 /* Convenience updater for SkyboxSystem */
-export class SkyboxSystemUpdater : public ServiceUpdater
+export class SkyboxSystemUpdater final : public ServiceUpdater
 {
   public:
   explicit SkyboxSystemUpdater(std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem);
@@ -76,8 +68,23 @@ export class SkyboxSystemUpdater : public ServiceUpdater
   std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem;
 };
 
+/* Convenience updater for ChunkSystem */
+export class ChunkSystemUpdater final : public ServiceUpdater
+{
+public:
+  explicit ChunkSystemUpdater(std::shared_ptr<Chunk::ChunkSystem> chunkSystem);
+  ~ChunkSystemUpdater() override = default;
+
+  void Update() override;
+  [[nodiscard]]
+  std::string GetServiceName() const override;
+
+private:
+  std::shared_ptr<Chunk::ChunkSystem> chunkSystem;
+};
+
 /* Convenience updater for Player services */
-export class PlayerServicesUpdater : public ServiceUpdater
+export class PlayerServicesUpdater final : public ServiceUpdater
 {
   public:
   PlayerServicesUpdater();

@@ -19,10 +19,9 @@ void UnitCreateComputePipelineLayout(VkDevice device,
   computePipelineLayoutInfo.pushConstantRangeCount = 1;
 
   VkPushConstantRange computePushConstantRange{};
-  computePushConstantRange.stageFlags =
-      VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT;
+  computePushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
   computePushConstantRange.offset = 0;
-  computePushConstantRange.size = sizeof(UnitRenderUBO);
+  computePushConstantRange.size = sizeof(UnitRenderPushConstants);
   computePipelineLayoutInfo.pPushConstantRanges = &computePushConstantRange;
 
   if (vkCreatePipelineLayout(

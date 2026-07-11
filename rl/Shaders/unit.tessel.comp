@@ -22,6 +22,7 @@ struct VertexInput {
     vec4 tangent;
     vec4 bitangent;
     vec4 normal;
+    uint unitId;
 };
 
 // Output vertex structure (same as input for rendering)
@@ -43,6 +44,7 @@ struct VertexOutput {
     vec4 tangent;
     vec4 bitangent;
     vec4 normal;
+    uint unitId;
 };
 
 // Input buffer: base vertices (4 vertices per face)
