@@ -8,6 +8,7 @@ import Rl.World.Unit.UnitPropertyStrategy;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
 import Rl.World.Unit.UnitRegistryGPU;
+import Rl.World.Unit.UnitGPURegisterDerived;
 
 import <algorithm>;
 import <string_view>;
@@ -282,11 +283,11 @@ export class IUnit : public IUpdatable
 
   /* Virtual function for derived classes to provide their class ID */
   [[nodiscard]]
-  virtual unsigned short GetDerivedClassId() const;
+  virtual unsigned short GetDerivedClassId() const = 0;
 
   /* Virtual function for derived classes to provide their class name */
   [[nodiscard]]
-  virtual std::string_view GetDerivedClassName() const;
+  virtual std::string_view GetDerivedClassName() const = 0;
 
   protected:
   /* Registers in compile-time a Unit id into the registry */
@@ -299,14 +300,12 @@ export class IUnit : public IUpdatable
     UnitResourceName resourceName(v);
     // Store the pointer of the object
     // When used, this will be completely constructed
-    // We pass *this from the derived
-    // class to the RegisterDerived method
     IUnit* base = &ptr;
     registry.Register(id, resourceName, base);
 
     // Load texture after registering
     RegisterDerivedCallback(id);
-    RegisterDerivedGPU(base);
+    RegisterDerivedGPU(&ptr);
   }
 
   /* Loads textures and do some other things when registered the Unit */
@@ -316,7 +315,16 @@ export class IUnit : public IUpdatable
    * Registers in the GPU registry the derived unit for possible
    * usage in world generation
    */
-  template <typename Derived> static void RegisterDerivedGPU(Derived* ptr);
+  template <typename Derived> static void RegisterDerivedGPU(Derived* ptr)
+  {
+    if (!registryGPU->IsInitialized())
+    {
+      return;
+    }
+
+    UnitGPURegisterDerived registerDerived(*registryGPU);
+    registerDerived.Register(ptr);
+  }
 
   /* Texture of the unit, back, front, left, right, bottom, top */
   std::unique_ptr<UnitTextureMaterial> textures;

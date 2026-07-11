@@ -57,10 +57,12 @@ void UnitStateDrawable::EnableUnitArrayMode(
   }
 
   Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
+                                            context.queueFamilyIndices.graphicsFamily.value(),
                                             unitData, vk.unitArrayBuffer,
                                             vk.unitArrayMemory);
 
   Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
+                                                context.queueFamilyIndices.graphicsFamily.value(),
                                                 fenceData, vk.polFenceArrayBuffer,
                                                 vk.polFenceArrayMemory);
 
@@ -205,6 +207,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
 {
   const auto& unitVertices = Client::Render::UnitGetTestVertices();
   Client::Render::UnitCreateVertexBuffer(context.device, context.physicalDevice,
+                                         context.queueFamilyIndices.graphicsFamily.value(),
                                          unitVertices, vk.vertexBuffer,
                                          vk.vertexBufferMemory);
 
@@ -212,6 +215,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
   std::vector<uint32_t> unitIndices =
       Client::Render::UnitGenerateIndices(4, 6); // 4 vertices per face, 6 faces
   Client::Render::UnitCreateIndexBuffer(context.device, context.physicalDevice,
+                                        context.queueFamilyIndices.graphicsFamily.value(),
                                         unitIndices, vk.indexBuffer,
                                         vk.indexBufferMemory);
 
@@ -340,9 +344,11 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
   std::vector<Client::Render::UnitRenderPolFence> emptyFenceData(1);
 
   Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
+                                            context.queueFamilyIndices.graphicsFamily.value(),
                                             emptyUnitData, vk.unitArrayBuffer,
                                             vk.unitArrayMemory);
   Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
+                                                context.queueFamilyIndices.graphicsFamily.value(),
                                                 emptyFenceData, vk.polFenceArrayBuffer,
                                                 vk.polFenceArrayMemory);
   Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(

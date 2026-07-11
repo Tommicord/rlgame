@@ -206,6 +206,8 @@ void Texture2::Create()
 
 void Texture2::Cleanup()
 {
+  if (!IsLoaded())
+    return;
   if (data)
   {
     stbi_image_free(data);

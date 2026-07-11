@@ -83,6 +83,7 @@ set(CXX_MODULES
   rl/World/Unit/UnitRegister.ixx
   rl/World/Unit/UnitGPUParams.ixx
   rl/World/Unit/UnitRegistryGPU.ixx
+  rl/World/Unit/UnitGPURegisterDerived.ixx
   rl/World/Unit/UnitGrassGrowBehavior.ixx
   rl/World/Unit/UnitTextureFactory.ixx
   rl/Client/State/UnitState.ixx
@@ -152,6 +153,7 @@ set(CXX_MODULES
   rl/RayLog/RayLogFatalHandler.ixx
   rl/RayLog/RayLog.ixx
   rl/RayLog/RayLogMacro.ixx
+  rl/World/Chunk/ChunkSystemNotify.ixx
 )
 
 set(SOURCES
@@ -216,6 +218,7 @@ set(SOURCES
   rl/World/ServiceUpdaterRegistry.cpp
   rl/World/ServiceUpdaterRegister.cpp
   rl/World/Unit/UnitGrassGrowBehavior.cpp
+  rl/World/Chunk/ChunkSystemNotify.cpp
 )
 
 add_subdirectory(Deps/glfw)

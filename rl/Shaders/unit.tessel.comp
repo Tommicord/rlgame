@@ -23,6 +23,9 @@ struct VertexInput {
     vec4 bitangent;
     vec4 normal;
     uint unitId;
+    uint padFinal0;
+    uint padFinal1;
+    uint padFinal2;
 };
 
 // Output vertex structure (same as input for rendering)

@@ -7,6 +7,7 @@ import Rl.RayLog.Macro;
 import <cstdint>;
 import <vector>;
 import <memory>;
+import <type_traits>;
 import <vulkan/vulkan.hpp>;
 
 namespace Rl::World
@@ -39,35 +40,38 @@ export class UnitRegistryGPU
       return;
     }
 
-    UnitGPUParams params{};
-    params.unitId               = IUnitIdentifiable<T>::GetClassId();
-    params.temperature          = T::TEMPERATURE;
-    params.moisture             = T::MOISTURE;
-    params.roughness            = T::ROUGHNESS;
-    params.metallic             = T::METALLIC;
-    params.albedoR              = T::ALBEDO_R;
-    params.albedoG              = T::ALBEDO_G;
-    params.albedoB              = T::ALBEDO_B;
-    params.reflectivity         = T::REFLECTIVITY;
-    params.refractiveIndex      = T::REFRACTIVE_INDEX;
-    params.dirtiness            = T::DIRTINESS;
-    params.hardness             = T::HARDNESS;
-    params.explosionResistance  = T::EXPLOSION_RESISTANCE;
-    params.transparency         = T::TRANSPARENCY;
-    params.emissiveIntensity    = T::EMISSIVE_INTENSITY;
-    params.subsurfaceScattering = T::SUBSURFACE_SCATTERING;
-    params.flammability         = T::FLAMMABILITY;
-    params.lightEmit            = T::LIGHT_EMIT;
-    params.lightOpacity         = T::LIGHT_OPACITY;
-    params.ambientOcclusion     = T::AMBIENT_OCCLUSION;
-    params.lightAbsorption      = T::LIGHT_ABSORPTION;
-    params.lightScattering      = T::LIGHT_SCATTERING;
-    params.humidity             = T::HUMIDITY;
-    params.isLiquid             = unit->IsLiquid() ? 1u : 0u;
-    params.isGas                = unit->IsGas() ? 1u : 0u;
-    params.isSolid              = unit->IsSolid() ? 1u : 0u;
-    cpuUnits.push_back(params);
-    gpuDirty = true;
+    if constexpr (std::is_base_of_v<IUnit, T>)
+    {
+      UnitGPUParams params{};
+      params.unitId               = IUnitIdentifiable<T>::GetStaticClassId();
+      params.temperature          = T::TEMPERATURE;
+      params.moisture             = T::MOISTURE;
+      params.roughness            = T::ROUGHNESS;
+      params.metallic             = T::METALLIC;
+      params.albedoR              = T::ALBEDO_R;
+      params.albedoG              = T::ALBEDO_G;
+      params.albedoB              = T::ALBEDO_B;
+      params.reflectivity         = T::REFLECTIVITY;
+      params.refractiveIndex      = T::REFRACTIVE_INDEX;
+      params.dirtiness            = T::DIRTINESS;
+      params.hardness             = T::HARDNESS;
+      params.explosionResistance  = T::EXPLOSION_RESISTANCE;
+      params.transparency         = T::TRANSPARENCY;
+      params.emissiveIntensity    = T::EMISSIVE_INTENSITY;
+      params.subsurfaceScattering = T::SUBSURFACE_SCATTERING;
+      params.flammability         = T::FLAMMABILITY;
+      params.lightEmit            = T::LIGHT_EMIT;
+      params.lightOpacity         = T::LIGHT_OPACITY;
+      params.ambientOcclusion     = T::AMBIENT_OCCLUSION;
+      params.lightAbsorption      = T::LIGHT_ABSORPTION;
+      params.lightScattering      = T::LIGHT_SCATTERING;
+      params.humidity             = T::HUMIDITY;
+      params.isLiquid             = unit != nullptr && unit->IsLiquid() ? 1u : 0u;
+      params.isGas                = unit != nullptr && unit->IsGas() ? 1u : 0u;
+      params.isSolid              = unit != nullptr && unit->IsSolid() ? 1u : 0u;
+      cpuUnits.push_back(params);
+      gpuDirty = true;
+    }
   }
 
   /* Update GPU buffer with registered units (call after RegisterUnit) */

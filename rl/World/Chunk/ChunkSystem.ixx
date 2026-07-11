@@ -5,6 +5,7 @@ import Rl.World.Chunk.ChunkThreadPool;
 import Rl.World.Chunk.UnitChunkAccessor;
 import Rl.World.Chunk.UnitChunkBuffer;
 import Rl.World.Chunk.ChunkGeneratorGPU;
+import Rl.Base.UserInput;
 
 import <atomic>;
 import <chrono>;
@@ -19,6 +20,7 @@ import <unordered_map>;
 import <utility>;
 import <vector>;
 import <vulkan/vulkan.hpp>;
+
 
 namespace Rl::World::Chunk
 {
@@ -36,9 +38,6 @@ export class ChunkSystem
 
   ChunkSystem(const ChunkSystem&)            = delete;
   ChunkSystem& operator=(const ChunkSystem&) = delete;
-
-  ChunkSystem(ChunkSystem&&) noexcept            = delete;
-  ChunkSystem& operator=(ChunkSystem&&) noexcept = delete;
 
   void SetPlayerPosition(const UnitPosition& position);
   void SetRenderDistance(WorldChunkCoord distance);
@@ -61,6 +60,7 @@ export class ChunkSystem
   [[nodiscard]] bool HasPendingWork() const;
 
   void RefreshNow();
+  void RefreshAndWait();
   void Stop();
 
   private:
@@ -75,6 +75,7 @@ export class ChunkSystem
   UnitPosition                                  playerPosition;
   ChunkGenerator                                chunkGenerator;
   ChunkThreadPool                               workerPool;
+  std::unique_ptr<Input::IInputObserver>        notifier;
   std::atomic<bool>                             running;
   std::atomic<bool>                             refreshRequested;
   std::atomic<bool>                             generationInProgress;

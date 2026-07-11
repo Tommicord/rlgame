@@ -23,14 +23,14 @@ TEST(ChunkSystemTest, RefreshGeneratesChunksAroundPlayerAndTracksThem)
   });
 
   system.SetPlayerPosition(UnitPosition{0, 0, 0});
-  system.RefreshNow();
+  system.RefreshAndWait();
 
   EXPECT_EQ(generationCalls, 27);
   EXPECT_TRUE(system.IsChunkGenerated(WorldChunkCoord{0, 0, 0}));
   EXPECT_EQ(backing.GetChunkCount(), 27u);
 
   system.SetPlayerPosition(UnitPosition{100, 0, 0});
-  system.RefreshNow();
+  system.RefreshAndWait();
 
   EXPECT_FALSE(system.IsChunkGenerated(WorldChunkCoord{0, 0, 0}));
 }
@@ -44,7 +44,7 @@ TEST(ChunkSystemTest, GpuGenerationEnabledSkipsCpuFallbackWhenGeneratorUnavailab
   system.EnableGPUGeneration(nullptr, VK_NULL_HANDLE, VK_NULL_HANDLE);
 
   system.SetPlayerPosition(UnitPosition{0, 0, 0});
-  system.RefreshNow();
+  system.RefreshAndWait();
 
   EXPECT_FALSE(system.IsChunkGenerated(WorldChunkCoord{0, 0, 0}));
   EXPECT_EQ(backing.GetChunkCount(), 0u);

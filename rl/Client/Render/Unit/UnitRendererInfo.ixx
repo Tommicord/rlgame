@@ -17,8 +17,8 @@ export struct UnitRenderVertex
   glm::vec4 polRight; // 16 bytes
   glm::vec4 polLeft; // 16 bytes
   glm::vec2 texCoords; // 8 bytes
-  uint32_t lightingEmit; // 4 bytes
-  uint32_t transparencyLevel; // 4 bytes
+  uint32_t  lightingEmit; // 4 bytes
+  uint32_t  transparencyLevel; // 4 bytes
 
   uint32_t faceIndex; // 4 bytes
   float    roughness; // 4 bytes
@@ -33,38 +33,38 @@ export struct UnitRenderVertex
   uint32_t  unitId; // 4 bytes - Unit ID for array lookup
 };
 
-/* Unit data structure for GPU array (matches UnitGPUParams) */
 export struct alignas(16) UnitRenderUnitData
 {
-  uint32_t unitId;
-  float    temperature;
-  float    moisture;
-  float    roughness;
-  float    metallic;
-  float    albedoR;
-  float    albedoG;
-  float    albedoB;
-  float    reflectivity;
-  float    refractiveIndex;
-  float    dirtiness;
-  float    hardness;
-  float    explosionResistance;
-  float    transparency;
-  float    emissiveIntensity;
-  float    subsurfaceScattering;
-  float    flammability;
-  float    lightEmit;
-  float    lightOpacity;
-  float    ambientOcclusion;
-  float    lightAbsorption;
-  float    lightScattering;
-  float    humidity;
-  uint32_t isLiquid;
-  uint32_t isGas;
-  uint32_t isSolid;
   glm::vec4 polCurve;
   glm::vec4 polLeft;
   glm::vec4 polRight;
+  uint32_t  unitId;
+  float     temperature;
+  float     moisture;
+  float     roughness;
+  float     metallic;
+  float     albedoR;
+  float     albedoG;
+  float     albedoB;
+  float     reflectivity;
+  float     refractiveIndex;
+  float     dirtiness;
+  float     hardness;
+  float     explosionResistance;
+  float     transparency;
+  float     emissiveIntensity;
+  float     subsurfaceScattering;
+  float     flammability;
+  float     lightEmit;
+  float     lightOpacity;
+  float     ambientOcclusion;
+  float     lightAbsorption;
+  float     lightScattering;
+  float     humidity;
+  uint32_t  isLiquid;
+  uint32_t  isGas;
+  uint32_t  isSolid;
+  uint32_t  _padFinal;
 };
 
 /* Polygon fence structure for GPU array */
@@ -164,8 +164,7 @@ export struct UnitRenderPushConstants
 };
 
 /* Convert UnitGPUParams to UnitRenderUnitData for rendering */
-export inline UnitRenderUnitData
-GPUParamsAsRenderData(const World::UnitGPUParams& params)
+export inline UnitRenderUnitData GPUParamsAsRenderData(const World::UnitGPUParams& params)
 {
   UnitRenderUnitData renderData{};
   renderData.unitId               = params.unitId;

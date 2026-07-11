@@ -178,16 +178,6 @@ UnitTextureMaterial::~UnitTextureMaterial()
   }
 }
 
-template <typename Derived> void IUnit::RegistryDerivedGPU(Derived* ptr)
-{
-  if (!registryGPU->IsInitialized())
-  {
-    const Main::MainBinding bindings = Main::Game::GetInstance().GetMainBinding();
-    registryGPU->Initialize(bindings.device, bindings.physicalDevice);
-  }
-  registryGPU->Register<Derived>(ptr);
-}
-
 void IUnit::RegisterDerivedCallback(unsigned short id)
 { UnitTextureFactory::FromUnit(id); }
 

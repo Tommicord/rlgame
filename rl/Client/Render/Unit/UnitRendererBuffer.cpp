@@ -79,6 +79,7 @@ void UnitCopyDataToBuffer(VkDevice device,
 // Create index buffer for the cube
 void UnitCreateIndexBuffer(VkDevice device,
     VkPhysicalDevice                physicalDevice,
+    uint32_t                        queueFamilyIndex,
     const std::vector<uint32_t>&    indices,
     VkBuffer&                       indexBuffer,
     VkDeviceMemory&                 indexBufferMemory)
@@ -105,7 +106,7 @@ void UnitCreateIndexBuffer(VkDevice device,
   VkCommandPoolCreateInfo commandPoolInfo{};
   commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-  commandPoolInfo.queueFamilyIndex = 0; // Assuming graphics queue family is 0
+  commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
 
   VkCommandPool commandPool;
   if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS)
@@ -145,8 +146,7 @@ void UnitCreateIndexBuffer(VkDevice device,
 
   // Submit command buffer
   VkQueue queue = nullptr;
-  // For now, we'll assume queue 0 exists
-  vkGetDeviceQueue(device, 0, 0, &queue);
+  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -186,6 +186,7 @@ void UnitCreateUniformBuffers(
 
 void UnitCreateUnitArrayBuffer(VkDevice device,
     VkPhysicalDevice                       physicalDevice,
+    uint32_t                               queueFamilyIndex,
     const std::vector<UnitRenderUnitData>& unitData,
     VkBuffer&                              unitArrayBuffer,
     VkDeviceMemory&                        unitArrayMemory)
@@ -227,10 +228,13 @@ void UnitCreateUnitArrayBuffer(VkDevice device,
   VkCommandPoolCreateInfo commandPoolInfo{};
   commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-  commandPoolInfo.queueFamilyIndex = 0;
+  commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
 
   VkCommandPool commandPool;
-  vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool);
+  if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create temporary command pool");
+  }
 
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -239,7 +243,11 @@ void UnitCreateUnitArrayBuffer(VkDevice device,
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+  {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to allocate command buffer");
+  }
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -255,7 +263,7 @@ void UnitCreateUnitArrayBuffer(VkDevice device,
   vkEndCommandBuffer(commandBuffer);
 
   VkQueue queue;
-  vkGetDeviceQueue(device, 0, 0, &queue);
+  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -272,6 +280,7 @@ void UnitCreateUnitArrayBuffer(VkDevice device,
 
 void UnitCreatePolFenceArrayBuffer(VkDevice device,
     VkPhysicalDevice                       physicalDevice,
+    uint32_t                               queueFamilyIndex,
     const std::vector<UnitRenderPolFence>& fenceData,
     VkBuffer&                              fenceArrayBuffer,
     VkDeviceMemory&                        fenceArrayMemory)
@@ -313,10 +322,13 @@ void UnitCreatePolFenceArrayBuffer(VkDevice device,
   VkCommandPoolCreateInfo commandPoolInfo{};
   commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-  commandPoolInfo.queueFamilyIndex = 0;
+  commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
 
   VkCommandPool commandPool;
-  vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool);
+  if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to create temporary command pool");
+  }
 
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -325,7 +337,11 @@ void UnitCreatePolFenceArrayBuffer(VkDevice device,
   allocInfo.commandBufferCount = 1;
 
   VkCommandBuffer commandBuffer;
-  vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+  {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to allocate command buffer");
+  }
 
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -341,7 +357,7 @@ void UnitCreatePolFenceArrayBuffer(VkDevice device,
   vkEndCommandBuffer(commandBuffer);
 
   VkQueue queue;
-  vkGetDeviceQueue(device, 0, 0, &queue);
+  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

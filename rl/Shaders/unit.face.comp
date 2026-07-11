@@ -28,6 +28,9 @@ struct VertexInput {
     vec4 bitangent;    // 16 bytes (bitanX, bitanY, bitanZ + padding)
     vec4 normal;       // 16 bytes (normX, normY, normZ + padding)
     uint unitId;       // 4 bytes, matches the CPU-side UnitRenderVertex layout
+    uint padFinal0;    // 4 bytes
+    uint padFinal1;    // 4 bytes
+    uint padFinal2;
 };
 
 // Input buffer: all vertices from vertex buffer

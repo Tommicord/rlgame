@@ -25,6 +25,7 @@ export void UnitCreateBuffer(VkDevice device,
 /* Creates a Vulkan Index Buffer, requires the Index buffer memory */
 export void UnitCreateIndexBuffer(VkDevice device,
     VkPhysicalDevice                       physicalDevice,
+    uint32_t                               queueFamilyIndex,
     const std::vector<uint32_t>&           indices,
     VkBuffer&                              indexBuffer,
     VkDeviceMemory&                        indexBufferMemory);
@@ -39,6 +40,7 @@ export void UnitCopyDataToBuffer(VkDevice device,
 /* Creates a Vertex Buffer for rendering in Vulkan, requires the Index Buffer memory */
 export void UnitCreateVertexBuffer(VkDevice device,
     VkPhysicalDevice                        physicalDevice,
+    uint32_t                                queueFamilyIndex,
     const std::vector<UnitRenderVertex>&    vertices,
     VkBuffer&                               vertexBuffer,
     VkDeviceMemory&                         vertexBufferMemory);
@@ -62,6 +64,7 @@ export void UnitCreateUniformBuffers(
 /* Creates unit array buffer for GPU unit data */
 export void UnitCreateUnitArrayBuffer(VkDevice device,
     VkPhysicalDevice                       physicalDevice,
+    uint32_t                               queueFamilyIndex,
     const std::vector<UnitRenderUnitData>& unitData,
     VkBuffer&                              unitArrayBuffer,
     VkDeviceMemory&                        unitArrayMemory);
@@ -69,6 +72,7 @@ export void UnitCreateUnitArrayBuffer(VkDevice device,
 /* Creates polygon fence array buffer for GPU fence data */
 export void UnitCreatePolFenceArrayBuffer(VkDevice device,
     VkPhysicalDevice                       physicalDevice,
+    uint32_t                               queueFamilyIndex,
     const std::vector<UnitRenderPolFence>& fenceData,
     VkBuffer&                              fenceArrayBuffer,
     VkDeviceMemory&                        fenceArrayMemory);

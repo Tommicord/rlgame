@@ -11,6 +11,7 @@ namespace Rl::Client::Render
 
 void UnitCreateVertexBuffer(VkDevice     device,
     VkPhysicalDevice                     physicalDevice,
+    uint32_t                             queueFamilyIndex,
     const std::vector<UnitRenderVertex>& vertices,
     VkBuffer&                            vertexBuffer,
     VkDeviceMemory&                      vertexBufferMemory)
@@ -37,7 +38,7 @@ void UnitCreateVertexBuffer(VkDevice     device,
   VkCommandPoolCreateInfo commandPoolInfo{};
   commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-  commandPoolInfo.queueFamilyIndex = 0; // Assuming graphics queue family is 0
+  commandPoolInfo.queueFamilyIndex = queueFamilyIndex;
 
   VkCommandPool commandPool;
   if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS)
@@ -77,7 +78,7 @@ void UnitCreateVertexBuffer(VkDevice     device,
 
   // Submit command buffer
   VkQueue queue = nullptr;
-  vkGetDeviceQueue(device, 0, 0, &queue);
+  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

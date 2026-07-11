@@ -26,6 +26,9 @@ layout(std430, binding = 0) buffer VertexBuffer {
 };
 
 struct UnitData {
+    vec4 polCurve;
+    vec4 polLeft;
+    vec4 polRight;
     uint unitId;
     float temperature;
     float moisture;
@@ -49,12 +52,10 @@ struct UnitData {
     float lightAbsorption;
     float lightScattering;
     float humidity;
-    vec4 polCurve;
-    vec4 polLeft;
-    vec4 polRight;
     uint isLiquid;
     uint isGas;
     uint isSolid;
+    uint padFinal;
 };
 
 struct PolFence {

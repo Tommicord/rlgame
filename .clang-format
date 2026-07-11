@@ -9,7 +9,7 @@ AlignOperands: true
 AlignTrailingComments: false
 AlignConsecutiveBitFields: true
 AlignConsecutiveMacros: true
-AllowShortBlocksOnASingleLine: Always
+AllowShortBlocksOnASingleLine: Never
 AllowBreakBeforeNoexceptSpecifier: Always
 AlwaysBreakTemplateDeclarations: Yes
 BreakInheritanceList: AfterComma

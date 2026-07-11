@@ -4,6 +4,7 @@ import Rl.World.Chunk.ChunkInRenderUnits;
 import Rl.World.Chunk.UnitChunkBuffer;
 import Rl.World.Chunk.UnitChunkAccessor;
 import Rl.World.Chunk.ChunkGeneratorGPU;
+import Rl.World.Chunk.ChunkSystemNotify;
 import Rl.RayLog.Macro;
 import Rl.RayLog.Logger;
 
@@ -13,8 +14,9 @@ import <stdexcept>;
 import <utility>;
 import <vector>;
 import <mutex>;
-#include <ranges>
+import <ranges>;
 import <vulkan/vulkan.hpp>;
+import Rl.Base.UserInput;
 
 namespace Rl::World::Chunk
 {
@@ -238,8 +240,13 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
 }
 
 ChunkSystem::ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderDistance) :
-    chunkStore(chunkStore), renderDistance(renderDistance), workerPool(4), running(false),
-    refreshRequested(false), generationInProgress(false), stopRequested(false)
+    chunkStore(chunkStore),
+    renderDistance(renderDistance),
+    workerPool(4),
+    running(false),
+    refreshRequested(false),
+    generationInProgress(false),
+    stopRequested(false)
 {
   if (renderDistance.chunkX <= 0 || renderDistance.chunkY <= 0 ||
       renderDistance.chunkZ <= 0)
@@ -252,12 +259,13 @@ ChunkSystem::ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderD
     return true;
   };
   const bool initialized = chunkStore.Initialize();
-  if (!initialized)
-  {
+  if (!initialized) {
     RayLog::LogError(RAYLOG_TAG, "Failed to initialize Chunk System storage");
   }
-
   running.store(true, std::memory_order_release);
+  // Create the notifier
+  notifier = std::make_unique<ChunkSystemNotify>(*this);
+  // Finally start the generation thread
   generationThread = std::jthread([this] { RunGenerationLoop(); });
 }
 
@@ -325,6 +333,11 @@ bool ChunkSystem::HasPendingWork() const
 void ChunkSystem::RefreshNow()
 {
   refreshRequested.store(true, std::memory_order_release);
+}
+
+void ChunkSystem::RefreshAndWait()
+{
+  refreshRequested.store(true, std::memory_order_release);
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(512);
   while (generationInProgress.load(std::memory_order_acquire) &&
          std::chrono::steady_clock::now() < deadline)
@@ -367,12 +380,12 @@ void ChunkSystem::RefreshInternal()
     {
       std::scoped_lock      lock(stateMutex);
       const WorldChunkCoord playerChunk = WorldPositionToChunkCoord(playerPosition);
-      const int32_t         startX      = -(renderDistance.chunkX >> 1);
-      const int32_t         endX        = (renderDistance.chunkX - 1) >> 1;
-      const int32_t         startY      = -(renderDistance.chunkY >> 1);
-      const int32_t         endY        = (renderDistance.chunkY - 1) >> 1;
-      const int32_t         startZ      = -(renderDistance.chunkZ >> 1);
-      const int32_t         endZ        = (renderDistance.chunkZ - 1) >> 1;
+      const int32_t         startX      = -(renderDistance.chunkX / 2);
+      const int32_t         endX        = (renderDistance.chunkX - 1) / 2;
+      const int32_t         startY      = -(renderDistance.chunkY / 2);
+      const int32_t         endY        = (renderDistance.chunkY - 1) / 2;
+      const int32_t         startZ      = -(renderDistance.chunkZ / 2);
+      const int32_t         endZ        = (renderDistance.chunkZ - 1) / 2;
 
       for (int32_t z = startZ; z <= endZ; ++z)
       {
