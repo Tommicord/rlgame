@@ -17,8 +17,8 @@ export struct UnitRenderVertex
   glm::vec4 polRight; // 16 bytes
   glm::vec4 polLeft; // 16 bytes
   glm::vec2 texCoords; // 8 bytes
-  uint32_t  lightingEmit; // 4 bytes
-  uint32_t  transparencyLevel; // 4 bytes
+  uint32_t lightingEmit; // 4 bytes
+  uint32_t transparencyLevel; // 4 bytes
 
   uint32_t faceIndex; // 4 bytes
   float    roughness; // 4 bytes
@@ -62,7 +62,9 @@ export struct alignas(16) UnitRenderUnitData
   uint32_t isLiquid;
   uint32_t isGas;
   uint32_t isSolid;
-  float    padding[3];
+  glm::vec4 polCurve;
+  glm::vec4 polLeft;
+  glm::vec4 polRight;
 };
 
 /* Polygon fence structure for GPU array */
@@ -93,7 +95,7 @@ export struct alignas(16) UnitRenderLightingUniforms
   float     exposure;
   float     _padding;
 
-  alignas(16) glm::vec3 cameraPosition;
+  alignas(16) glm::vec4 cameraPosition;
 
   UnitRenderLight additionalLights[4];
   // Spherical harmonics for GI (9 coefficients for RGB = 27 floats)
@@ -120,6 +122,9 @@ export struct UnitRenderTriplanarSettings
   alignas(4) float offsetY;
   alignas(4) float offsetZ;
   alignas(4) float blendMix;
+  // Pad to multiple of 16 bytes for std140 compatibility
+  float pad0;
+  float pad1;
 };
 
 /* Defines the UBO for Projection-View-Model */
@@ -159,38 +164,39 @@ export struct UnitRenderPushConstants
 };
 
 /* Convert UnitGPUParams to UnitRenderUnitData for rendering */
-export inline UnitRenderUnitData ConvertGPUParamsToRenderData(const World::UnitGPUParams& params)
+export inline UnitRenderUnitData
+GPUParamsAsRenderData(const World::UnitGPUParams& params)
 {
   UnitRenderUnitData renderData{};
-  renderData.unitId = params.unitId;
-  renderData.temperature = params.temperature;
-  renderData.moisture = params.moisture;
-  renderData.roughness = params.roughness;
-  renderData.metallic = params.metallic;
-  renderData.albedoR = params.albedoR;
-  renderData.albedoG = params.albedoG;
-  renderData.albedoB = params.albedoB;
-  renderData.reflectivity = params.reflectivity;
-  renderData.refractiveIndex = params.refractiveIndex;
-  renderData.dirtiness = params.dirtiness;
-  renderData.hardness = params.hardness;
-  renderData.explosionResistance = params.explosionResistance;
-  renderData.transparency = params.transparency;
-  renderData.emissiveIntensity = params.emissiveIntensity;
+  renderData.unitId               = params.unitId;
+  renderData.temperature          = params.temperature;
+  renderData.moisture             = params.moisture;
+  renderData.roughness            = params.roughness;
+  renderData.metallic             = params.metallic;
+  renderData.albedoR              = params.albedoR;
+  renderData.albedoG              = params.albedoG;
+  renderData.albedoB              = params.albedoB;
+  renderData.reflectivity         = params.reflectivity;
+  renderData.refractiveIndex      = params.refractiveIndex;
+  renderData.dirtiness            = params.dirtiness;
+  renderData.hardness             = params.hardness;
+  renderData.explosionResistance  = params.explosionResistance;
+  renderData.transparency         = params.transparency;
+  renderData.emissiveIntensity    = params.emissiveIntensity;
   renderData.subsurfaceScattering = params.subsurfaceScattering;
-  renderData.flammability = params.flammability;
-  renderData.lightEmit = params.lightEmit;
-  renderData.lightOpacity = params.lightOpacity;
-  renderData.ambientOcclusion = params.ambientOcclusion;
-  renderData.lightAbsorption = params.lightAbsorption;
-  renderData.lightScattering = params.lightScattering;
-  renderData.humidity = params.humidity;
-  renderData.isLiquid = params.isLiquid;
-  renderData.isGas = params.isGas;
-  renderData.isSolid = params.isSolid;
-  renderData.padding[0] = params.padding[0];
-  renderData.padding[1] = params.padding[1];
-  renderData.padding[2] = params.padding[2];
+  renderData.flammability         = params.flammability;
+  renderData.lightEmit            = params.lightEmit;
+  renderData.lightOpacity         = params.lightOpacity;
+  renderData.ambientOcclusion     = params.ambientOcclusion;
+  renderData.lightAbsorption      = params.lightAbsorption;
+  renderData.lightScattering      = params.lightScattering;
+  renderData.humidity             = params.humidity;
+  renderData.isLiquid             = params.isLiquid;
+  renderData.isGas                = params.isGas;
+  renderData.isSolid              = params.isSolid;
+  renderData.polCurve             = params.polCurve;
+  renderData.polLeft              = params.polLeft;
+  renderData.polRight             = params.polRight;
   return renderData;
 }
 

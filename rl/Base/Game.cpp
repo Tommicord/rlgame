@@ -175,7 +175,7 @@ void Game::InitWindow()
       });
 }
 
-void Game::UpdateModels()
+void Game::Update()
 {
   unitModel->Update(binding);
 }
@@ -537,7 +537,7 @@ void Game::CreateSyncObjects()
   }
 }
 
-void Game::DrawModels()
+void Game::DrawCallback()
 {
   unitModel->Draw(binding);
 }
@@ -612,8 +612,8 @@ void Game::Draw()
   scissor.offset = {0, 0};
   scissor.extent = binding.swapChainExtent;
   vkCmdSetScissor(binding.commandBuffers[0], 0, 1, &scissor);
-  UpdateModels();
-  DrawModels();
+  Update();
+  DrawCallback();
   vkCmdEndRenderPass(binding.commandBuffers[0]);
 
   if (vkEndCommandBuffer(binding.commandBuffers[0]) != VK_SUCCESS)
@@ -625,8 +625,7 @@ void Game::Draw()
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
   const VkSemaphore              waitSemaphores[] = {binding.imageAvailableSemaphore};
-  constexpr VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  constexpr VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;

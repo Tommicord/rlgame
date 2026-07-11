@@ -99,7 +99,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
 
   // Camera position
   Player::IPlayerCamera::Eye eyePos = cam.eye;
-  lightingData.cameraPosition = glm::vec3(eyePos.x, eyePos.y, eyePos.z);
+  lightingData.cameraPosition = glm::vec4(eyePos.x, eyePos.y, eyePos.z, 0.0f);
 
   // These are pre-computed approximations for sky/ground lighting
   lightingData.shCoefficients[0] = lightingData.skyColor * 0.09f; // L0 - sky
@@ -116,8 +116,8 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   lightingData.u_CascadeSplits = glm::vec4(vk.shadowCascadeSplits.x,
       vk.shadowCascadeSplits.y, vk.shadowCascadeSplits.z, vk.shadowCascadeSplits.w);
   lightingData.numCascades = vk.shadowCascadeCount;
-  lightingData.lodDistanceNear = 30.0f; // High quality within 30 units
-  lightingData.lodDistanceFar = 60.0f; // Low quality beyond 60 units
+  lightingData.lodDistanceNear = 16.0f; // High quality within 30 units
+  lightingData.lodDistanceFar = 64.0f; // Low quality beyond 60 units
   lightingData.qualityLevel = 1; // 0=low, 1=medium, 2=high
   lightingData._padding = 0.0f;
 
@@ -132,7 +132,8 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
       VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_UNIFORM_READ_BIT;
 
   vkCmdPipelineBarrier(context.commandBuffers[0], VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &fillBarrier, 0, nullptr, 0, nullptr);
+      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 1,
+      &fillBarrier, 0, nullptr, 0, nullptr);
 
   // Dispatch curvature compute shader before frustum culling
   if (vk.curveComputePipeline != VK_NULL_HANDLE &&

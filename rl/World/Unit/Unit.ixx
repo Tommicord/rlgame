@@ -7,6 +7,7 @@ import Rl.World.Unit.UnitDynamicTexture;
 import Rl.World.Unit.UnitPropertyStrategy;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
+import Rl.World.Unit.UnitRegistryGPU;
 
 import <algorithm>;
 import <string_view>;
@@ -70,15 +71,39 @@ class UnitAir;
 export class IUnit : public IUpdatable
 {
   public:
+  static constexpr float LIGHT_EMIT            = 0.0f;
+  static constexpr float LIGHT_OPACITY         = 0.0f;
+  static constexpr float AMBIENT_OCCLUSION     = 0.0f;
+  static constexpr float LIGHT_ABSORPTION      = 0.0f;
+  static constexpr float LIGHT_SCATTERING      = 0.0f;
+  static constexpr float ROUGHNESS             = 0.0f;
+  static constexpr float METALLIC              = 0.0f;
+  static constexpr float ALBEDO_R              = 0.0f;
+  static constexpr float ALBEDO_G              = 0.0f;
+  static constexpr float ALBEDO_B              = 0.0f;
+  static constexpr float REFLECTIVITY          = 0.0f;
+  static constexpr float REFRACTIVE_INDEX      = 0.0f;
+  static constexpr float DIRTINESS             = 0.0f;
+  static constexpr float MOISTURE              = 0.0f;
+  static constexpr float TEMPERATURE           = 0.0f;
+  static constexpr float HUMIDITY              = 0.0f;
+  static constexpr float HARDNESS              = 0.0f;
+  static constexpr float EXPLOSION_RESISTANCE  = 0.0f;
+  static constexpr float TRANSPARENCY          = 0.0f;
+  static constexpr float EMISSIVE_INTENSITY    = 0.0f;
+  static constexpr float SUBSURFACE_SCATTERING = 0.0f;
+  static constexpr float FLAMMABILITY          = 0.0f;
+
   /* The registry value type */
-  using RegistryV = IUnit*;
-  using Registry = UnitRegistryPair3<UnitResourceName, RegistryV>;
+  using RegistryV   = IUnit*;
+  using Registry    = UnitRegistryPair3<UnitResourceName, RegistryV>;
+  using RegistryGPU = UnitRegistryGPU;
 
   /* Creates a basic WorldUnit, automatically registers the unit */
   explicit IUnit(unsigned short id) noexcept : IUnit()
   { textures = std::make_unique<UnitTextureMaterial>(); }
-  IUnit(const IUnit& other) = delete;
-  IUnit(const IUnit&& other) = delete;
+  IUnit(const IUnit& other)            = delete;
+  IUnit(const IUnit&& other)           = delete;
   IUnit& operator=(const IUnit& other) = delete;
 
   /* Delete a world unit */
@@ -219,14 +244,49 @@ export class IUnit : public IUpdatable
   virtual bool IsStrategySolid() const
   { return true; }
 
+  [[nodiscard]]
+  float GetPolTL() const
+  { return polTl; }
+
+  [[nodiscard]]
+  float GetPolTr() const
+  { return polTr; }
+
+  [[nodiscard]]
+  float GetPolDl() const
+  { return polDl; }
+
+  [[nodiscard]]
+  float GetPolDr() const
+  { return polDr; }
+
+  [[nodiscard]]
+  float GetPolBl() const
+  { return polBl; }
+
+  [[nodiscard]]
+  float GetPolBr() const
+  { return polBr; }
+
+  [[nodiscard]]
+  float GetPolFl() const
+  { return polFl; }
+
+  [[nodiscard]]
+  float GetPolFr() const
+  { return polFr; }
+
+  [[nodiscard]]
+  float GetPolCurve() const
+  { return polCurveV; }
 
   /* Virtual function for derived classes to provide their class ID */
   [[nodiscard]]
-  virtual unsigned short GetDerivedClassId() const = 0;
+  virtual unsigned short GetDerivedClassId() const;
 
   /* Virtual function for derived classes to provide their class name */
   [[nodiscard]]
-  virtual std::string_view GetDerivedClassName() const = 0;
+  virtual std::string_view GetDerivedClassName() const;
 
   protected:
   /* Registers in compile-time a Unit id into the registry */
@@ -246,10 +306,17 @@ export class IUnit : public IUpdatable
 
     // Load texture after registering
     RegisterDerivedCallback(id);
+    RegisterDerivedGPU(base);
   }
 
   /* Loads textures and do some other things when registered the Unit */
   static void RegisterDerivedCallback(unsigned short id);
+
+  /*
+   * Registers in the GPU registry the derived unit for possible
+   * usage in world generation
+   */
+  template <typename Derived> static void RegisterDerivedGPU(Derived* ptr);
 
   /* Texture of the unit, back, front, left, right, bottom, top */
   std::unique_ptr<UnitTextureMaterial> textures;
@@ -307,7 +374,8 @@ export class IUnit : public IUpdatable
   protected:
   /* Internal Field: Stores the count of registered world units */
   inline static std::vector<std::string_view> defaultName = {std::string_view("rl.unit")};
-  inline static auto registry = Registry(UnitResourceName(defaultName));
+  inline static auto registry    = Registry(UnitResourceName(defaultName));
+  inline static auto registryGPU = std::make_shared<RegistryGPU>();
 };
 
 // Implementations for IUnit

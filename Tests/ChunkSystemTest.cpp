@@ -4,6 +4,7 @@ import Rl.World.Chunk.UnitChunkBuffer;
 import Rl.World.Chunk.UnitChunkAccessor;
 
 #include <gtest/gtest.h>
+#include <vulkan/vulkan.hpp>
 
 using namespace Rl::World::Chunk;
 
@@ -32,4 +33,19 @@ TEST(ChunkSystemTest, RefreshGeneratesChunksAroundPlayerAndTracksThem)
   system.RefreshNow();
 
   EXPECT_FALSE(system.IsChunkGenerated(WorldChunkCoord{0, 0, 0}));
+}
+
+TEST(ChunkSystemTest, GpuGenerationEnabledSkipsCpuFallbackWhenGeneratorUnavailable)
+{
+  ChunkInRenderUnits backing(3, 3, 3);
+  ASSERT_TRUE(backing.Initialize());
+
+  ChunkSystem system(backing, WorldChunkCoord{3, 3, 3});
+  system.EnableGPUGeneration(nullptr, VK_NULL_HANDLE, VK_NULL_HANDLE);
+
+  system.SetPlayerPosition(UnitPosition{0, 0, 0});
+  system.RefreshNow();
+
+  EXPECT_FALSE(system.IsChunkGenerated(WorldChunkCoord{0, 0, 0}));
+  EXPECT_EQ(backing.GetChunkCount(), 0u);
 }

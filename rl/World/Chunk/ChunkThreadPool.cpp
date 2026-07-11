@@ -1,5 +1,6 @@
 import Rl.World.Chunk.ChunkThreadPool;
 
+import <mutex>;
 import <stdexcept>;
 
 namespace Rl::World::Chunk
@@ -29,13 +30,16 @@ ChunkThreadPool& ChunkThreadPool::operator=(ChunkThreadPool&& other) noexcept
   if (this != &other)
   {
     Stop();
+    std::lock(queueMutex, other.queueMutex);
+    std::lock_guard lockThis(queueMutex, std::adopt_lock);
+    std::lock_guard lockOther(other.queueMutex, std::adopt_lock);
     workers = std::move(other.workers);
     tasks = std::move(other.tasks);
-    stop.store(other.stop.load());
-    activeTasks.store(other.activeTasks.load());
+    stop.store(other.stop.load(std::memory_order_acquire), std::memory_order_release);
+    activeTasks.store(other.activeTasks.load(std::memory_order_acquire), std::memory_order_release);
 
-    other.stop.store(true);
-    other.activeTasks.store(0);
+    other.stop.store(true, std::memory_order_release);
+    other.activeTasks.store(0, std::memory_order_release);
   }
   return *this;
 }

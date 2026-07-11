@@ -101,16 +101,16 @@ ChunkInRenderUnits& ChunkInRenderUnits::operator=(ChunkInRenderUnits&& other) no
 
 bool ChunkInRenderUnits::Initialize()
 {
-  if (initialized.load())
+  std::scoped_lock lock(chunkMutex);
+
+  if (initialized.load(std::memory_order_acquire))
     return true;
 
-  if (shuttingDown.load())
+  if (shuttingDown.load(std::memory_order_acquire))
     return false;
 
   try
   {
-    std::scoped_lock lock(chunkMutex);
-
     chunkBuffers = std::make_unique<UnitChunkBuffer[]>(totalChunks);
     chunkCoords = std::make_unique<WorldChunkCoord[]>(totalChunks);
     chunkActive = std::make_unique<std::atomic<bool>[]>(totalChunks);
@@ -132,15 +132,13 @@ bool ChunkInRenderUnits::Initialize()
 
 bool ChunkInRenderUnits::Shutdown()
 {
-  if (!initialized.load())
+  std::scoped_lock lock(chunkMutex);
+  if (!initialized.load(std::memory_order_acquire))
     return true;
-
   shuttingDown.store(true, std::memory_order_release);
-
+  initialized.store(false, std::memory_order_release);
   try
   {
-    std::scoped_lock lock(chunkMutex);
-
     // Process remaining transactions before shutdown
     ProcessTransactions();
 
@@ -148,10 +146,7 @@ bool ChunkInRenderUnits::Shutdown()
     chunkCoords.reset();
     chunkActive.reset();
     pendingDeltas.clear();
-
-    initialized.store(false, std::memory_order_release);
     systemHealth.store(SystemHealth::HEALTHY, std::memory_order_release);
-
     return true;
   }
   catch (const std::exception& e)

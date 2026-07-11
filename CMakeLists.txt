@@ -294,7 +294,7 @@ target_compile_shaders(
   rl/Shaders/unit.shadow.frag
   rl/Shaders/unit.face.comp
   rl/Shaders/unit.tessel.comp
-  rl/Shaders/unit.mesh.gen.comp
+  rl/Shaders/unit.mesh.comp
   rl/Shaders/unit.frag
   rl/Shaders/unit.vert
   rl/Shaders/World/world.biome.comp

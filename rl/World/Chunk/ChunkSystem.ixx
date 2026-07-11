@@ -25,26 +25,35 @@ namespace Rl::World::Chunk
 
 export class ChunkSystem
 {
-protected:
+  protected:
   static constexpr auto RAYLOG_TAG = "ChunkSystem";
+
   public:
   using ChunkGenerator = std::function<bool(const WorldChunkCoord&, UnitChunkBuffer&)>;
 
   ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderDistance);
   ~ChunkSystem();
 
-  ChunkSystem(const ChunkSystem&) = delete;
+  ChunkSystem(const ChunkSystem&)            = delete;
   ChunkSystem& operator=(const ChunkSystem&) = delete;
 
-  ChunkSystem(ChunkSystem&&) noexcept = delete;
+  ChunkSystem(ChunkSystem&&) noexcept            = delete;
   ChunkSystem& operator=(ChunkSystem&&) noexcept = delete;
 
   void SetPlayerPosition(const UnitPosition& position);
   void SetRenderDistance(WorldChunkCoord distance);
   void SetChunkGenerator(ChunkGenerator generator);
 
+  bool GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
+                                         VkDevice               device,
+                                         VkPhysicalDevice       physicalDevice,
+                                         const WorldChunkCoord& coord,
+                                         UnitChunkBuffer&       chunkBuffer);
+
   /* Enable GPU-based world generation */
-  void EnableGPUGeneration(ChunkGeneratorGPU* gpuGenerator, VkDevice device, VkPhysicalDevice physicalDevice);
+  void EnableGPUGeneration(ChunkGeneratorGPU* gpuGenerator,
+                           VkDevice           device,
+                           VkPhysicalDevice   physicalDevice);
   void DisableGPUGeneration();
 
   [[nodiscard]] bool IsRunning() const;
@@ -61,24 +70,24 @@ protected:
   bool GenerateChunk(const WorldChunkCoord& coord);
   void RemoveOutOfRangeChunks();
 
-  ChunkInRenderUnits& chunkStore;
-  WorldChunkCoord renderDistance;
-  UnitPosition playerPosition;
-  ChunkGenerator chunkGenerator;
-  ChunkThreadPool workerPool;
-  std::atomic<bool> running;
-  std::atomic<bool> refreshRequested;
-  std::atomic<bool> generationInProgress;
-  std::atomic<bool> stopRequested;
-  mutable std::mutex stateMutex;
+  ChunkInRenderUnits&                           chunkStore;
+  WorldChunkCoord                               renderDistance;
+  UnitPosition                                  playerPosition;
+  ChunkGenerator                                chunkGenerator;
+  ChunkThreadPool                               workerPool;
+  std::atomic<bool>                             running;
+  std::atomic<bool>                             refreshRequested;
+  std::atomic<bool>                             generationInProgress;
+  std::atomic<bool>                             stopRequested;
+  mutable std::mutex                            stateMutex;
   std::unordered_map<uint64_t, WorldChunkCoord> generatedChunkStorageCoords;
-  std::jthread generationThread;
+  std::jthread                                  generationThread;
 
   /* GPU generation support */
-  ChunkGeneratorGPU* gpuGenerator = nullptr;
-  VkDevice gpuDevice = VK_NULL_HANDLE;
-  VkPhysicalDevice gpuPhysicalDevice = VK_NULL_HANDLE;
-  bool gpuGenerationEnabled = false;
+  ChunkGeneratorGPU* gpuGenerator         = nullptr;
+  VkDevice           gpuDevice            = VK_NULL_HANDLE;
+  VkPhysicalDevice   gpuPhysicalDevice    = VK_NULL_HANDLE;
+  bool               gpuGenerationEnabled = false;
 };
 
 } // namespace Rl::World::Chunk

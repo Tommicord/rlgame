@@ -3,6 +3,8 @@ import Rl.World.Unit.UnitRegister;
 import Rl.World.Unit.UnitRegistry;
 import Rl.World.Unit.UnitResourceName;
 import Rl.World.Unit.UnitTextureFactory;
+import Rl.Base.Game;
+import Rl.Base.Binding;
 import Rl.Base.Texture2;
 
 import <algorithm>;
@@ -18,9 +20,9 @@ namespace Rl::World
 UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) noexcept
 {
   constexpr int maxSize = 255;
-  this->name = new char[maxSize];
-  this->name[0] = 0x00;
-  this->nameLen = 0;
+  this->name            = new char[maxSize];
+  this->name[0]         = 0x00;
+  this->nameLen         = 0;
   // Append to the start the prefix rl.unit
   std::vector<std::string_view> fullName;
   fullName.reserve(name.size() + 1);
@@ -30,7 +32,7 @@ UnitResourceName::UnitResourceName(const std::vector<std::string_view>& name) no
   // Validate nameLen after construction
   if (this->nameLen >= maxSize)
   {
-    this->nameLen = maxSize - 1;
+    this->nameLen             = maxSize - 1;
     this->name[this->nameLen] = 0x00;
   }
 }
@@ -75,7 +77,7 @@ UnitResourceName& UnitResourceName::operator=(const UnitResourceName& other)
 UnitResourceName::UnitResourceName(UnitResourceName&& other) noexcept :
     name(other.name), nameLen(other.nameLen)
 {
-  other.name = nullptr;
+  other.name    = nullptr;
   other.nameLen = 0;
 }
 
@@ -84,16 +86,16 @@ UnitResourceName& UnitResourceName::operator=(UnitResourceName&& other) noexcept
   if (this != &other)
   {
     delete[] name;
-    name = other.name;
-    nameLen = other.nameLen;
-    other.name = nullptr;
+    name          = other.name;
+    nameLen       = other.nameLen;
+    other.name    = nullptr;
     other.nameLen = 0;
   }
   return *this;
 }
 
-void UnitResourceName::ConstructResourceName(
-    const std::vector<std::string_view>& base, const size_t maxSize) noexcept
+void UnitResourceName::ConstructResourceName(const std::vector<std::string_view>& base,
+                                             const size_t maxSize) noexcept
 {
   if (!this->name)
     return;
@@ -101,7 +103,7 @@ void UnitResourceName::ConstructResourceName(
   this->name[0] = 0x00;
   for (size_t i = 0; i < base.size(); ++i)
   {
-    std::string_view view = base[i];
+    std::string_view view  = base[i];
     size_t           count = view.length();
     if (count > maxSize)
     {
@@ -174,6 +176,16 @@ UnitTextureMaterial::~UnitTextureMaterial()
       delete face;
     }
   }
+}
+
+template <typename Derived> void IUnit::RegistryDerivedGPU(Derived* ptr)
+{
+  if (!registryGPU->IsInitialized())
+  {
+    const Main::MainBinding bindings = Main::Game::GetInstance().GetMainBinding();
+    registryGPU->Initialize(bindings.device, bindings.physicalDevice);
+  }
+  registryGPU->Register<Derived>(ptr);
 }
 
 void IUnit::RegisterDerivedCallback(unsigned short id)

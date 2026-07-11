@@ -1,8 +1,4 @@
-#version 460
-
-// Unit Mesh Generation Compute Shader
-// Generates vertices for unit cubes with proper winding order for VK_FRONT_FACE_CLOCKWISE
-// and VK_CULL_MODE_BACK_BIT
+#version 450
 
 layout(local_size_x = 24) in;
 
@@ -53,10 +49,12 @@ struct UnitData {
     float lightAbsorption;
     float lightScattering;
     float humidity;
+    vec4 polCurve;
+    vec4 polLeft;
+    vec4 polRight;
     uint isLiquid;
     uint isGas;
     uint isSolid;
-    float padding[3];
 };
 
 struct PolFence {
@@ -104,40 +102,58 @@ const vec3 faceVertices[6][4] = {
     {vec3(-0.5, -0.5, -0.5), vec3(-0.5, -0.5, 0.5), vec3(-0.5, 0.5, 0.5), vec3(-0.5, 0.5, -0.5)}
 };
 
+const vec3 faceNormals[6] = {
+    vec3(0, 0, 1),   // Front
+    vec3(0, 0, -1),  // Back
+    vec3(0, 1, 0),   // Top
+    vec3(0, -1, 0),  // Bottom
+    vec3(1, 0, 0),   // Right
+    vec3(-1, 0, 0)   // Left
+};
+
+const vec2 faceTexCoords[4] = {
+    vec2(0.0, 0.0),
+    vec2(1.0, 0.0),
+    vec2(1.0, 1.0),
+    vec2(0.0, 1.0)
+};
+
+// Tangent calculation (assuming standard UV mapping)
+const vec3 faceTangents[6] = {
+    vec3(1, 0, 0),   // Front
+    vec3(-1, 0, 0),  // Back
+    vec3(1, 0, 0),   // Top
+    vec3(1, 0, 0),   // Bottom
+    vec3(0, 0, -1),  // Right
+    vec3(0, 0, 1)    // Left
+};
+
 void main() {
     uint globalId = gl_GlobalInvocationID.x;
-    uint outputIndex = startVertex + globalId;
+    uint localIndex = globalId; // 0..23 expected
+    uint outputIndex = startVertex + localIndex;
+
+    // Require unit and fence data present; do not use fixed fallback
+    if (unitArray.unitCount == 0u || polFenceArray.fenceCount == 0u) {
+        return;
+    }
 
     if (outputIndex >= vertices.length()) {
         return;
     }
-    
-    // Calculate which face and vertex this invocation handles
-    uint faceIndex = vertexIndex / 4;
-    uint vertexInFace = vertexIndex % 4;
-    
-    if (faceIndex >= 6) return;
-    
+
+    // Calculate which face and vertex this invocation handles (4 vertices per face)
+    uint faceIndex = localIndex / 4u;
+    uint vertexInFace = localIndex % 4u;
+
+    if (faceIndex >= 6u) return;
+
     UnitRenderVertex v;
 
-    // Default unit properties if none are found in the unit array
-    UnitData unitData;
-    unitData.unitId = unitId;
-    unitData.roughness = 0.95;
-    unitData.metallic = 0.0;
-    unitData.albedoR = 0.6;
-    unitData.albedoG = 0.4;
-    unitData.albedoB = 0.2;
-    unitData.transparency = 0.0;
-    unitData.lightEmit = 0.0;
-
-    PolFence fence;
-    fence.t = 0.0;
-    fence.d = 0.0;
-    fence.b = 0.0;
-    fence.f = 0.0;
+    // Find unit data by unitId; require a match (no hardcoded defaults)
     bool foundUnit = false;
-
+    UnitData unitData;
+    PolFence fence;
     for (uint i = 0u; i < unitArray.unitCount; ++i) {
         if (unitArray.units[i].unitId == unitId) {
             unitData = unitArray.units[i];
@@ -148,27 +164,72 @@ void main() {
             break;
         }
     }
-    
-    // Position
-    v.position = vec4(faceVertices[faceIndex][vertexInFace], 1.0);
+    if (!foundUnit) {
+        return;
+    }
+
+    vec3 pos;
+    if (faceIndex == 0u) { // Front
+        pos.x = (vertexInFace == 0u || vertexInFace == 3u) ? -0.5 : 0.5;
+        pos.y = (vertexInFace == 0u || vertexInFace == 1u) ? -0.5 : 0.5;
+        pos.z = 0.5;
+    } else if (faceIndex == 1u) { // Back
+        pos.x = (vertexInFace == 0u || vertexInFace == 3u) ? 0.5 : -0.5;
+        pos.y = (vertexInFace == 0u || vertexInFace == 1u) ? -0.5 : 0.5;
+        pos.z = -0.5;
+    } else if (faceIndex == 2u) { // Top
+        pos.x = (vertexInFace == 0u || vertexInFace == 3u) ? -0.5 : 0.5;
+        pos.y = 0.5;
+        pos.z = (vertexInFace == 0u || vertexInFace == 1u) ? 0.5 : -0.5;
+    } else if (faceIndex == 3u) { // Bottom
+        pos.x = (vertexInFace == 0u || vertexInFace == 3u) ? -0.5 : 0.5;
+        pos.y = -0.5;
+        pos.z = (vertexInFace == 0u || vertexInFace == 1u) ? -0.5 : 0.5;
+    } else if (faceIndex == 4u) { // Right
+        pos.x = 0.5;
+        pos.y = (vertexInFace == 0u || vertexInFace == 1u) ? -0.5 : 0.5;
+        pos.z = (vertexInFace == 0u || vertexInFace == 3u) ? 0.5 : -0.5;
+    } else { // Left (5)
+        pos.x = -0.5;
+        pos.y = (vertexInFace == 0u || vertexInFace == 1u) ? -0.5 : 0.5;
+        pos.z = (vertexInFace == 0u || vertexInFace == 3u) ? -0.5 : 0.5;
+    }
+
+    if (faceIndex == 2u) {
+        pos.y += fence.t;
+    } else if (faceIndex == 3u) {
+        pos.y += fence.d;
+    }
+    // Left/Right affect X
+    if (faceIndex == 5u) {
+        pos.x += fence.b;
+    } else if (faceIndex == 4u) {
+        pos.x += fence.f;
+    }
+    // Front/Back affect Z
+    if (faceIndex == 0u) {
+        pos.z += fence.f;
+    } else if (faceIndex == 1u) {
+        pos.z += fence.b;
+    }
+
+    v.position = vec4(pos, 1.0);
     
     // Polygon fence data from unit chunk properties
-    v.polRight = vec4(fence.t, fence.d, fence.b, fence.f);
-    v.polLeft = vec4(fence.t, fence.d, fence.b, fence.f);
+    v.polRight = unitData.polRight;
+    v.polLeft = unitData.polLeft;
     
     // Texture coordinates
     v.texCoords = faceTexCoords[vertexInFace];
     
     // Material properties from the unit array
-    v.lightingEmit = uint(clamp(unitData.lightEmit * 255.0, 0.0, 255.0));
-    v.transparencyLevel = uint(clamp(unitData.transparency * 255.0, 0.0, 255.0));
+    v.lightingEmit = uint(unitData.lightEmit * 255.0);
+    v.transparencyLevel = uint(unitData.transparency * 255.0);
     v.faceIndex = faceIndex;
     v.roughness = unitData.roughness;
     v.metallic = unitData.metallic;
     v.padding = 0.0;
-    
-    // Curvature (zeros for now)
-    v.polCurve = vec4(0.0);
+    v.polCurve = unitData.polCurve;
     
     // Albedo from the unit array
     v.albedo = vec4(unitData.albedoR, unitData.albedoG, unitData.albedoB, 1.0);

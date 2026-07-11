@@ -11,7 +11,6 @@ import Rl.World.Time.TimeSystem;
 import Rl.World.Skybox.SkyboxSystem;
 import Rl.World.Chunk.ChunkSystem;
 import Rl.World.Chunk.ChunkInRenderUnits;
-#include "glm/gtx/iteration.hpp"
 
 namespace Rl::World
 {
@@ -65,14 +64,14 @@ void ServiceUpdaterRegister::RegisterChunkServicesUpdater(const std::string& nam
   auto chunkSystem = WorldServiceLocator::GetChunkSystem();
   if (!chunkSystem)
   {
-    constexpr int renderDist = 128;
-    auto          chunkStore{renderDist, renderDist, renderDist};
-    auto          chunkSystemNew{*chunkStore, chunkStore->GetRenderDistance()};
+    constexpr int             renderDist = 4;
+    Chunk::ChunkInRenderUnits chunkStore{renderDist, renderDist, renderDist};
+    Chunk::WorldChunkCoord    worldRenderDist = chunkStore.GetRenderDistance();
     WorldServiceLocator::RegisterChunkSystem(
-        std::make_shared<Chunk::ChunkSystem>(chunkSystemNew));
+      std::make_shared<Chunk::ChunkSystem>(chunkStore, worldRenderDist));
     chunkSystem = WorldServiceLocator::GetChunkSystem();
   }
-  auto updater = std::make_shared<ChunkSystemUpdater>(chunkSystem);
+  const auto updater = std::make_shared<ChunkSystemUpdater>(chunkSystem);
   registry.RegisterUpdater(name, updater);
 }
 
@@ -90,6 +89,7 @@ void ServiceUpdaterRegister::RegisterFromServiceLocator(int64_t timeFragmentsPer
   RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
   RegisterSkyboxSystemUpdater("SkyboxSystem");
   RegisterPlayerServicesUpdater("PlayerServices");
+  RegisterChunkServicesUpdater("ChunkServices");
 }
 
 void RegisterStandardServices(ServiceUpdaterRegistry& registry,

@@ -10,17 +10,27 @@ namespace Rl::Client::Render
 
 void UnitCreateMeshGenDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayout)
 {
-  VkDescriptorSetLayoutBinding bufferBinding{};
-  bufferBinding.binding = 0;
-  bufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  bufferBinding.descriptorCount = 1;
-  bufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  bufferBinding.pImmutableSamplers = nullptr;
+  VkDescriptorSetLayoutBinding bindings[3]{};
+  // Vertex buffer (binding 0)
+  bindings[0].binding = 0;
+  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[0].descriptorCount = 1;
+  bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  // Unit array buffer (binding 1)
+  bindings[1].binding = 1;
+  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[1].descriptorCount = 1;
+  bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  // Polygon fence array buffer (binding 2)
+  bindings[2].binding = 2;
+  bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[2].descriptorCount = 1;
+  bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
   VkDescriptorSetLayoutCreateInfo layoutInfo{};
   layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  layoutInfo.bindingCount = 1;
-  layoutInfo.pBindings = &bufferBinding;
+  layoutInfo.bindingCount = 3;
+  layoutInfo.pBindings = bindings;
 
   if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
   {
@@ -50,7 +60,7 @@ void UnitCreateMeshGenPipeline(VkDevice device, VkDescriptorSetLayout descriptor
   }
 
   // Load compute shader
-  auto computeShaderCode = Providers::ShaderObject::Shader("unit.mesh.gen.comp.spv");
+  auto computeShaderCode = Providers::ShaderObject::Shader("unit.mesh.comp.spv");
   auto computeShaderModule = Providers::ShaderObject::Module(device, computeShaderCode);
 
   VkPipelineShaderStageCreateInfo computeShaderStageInfo{};

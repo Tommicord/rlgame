@@ -88,6 +88,10 @@ export class ChunkGeneratorGPU
   [[nodiscard]]
   uint32_t GetPendingCount() const;
 
+  /* Check if the generator is initialized */
+  [[nodiscard]]
+  bool IsInitialized() const { return initialized; }
+
   /* Disable copy/move operations */
   ChunkGeneratorGPU(const ChunkGeneratorGPU&) = delete;
   ChunkGeneratorGPU& operator=(const ChunkGeneratorGPU&) = delete;

@@ -34,7 +34,9 @@ import Rl.Player.PlayerCamera;
 namespace Rl::Providers
 {
 
-void UnitStateDrawable::EnableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context,
+void UnitStateDrawable::EnableUnitArrayMode(
+    UnitStateBinding&                                      vk,
+    Main::MainBinding&                                     context,
     const std::vector<Client::Render::UnitRenderUnitData>& unitData,
     const std::vector<Client::Render::UnitRenderPolFence>& fenceData)
 {
@@ -55,35 +57,38 @@ void UnitStateDrawable::EnableUnitArrayMode(UnitStateBinding& vk, Main::MainBind
   }
 
   Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
-      unitData, vk.unitArrayBuffer, vk.unitArrayMemory);
+                                            unitData, vk.unitArrayBuffer,
+                                            vk.unitArrayMemory);
 
   Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
-      fenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
+                                                fenceData, vk.polFenceArrayBuffer,
+                                                vk.polFenceArrayMemory);
 
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
-      vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(
+      context.device, vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
 
   vk.useUnitArrayMode = true;
 }
 
-void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding& vk, Main::MainBinding& context)
-{
-  vk.useUnitArrayMode = false;
-}
+void UnitStateDrawable::DisableUnitArrayMode(UnitStateBinding&  vk,
+                                             Main::MainBinding& context)
+{ vk.useUnitArrayMode = false; }
 
 void UnitStateDrawable::EnableSingleUnitMode(UnitStateBinding& vk, uint32_t unitId)
 {
   vk.singleUnitMode = true;
-  vk.singleUnitId = unitId;
+  vk.singleUnitId   = unitId;
 }
 
 void UnitStateDrawable::DisableSingleUnitMode(UnitStateBinding& vk)
 {
   vk.singleUnitMode = false;
-  vk.singleUnitId = 0;
+  vk.singleUnitId   = 0;
 }
 
-void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Main::MainBinding& context,
+void UnitStateDrawable::EnableUnitArrayModeFromRegistry(
+    UnitStateBinding&             vk,
+    Main::MainBinding&            context,
     const World::UnitRegistryGPU& unitRegistry)
 {
   if (!unitRegistry.IsInitialized())
@@ -93,16 +98,15 @@ void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Ma
 
   // Get CPU unit data from registry
   const auto& gpuUnits = unitRegistry.GetCPUUnits();
-  
+
   // Convert UnitGPUParams to UnitRenderUnitData
   std::vector<Client::Render::UnitRenderUnitData> unitData;
   unitData.reserve(gpuUnits.size());
-  
+
   for (const auto& gpuUnit : gpuUnits)
   {
-    unitData.push_back(Client::Render::ConvertGPUParamsToRenderData(gpuUnit));
+    unitData.push_back(Client::Render::GPUParamsAsRenderData(gpuUnit));
   }
-
   // Create default polygon fence data (all zeros for now)
   // In a full implementation, this would come from unit instances or biome data
   std::vector<Client::Render::UnitRenderPolFence> fenceData(gpuUnits.size());
@@ -117,81 +121,103 @@ void UnitStateDrawable::EnableUnitArrayModeFromRegistry(UnitStateBinding& vk, Ma
   EnableUnitArrayMode(vk, context, unitData, fenceData);
 }
 
-void UnitStateDrawable::GenerateUnitMesh(UnitStateBinding& vk, Main::MainBinding& context, uint32_t unitId, uint32_t startVertex)
+void UnitStateDrawable::GenerateUnitMesh(UnitStateBinding&  vk,
+                                         Main::MainBinding& context,
+                                         uint32_t           unitId,
+                                         uint32_t           startVertex)
 {
   if (vk.meshGenPipeline == VK_NULL_HANDLE)
   {
     // Initialize mesh generation pipeline on first use
-    Client::Render::UnitCreateMeshGenDescriptorSetLayout(context.device, vk.meshGenDescriptorSetLayout);
-    Client::Render::UnitCreateMeshGenPipeline(context.device, vk.meshGenDescriptorSetLayout,
-        vk.meshGenPipelineLayout, vk.meshGenPipeline);
-    
+    Client::Render::UnitCreateMeshGenDescriptorSetLayout(context.device,
+                                                         vk.meshGenDescriptorSetLayout);
+    Client::Render::UnitCreateMeshGenPipeline(
+        context.device, vk.meshGenDescriptorSetLayout, vk.meshGenPipelineLayout,
+        vk.meshGenPipeline);
+
     // Create descriptor pool for mesh generation
     VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    poolSize.descriptorCount = 1;
-    
+    poolSize.type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    poolSize.descriptorCount = 3; // vertex, unit array, polFence
+
     VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1;
-    
-    if (vkCreateDescriptorPool(context.device, &poolInfo, nullptr, &vk.meshGenDescriptorPool) != VK_SUCCESS)
+    poolInfo.pPoolSizes    = &poolSize;
+    poolInfo.maxSets       = 1;
+
+    if (vkCreateDescriptorPool(context.device, &poolInfo, nullptr,
+                               &vk.meshGenDescriptorPool) != VK_SUCCESS)
     {
       return;
     }
-    
+
     VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = vk.meshGenDescriptorPool;
+    allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool     = vk.meshGenDescriptorPool;
     allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &vk.meshGenDescriptorSetLayout;
-    
-    if (vkAllocateDescriptorSets(context.device, &allocInfo, &vk.meshGenDescriptorSet) != VK_SUCCESS)
+    allocInfo.pSetLayouts        = &vk.meshGenDescriptorSetLayout;
+
+    if (vkAllocateDescriptorSets(context.device, &allocInfo, &vk.meshGenDescriptorSet) !=
+        VK_SUCCESS)
     {
       return;
     }
-    
-    // Update descriptor set with vertex buffer
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = vk.vertexBuffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = VK_WHOLE_SIZE;
-    
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = vk.meshGenDescriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
-    
-    vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
+
+    // Update descriptor set with vertex buffer, unit array buffer and polFence buffer
+    VkDescriptorBufferInfo bufferInfos[3]{};
+    bufferInfos[0].buffer = vk.vertexBuffer;
+    bufferInfos[0].offset = 0;
+    bufferInfos[0].range  = VK_WHOLE_SIZE;
+
+    bufferInfos[1].buffer = vk.unitArrayBuffer;
+    bufferInfos[1].offset = 0;
+    bufferInfos[1].range  = VK_WHOLE_SIZE;
+
+    bufferInfos[2].buffer = vk.polFenceArrayBuffer;
+    bufferInfos[2].offset = 0;
+    bufferInfos[2].range  = VK_WHOLE_SIZE;
+
+    VkWriteDescriptorSet descriptorWrites[3]{};
+    for (int i = 0; i < 3; ++i)
+    {
+      descriptorWrites[i].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites[i].dstSet          = vk.meshGenDescriptorSet;
+      descriptorWrites[i].dstBinding      = i;
+      descriptorWrites[i].dstArrayElement = 0;
+      descriptorWrites[i].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      descriptorWrites[i].descriptorCount = 1;
+      descriptorWrites[i].pBufferInfo     = &bufferInfos[i];
+    }
+
+    vkUpdateDescriptorSets(context.device, 3, descriptorWrites, 0, nullptr);
   }
-  
+
   // Generate mesh using compute shader
   Client::Render::UnitGenerateMesh(context.device, context.commandBuffers[0],
-      vk.meshGenPipeline, vk.meshGenPipelineLayout, vk.meshGenDescriptorSet, unitId, startVertex);
+                                   vk.meshGenPipeline, vk.meshGenPipelineLayout,
+                                   vk.meshGenDescriptorSet, unitId, startVertex);
 }
 
-void UnitStateDrawable::OnCreate(
-    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
+void UnitStateDrawable::OnCreate(UnitStateResource& resource,
+                                 UnitStateBinding&  vk,
+                                 Main::MainBinding& context)
 {
   const auto& unitVertices = Client::Render::UnitGetTestVertices();
   Client::Render::UnitCreateVertexBuffer(context.device, context.physicalDevice,
-      unitVertices, vk.vertexBuffer, vk.vertexBufferMemory);
+                                         unitVertices, vk.vertexBuffer,
+                                         vk.vertexBufferMemory);
 
   // Create index buffer for indexed drawing
   std::vector<uint32_t> unitIndices =
       Client::Render::UnitGenerateIndices(4, 6); // 4 vertices per face, 6 faces
   Client::Render::UnitCreateIndexBuffer(context.device, context.physicalDevice,
-      unitIndices, vk.indexBuffer, vk.indexBufferMemory);
+                                        unitIndices, vk.indexBuffer,
+                                        vk.indexBufferMemory);
 
   // Create SSBO buffers
-  Client::Render::UnitCreateSSBOBuffers(
-      context.device, context.physicalDevice, unitVertices.size(), vk);
+  Client::Render::UnitCreateSSBOBuffers(context.device, context.physicalDevice,
+                                        unitVertices.size(), vk);
 
   // Create curvature compute shader buffers
   Client::Render::UnitCreateCurvatureComputeBuffers(
@@ -201,31 +227,32 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitCreateUniformBuffers(context.device, context.physicalDevice, vk);
 
   // Create descriptor set layouts
-  Client::Render::UnitCreateComputeDescriptorSetLayout(
-      context.device, vk.computeDescriptorSetLayout);
-  Client::Render::UnitCreateGraphicsDescriptorSetLayout(
-      context.device, vk.descriptorSetLayout);
+  Client::Render::UnitCreateComputeDescriptorSetLayout(context.device,
+                                                       vk.computeDescriptorSetLayout);
+  Client::Render::UnitCreateGraphicsDescriptorSetLayout(context.device,
+                                                        vk.descriptorSetLayout);
 
   // Create descriptor pool
   Client::Render::UnitCreateDescriptorPool(context.device, vk.descriptorPool);
 
   // Allocate descriptor sets
   Client::Render::UnitAllocateComputeDescriptorSet(context.device, vk.descriptorPool,
-      vk.computeDescriptorSetLayout, vk.computeDescriptorSet);
+                                                   vk.computeDescriptorSetLayout,
+                                                   vk.computeDescriptorSet);
   Client::Render::UnitAllocateGraphicsDescriptorSet(
       context.device, vk.descriptorPool, vk.descriptorSetLayout, vk.descriptorSet);
 
   // Create compute pipeline layout and pipeline
   Client::Render::UnitCreateComputePipelineLayout(
       context.device, vk.computeDescriptorSetLayout, vk.pipelineLayout);
-  Client::Render::UnitCreateComputePipeline(
-      context.device, vk.pipelineLayout, vk.computePipeline);
+  Client::Render::UnitCreateComputePipeline(context.device, vk.pipelineLayout,
+                                            vk.computePipeline);
 
   // Update compute descriptor set
-  Client::Render::UnitUpdateComputeDescriptorSet(context.device, vk.computeDescriptorSet,
-      vk.vertexBuffer, vk.indexBuffer, vk.outputIndexBuffer, vk.visibleCountBuffer,
-      vk.indirectDrawBuffer, vk.frustumBuffer,
-      sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
+  Client::Render::UnitUpdateComputeDescriptorSet(
+      context.device, vk.computeDescriptorSet, vk.vertexBuffer, vk.indexBuffer,
+      vk.outputIndexBuffer, vk.visibleCountBuffer, vk.indirectDrawBuffer,
+      vk.frustumBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
 
   Client::Render::UnitCreateCurvatureComputeDescriptorSetLayout(
       context.device, vk.curveComputeDescriptorSetLayout);
@@ -235,37 +262,38 @@ void UnitStateDrawable::OnCreate(
       context.device, vk.curveComputePipelineLayout, vk.curveComputePipeline);
 
   // Allocate curvature compute descriptor set
-  Client::Render::UnitAllocateCurvatureComputeDescriptorSet(context.device,
-      vk.descriptorPool, vk.curveComputeDescriptorSetLayout,
+  Client::Render::UnitAllocateCurvatureComputeDescriptorSet(
+      context.device, vk.descriptorPool, vk.curveComputeDescriptorSetLayout,
       vk.curveComputeDescriptorSet);
 
   // Update curvature compute descriptor set
-  Client::Render::UnitUpdateCurvatureComputeDescriptorSet(context.device,
-      vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer,
+  Client::Render::UnitUpdateCurvatureComputeDescriptorSet(
+      context.device, vk.curveComputeDescriptorSet, vk.vertexBuffer, vk.indexBuffer,
       vk.curvedVertexBuffer, vk.curvedIndexBuffer, vk.curveCountersBuffer,
       vk.curveIndirectDrawBuffer,
       sizeof(Client::Render::UnitRenderVertex) * unitVertices.size(), unitIndices.size());
 
   // Create placeholder resources
-  Client::Render::UnitCreatePlaceholderLightingTexture(context.device,
-      context.physicalDevice, vk.placeholderLightingTexture,
+  Client::Render::UnitCreatePlaceholderLightingTexture(
+      context.device, context.physicalDevice, vk.placeholderLightingTexture,
       vk.placeholderLightingBufferMemory, vk.placeholderLightingTextureView,
       vk.placeholderLightingSampler);
-  Client::Render::UnitCreatePlaceholderAOTexture(context.device, context.physicalDevice,
-      vk.placeholderAOTexture, vk.placeholderAOTextureMemory, vk.placeholderAOTextureView,
+  Client::Render::UnitCreatePlaceholderAOTexture(
+      context.device, context.physicalDevice, vk.placeholderAOTexture,
+      vk.placeholderAOTextureMemory, vk.placeholderAOTextureView,
       vk.placeholderAOSampler);
-  Client::Render::UnitCreatePlaceholderNormalTexture(context.device,
-      context.physicalDevice, vk.placeholderNormalTexture,
+  Client::Render::UnitCreatePlaceholderNormalTexture(
+      context.device, context.physicalDevice, vk.placeholderNormalTexture,
       vk.placeholderNormalTextureMemory, vk.placeholderNormalTextureView,
       vk.placeholderNormalSampler);
-  Client::Render::UnitCreatePlaceholderSettingsBuffer(context.device,
-      context.physicalDevice, vk.placeholderSettingsBuffer,
+  Client::Render::UnitCreatePlaceholderSettingsBuffer(
+      context.device, context.physicalDevice, vk.placeholderSettingsBuffer,
       vk.placeholderSettingsBufferMemory);
-  Client::Render::UnitCreatePlaceholderLightingBuffer(context.device,
-      context.physicalDevice, vk.placeholderLightingBuffer,
+  Client::Render::UnitCreatePlaceholderLightingBuffer(
+      context.device, context.physicalDevice, vk.placeholderLightingBuffer,
       vk.placeholderLightingBufferMemory);
-  Client::Render::UnitCreateTriplanarSettingsBuffer(context.device,
-      context.physicalDevice, vk.triplanarSettingsBuffer,
+  Client::Render::UnitCreateTriplanarSettingsBuffer(
+      context.device, context.physicalDevice, vk.triplanarSettingsBuffer,
       vk.triplanarSettingsBufferMemory);
 
   // Create shadow map resources
@@ -274,60 +302,65 @@ void UnitStateDrawable::OnCreate(
   Client::Render::UnitCreateCascadeShadowMapResources(
       context.device, context.physicalDevice, shadowConfig, shadowResources);
 
-  Client::Render::UnitCreateBuffer(context.device, context.physicalDevice,
+  Client::Render::UnitCreateBuffer(
+      context.device, context.physicalDevice,
       sizeof(Client::Render::UnitCascadeShadowLightingUniforms),
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       vk.shadowCascadeMatricesBuffer, vk.shadowCascadeMatricesMemory);
 
-  vk.shadowMapCascades = shadowResources.shadowMapCascades;
-  vk.shadowMapSampler = shadowResources.shadowMapSampler;
+  vk.shadowMapCascades    = shadowResources.shadowMapCascades;
+  vk.shadowMapSampler     = shadowResources.shadowMapSampler;
   vk.shadowMapFramebuffer = shadowResources.shadowMapFramebuffer;
-  vk.shadowMapRenderPass = shadowResources.shadowMapRenderPass;
+  vk.shadowMapRenderPass  = shadowResources.shadowMapRenderPass;
 
   // Create shadow map pipeline layout and pipeline
   Client::Render::UnitCreateShadowPipelineLayout(context.device, vk.shadowPipelineLayout);
   Client::Render::UnitCreateShadowPipeline(context.device, vk.shadowPipelineLayout,
-      vk.shadowMapRenderPass, shadowConfig.width, shadowConfig.height, vk.shadowPipeline);
+                                           vk.shadowMapRenderPass, shadowConfig.width,
+                                           shadowConfig.height, vk.shadowPipeline);
 
   // Create global texture sampler
   Client::Render::UnitCreateGlobalTextureSampler(context.device, vk.globalTextureSampler);
 
   // Update graphics descriptor set with placeholder resources
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithPlaceholders(context.device,
-      vk.descriptorSet, vk.placeholderLightingBuffer, vk.placeholderLightingTextureView,
-      vk.placeholderLightingSampler, vk.placeholderSettingsBuffer,
-      vk.placeholderAOTextureView, vk.placeholderAOSampler,
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithPlaceholders(
+      context.device, vk.descriptorSet, vk.placeholderLightingBuffer,
+      vk.placeholderLightingTextureView, vk.placeholderLightingSampler,
+      vk.placeholderSettingsBuffer, vk.placeholderAOTextureView, vk.placeholderAOSampler,
       vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
       vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Update graphics descriptor set with shadow map
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(context.device,
-      vk.descriptorSet, vk.shadowMapSampler, vk.shadowMapCascades,
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(
+      context.device, vk.descriptorSet, vk.shadowMapSampler, vk.shadowMapCascades,
       vk.shadowCascadeMatricesBuffer);
 
   std::vector<Client::Render::UnitRenderUnitData> emptyUnitData(1);
   std::vector<Client::Render::UnitRenderPolFence> emptyFenceData(1);
 
   Client::Render::UnitCreateUnitArrayBuffer(context.device, context.physicalDevice,
-    emptyUnitData, vk.unitArrayBuffer, vk.unitArrayMemory);
+                                            emptyUnitData, vk.unitArrayBuffer,
+                                            vk.unitArrayMemory);
   Client::Render::UnitCreatePolFenceArrayBuffer(context.device, context.physicalDevice,
-    emptyFenceData, vk.polFenceArrayBuffer, vk.polFenceArrayMemory);
-  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(context.device,
-    vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
+                                                emptyFenceData, vk.polFenceArrayBuffer,
+                                                vk.polFenceArrayMemory);
+  Client::Render::UnitUpdateGraphicsDescriptorSetWithUnitArrays(
+      context.device, vk.descriptorSet, vk.unitArrayBuffer, vk.polFenceArrayBuffer);
   // Create vertex input state
-  auto vertexInputBinding = Client::Render::UnitCreateVertexInputBindingDescription();
+  auto vertexInputBinding    = Client::Render::UnitCreateVertexInputBindingDescription();
   auto vertexInputAttributes = Client::Render::UnitCreateVertexAttributeDescriptions();
 
-  Client::Render::UnitCreateGraphicsPipelineLayout(
-      context.device, vk.descriptorSetLayout, vk.pipelineLayout);
-  Client::Render::UnitCreateGraphicsPipeline(context.device, vk.pipelineLayout,
-      context.renderPass, context.swapChainExtent, vertexInputBinding,
-      vertexInputAttributes, vk.pipeline);
+  Client::Render::UnitCreateGraphicsPipelineLayout(context.device, vk.descriptorSetLayout,
+                                                   vk.pipelineLayout);
+  Client::Render::UnitCreateGraphicsPipeline(
+      context.device, vk.pipelineLayout, context.renderPass, context.swapChainExtent,
+      vertexInputBinding, vertexInputAttributes, vk.pipeline);
 }
 
-void UnitStateDrawable::OnUpdate(
-    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
+void UnitStateDrawable::OnUpdate(UnitStateResource& resource,
+                                 UnitStateBinding&  vk,
+                                 Main::MainBinding& context)
 {
   // Visible count reset is now handled in OnDrawCompute using vkCmdFillBuffer (GPU-side)
   const Player::IPlayerCamera&            camera = *resource.player.camera;
@@ -335,8 +368,8 @@ void UnitStateDrawable::OnUpdate(
   Client::Render::UnitCameraToFrustumPlanes(frustum, camera);
 
   // Update graphics descriptor set with textures from unit (only if textures changed)
-  Client::Render::UnitUpdateUnitTextures(
-      context.device, vk.descriptorSet, resource.unit.GetMaterial(), context);
+  Client::Render::UnitUpdateUnitTextures(context.device, vk.descriptorSet,
+                                         resource.unit.GetMaterial(), context);
 #pragma push_macro("near")
 
 #pragma push_macro("far")
@@ -346,22 +379,24 @@ void UnitStateDrawable::OnUpdate(
 #undef far
   const auto skyboxSun =
       World::WorldServiceLocator::GetSkyboxSystem()->GetSunProperties();
-  Client::Render::UnitUpdateCascadeShadowMaps(camera.GetViewMatrix(),
-      camera.GetProjectionMatrix(), skyboxSun.direction, camera.aspectRatio, camera.near,
-      camera.far, static_cast<uint32_t>(vk.shadowMapCascades.size()),
-      vk.shadowCascadeLighting, vk.shadowCascadeSplits, vk.shadowCascadeCount);
+  Client::Render::UnitUpdateCascadeShadowMaps(
+      camera.GetViewMatrix(), camera.GetProjectionMatrix(), skyboxSun.direction,
+      camera.aspectRatio, camera.near, camera.far,
+      static_cast<uint32_t>(vk.shadowMapCascades.size()), vk.shadowCascadeLighting,
+      vk.shadowCascadeSplits, vk.shadowCascadeCount);
 #pragma pop_macro("near")
 
 #pragma pop_macro("far")
-  Client::Render::UnitCopyDataToBuffer(context.device, vk.shadowCascadeMatricesMemory, 0,
+  Client::Render::UnitCopyDataToBuffer(
+      context.device, vk.shadowCascadeMatricesMemory, 0,
       sizeof(Client::Render::UnitCascadeShadowLightingUniforms),
       &vk.shadowCascadeLighting);
 
   // Generate AO textures from unit textures (only if not already generated)
   if (vk.aoTexturesView[0] == VK_NULL_HANDLE)
   {
-    Client::Render::UnitGenerateAOTextures(
-        context.device, context, vk, resource.unit.GetMaterial());
+    Client::Render::UnitGenerateAOTextures(context.device, context, vk,
+                                           resource.unit.GetMaterial());
     Client::Render::UnitUpdateAOTextureDescriptor(
         context.device, vk.descriptorSet, vk.aoTexturesView, vk.globalTextureSampler);
   }
@@ -369,19 +404,21 @@ void UnitStateDrawable::OnUpdate(
   // Generate normal textures from unit textures (only if not already generated)
   if (vk.normalTexturesView[0] == VK_NULL_HANDLE)
   {
-    Client::Render::UnitGenerateNormalTextures(
-        context.device, context, vk, resource.unit.GetMaterial());
+    Client::Render::UnitGenerateNormalTextures(context.device, context, vk,
+                                               resource.unit.GetMaterial());
     Client::Render::UnitUpdateNormalTextureDescriptor(
         context.device, vk.descriptorSet, vk.normalTexturesView, vk.globalTextureSampler);
   }
 }
 
-void UnitStateDrawable::OnDraw(
-    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
+void UnitStateDrawable::OnDraw(UnitStateResource& resource,
+                               UnitStateBinding&  vk,
+                               Main::MainBinding& context)
 { Client::Render::UnitRender(resource, vk, context); }
 
-void UnitStateDrawable::OnDrawCompute(
-    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
+void UnitStateDrawable::OnDrawCompute(UnitStateResource& resource,
+                                      UnitStateBinding&  vk,
+                                      Main::MainBinding& context)
 {
   Client::Render::UnitDispatchComputeShaders(resource, vk, context);
 
@@ -391,8 +428,9 @@ void UnitStateDrawable::OnDrawCompute(
   Client::Render::UnitRenderCascadeShadowMap(resource, vk, context);
 }
 
-void UnitStateDrawable::OnDestroy(
-    UnitStateResource& resource, UnitStateBinding& vk, Main::MainBinding& context)
+void UnitStateDrawable::OnDestroy(UnitStateResource& resource,
+                                  UnitStateBinding&  vk,
+                                  Main::MainBinding& context)
 { Client::Render::UnitCleanupResources(context.device, vk); }
 
 void UnitStateDrawable::OnPause()

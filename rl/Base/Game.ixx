@@ -28,7 +28,7 @@ export class Game
   void         DestroyResources();
   void         InitGraphics();
   void         InitWindow();
-  void         UpdateModels();
+  void         Update();
   void         UpdateServices();
   static Game& GetInstance();
   MainBinding& GetMainBinding();
@@ -54,7 +54,7 @@ export class Game
   void CreateCommandBuffers();
   void CreatePipelineLayout();
   void CreateSyncObjects();
-  void DrawModels();
+  void DrawCallback();
   void Draw();
 
   [[nodiscard]]

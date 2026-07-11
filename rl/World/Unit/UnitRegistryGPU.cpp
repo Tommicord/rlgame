@@ -13,7 +13,7 @@ namespace Rl::World
 
 UnitRegistryGPU::~UnitRegistryGPU()
 {
-  // Cleanup should be called explicitly via Shutdown()
+  Shutdown(device);
 }
 
 bool UnitRegistryGPU::Initialize(VkDevice device, VkPhysicalDevice physicalDevice)
