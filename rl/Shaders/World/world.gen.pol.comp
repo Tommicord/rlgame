@@ -65,7 +65,13 @@ uint ComputePolFenceIndex(uvec3 id)
 // Get unit transparency from registry
 float GetUnitTransparency(uint unitId)
 {
-  for (uint i = 0; i < unitReg.unitCount; ++i)
+  // Early exit for air units
+  if (unitId == pc.airUnitId)
+    return 0.0f;
+
+  // Limit iterations to prevent GPU timeout
+  const uint maxIterations = min(unitReg.unitCount, 256u);
+  for (uint i = 0; i < maxIterations; ++i)
   {
     uint regUnitId = uint(unitReg.units[i * 28u + 0u]); // unitId at offset 0
     if (regUnitId == unitId)
@@ -76,11 +82,16 @@ float GetUnitTransparency(uint unitId)
   return 0.0f; // Default to opaque
 }
 
-// Check if unit can be curved
+// Check if unit can be curved (optimized with early exit)
 bool IsUnitCurable(uint unitId)
 {
-  // Check if unit is in non-curable list
-  for (uint i = 0; i < nonCurable.nonCurableCount; ++i)
+  // Early exit for air units
+  if (unitId == pc.airUnitId)
+    return false;
+
+  // Limit iterations to prevent GPU timeout
+  const uint maxIterations = min(nonCurable.nonCurableCount, 256u);
+  for (uint i = 0; i < maxIterations; ++i)
   {
     if (nonCurable.nonCurableIds[i] == unitId)
       return false;

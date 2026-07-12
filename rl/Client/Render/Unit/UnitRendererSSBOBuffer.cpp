@@ -12,13 +12,16 @@ void UnitCreateSSBOBuffers(VkDevice device,
     Providers::UnitStateBinding&    vk)
 {
   // Create output index buffer (host-visible for compute shader writes)
-  VkDeviceSize outputIndexBufferSize = sizeof(uint32_t) * 36; // Max 36 indices for cube
+  // Size for maximum tessellated geometry: tessellation level 8 = 9x9 vertices per face
+  // Max indices = 8 * 8 * 6 triangles per face * 6 faces = 2304 indices
+  // Use conservative maximum of 32768 indices to match unit.tessel.comp MAX_INDICES
+  VkDeviceSize outputIndexBufferSize = sizeof(uint32_t) * 32768;
   UnitCreateBuffer(device, physicalDevice, outputIndexBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       vk.outputIndexBuffer, vk.outputIndexBufferMemory);
 
-  std::vector<uint32_t> zeroIndices(36, 0);
+  std::vector<uint32_t> zeroIndices(32768, 0);
   UnitCopyDataToBuffer(
       device, vk.outputIndexBufferMemory, 0, outputIndexBufferSize, zeroIndices.data());
 

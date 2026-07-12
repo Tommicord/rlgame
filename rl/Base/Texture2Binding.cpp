@@ -131,10 +131,29 @@ void Texture2::CreateBindingImage(Main::MainBinding& context)
   VkMemoryRequirements memRequirements;
   vkGetImageMemoryRequirements(context.device, binding.vkImage, &memRequirements);
 
+  VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(context.physicalDevice, &memProperties);
+
+  uint32_t memoryTypeIndex = UINT32_MAX;
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+  {
+    if ((memRequirements.memoryTypeBits & (1 << i)) &&
+        (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+    {
+      memoryTypeIndex = i;
+      break;
+    }
+  }
+
+  if (memoryTypeIndex == UINT32_MAX)
+  {
+    throw std::runtime_error("Failed to find suitable memory type for image");
+  }
+
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = 0; // TODO: Find appropriate memory type
+  allocInfo.memoryTypeIndex = memoryTypeIndex;
 
   if (vkAllocateMemory(context.device, &allocInfo, nullptr, &binding.vkImageMemory) !=
       VK_SUCCESS)
@@ -169,10 +188,30 @@ void Texture2::UploadTextureData(Main::MainBinding& context)
   vkGetBufferMemoryRequirements(
       context.device, binding.vkStagingBuffer, &stagingMemRequirements);
 
+  VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(context.physicalDevice, &memProperties);
+
+  uint32_t stagingMemoryTypeIndex = UINT32_MAX;
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+  {
+    if ((stagingMemRequirements.memoryTypeBits & (1 << i)) &&
+        (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) &&
+        (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
+    {
+      stagingMemoryTypeIndex = i;
+      break;
+    }
+  }
+
+  if (stagingMemoryTypeIndex == UINT32_MAX)
+  {
+    throw std::runtime_error("Failed to find suitable memory type for staging buffer");
+  }
+
   VkMemoryAllocateInfo stagingAllocInfo{};
   stagingAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   stagingAllocInfo.allocationSize = stagingMemRequirements.size;
-  stagingAllocInfo.memoryTypeIndex = 0; // TODO: Find appropriate memory type
+  stagingAllocInfo.memoryTypeIndex = stagingMemoryTypeIndex;
 
   if (vkAllocateMemory(context.device, &stagingAllocInfo, nullptr,
           &binding.vkStagingBufferMemory) != VK_SUCCESS)
@@ -336,7 +375,11 @@ void Texture2::UploadTextureData(Main::MainBinding& context)
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
 
-  vkQueueSubmit(context.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+  if (vkQueueSubmit(context.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(context.device, context.commandPool, 1, &commandBuffer);
+    throw std::runtime_error("Failed to submit texture upload command");
+  }
   vkQueueWaitIdle(context.graphicsQueue);
 
   // Free command buffer

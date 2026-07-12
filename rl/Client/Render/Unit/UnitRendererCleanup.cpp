@@ -18,26 +18,56 @@ void UnitCleanupResources(VkDevice device, Providers::UnitStateBinding& vk)
 
 void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
 {
-  vkDestroyBuffer(device, vk.vertexBuffer, nullptr);
-  vkFreeMemory(device, vk.vertexBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.indexBuffer, nullptr);
-  vkFreeMemory(device, vk.indexBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.outputIndexBuffer, nullptr);
-  vkFreeMemory(device, vk.outputIndexBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.visibleCountBuffer, nullptr);
-  vkFreeMemory(device, vk.visibleCountBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.indirectDrawBuffer, nullptr);
-  vkFreeMemory(device, vk.indirectDrawBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.frustumBuffer, nullptr);
-  vkFreeMemory(device, vk.frustumBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.triplanarSettingsBuffer, nullptr);
-  vkFreeMemory(device, vk.triplanarSettingsBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.placeholderSettingsBuffer, nullptr);
-  vkFreeMemory(device, vk.placeholderSettingsBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.placeholderLightingBuffer, nullptr);
-  vkFreeMemory(device, vk.placeholderLightingBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.shadowCascadeMatricesBuffer, nullptr);
-  vkFreeMemory(device, vk.shadowCascadeMatricesMemory, nullptr);
+  if (vk.vertexBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.vertexBuffer, nullptr);
+    vkFreeMemory(device, vk.vertexBufferMemory, nullptr);
+  }
+  if (vk.indexBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.indexBuffer, nullptr);
+    vkFreeMemory(device, vk.indexBufferMemory, nullptr);
+  }
+  if (vk.outputIndexBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.outputIndexBuffer, nullptr);
+    vkFreeMemory(device, vk.outputIndexBufferMemory, nullptr);
+  }
+  if (vk.visibleCountBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.visibleCountBuffer, nullptr);
+    vkFreeMemory(device, vk.visibleCountBufferMemory, nullptr);
+  }
+  if (vk.indirectDrawBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.indirectDrawBuffer, nullptr);
+    vkFreeMemory(device, vk.indirectDrawBufferMemory, nullptr);
+  }
+  if (vk.frustumBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.frustumBuffer, nullptr);
+    vkFreeMemory(device, vk.frustumBufferMemory, nullptr);
+  }
+  if (vk.triplanarSettingsBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.triplanarSettingsBuffer, nullptr);
+    vkFreeMemory(device, vk.triplanarSettingsBufferMemory, nullptr);
+  }
+  if (vk.placeholderSettingsBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.placeholderSettingsBuffer, nullptr);
+    vkFreeMemory(device, vk.placeholderSettingsBufferMemory, nullptr);
+  }
+  if (vk.placeholderLightingBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.placeholderLightingBuffer, nullptr);
+    vkFreeMemory(device, vk.placeholderLightingBufferMemory, nullptr);
+  }
+  if (vk.shadowCascadeMatricesBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.shadowCascadeMatricesBuffer, nullptr);
+    vkFreeMemory(device, vk.shadowCascadeMatricesMemory, nullptr);
+  }
 
   // Cleanup unit array buffers
   if (vk.unitArrayBuffer != VK_NULL_HANDLE)
@@ -51,14 +81,26 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
     vkFreeMemory(device, vk.polFenceArrayMemory, nullptr);
   }
 
-  vkDestroyBuffer(device, vk.curvedVertexBuffer, nullptr);
-  vkFreeMemory(device, vk.curvedVertexBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.curvedIndexBuffer, nullptr);
-  vkFreeMemory(device, vk.curvedIndexBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.curveCountersBuffer, nullptr);
-  vkFreeMemory(device, vk.curveCountersBufferMemory, nullptr);
-  vkDestroyBuffer(device, vk.curveIndirectDrawBuffer, nullptr);
-  vkFreeMemory(device, vk.curveIndirectDrawBufferMemory, nullptr);
+  if (vk.curvedVertexBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.curvedVertexBuffer, nullptr);
+    vkFreeMemory(device, vk.curvedVertexBufferMemory, nullptr);
+  }
+  if (vk.curvedIndexBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.curvedIndexBuffer, nullptr);
+    vkFreeMemory(device, vk.curvedIndexBufferMemory, nullptr);
+  }
+  if (vk.curveCountersBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.curveCountersBuffer, nullptr);
+    vkFreeMemory(device, vk.curveCountersBufferMemory, nullptr);
+  }
+  if (vk.curveIndirectDrawBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, vk.curveIndirectDrawBuffer, nullptr);
+    vkFreeMemory(device, vk.curveIndirectDrawBufferMemory, nullptr);
+  }
 
   if (vk.meshGenPipeline != VK_NULL_HANDLE)
   {
@@ -81,14 +123,38 @@ void UnitCleanupBuffers(VkDevice device, Providers::UnitStateBinding& vk)
 void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
 {
   // Cleanup placeholder textures
-  vkDestroySampler(device, vk.placeholderLightingSampler, nullptr);
-  vkDestroyImageView(device, vk.placeholderLightingTextureView, nullptr);
-  vkDestroyImage(device, vk.placeholderLightingTexture, nullptr);
-  vkFreeMemory(device, vk.placeholderLightingTextureMemory, nullptr);
-  vkDestroySampler(device, vk.placeholderAOSampler, nullptr);
-  vkDestroyImageView(device, vk.placeholderAOTextureView, nullptr);
-  vkDestroyImage(device, vk.placeholderAOTexture, nullptr);
-  vkFreeMemory(device, vk.placeholderAOTextureMemory, nullptr);
+  if (vk.placeholderLightingSampler != VK_NULL_HANDLE)
+  {
+    vkDestroySampler(device, vk.placeholderLightingSampler, nullptr);
+  }
+  if (vk.placeholderLightingTextureView != VK_NULL_HANDLE)
+  {
+    vkDestroyImageView(device, vk.placeholderLightingTextureView, nullptr);
+  }
+  if (vk.placeholderLightingTexture != VK_NULL_HANDLE)
+  {
+    vkDestroyImage(device, vk.placeholderLightingTexture, nullptr);
+  }
+  if (vk.placeholderLightingTextureMemory != VK_NULL_HANDLE)
+  {
+    vkFreeMemory(device, vk.placeholderLightingTextureMemory, nullptr);
+  }
+  if (vk.placeholderAOSampler != VK_NULL_HANDLE)
+  {
+    vkDestroySampler(device, vk.placeholderAOSampler, nullptr);
+  }
+  if (vk.placeholderAOTextureView != VK_NULL_HANDLE)
+  {
+    vkDestroyImageView(device, vk.placeholderAOTextureView, nullptr);
+  }
+  if (vk.placeholderAOTexture != VK_NULL_HANDLE)
+  {
+    vkDestroyImage(device, vk.placeholderAOTexture, nullptr);
+  }
+  if (vk.placeholderAOTextureMemory != VK_NULL_HANDLE)
+  {
+    vkFreeMemory(device, vk.placeholderAOTextureMemory, nullptr);
+  }
 
   for (int i = 0; i < 6; ++i)
   {
@@ -149,26 +215,67 @@ void UnitCleanupTextures(VkDevice device, Providers::UnitStateBinding& vk)
 }
 
 void UnitCleanupSamplers(VkDevice device, Providers::UnitStateBinding& vk)
-{ vkDestroySampler(device, vk.globalTextureSampler, nullptr); }
+{
+  if (vk.globalTextureSampler != VK_NULL_HANDLE)
+  {
+    vkDestroySampler(device, vk.globalTextureSampler, nullptr);
+  }
+}
 
 void UnitCleanupPipelines(VkDevice device, Providers::UnitStateBinding& vk)
 {
-  vkDestroyPipeline(device, vk.computePipeline, nullptr);
-  vkDestroyPipelineLayout(device, vk.computePipelineLayout, nullptr);
-  vkDestroyPipeline(device, vk.curveComputePipeline, nullptr);
-  vkDestroyPipelineLayout(device, vk.curveComputePipelineLayout, nullptr);
-  vkDestroyPipeline(device, vk.pipeline, nullptr);
-  vkDestroyPipelineLayout(device, vk.pipelineLayout, nullptr);
-  vkDestroyPipeline(device, vk.shadowPipeline, nullptr);
-  vkDestroyPipelineLayout(device, vk.shadowPipelineLayout, nullptr);
+  if (vk.computePipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, vk.computePipeline, nullptr);
+  }
+  if (vk.computePipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, vk.computePipelineLayout, nullptr);
+  }
+  if (vk.curveComputePipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, vk.curveComputePipeline, nullptr);
+  }
+  if (vk.curveComputePipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, vk.curveComputePipelineLayout, nullptr);
+  }
+  if (vk.pipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, vk.pipeline, nullptr);
+  }
+  if (vk.pipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, vk.pipelineLayout, nullptr);
+  }
+  if (vk.shadowPipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, vk.shadowPipeline, nullptr);
+  }
+  if (vk.shadowPipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, vk.shadowPipelineLayout, nullptr);
+  }
 }
 
 void UnitCleanupDescriptorSets(VkDevice device, Providers::UnitStateBinding& vk)
 {
-  vkDestroyDescriptorSetLayout(device, vk.computeDescriptorSetLayout, nullptr);
-  vkDestroyDescriptorSetLayout(device, vk.curveComputeDescriptorSetLayout, nullptr);
-  vkDestroyDescriptorSetLayout(device, vk.descriptorSetLayout, nullptr);
-  vkDestroyDescriptorPool(device, vk.descriptorPool, nullptr);
+  if (vk.computeDescriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(device, vk.computeDescriptorSetLayout, nullptr);
+  }
+  if (vk.curveComputeDescriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(device, vk.curveComputeDescriptorSetLayout, nullptr);
+  }
+  if (vk.descriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(device, vk.descriptorSetLayout, nullptr);
+  }
+  if (vk.descriptorPool != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorPool(device, vk.descriptorPool, nullptr);
+  }
 }
 
 } // namespace Rl::Client::Render

@@ -642,6 +642,7 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 
+  // Clean up temporary pipeline and layout
   vkDestroyPipeline(device, genPipeline, nullptr);
   vkDestroyPipelineLayout(device, genPipelineLayout, nullptr);
 }

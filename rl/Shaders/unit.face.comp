@@ -182,15 +182,19 @@ void main() {
 
     // Perform frustum culling in world space
     if (IsTriangleInFrustum(worldPos0.xyz, worldPos1.xyz, worldPos2.xyz)) {
-        // Atomically get and increment the output index
-        uint outputIndex = atomicAdd(visibleIndexCount, 3);
+        // Check if we have space in output buffer BEFORE atomic operation
+        uint currentCount = visibleIndexCount;
+        if (currentCount + 3 <= visibleIndices.length()) {
+            // Atomically get and increment the output index
+            uint outputIndex = atomicAdd(visibleIndexCount, 3);
 
-        // Check if we have space in output buffer
-        if (outputIndex + 3 <= visibleIndices.length()) {
-            // Output the indices for this triangle
-            visibleIndices[outputIndex] = idx0;
-            visibleIndices[outputIndex + 1] = idx1;
-            visibleIndices[outputIndex + 2] = idx2;
+            // Double-check bounds after atomic operation
+            if (outputIndex + 3 <= visibleIndices.length()) {
+                // Output the indices for this triangle
+                visibleIndices[outputIndex] = idx0;
+                visibleIndices[outputIndex + 1] = idx1;
+                visibleIndices[outputIndex + 2] = idx2;
+            }
         }
     }
 }

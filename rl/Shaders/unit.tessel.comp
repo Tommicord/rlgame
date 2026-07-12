@@ -140,17 +140,19 @@ void GetAdjacentCurvature(uint currentFaceIndex, uint faceCount, out float adjVe
     if (currentFaceIndex == 0 || currentFaceIndex == 1) {
         for (uint i = 2; i < 6 && i < faceCount; i++) {
             uint adjBaseIndex = i * verticesPerFace;
-            adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
-            adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
+            if (adjBaseIndex + verticesPerFace <= vertices.length()) {
+                adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
+                adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
+            }
         }
     } else if (currentFaceIndex == 2 || currentFaceIndex == 3) {
-        if (0 < faceCount) {
+        if (faceCount > 0 && verticesPerFace <= vertices.length()) {
             uint adjBaseIndex = 0 * verticesPerFace;
             adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
             adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
         }
     } else if (currentFaceIndex == 4 || currentFaceIndex == 5) {
-        if (0 < faceCount) {
+        if (faceCount > 0 && verticesPerFace <= vertices.length()) {
             uint adjBaseIndex = 0 * verticesPerFace;
             adjVertical += vertices[adjBaseIndex].polCurve.x * adjacentFactor;
             adjHorizontal += vertices[adjBaseIndex].polCurve.y * adjacentFactor;
@@ -383,7 +385,7 @@ void main() {
         }
     }
     memoryBarrier();
-    if (globalID == pc.faceCount - 1) {
+    if (pc.faceCount > 0 && globalID == pc.faceCount - 1) {
         drawParams.indexCount = indexCount;
     }
 }

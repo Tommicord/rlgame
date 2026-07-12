@@ -1,8 +1,17 @@
 import Rl.Base.Game;
+import Rl.RayLog.Macro;
+import Rl.RayLog.Logger;
+
+import <stdexcept>;
 
 int main()
 {
   Rl::Main::Game& game = Rl::Main::Game::GetInstance();
-  game.Run();
+  try {
+    game.Run();
+  } catch (std::exception& e)
+  {
+    Rl::RayLog::LogFatal("Game", e.what());
+  }
   return 0;
 }

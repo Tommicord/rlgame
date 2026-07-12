@@ -170,9 +170,90 @@ void ChunkGeneratorGPU::SetNonCurableUnits(const std::vector<uint32_t>& nonCurab
     memcpy(static_cast<uint8_t*>(data) + sizeof(uint32_t), nonCurableIds.data(), nonCurableIds.size() * sizeof(uint32_t));
     vkUnmapMemory(device, stagingMem);
 
-    // Copy to device buffer
-    VkCommandBuffer cmd = nullptr; // Need command buffer from caller
-    // For now, this would need to be integrated with command buffer recording
+    // Copy to device buffer using temporary command buffer
+    uint32_t queueFamilyIndex = 0;
+    VkQueue queue = nullptr;
+    vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    poolInfo.queueFamilyIndex = queueFamilyIndex;
+
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to create command pool for non-curable buffer upload");
+      vkDestroyBuffer(device, staging, nullptr);
+      vkFreeMemory(device, stagingMem, nullptr);
+      return;
+    }
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer cmd = VK_NULL_HANDLE;
+    if (vkAllocateCommandBuffers(device, &allocInfo, &cmd) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to allocate command buffer for non-curable buffer upload");
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      vkDestroyBuffer(device, staging, nullptr);
+      vkFreeMemory(device, stagingMem, nullptr);
+      return;
+    }
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to begin command buffer for non-curable buffer upload");
+      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      vkDestroyBuffer(device, staging, nullptr);
+      vkFreeMemory(device, stagingMem, nullptr);
+      return;
+    }
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = bufferSize;
+    vkCmdCopyBuffer(cmd, staging, nonCurableBuffer, 1, &copyRegion);
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to end command buffer for non-curable buffer upload");
+      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      vkDestroyBuffer(device, staging, nullptr);
+      vkFreeMemory(device, stagingMem, nullptr);
+      return;
+    }
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cmd;
+
+    if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to submit non-curable buffer upload");
+      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      vkDestroyBuffer(device, staging, nullptr);
+      vkFreeMemory(device, stagingMem, nullptr);
+      return;
+    }
+
+    vkQueueWaitIdle(queue);
+
+    vkFreeCommandBuffers(device, commandPool, 1, &cmd);
+    vkDestroyCommandPool(device, commandPool, nullptr);
     vkDestroyBuffer(device, staging, nullptr);
     vkFreeMemory(device, stagingMem, nullptr);
   }
@@ -485,7 +566,7 @@ bool ChunkGeneratorGPU::ReadbackUnitData(VkDevice device, VkCommandBuffer comman
   }
 
   vkUnmapMemory(device, stagingMemory);
-  outChunk.Clear();
+  // Remove Clear() call - it was zeroing the just-copied data
   return true;
 }
 

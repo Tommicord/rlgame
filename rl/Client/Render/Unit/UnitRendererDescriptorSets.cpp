@@ -190,19 +190,19 @@ void UnitCreateDescriptorPool(VkDevice device, VkDescriptorPool& pool)
   VkDescriptorPoolSize poolSizes[3]{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   poolSizes[0].descriptorCount =
-      26; // compute + curvature + graphics shadow-matrix buffer + unit arrays (2 more)
+      50; // Increased from 26 to prevent exhaustion
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   poolSizes[1].descriptorCount =
-      24; // textures + lighting + AO + normal + shadow cascades
+      50; // Increased from 24 to prevent exhaustion
   poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   poolSizes[2].descriptorCount =
-      16; // frustum + lighting + settings + triplanar + extra buffers
+      32; // Increased from 16 to prevent exhaustion
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolInfo.poolSizeCount = 3;
   poolInfo.pPoolSizes    = poolSizes;
-  poolInfo.maxSets       = 3; // 1 for face culling + 1 for curvature + 1 for graphics
+  poolInfo.maxSets       = 10; // Increased from 3 to prevent exhaustion
   poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
   if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool) != VK_SUCCESS)
@@ -286,7 +286,7 @@ void UnitUpdateComputeDescriptorSet(VkDevice        device,
   VkDescriptorBufferInfo outputBufferInfo{};
   outputBufferInfo.buffer = outputIndexBuffer;
   outputBufferInfo.offset = 0;
-  outputBufferInfo.range  = sizeof(uint32_t) * 36; // Max 36 indices for cube
+  outputBufferInfo.range  = sizeof(uint32_t) * 32768; // Max indices for tessellation
 
   VkDescriptorBufferInfo countBufferInfo{};
   countBufferInfo.buffer = visibleCountBuffer;

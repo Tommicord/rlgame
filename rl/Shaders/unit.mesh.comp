@@ -136,20 +136,35 @@ void main() {
 
     // Find unit data by unitId; require a match (no hardcoded defaults)
     bool foundUnit = false;
+    bool foundFence = false;
     UnitData unitData;
     PolFence fence;
+    
+    // First find the unit data
     for (uint i = 0u; i < unitArray.unitCount; ++i) {
         if (unitArray.units[i].unitId == unitId) {
             unitData = unitArray.units[i];
-            if (i < polFenceArray.fenceCount) {
-                fence = polFenceArray.fences[i];
-            }
             foundUnit = true;
             break;
         }
     }
+    
     if (!foundUnit) {
         return;
+    }
+    
+    // Then find the fence data by unitId (separate lookup)
+    for (uint i = 0u; i < polFenceArray.fenceCount; ++i) {
+        if (i < unitArray.unitCount && unitArray.units[i].unitId == unitId) {
+            fence = polFenceArray.fences[i];
+            foundFence = true;
+            break;
+        }
+    }
+    
+    // If fence not found, use default zero fence
+    if (!foundFence) {
+        fence = PolFence(0.0, 0.0, 0.0, 0.0);
     }
 
     vec3 pos;

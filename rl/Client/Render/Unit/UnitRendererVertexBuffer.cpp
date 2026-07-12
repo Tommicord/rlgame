@@ -85,7 +85,14 @@ void UnitCreateVertexBuffer(VkDevice     device,
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
 
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    throw std::runtime_error("Failed to submit vertex buffer copy command");
+  }
   vkQueueWaitIdle(queue);
 
   // Cleanup

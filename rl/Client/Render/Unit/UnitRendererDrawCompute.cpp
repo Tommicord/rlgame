@@ -48,6 +48,15 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
   pushConstants.singleUnitId = vk.singleUnitId;
   pushConstants.padding1 = 0;
 
+  // Add memory barrier before resetting counter to ensure previous operations complete
+  VkMemoryBarrier preFillBarrier{};
+  preFillBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+  preFillBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+  preFillBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+  vkCmdPipelineBarrier(context.commandBuffers[0], VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &preFillBarrier, 0, nullptr, 0, nullptr);
+
   // Reset visible vertex counter using vkCmdFillBuffer (GPU-side operation)
   vkCmdFillBuffer(
       context.commandBuffers[0], vk.visibleCountBuffer, 0, sizeof(uint32_t), 0);
@@ -243,7 +252,7 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
 
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
-    copyRegion.dstOffset = 0;
+    copyRegion.dstOffset = 0; // Copy to indexCount field (first uint32_t)
     copyRegion.size = sizeof(uint32_t);
     vkCmdCopyBuffer(context.commandBuffers[0], vk.visibleCountBuffer,
         vk.indirectDrawBuffer, 1, &copyRegion);
@@ -262,6 +271,11 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
         VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &indirectTransferBarrier, 0,
         nullptr);
 
+    // Fill the remaining fields of UnitRenderDrawIndexedParams:
+    // offset 4: instanceCount = 1
+    // offset 8: firstIndex = 0
+    // offset 12: vertexOffset = 0
+    // offset 16: firstInstance = 0
     vkCmdFillBuffer(context.commandBuffers[0], vk.indirectDrawBuffer, sizeof(uint32_t),
         sizeof(uint32_t), 1);
     vkCmdFillBuffer(context.commandBuffers[0], vk.indirectDrawBuffer,

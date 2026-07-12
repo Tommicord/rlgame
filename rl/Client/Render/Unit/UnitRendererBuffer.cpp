@@ -153,7 +153,10 @@ void UnitCreateIndexBuffer(VkDevice device,
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
 
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to submit buffer copy command");
+  }
   vkQueueWaitIdle(queue);
 
   // Cleanup
@@ -282,7 +285,10 @@ void UnitCreateUnitArrayBuffer(VkDevice device,
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to submit buffer copy command");
+  }
   vkQueueWaitIdle(queue);
 
   vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
@@ -376,7 +382,10 @@ void UnitCreatePolFenceArrayBuffer(VkDevice device,
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    throw std::runtime_error("Failed to submit buffer copy command");
+  }
   vkQueueWaitIdle(queue);
 
   vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
