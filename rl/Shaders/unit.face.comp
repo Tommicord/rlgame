@@ -66,16 +66,18 @@ layout(set = 0, binding = 4) buffer IndirectDraw {
     DrawIndexedParams drawParams;
 };
 
-// Projection-View-Model matrix
 layout(push_constant) uniform PushConstants {
-    mat4 model;
-    mat4 view;
-    mat4 projection;
     uint useUnitArray; // unused in this shader
     uint singleUnitMode; // unused in this shader
     uint singleUnitId; // unused in this shader
     uint padding1;
 } pc;
+
+layout(set = 0, binding = 6) uniform MVPBlock {
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+} ubo;
 
 // Frustum planes (left, right, top, bottom, near, far)
 layout(set = 0, binding = 5) uniform FrustumBlock {
@@ -174,9 +176,9 @@ void main() {
     vec3 modifiedPos2 = ApplyPolygonOffset(rawPos2, v2.faceIndex, v2.polRight, v2.polLeft);
 
     // Transform to world space
-    vec4 worldPos0 = pc.model * vec4(modifiedPos0, 1.0);
-    vec4 worldPos1 = pc.model * vec4(modifiedPos1, 1.0);
-    vec4 worldPos2 = pc.model * vec4(modifiedPos2, 1.0);
+    vec4 worldPos0 = ubo.model * vec4(modifiedPos0, 1.0);
+    vec4 worldPos1 = ubo.model * vec4(modifiedPos1, 1.0);
+    vec4 worldPos2 = ubo.model * vec4(modifiedPos2, 1.0);
 
     // Perform frustum culling in world space
     if (IsTriangleInFrustum(worldPos0.xyz, worldPos1.xyz, worldPos2.xyz)) {

@@ -86,47 +86,30 @@ layout(push_constant) uniform PushConstants {
     uint startVertex;
 };
 
-// Face definitions (clockwise winding when viewed from outside)
-// Each face has 4 vertices
-const vec3 faceVertices[6][4] = {
-    // Front face (Z+)
-    {vec3(-0.5, -0.5, 0.5), vec3(0.5, -0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(-0.5, 0.5, 0.5)},
-    // Back face (Z-)
-    {vec3(0.5, -0.5, -0.5), vec3(-0.5, -0.5, -0.5), vec3(-0.5, 0.5, -0.5), vec3(0.5, 0.5, -0.5)},
-    // Top face (Y+)
-    {vec3(-0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, -0.5), vec3(-0.5, 0.5, -0.5)},
-    // Bottom face (Y-)
-    {vec3(-0.5, -0.5, -0.5), vec3(0.5, -0.5, -0.5), vec3(0.5, -0.5, 0.5), vec3(-0.5, -0.5, 0.5)},
-    // Right face (X+)
-    {vec3(0.5, -0.5, 0.5), vec3(0.5, -0.5, -0.5), vec3(0.5, 0.5, -0.5), vec3(0.5, 0.5, 0.5)},
-    // Left face (X-)
-    {vec3(-0.5, -0.5, -0.5), vec3(-0.5, -0.5, 0.5), vec3(-0.5, 0.5, 0.5), vec3(-0.5, 0.5, -0.5)}
-};
-
 const vec3 faceNormals[6] = {
-    vec3(0, 0, 1),   // Front
-    vec3(0, 0, -1),  // Back
-    vec3(0, 1, 0),   // Top
-    vec3(0, -1, 0),  // Bottom
-    vec3(1, 0, 0),   // Right
-    vec3(-1, 0, 0)   // Left
+vec3(0, 0, 1),   // Front
+vec3(0, 0, -1),  // Back
+vec3(0, 1, 0),   // Top
+vec3(0, -1, 0),  // Bottom
+vec3(1, 0, 0),   // Right
+vec3(-1, 0, 0)   // Left
 };
 
 const vec2 faceTexCoords[4] = {
-    vec2(0.0, 0.0),
-    vec2(1.0, 0.0),
-    vec2(1.0, 1.0),
-    vec2(0.0, 1.0)
+vec2(0.0, 0.0),
+vec2(1.0, 0.0),
+vec2(1.0, 1.0),
+vec2(0.0, 1.0)
 };
 
 // Tangent calculation (assuming standard UV mapping)
 const vec3 faceTangents[6] = {
-    vec3(1, 0, 0),   // Front
-    vec3(-1, 0, 0),  // Back
-    vec3(1, 0, 0),   // Top
-    vec3(1, 0, 0),   // Bottom
-    vec3(0, 0, -1),  // Right
-    vec3(0, 0, 1)    // Left
+vec3(1, 0, 0),   // Front
+vec3(-1, 0, 0),  // Back
+vec3(1, 0, 0),   // Top
+vec3(1, 0, 0),   // Bottom
+vec3(0, 0, -1),  // Right
+vec3(0, 0, 1)    // Left
 };
 
 void main() {
@@ -215,14 +198,14 @@ void main() {
     }
 
     v.position = vec4(pos, 1.0);
-    
+
     // Polygon fence data from unit chunk properties
     v.polRight = unitData.polRight;
     v.polLeft = unitData.polLeft;
-    
+
     // Texture coordinates
     v.texCoords = faceTexCoords[vertexInFace];
-    
+
     // Material properties from the unit array
     v.lightingEmit = uint(unitData.lightEmit * 255.0);
     v.transparencyLevel = uint(unitData.transparency * 255.0);
@@ -231,22 +214,22 @@ void main() {
     v.metallic = unitData.metallic;
     v.padding = 0.0;
     v.polCurve = unitData.polCurve;
-    
+
     // Albedo from the unit array
     v.albedo = vec4(unitData.albedoR, unitData.albedoG, unitData.albedoB, 1.0);
-    
+
     // Tangent, bitangent, normal
     vec3 normal = normalize(faceNormals[faceIndex]);
     vec3 tangent = normalize(faceTangents[faceIndex]);
     vec3 bitangent = normalize(cross(normal, tangent));
-    
+
     v.tangent = vec4(tangent, 0.0);
     v.bitangent = vec4(bitangent, 0.0);
     v.normal = vec4(normal, 0.0);
-    
+
     // Unit ID for array-based rendering
     v.unitId = unitId;
-    
+
     // Write to output buffer at the requested vertex offset
     vertices[outputIndex] = v;
 }

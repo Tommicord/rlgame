@@ -11,7 +11,7 @@ import <algorithm>;
 namespace Rl::World::Chunk
 {
 
-export class ChunkSystemNotify final : Input::IInputObserver
+export class ChunkSystemNotify final : public Input::IInputObserver
 {
   protected:
   static constexpr auto RAYLOG_TAG = "ChunkSystemNotify";

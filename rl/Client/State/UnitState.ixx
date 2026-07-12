@@ -92,6 +92,8 @@ export struct UnitStateBinding final : public IStateDrawableBinding
 
   VkBuffer       triplanarSettingsBuffer = VK_NULL_HANDLE;
   VkDeviceMemory triplanarSettingsBufferMemory = VK_NULL_HANDLE;
+  VkBuffer       mvpBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory mvpBufferMemory = VK_NULL_HANDLE;
 
   VkBuffer              curvedVertexBuffer = VK_NULL_HANDLE;
   VkDeviceMemory        curvedVertexBufferMemory = VK_NULL_HANDLE;

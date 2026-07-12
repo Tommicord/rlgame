@@ -21,7 +21,6 @@ import <utility>;
 import <vector>;
 import <vulkan/vulkan.hpp>;
 
-
 namespace Rl::World::Chunk
 {
 
@@ -33,7 +32,7 @@ export class ChunkSystem
   public:
   using ChunkGenerator = std::function<bool(const WorldChunkCoord&, UnitChunkBuffer&)>;
 
-  ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderDistance);
+  ChunkSystem(ChunkInRenderUnits* chunkStore, WorldChunkCoord renderDistance);
   ~ChunkSystem();
 
   ChunkSystem(const ChunkSystem&)            = delete;
@@ -42,6 +41,7 @@ export class ChunkSystem
   void SetPlayerPosition(const UnitPosition& position);
   void SetRenderDistance(WorldChunkCoord distance);
   void SetChunkGenerator(ChunkGenerator generator);
+  void SetNotifier(std::unique_ptr<Input::IInputObserver> notifier);
 
   bool GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
                                          VkDevice               device,
@@ -70,7 +70,7 @@ export class ChunkSystem
   bool GenerateChunk(const WorldChunkCoord& coord);
   void RemoveOutOfRangeChunks();
 
-  ChunkInRenderUnits&                           chunkStore;
+  std::unique_ptr<ChunkInRenderUnits>           chunkStore;
   WorldChunkCoord                               renderDistance;
   UnitPosition                                  playerPosition;
   ChunkGenerator                                chunkGenerator;

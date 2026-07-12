@@ -152,15 +152,12 @@ export struct UnitRenderDrawIndexedParams
 };
 
 /* Defines push constants for unit rendering */
-export struct UnitRenderPushConstants
+export struct alignas(16) UnitRenderPushConstants
 {
-  glm::mat4 model;
-  glm::mat4 view;
-  glm::mat4 projection;
-  uint32_t  useUnitArray; // 0 = use vertex data, 1 = use unit array
-  uint32_t  singleUnitMode; // 1 = render single unit only
-  uint32_t  singleUnitId; // unit ID for single unit mode
-  uint32_t  padding1;
+  uint32_t useUnitArray; // 0 = use vertex data, 1 = use unit array
+  uint32_t singleUnitMode; // 1 = render single unit only
+  uint32_t singleUnitId; // unit ID for single unit mode
+  uint32_t padding1;
 };
 
 /* Convert UnitGPUParams to UnitRenderUnitData for rendering */

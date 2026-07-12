@@ -152,7 +152,7 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-  bool success = false;
+  bool     success     = false;
   VkResult beginResult = vkBeginCommandBuffer(commandBuffer, &beginInfo);
   if (beginResult == VK_SUCCESS)
   {
@@ -192,26 +192,29 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
       // Use a fence with timeout instead of vkQueueWaitIdle to prevent indefinite hangs
       VkFenceCreateInfo fenceInfo{};
       fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-      VkFence fence = VK_NULL_HANDLE;
+      VkFence fence   = VK_NULL_HANDLE;
       if (vkCreateFence(device, &fenceInfo, nullptr, &fence) == VK_SUCCESS)
       {
-        submitInfo.pSignalSemaphores = nullptr;
+        submitInfo.pSignalSemaphores    = nullptr;
         submitInfo.signalSemaphoreCount = 0;
-        
+
         VkResult submitWithFence = vkQueueSubmit(queue, 1, &submitInfo, fence);
         if (submitWithFence == VK_SUCCESS)
         {
           // Wait with 5 second timeout
-          VkResult waitResult = vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL);
+          VkResult waitResult =
+              vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL);
           if (waitResult != VK_SUCCESS)
           {
-            RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d", waitResult);
+            RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d",
+                             waitResult);
             success = false;
           }
         }
         else
         {
-          RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d", submitWithFence);
+          RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d",
+                           submitWithFence);
           success = false;
         }
         vkDestroyFence(device, fence, nullptr);
@@ -239,13 +242,9 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
   return success;
 }
 
-ChunkSystem::ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderDistance) :
-    chunkStore(chunkStore),
-    renderDistance(renderDistance),
-    workerPool(4),
-    running(false),
-    refreshRequested(false),
-    generationInProgress(false),
+ChunkSystem::ChunkSystem(ChunkInRenderUnits* chunkStore, WorldChunkCoord renderDistance) :
+    chunkStore(std::move(chunkStore)), renderDistance(renderDistance), workerPool(4),
+    running(false), refreshRequested(false), generationInProgress(false),
     stopRequested(false)
 {
   if (renderDistance.chunkX <= 0 || renderDistance.chunkY <= 0 ||
@@ -258,19 +257,20 @@ ChunkSystem::ChunkSystem(ChunkInRenderUnits& chunkStore, WorldChunkCoord renderD
     chunkBuffer.Clear();
     return true;
   };
-  const bool initialized = chunkStore.Initialize();
-  if (!initialized) {
+  const bool initialized = chunkStore->Initialize();
+  if (!initialized)
+  {
     RayLog::LogError(RAYLOG_TAG, "Failed to initialize Chunk System storage");
   }
   running.store(true, std::memory_order_release);
-  // Create the notifier
-  notifier = std::make_unique<ChunkSystemNotify>(*this);
   // Finally start the generation thread
   generationThread = std::jthread([this] { RunGenerationLoop(); });
 }
 
 ChunkSystem::~ChunkSystem()
-{ Stop(); }
+{
+  Stop();
+}
 
 void ChunkSystem::SetPlayerPosition(const UnitPosition& position)
 {
@@ -290,6 +290,11 @@ void ChunkSystem::SetChunkGenerator(ChunkGenerator generator)
 {
   std::scoped_lock lock(stateMutex);
   chunkGenerator = std::move(generator);
+}
+void ChunkSystem::SetNotifier(std::unique_ptr<Input::IInputObserver> notifier)
+{
+  std::scoped_lock lock(stateMutex);
+  this->notifier = std::move(notifier);
 }
 
 void ChunkSystem::EnableGPUGeneration(ChunkGeneratorGPU* gpuGenerator,
@@ -315,7 +320,9 @@ void ChunkSystem::DisableGPUGeneration()
 }
 
 bool ChunkSystem::IsRunning() const
-{ return running.load(std::memory_order_acquire); }
+{
+  return running.load(std::memory_order_acquire);
+}
 
 bool ChunkSystem::IsChunkGenerated(const WorldChunkCoord& coord) const
 {
@@ -481,7 +488,7 @@ bool ChunkSystem::GenerateChunk(const WorldChunkCoord& coord)
     return false;
   }
 
-  if (!chunkStore.AddChunk(storageCoord, chunkBuffer))
+  if (!chunkStore->AddChunk(storageCoord, chunkBuffer))
     return false;
 
   std::scoped_lock lock(stateMutex);
@@ -518,7 +525,7 @@ void ChunkSystem::RemoveOutOfRangeChunks()
   }
   for (const auto& storageCoord : chunksToRemove | std::views::values)
   {
-    chunkStore.RemoveChunk(storageCoord);
+    chunkStore->RemoveChunk(storageCoord);
   }
 }
 

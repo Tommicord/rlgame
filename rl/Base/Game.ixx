@@ -19,6 +19,7 @@ namespace Rl::Main
 
 export class Game
 {
+  private:
   std::unique_ptr<Providers::UnitModel>          unitModel;
   std::unique_ptr<World::ServiceUpdaterRegistry> serviceUpdaterRegistry;
 
@@ -34,7 +35,6 @@ export class Game
   MainBinding& GetMainBinding();
   ~Game();
 
-  private:
   Game();
   GLFWwindow*       window;
   Input::UserInput& input;
@@ -52,7 +52,6 @@ export class Game
   void CreateFramebuffers();
   void CreateCommandPool();
   void CreateCommandBuffers();
-  void CreatePipelineLayout();
   void CreateSyncObjects();
   void DrawCallback();
   void Draw();

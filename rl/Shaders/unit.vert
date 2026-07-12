@@ -71,11 +71,13 @@ layout (std430, set = 0, binding = 19) readonly buffer PolFenceArray {
     PolFence fences[];
 } polFenceArray;
 
-// Push constants for camera matrices
-layout (push_constant) uniform PushConstants {
+layout (std140, set = 0, binding = 3) uniform MVPBlock {
     mat4 model;
     mat4 view;
     mat4 projection;
+} ubo;
+
+layout (push_constant) uniform PushConstants {
     uint useUnitArray; // 0 = use vertex data, 1 = use unit array
     uint singleUnitMode; // 1 = render single unit only
     uint singleUnitId; // unit ID for single unit mode
@@ -157,13 +159,13 @@ void main() {
     }
 
     // Transform to world space
-    vec4 worldPos = pc.model * vec4(localPos, 1.0);
+    vec4 worldPos = ubo.model * vec4(localPos, 1.0);
 
     // Transform to clip space
-    gl_Position = pc.projection * pc.view * worldPos;
+    gl_Position = ubo.projection * ubo.view * worldPos;
 
     // Tangent and bitangent are in local space, transform to world space
-    mat3 normalMatrix = transpose(inverse(mat3(pc.model)));
+    mat3 normalMatrix = transpose(inverse(mat3(ubo.model)));
     vec3 T = normalize(normalMatrix * tangent);
     vec3 B = normalize(normalMatrix * bitangent);
     vec3 N = normalize(normalMatrix * geometricNormal);
@@ -182,7 +184,7 @@ void main() {
     v_Metallic = metallic;
     v_Roughness = roughness;
     v_TBN = mat3(T, B, N);
-    v_GeometricNormal = normalize(mat3(pc.model) * a_Normal.xyz);
+    v_GeometricNormal = normalize(mat3(ubo.model) * a_Normal.xyz);
     v_FaceIndex = a_FaceIndex;
     v_PolCurve = a_PolCurve.xy;
 }

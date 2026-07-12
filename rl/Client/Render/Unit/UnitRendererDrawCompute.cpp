@@ -1,6 +1,7 @@
 import Rl.Client.Render.Unit.UnitRendererDrawCompute;
 import Rl.Client.Render.Unit.UnitRendererFrustum;
 import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 import Rl.Client.State.UnitState;
 import Rl.Base.Binding;
 import Rl.Player.PlayerCamera;
@@ -32,12 +33,20 @@ void UnitDispatchComputeShaders(Providers::UnitStateResource& resource,
     Providers::UnitStateBinding&                              vk,
     Main::MainBinding&                                        context)
 {
-  // Get camera matrices for push constants
-  UnitRenderPushConstants      pushConstants{};
+  // Update MVP uniform buffer for compute shaders
+  UnitRenderUBO mvpUBO{};
   const Player::IPlayerCamera& cam = *resource.player.camera;
-  pushConstants.model = cam.GetModelMatrix();
-  pushConstants.view = cam.GetViewMatrix();
-  pushConstants.projection = cam.GetProjectionMatrix();
+  mvpUBO.model = cam.GetModelMatrix();
+  mvpUBO.view = cam.GetViewMatrix();
+  mvpUBO.projection = cam.GetProjectionMatrix();
+  UnitCopyDataToBuffer(context.device, vk.mvpBufferMemory, 0, sizeof(UnitRenderUBO), &mvpUBO);
+
+  // Prepare push constants containing camera matrices and mode flags
+  UnitRenderPushConstants pushConstants{};
+  pushConstants.useUnitArray = vk.useUnitArrayMode ? 1 : 0;
+  pushConstants.singleUnitMode = vk.singleUnitMode ? 1 : 0;
+  pushConstants.singleUnitId = vk.singleUnitId;
+  pushConstants.padding1 = 0;
 
   // Reset visible vertex counter using vkCmdFillBuffer (GPU-side operation)
   vkCmdFillBuffer(

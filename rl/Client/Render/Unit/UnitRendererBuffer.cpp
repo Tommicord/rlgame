@@ -182,6 +182,19 @@ void UnitCreateUniformBuffers(
   initialTriplanar.blendMix = 1.0f;
   UnitCopyDataToBuffer(device, vk.triplanarSettingsBufferMemory, 0,
       sizeof(UnitRenderTriplanarSettings), &initialTriplanar);
+
+  // Create MVP uniform buffer
+  UnitCreateBuffer(device, physicalDevice, sizeof(UnitRenderUBO),
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk.mvpBuffer, vk.mvpBufferMemory);
+
+  // Initialize MVP buffer to identity matrices
+  UnitRenderUBO initialMVP{};
+  initialMVP.model = glm::mat4(1.0f);
+  initialMVP.view = glm::mat4(1.0f);
+  initialMVP.projection = glm::mat4(1.0f);
+  UnitCopyDataToBuffer(device, vk.mvpBufferMemory, 0, sizeof(UnitRenderUBO), &initialMVP);
 }
 
 void UnitCreateUnitArrayBuffer(VkDevice device,

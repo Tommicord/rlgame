@@ -23,7 +23,6 @@ export struct MainBinding
   VkRenderPass                 renderPass = VK_NULL_HANDLE;
   VkDescriptorSetLayout        descriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSet              descriptorSet = VK_NULL_HANDLE;
-  VkPipelineLayout             pipelineLayout = VK_NULL_HANDLE;
   std::vector<VkFramebuffer>   swapChainFramebuffers;
   VkCommandPool                commandPool = VK_NULL_HANDLE;
   std::vector<VkCommandBuffer> commandBuffers;

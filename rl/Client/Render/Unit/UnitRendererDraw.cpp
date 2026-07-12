@@ -2,6 +2,7 @@ import Rl.Client.Render.Unit.UnitRendererDraw;
 import Rl.Client.Render.Unit.UnitRendererShadowMap;
 import Rl.Client.Render.Unit.UnitRendererVertices;
 import Rl.Client.Render.Unit.UnitRendererInfo;
+import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
 import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
 import Rl.World.ServiceLocator;
@@ -170,9 +171,6 @@ void UnitRender(Providers::UnitStateResource& resource,
   glm::mat4                    projection = cam.GetProjectionMatrix();
 
   UnitRenderPushConstants pushConstants{};
-  pushConstants.model = model;
-  pushConstants.view = view;
-  pushConstants.projection = projection;
   pushConstants.useUnitArray = vk.useUnitArrayMode ? 1 : 0;
   pushConstants.singleUnitMode = vk.singleUnitMode ? 1 : 0;
   pushConstants.singleUnitId = vk.singleUnitId;
@@ -190,6 +188,13 @@ void UnitRender(Providers::UnitStateResource& resource,
   }
   if (vk.pipeline != VK_NULL_HANDLE && vk.pipelineLayout != VK_NULL_HANDLE)
   {
+    // Update MVP uniform buffer for this frame
+    UnitRenderUBO mvpUBO{};
+    mvpUBO.model = model;
+    mvpUBO.view = view;
+    mvpUBO.projection = projection;
+    UnitCopyDataToBuffer(context.device, vk.mvpBufferMemory, 0, sizeof(UnitRenderUBO), &mvpUBO);
+
     vkCmdBindPipeline(
         context.commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline);
 

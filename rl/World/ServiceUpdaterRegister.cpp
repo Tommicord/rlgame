@@ -11,6 +11,8 @@ import Rl.World.Time.TimeSystem;
 import Rl.World.Skybox.SkyboxSystem;
 import Rl.World.Chunk.ChunkSystem;
 import Rl.World.Chunk.ChunkInRenderUnits;
+import Rl.World.Chunk.ChunkSystemNotify;
+import Rl.Base.UserInput;
 
 namespace Rl::World
 {
@@ -64,11 +66,15 @@ void ServiceUpdaterRegister::RegisterChunkServicesUpdater(const std::string& nam
   auto chunkSystem = WorldServiceLocator::GetChunkSystem();
   if (!chunkSystem)
   {
-    constexpr int             renderDist = 4;
-    Chunk::ChunkInRenderUnits chunkStore{renderDist, renderDist, renderDist};
-    Chunk::WorldChunkCoord    worldRenderDist = chunkStore.GetRenderDistance();
-    WorldServiceLocator::RegisterChunkSystem(
-      std::make_shared<Chunk::ChunkSystem>(chunkStore, worldRenderDist));
+    constexpr int renderDist = 4;
+    Chunk::ChunkInRenderUnits* chunkStore = new Chunk::ChunkInRenderUnits(renderDist, renderDist, renderDist);
+    Chunk::WorldChunkCoord     worldRenderDist = chunkStore->GetRenderDistance();
+
+    auto chunkSystemNew = std::make_shared<Chunk::ChunkSystem>(chunkStore, worldRenderDist);
+    auto finalNotifier = std::make_unique<Chunk::ChunkSystemNotify>();
+    chunkSystemNew->SetNotifier(std::move(finalNotifier));
+
+    WorldServiceLocator::RegisterChunkSystem(chunkSystemNew);
     chunkSystem = WorldServiceLocator::GetChunkSystem();
   }
   const auto updater = std::make_shared<ChunkSystemUpdater>(chunkSystem);

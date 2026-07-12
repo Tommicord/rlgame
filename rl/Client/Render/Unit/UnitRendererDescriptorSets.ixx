@@ -43,6 +43,7 @@ export void UnitUpdateComputeDescriptorSet(VkDevice device,
     VkBuffer                                        visibleCountBuffer,
     VkBuffer                                        indirectDrawBuffer,
     VkBuffer                                        frustumBuffer,
+    VkBuffer                                        mvpBuffer,
     size_t                                          vertexBufferSize);
 
 export void UnitUpdateCurvatureComputeDescriptorSet(VkDevice device,
@@ -67,6 +68,7 @@ export void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice device,
     VkImageView                                                      normalTextureView,
     VkSampler                                                        normalSampler,
     VkBuffer                                                         triplanarBuffer,
+    VkBuffer                                                         mvpBuffer,
     size_t                                                           lightingBufferSize);
 
 export void UnitUpdateGraphicsDescriptorSetWithShadowMap(VkDevice device,

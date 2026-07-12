@@ -41,7 +41,7 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
   computeBindings[5].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   computeBindings[5].descriptorCount = 1;
   computeBindings[5].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
-  // Frustum planes uniform buffer (binding 6)
+  // MVP uniform buffer (binding 6)
   computeBindings[6].binding         = 6;
   computeBindings[6].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   computeBindings[6].descriptorCount = 1;
@@ -61,65 +61,70 @@ void UnitCreateComputeDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout
 
 void UnitCreateGraphicsDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout)
 {
-  std::array<VkDescriptorSetLayoutBinding, 14> graphicsBindings{};
+  std::array<VkDescriptorSetLayoutBinding, 15> graphicsBindings{};
   // Texture array (binding 2)
   graphicsBindings[0].binding         = 2;
   graphicsBindings[0].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   graphicsBindings[0].descriptorCount = 6; // 6 textures for 6 faces
   graphicsBindings[0].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Lighting block uniform buffer (binding 4)
-  graphicsBindings[1].binding         = 4;
+  // MVP uniform buffer (binding 3)
+  graphicsBindings[1].binding         = 3;
   graphicsBindings[1].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   graphicsBindings[1].descriptorCount = 1;
-  graphicsBindings[1].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Lighting texture (binding 8)
-  graphicsBindings[2].binding         = 8;
-  graphicsBindings[2].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  graphicsBindings[1].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+  // Lighting block uniform buffer (binding 4)
+  graphicsBindings[2].binding         = 4;
+  graphicsBindings[2].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   graphicsBindings[2].descriptorCount = 1;
   graphicsBindings[2].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Settings uniform buffer (binding 9)
-  graphicsBindings[3].binding         = 9;
-  graphicsBindings[3].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  // Lighting texture (binding 8)
+  graphicsBindings[3].binding         = 8;
+  graphicsBindings[3].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   graphicsBindings[3].descriptorCount = 1;
   graphicsBindings[3].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // AO texture (binding 10)
-  graphicsBindings[4].binding         = 10;
-  graphicsBindings[4].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  // Settings uniform buffer (binding 9)
+  graphicsBindings[4].binding         = 9;
+  graphicsBindings[4].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   graphicsBindings[4].descriptorCount = 1;
   graphicsBindings[4].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Normal texture (binding 11)
-  graphicsBindings[5].binding         = 11;
+  // AO texture (binding 10)
+  graphicsBindings[5].binding         = 10;
   graphicsBindings[5].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   graphicsBindings[5].descriptorCount = 1;
   graphicsBindings[5].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Triplanar settings uniform buffer (binding 12)
-  graphicsBindings[6].binding         = 12;
-  graphicsBindings[6].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  // Normal texture (binding 11)
+  graphicsBindings[6].binding         = 11;
+  graphicsBindings[6].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   graphicsBindings[6].descriptorCount = 1;
   graphicsBindings[6].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+  // Triplanar settings uniform buffer (binding 12)
+  graphicsBindings[7].binding         = 12;
+  graphicsBindings[7].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  graphicsBindings[7].descriptorCount = 1;
+  graphicsBindings[7].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
   // Cascade Shadow samplers (binding 13-16)
   for (int i = 0; i < 4; ++i)
   {
-    graphicsBindings[7 + i].binding         = 13 + i;
-    graphicsBindings[7 + i].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    graphicsBindings[7 + i].descriptorCount = 1;
-    graphicsBindings[7 + i].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+    graphicsBindings[8 + i].binding         = 13 + i;
+    graphicsBindings[8 + i].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    graphicsBindings[8 + i].descriptorCount = 1;
+    graphicsBindings[8 + i].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
   }
   // Cascade matrices buffer (binding 17)
-  graphicsBindings[11].binding         = 17;
-  graphicsBindings[11].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  graphicsBindings[11].descriptorCount = 1;
-  graphicsBindings[11].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-  // Unit array buffer (binding 18)
-  graphicsBindings[12].binding         = 18;
+  graphicsBindings[12].binding         = 17;
   graphicsBindings[12].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   graphicsBindings[12].descriptorCount = 1;
-  graphicsBindings[12].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
-  // Polygon fence array buffer (binding 19)
-  graphicsBindings[13].binding         = 19;
+  graphicsBindings[12].stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+  // Unit array buffer (binding 18)
+  graphicsBindings[13].binding         = 18;
   graphicsBindings[13].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   graphicsBindings[13].descriptorCount = 1;
   graphicsBindings[13].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
+  // Polygon fence array buffer (binding 19)
+  graphicsBindings[14].binding         = 19;
+  graphicsBindings[14].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  graphicsBindings[14].descriptorCount = 1;
+  graphicsBindings[14].stageFlags      = VK_SHADER_STAGE_VERTEX_BIT;
 
   VkDescriptorSetLayoutCreateInfo graphicsLayoutInfo{};
   graphicsLayoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -265,6 +270,7 @@ void UnitUpdateComputeDescriptorSet(VkDevice        device,
                                     VkBuffer        visibleCountBuffer,
                                     VkBuffer        indirectDrawBuffer,
                                     VkBuffer        frustumBuffer,
+                                    VkBuffer        mvpBuffer,
                                     size_t          vertexBufferSize)
 {
   VkDescriptorBufferInfo inputBufferInfo{};
@@ -296,6 +302,11 @@ void UnitUpdateComputeDescriptorSet(VkDevice        device,
   frustumBufferInfo.buffer = frustumBuffer;
   frustumBufferInfo.offset = 0;
   frustumBufferInfo.range  = sizeof(UnitRenderFrustumPlanes);
+
+  VkDescriptorBufferInfo mvpBufferInfo{};
+  mvpBufferInfo.buffer = mvpBuffer;
+  mvpBufferInfo.offset = 0;
+  mvpBufferInfo.range  = sizeof(UnitRenderUBO);
 
   VkWriteDescriptorSet computeWrites[7]{};
   computeWrites[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -352,7 +363,7 @@ void UnitUpdateComputeDescriptorSet(VkDevice        device,
   computeWrites[6].dstArrayElement = 0;
   computeWrites[6].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   computeWrites[6].descriptorCount = 1;
-  computeWrites[6].pBufferInfo     = &frustumBufferInfo;
+  computeWrites[6].pBufferInfo     = &mvpBufferInfo;
 
   vkUpdateDescriptorSets(device, 7, computeWrites, 0, nullptr);
 }
@@ -461,6 +472,7 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice        device,
                                                      VkImageView     normalTextureView,
                                                      VkSampler       normalSampler,
                                                      VkBuffer        triplanarBuffer,
+                                                     VkBuffer        mvpBuffer,
                                                      size_t          lightingBufferSize)
 {
   VkDescriptorImageInfo textureArrayInfo[6]{};
@@ -479,6 +491,20 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice        device,
   textureArrayWrite.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   textureArrayWrite.descriptorCount = 6;
   textureArrayWrite.pImageInfo      = textureArrayInfo;
+
+  VkDescriptorBufferInfo mvpBufferInfo{};
+  mvpBufferInfo.buffer = mvpBuffer;
+  mvpBufferInfo.offset = 0;
+  mvpBufferInfo.range  = sizeof(UnitRenderUBO);
+
+  VkWriteDescriptorSet mvpBufferWrite{};
+  mvpBufferWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  mvpBufferWrite.dstSet          = set;
+  mvpBufferWrite.dstBinding      = 3;
+  mvpBufferWrite.dstArrayElement = 0;
+  mvpBufferWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  mvpBufferWrite.descriptorCount = 1;
+  mvpBufferWrite.pBufferInfo     = &mvpBufferInfo;
 
   VkDescriptorBufferInfo lightingBufferInfo{};
   lightingBufferInfo.buffer = lightingBuffer;
@@ -566,7 +592,7 @@ void UnitUpdateGraphicsDescriptorSetWithPlaceholders(VkDevice        device,
   triplanarSettingsWrite.pBufferInfo     = &triplanarBufferInfo;
 
   std::array descriptorWrites = {
-      textureArrayWrite, lightingBufferWrite, lightingTextureWrite,  settingsWrite,
+      textureArrayWrite, mvpBufferWrite, lightingBufferWrite, lightingTextureWrite,  settingsWrite,
       aoTextureWrite,    normalTextureWrite,  triplanarSettingsWrite};
 
   vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),

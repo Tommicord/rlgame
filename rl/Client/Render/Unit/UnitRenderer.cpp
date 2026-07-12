@@ -256,7 +256,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
   Client::Render::UnitUpdateComputeDescriptorSet(
       context.device, vk.computeDescriptorSet, vk.vertexBuffer, vk.indexBuffer,
       vk.outputIndexBuffer, vk.visibleCountBuffer, vk.indirectDrawBuffer,
-      vk.frustumBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
+      vk.frustumBuffer, vk.mvpBuffer, sizeof(Client::Render::UnitRenderVertex) * unitVertices.size());
 
   Client::Render::UnitCreateCurvatureComputeDescriptorSetLayout(
       context.device, vk.curveComputeDescriptorSetLayout);
@@ -333,7 +333,7 @@ void UnitStateDrawable::OnCreate(UnitStateResource& resource,
       vk.placeholderLightingTextureView, vk.placeholderLightingSampler,
       vk.placeholderSettingsBuffer, vk.placeholderAOTextureView, vk.placeholderAOSampler,
       vk.placeholderNormalTextureView, vk.placeholderNormalSampler,
-      vk.triplanarSettingsBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
+      vk.triplanarSettingsBuffer, vk.mvpBuffer, sizeof(Client::Render::UnitRenderLightingUniforms));
 
   // Update graphics descriptor set with shadow map
   Client::Render::UnitUpdateGraphicsDescriptorSetWithShadowMap(

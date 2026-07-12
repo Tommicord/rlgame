@@ -9,6 +9,11 @@ import Rl.Player.PlayerProvider;
 import Rl.RayLog.Macro;
 import Rl.World.ServiceUpdaterRegistry;
 import Rl.World.ServiceUpdaterRegister;
+import Rl.World.Chunk.ChunkGPUNoiseGen;
+import Rl.World.Chunk.ChunkInRenderUnits;
+import Rl.World.Chunk.UnitGPUSimplexNoise;
+import Rl.RayLog.Logger;
+import Rl.RayLog.Macro;
 
 import <algorithm>;
 import <cstdint>;
@@ -21,17 +26,15 @@ import <vulkan/vulkan.hpp>;
 import <glm/glm.hpp>;
 import <glm/gtc/type_ptr.hpp>;
 import <vector>;
-import Rl.World.Chunk.ChunkGPUNoiseGen;
-import Rl.World.Chunk.ChunkInRenderUnits;
-import Rl.World.Chunk.UnitGPUSimplexNoise;
 
 namespace Rl::Main
 {
 
 using namespace Rl::Providers;
 
-constexpr unsigned int width  = 1800;
-constexpr unsigned int height = 900;
+static constexpr unsigned int width      = 1800;
+static constexpr unsigned int height     = 900;
+static constexpr auto         RAYLOG_TAG = "Game";
 
 const std::vector validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -73,33 +76,89 @@ void Game::Run()
 void Game::DestroyGraphics()
 {
   DestroyResources();
-  vkDestroySemaphore(binding.device, binding.imageAvailableSemaphore, nullptr);
-  for (const auto semaphore : binding.renderFinishedSemaphores)
+
+  if (binding.device != VK_NULL_HANDLE)
   {
-    vkDestroySemaphore(binding.device, semaphore, nullptr);
+    if (binding.imageAvailableSemaphore != VK_NULL_HANDLE)
+    {
+      vkDestroySemaphore(binding.device, binding.imageAvailableSemaphore, nullptr);
+    }
+
+    for (const auto semaphore : binding.renderFinishedSemaphores)
+    {
+      if (semaphore != VK_NULL_HANDLE)
+      {
+        vkDestroySemaphore(binding.device, semaphore, nullptr);
+      }
+    }
+
+    if (binding.inFlightFence != VK_NULL_HANDLE)
+    {
+      vkDestroyFence(binding.device, binding.inFlightFence, nullptr);
+    }
+
+    if (binding.commandPool != VK_NULL_HANDLE)
+    {
+      vkDestroyCommandPool(binding.device, binding.commandPool, nullptr);
+    }
+
+    if (binding.descriptorSetLayout != VK_NULL_HANDLE)
+    {
+      vkDestroyDescriptorSetLayout(binding.device, binding.descriptorSetLayout, nullptr);
+    }
+
+    if (binding.renderPass != VK_NULL_HANDLE)
+    {
+      vkDestroyRenderPass(binding.device, binding.renderPass, nullptr);
+    }
+
+    for (const auto framebuffer : binding.swapChainFramebuffers)
+    {
+      if (framebuffer != VK_NULL_HANDLE)
+      {
+        vkDestroyFramebuffer(binding.device, framebuffer, nullptr);
+      }
+    }
+
+    for (const auto imageView : binding.swapChainImageViews)
+    {
+      if (imageView != VK_NULL_HANDLE)
+      {
+        vkDestroyImageView(binding.device, imageView, nullptr);
+      }
+    }
+
+    if (binding.swapChain != VK_NULL_HANDLE)
+    {
+      vkDestroySwapchainKHR(binding.device, binding.swapChain, nullptr);
+    }
+
+    vkDestroyDevice(binding.device, nullptr);
+    binding.device = VK_NULL_HANDLE;
   }
-  vkDestroyFence(binding.device, binding.inFlightFence, nullptr);
-  vkDestroyCommandPool(binding.device, binding.commandPool, nullptr);
-  vkDestroyPipelineLayout(binding.device, binding.pipelineLayout, nullptr);
-  vkDestroyDescriptorSetLayout(binding.device, binding.descriptorSetLayout, nullptr);
-  vkDestroyRenderPass(binding.device, binding.renderPass, nullptr);
-  for (const auto framebuffer : binding.swapChainFramebuffers)
+
+  if (binding.instance != VK_NULL_HANDLE)
   {
-    vkDestroyFramebuffer(binding.device, framebuffer, nullptr);
+    if (binding.surface != VK_NULL_HANDLE)
+    {
+      vkDestroySurfaceKHR(binding.instance, binding.surface, nullptr);
+    }
+    vkDestroyInstance(binding.instance, nullptr);
+    binding.instance = VK_NULL_HANDLE;
   }
-  for (const auto imageView : binding.swapChainImageViews)
+
+  if (window != nullptr)
   {
-    vkDestroyImageView(binding.device, imageView, nullptr);
+    glfwDestroyWindow(window);
+    window = nullptr;
   }
-  vkDestroySwapchainKHR(binding.device, binding.swapChain, nullptr);
-  vkDestroySurfaceKHR(binding.instance, binding.surface, nullptr);
-  vkDestroyDevice(binding.device, nullptr);
-  vkDestroyInstance(binding.instance, nullptr);
-  glfwDestroyWindow(window);
   glfwTerminate();
 }
+
 void Game::DestroyResources()
-{ unitModel.reset(); }
+{
+  unitModel.reset();
+}
 
 void Game::InitGraphics()
 {
@@ -110,7 +169,6 @@ void Game::InitGraphics()
   CreateSwapChain();
   CreateImageViews();
   CreateRenderPass();
-  CreatePipelineLayout();
   CreateResources();
   CreateFramebuffers();
   CreateCommandPool();
@@ -180,7 +238,9 @@ void Game::InitWindow()
 }
 
 void Game::Update()
-{ unitModel->Update(binding); }
+{
+  unitModel->Update(binding);
+}
 
 void Game::UpdateServices()
 {
@@ -197,7 +257,9 @@ Game& Game::GetInstance()
 }
 
 MainBinding& Game::GetMainBinding()
-{ return this->binding; }
+{
+  return this->binding;
+}
 
 void Game::CreateInstance()
 {
@@ -214,17 +276,16 @@ void Game::CreateInstance()
   appInfo.apiVersion         = VK_API_VERSION_1_0;
 
   VkValidationFeatureEnableEXT enables[] = {
-    VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
-  };
-  VkValidationFeaturesEXT validationFeatures = {};
+    VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT};
+  VkValidationFeaturesEXT validationFeatures{};
   validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
   validationFeatures.enabledValidationFeatureCount = 1;
-  validationFeatures.pEnabledValidationFeatures = enables;
+  validationFeatures.pEnabledValidationFeatures    = enables;
 
   VkInstanceCreateInfo createInfo{};
   createInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   createInfo.pApplicationInfo = &appInfo;
-  createInfo.pNext = &validationFeatures;
+  createInfo.pNext            = nullptr;
 
   const auto extensions              = GetRequiredExtensions();
   createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
@@ -233,12 +294,13 @@ void Game::CreateInstance()
   {
     createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
+    createInfo.pNext               = &validationFeatures;
   }
   else
   {
     createInfo.enabledLayerCount = 0;
+    createInfo.pNext             = nullptr;
   }
-
   if (vkCreateInstance(&createInfo, nullptr, &binding.instance) != VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create instance");
@@ -255,10 +317,14 @@ void Game::CreateSurface()
 }
 
 void Game::CreateUnitModel()
-{ unitModel = std::make_unique<UnitModel>(binding); }
+{
+  unitModel = std::make_unique<UnitModel>(binding);
+}
 
 void Game::CreateResources()
-{ CreateUnitModel(); }
+{
+  CreateUnitModel();
+}
 
 void Game::PickPhysicalDevice()
 {
@@ -306,16 +372,18 @@ void Game::CreateLogicalDevice()
     queueCreateInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(queueCreateInfo);
   }
+  std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  if (enableValidationLayers)
+  {
+    // deviceExtensions.push_back(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
+  }
 
   VkPhysicalDeviceFeatures deviceFeatures{};
-
   VkDeviceCreateInfo createInfo{};
   createInfo.sType                = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
   createInfo.pQueueCreateInfos    = queueCreateInfos.data();
   createInfo.pEnabledFeatures     = &deviceFeatures;
-
-  const std::vector deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
   createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();
@@ -352,7 +420,7 @@ void Game::CreateSwapChain()
   constexpr VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_B8G8R8A8_SRGB,
                                                 VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
   constexpr VkPresentModeKHR   presentMode   = VK_PRESENT_MODE_FIFO_KHR;
-  constexpr VkExtent2D         extent        = {Rl::Main::width, Rl::Main::height};
+  constexpr VkExtent2D         extent        = {width, height};
 
   uint32_t imageCount = caps.minImageCount + 1;
   if (caps.maxImageCount > 0 && imageCount > caps.maxImageCount)
@@ -369,25 +437,25 @@ void Game::CreateSwapChain()
   createInfo.imageExtent      = extent;
   createInfo.imageArrayLayers = 1;
   createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-  if (indices.graphicsFamily != indices.presentFamily)
+  if (indices.graphicsFamily.value() != indices.presentFamily.value())
   {
-    uint32_t queueFamilyIndices[] = {
-        indices.graphicsFamily.value(), indices.presentFamily.value()};
-    createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    uint32_t queueFamilyIndices[]    = {indices.graphicsFamily.value(),
+                                        indices.presentFamily.value()};
+    createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount = 2;
-    createInfo.pQueueFamilyIndices = queueFamilyIndices;
+    createInfo.pQueueFamilyIndices   = queueFamilyIndices;
   }
   else
   {
-    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.queueFamilyIndexCount = 0;
-    createInfo.pQueueFamilyIndices = nullptr;
+    createInfo.pQueueFamilyIndices   = nullptr;
   }
-  createInfo.preTransform     = caps.currentTransform;
-  createInfo.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-  createInfo.presentMode      = presentMode;
-  createInfo.clipped          = VK_TRUE;
-  createInfo.oldSwapchain     = VK_NULL_HANDLE;
+  createInfo.preTransform   = caps.currentTransform;
+  createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  createInfo.presentMode    = presentMode;
+  createInfo.clipped        = VK_TRUE;
+  createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
   if (vkCreateSwapchainKHR(binding.device, &createInfo, nullptr, &binding.swapChain) !=
       VK_SUCCESS)
@@ -454,12 +522,22 @@ void Game::CreateRenderPass()
   subpass.colorAttachmentCount = 1;
   subpass.pColorAttachments    = &colorAttachmentRef;
 
+  VkSubpassDependency dependency{};
+  dependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass    = 0;
+  dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.srcAccessMask = 0;
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
   VkRenderPassCreateInfo renderPassInfo{};
   renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
   renderPassInfo.attachmentCount = 1;
   renderPassInfo.pAttachments    = &colorAttachment;
   renderPassInfo.subpassCount    = 1;
   renderPassInfo.pSubpasses      = &subpass;
+  renderPassInfo.dependencyCount = 1;
+  renderPassInfo.pDependencies   = &dependency;
 
   if (vkCreateRenderPass(binding.device, &renderPassInfo, nullptr, &binding.renderPass) !=
       VK_SUCCESS)
@@ -556,27 +634,8 @@ void Game::CreateSyncObjects()
 }
 
 void Game::DrawCallback()
-{ unitModel->Draw(binding); }
-
-void Game::CreatePipelineLayout()
 {
-  VkPushConstantRange pushConstantRange{};
-  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  pushConstantRange.offset     = 0;
-  pushConstantRange.size = 3 * sizeof(glm::mat4); // model, view, projection matrices
-
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pSetLayouts    = nullptr;
-  pipelineLayoutInfo.pushConstantRangeCount = 1;
-  pipelineLayoutInfo.pPushConstantRanges    = &pushConstantRange;
-
-  if (vkCreatePipelineLayout(binding.device, &pipelineLayoutInfo, nullptr,
-                             &binding.pipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("Failed to create pipeline layout");
-  }
+  unitModel->Draw(binding);
 }
 
 void Game::Draw()
@@ -745,12 +804,11 @@ std::vector<const char*> Game::GetRequiredExtensions() const
   uint32_t    glfwExtensionCount = 0;
   const auto  glfwExtensions     = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
   std::vector extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
   if (enableValidationLayers)
   {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
   }
-
   return extensions;
 }
 
