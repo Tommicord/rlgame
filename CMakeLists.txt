@@ -242,8 +242,7 @@ function(target_compile_shaders TARGET)
   target_sources(${TARGET} PRIVATE ${SPV_OUTPUTS})
 endfunction()
 
-target_compile_shaders(
-  rlgame
+set(SHADERS
   rl/Shaders/unit.shadow.vert
   rl/Shaders/unit.shadow.frag
   rl/Shaders/unit.face.comp
@@ -257,7 +256,10 @@ target_compile_shaders(
   rl/Shaders/World/world.noise.comp
   rl/Shaders/World/world.unitplace.comp
   rl/Shaders/Simplex/simplex.comp
-  rl/Shaders/Simplex/simplex.init.comp
+)
+
+target_compile_shaders(
+  rlgame ${SHADERS}
 )
 enable_testing()
 
@@ -290,6 +292,9 @@ target_sources(
   PUBLIC FILE_SET
   CXX_MODULES FILES
   ${CXX_MODULES}
+)
+target_compile_shaders(
+  rlgame_tests ${SHADERS}
 )
 
 target_include_directories(
@@ -411,8 +416,10 @@ target_add_resource(
   rlgame_tests
   SOURCES
   Public/Textures
+  ${CMAKE_CURRENT_BINARY_DIR}/Shaders
   DESTINATIONS
   CURRENT_DIR
+  Shaders/
 )
 
 gtest_discover_tests(rlgame_tests)

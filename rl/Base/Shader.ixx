@@ -9,6 +9,8 @@ namespace Rl::Providers
 
 export class ShaderObject
 {
+  protected:
+  static constexpr const char* RAYLOG_TAG = "Shader";
   public:
   struct ShaderModule
   {

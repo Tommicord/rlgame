@@ -1,22 +1,97 @@
 #version 450
 
-#include "simplex.noise.constants.glsl"
-#include "simplex.gradients.glsl"
-#include "simplex.perm.glsl"
-#include "simplex.common.glsl"
-#include "simplex.noise2d.glsl"
-#include "simplex.noise3d.glsl"
-#include "simplex.octaves.glsl"
-
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 shared int cachedPerm[264];
 shared int cachedPermGradIndex3D[264];
 
+layout(std430, binding = 0) buffer PermutationBuffer {
+    int perm[256];
+};
+
+layout(std430, binding = 1) buffer PermGradIndex3DBuffer {
+    int permGradIndex3D[256];
+};
+
+int GetPerm(int index) {
+    return perm[index & 255];
+}
+
+int GetPermGradIndex3D(int index) {
+    return permGradIndex3D[index & 255];
+}
+
+const int GRADIENTS_2D[16] = int[](
+        5, 2,    // Gradient 0
+        2, 5,    // Gradient 1
+        -5, 2,   // Gradient 2
+        -2, 5,   // Gradient 3
+        5, -2,   // Gradient 4
+        2, -5,   // Gradient 5
+        -5, -2,  // Gradient 6
+        -2, -5   // Gradient 7
+);
+
+const int GRADIENTS_3D[72] = int[](
+        -11, 4, 4,    // Gradient 0
+        -4, 11, 4,    // Gradient 1
+        -4, 4, 11,    // Gradient 2
+        11, 4, 4,     // Gradient 3
+        4, 11, 4,     // Gradient 4
+        4, 4, 11,     // Gradient 5
+        -11, -4, 4,   // Gradient 6
+        -4, -11, 4,   // Gradient 7
+        -4, -4, 11,   // Gradient 8
+        11, -4, 4,    // Gradient 9
+        4, -11, 4,    // Gradient 10
+        4, -4, 11,    // Gradient 11
+        -11, 4, -4,   // Gradient 12
+        -4, 11, -4,   // Gradient 13
+        -4, 4, -11,   // Gradient 14
+        11, 4, -4,    // Gradient 15
+        4, 11, -4,    // Gradient 16
+        4, 4, -11,    // Gradient 17
+        -11, -4, -4,  // Gradient 18
+        -4, -11, -4,  // Gradient 19
+        -4, -4, -11,  // Gradient 20
+        11, -4, -4,   // Gradient 21
+        4, -11, -4,   // Gradient 22
+        4, -4, -11    // Gradient 23
+);
+
+float Extrapolate2d(int xsb, int ysb, float dx, float dy) {
+    int permIndex = GetPerm(xsb + GetPerm(ysb));
+    int gradIndex = permIndex & 7;
+    int gi = gradIndex * 2;
+    float gradX = float(GRADIENTS_2D[gi]);
+    float gradY = float(GRADIENTS_2D[gi + 1]);
+    return gradX * dx + gradY * dy;
+}
+
+float Extrapolate3d(int xsb, int ysb, int zsb, float dx, float dy, float dz) {
+    int permIndex = GetPerm(xsb + GetPerm(ysb + GetPerm(zsb)));
+    int gradIndex = GetPermGradIndex3D(permIndex);
+    int gi = gradIndex;
+    float gradX = float(GRADIENTS_3D[gi]);
+    float gradY = float(GRADIENTS_3D[gi + 1]);
+    float gradZ = float(GRADIENTS_3D[gi + 2]);
+    return gradX * dx + gradY * dy + gradZ * dz;
+}
+
 // Output buffer for noise values
 layout(std430, binding = 2) buffer NoiseBuffer {
     float noiseValues[];
 };
+
+// Initialization flag (0 = not initialized, 1 = initialized)
+layout(std430, binding = 3) buffer InitFlagBuffer {
+    uint initialized;
+};
+
+#include "simplex.noise.constants.glsl"
+#include "simplex.noise2d.glsl"
+#include "simplex.noise3d.glsl"
+#include "simplex.octaves.glsl"
 
 // Noise generation parameters
 layout(push_constant) uniform PushConstants {
@@ -33,13 +108,59 @@ layout(push_constant) uniform PushConstants {
     float persistence;   // Amplitude multiplier per octave (default: 0.5)
     float lacunarity;    // Frequency multiplier per octave (default: 2.0)
     uint noiseType;      // 0: Standard, 1: FBM, 2: Ridged, 3: Turbulence
+    uint seed;           // Seed for permutation initialization
 } pc;
+
+shared int cachedSource[256];
+
+uint LCG(uint state) {
+    return state * 1664525u + 1013904223u;
+}
+
+void InitializePermutations() {
+    uint localId = gl_LocalInvocationIndex;
+    
+    // Only first workgroup initializes
+    if (gl_WorkGroupID.x == 0 && gl_WorkGroupID.y == 0 && gl_WorkGroupID.z == 0) {
+        if (localId < 256) {
+            cachedSource[localId] = int(localId);
+        }
+        barrier();
+        
+        if (localId == 0) {
+            uint currentSeed = pc.seed;
+            currentSeed = LCG(currentSeed);
+            currentSeed = LCG(currentSeed);
+            currentSeed = LCG(currentSeed);
+            
+            for (int i = 255; i >= 0; i--) {
+                currentSeed = LCG(currentSeed);
+                int r = int((currentSeed + 31u) % uint(i + 1));
+                if (r < 0) {
+                    r += (i + 1);
+                }
+                int pickedValue = cachedSource[r];
+                perm[i] = pickedValue;
+                permGradIndex3D[i] = (pickedValue % 24) * 3;
+                cachedSource[r] = cachedSource[i];
+            }
+            
+            initialized = 1;
+        }
+    }
+}
 
 void main() {
     uint localId = gl_LocalInvocationIndex;
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
     uint z = gl_GlobalInvocationID.z;
+
+    // Initialize permutations if not already done (only first workgroup)
+    if (initialized == 0) {
+        InitializePermutations();
+        barrier();
+    }
 
     // Cooperative loading of permutation and gradient tables into shared memory
     if (localId < 256) {

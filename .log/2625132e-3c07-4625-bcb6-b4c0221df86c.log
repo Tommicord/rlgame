@@ -1,0 +1,26 @@
+[1;34m[TID 15028] 07-13-14:39:36.245 INFO WorldGeneratorGPU: Initialize - Creating noise generator[0m
+[1;34m[TID 7080] 07-13-14:39:36.245 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Setting device pointers[0m
+[1;34m[TID 15700] 07-13-14:39:36.245 INFO WorldGeneratorGPU: Initialize - Set chunk dimensions to 64x128x64[0m
+[1;34m[TID 10052] 07-13-14:39:36.253 INFO WorldGeneratorGPU: Initialize - Noise generator created[0m
+[1;34m[TID 15700] 07-13-14:39:36.254 INFO WorldGeneratorGPU: Descriptor sets created successfully[0m
+[1;34m[TID 15028] 07-13-14:39:36.253 INFO WorldGeneratorGPU: Initialize - Creating descriptor sets[0m
+[1;34m[TID 7080] 07-13-14:39:36.254 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Step 7: Descriptor sets created[0m
+[1;34m[TID 10052] 07-13-14:39:36.254 INFO WorldGeneratorGPU: Initialize - Creating compute pipelines[0m
+[1;34m[TID 7080] 07-13-14:39:36.470 INFO WorldGeneratorGPU: Compute pipelines created successfully[0m
+[1;34m[TID 15700] 07-13-14:39:36.470 INFO WorldGeneratorGPU: Initialize - Compute pipelines created[0m
+[1;34m[TID 15028] 07-13-14:39:36.470 INFO WorldGeneratorGPU: Initialize - Creating noise buffers[0m
+[1;34m[TID 10052] 07-13-14:39:36.470 INFO WorldGeneratorGPU: Initialize - Noise buffers created[0m
+[1;34m[TID 7080] 07-13-14:39:36.471 INFO WorldGeneratorGPU: Initialize - Creating world output buffers[0m
+[1;34m[TID 15028] 07-13-14:39:36.488 INFO WorldGeneratorGPU: Initialize - World output buffers created[0m
+[1;34m[TID 15700] 07-13-14:39:36.488 INFO WorldGeneratorGPU: Initialize - Initializing async queue[0m
+[1;34m[TID 7080] 07-13-14:39:36.488 INFO WorldGeneratorGPU: WorldGeneratorGPU initialized successfully[0m
+[1;34m[TID 10052] 07-13-14:39:36.488 INFO WorldGeneratorGPU: Skipping biome stage for integrated GPU; simplify generation[0m
+[1;34m[TID 10052] 07-13-14:39:36.488 INFO WorldGeneratorGPU: Skipping unit placement stage for integrated GPU; minimal generation[0m
+[1;34m[TID 15028] 07-13-14:39:36.488 INFO WorldGeneratorGPU: Skipping polygon fence generation for integrated GPU[0m
+[1;34m[TID 10052] 07-13-14:39:36.492 INFO WorldGeneratorGPU: Starting chunk generation pipeline for dimensions 64x128x64[0m
+[1;34m[TID 15028] 07-13-14:39:36.493 INFO WorldGeneratorGPU: ExecuteNoiseStage: Calling GenNoise[0m
+[1;34m[TID 15700] 07-13-14:39:36.493 INFO WorldGeneratorGPU: Executing noise stage[0m
+[1;34m[TID 7080] 07-13-14:39:36.493 INFO WorldGeneratorGPU: ExecuteNoiseStage: Starting simplex noise generation[0m
+[1;34m[TID 10052] 07-13-14:39:36.494 INFO UnitGPUSimplexNoise: GenNoise: Creating pipeline layout[0m
+[1;34m[TID 10052] 07-13-14:39:36.496 INFO UnitGPUSimplexNoise: GenNoise: Loading shader[0m
+[1;34m[TID 15028] 07-13-14:39:36.520 INFO UnitGPUSimplexNoise: GenNoise: Creating compute pipeline[0m

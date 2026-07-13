@@ -40,6 +40,9 @@ export struct MainBinding
     [[nodiscard]]
     bool isComplete() const
     { return graphicsFamily.has_value() && presentFamily.has_value(); }
+    [[nodiscard]]
+    bool isCompleteHeadless() const
+    { return graphicsFamily.has_value(); }
   };
   QueueFamilyIndices queueFamilyIndices;
 };

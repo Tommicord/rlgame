@@ -39,7 +39,6 @@ export class UnitRegistryGPU
       RayLog::LogError(RAYLOG_TAG, "Cannot register unit: registry not initialized");
       return;
     }
-
     if constexpr (std::is_base_of_v<IUnit, T>)
     {
       UnitGPUParams params{};
@@ -69,7 +68,7 @@ export class UnitRegistryGPU
       params.isLiquid             = unit != nullptr && unit->IsLiquid() ? 1u : 0u;
       params.isGas                = unit != nullptr && unit->IsGas() ? 1u : 0u;
       params.isSolid              = unit != nullptr && unit->IsSolid() ? 1u : 0u;
-      cpuUnits.push_back(params);
+      cpuUnits.emplace_back(params);
       gpuDirty = true;
     }
   }
@@ -102,24 +101,10 @@ export class UnitRegistryGPU
   UnitRegistryGPU& operator=(const UnitRegistryGPU&) = delete;
 
   /* Disable move operations */
-  UnitRegistryGPU(UnitRegistryGPU&&)            = delete;
-  UnitRegistryGPU& operator=(UnitRegistryGPU&&) = delete;
+  UnitRegistryGPU(UnitRegistryGPU&&)                 = delete;
+  UnitRegistryGPU& operator=(UnitRegistryGPU&&)      = delete;
 
   private:
-  /* Create Vulkan buffer with proper memory allocation */
-  bool CreateBuffer(VkDevice              device,
-                    VkPhysicalDevice      physicalDevice,
-                    VkDeviceSize          size,
-                    VkBufferUsageFlags    usage,
-                    VkMemoryPropertyFlags properties,
-                    VkBuffer&             buffer,
-                    VkDeviceMemory&       memory);
-
-  /* Find memory type index for buffer allocation */
-  uint32_t FindMemoryType(VkPhysicalDevice      physicalDevice,
-                          uint32_t              typeFilter,
-                          VkMemoryPropertyFlags properties);
-
   /* CPU-side unit data */
   std::vector<UnitGPUParams> cpuUnits;
 

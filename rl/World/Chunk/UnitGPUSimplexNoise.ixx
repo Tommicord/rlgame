@@ -22,6 +22,7 @@ export struct SimplexNoisePushConstants
   float    persistence; // Amplitude multiplier per octave (default: 0.5)
   float    lacunarity; // Frequency multiplier per octave (default: 2.0)
   uint32_t noiseType; // 0: Standard, 1: FBM, 2: Ridged, 3: Turbulence
+  uint32_t seed; // Seed for permutation initialization
 };
 
 /* GPU Simplex noise buffer manager for chunk generation */
@@ -118,6 +119,12 @@ export class UnitGPUSimplexNoise
   /* Stores gradients 3D index buffer device memory */
   VkDeviceMemory permGradIndex3DBufferMemory = VK_NULL_HANDLE;
 
+  /* Stores the init flag buffer */
+  VkBuffer initFlagBuffer = VK_NULL_HANDLE;
+
+  /* Stores the init flag buffer device memory */
+  VkDeviceMemory initFlagBufferMemory = VK_NULL_HANDLE;
+
   /* Stores the noise buffer */
   VkBuffer noiseBuffer = VK_NULL_HANDLE;
 
@@ -130,20 +137,11 @@ export class UnitGPUSimplexNoise
   /* The descriptor set for the pipeline */
   VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
-  /* The pipeline layout */
-  VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-
-  /* The pipeline for the compute shader */
-  VkPipeline pipeline = VK_NULL_HANDLE;
-
-  /* The initial pipeline */
-  VkPipeline initPipeline = VK_NULL_HANDLE;
-
-  /* The initial pipeline layout */
-  VkPipelineLayout initPipelineLayout = VK_NULL_HANDLE;
-
   /* The descriptor pool for descriptor set assignment */
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+
+  /* Seed for permutation initialization */
+  uint32_t seed = 0;
 
   /* The output noise buffer width */
   uint32_t noiseWidth = 0;

@@ -20,12 +20,12 @@ void UnitTextureFactory::FromUnit(unsigned short id)
   const auto                 pixels(GetDefaultUnitTexture());
   texture.FromData(pixels.data(), 16, 16, Providers::Texture2Format::RGBA8, {});
 
-  auto object = IUnit::Registry::GetObjectById(id);
+  auto object = Registry::GetObjectById(id);
   if (object.has_value())
   {
     const auto value_object = object.value();
     auto&      material = value_object->GetMaterial().GetTextures2();
-    const auto wrapped_name = IUnit::Registry::GetNameForObject(object.value());
+    const auto wrapped_name = Registry::GetNameForObject(object.value());
 
     if (wrapped_name.has_value())
     {

@@ -43,10 +43,15 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
+// Override validation layers for tests to avoid fatal errors during cleanup
+extern bool g_disableValidationLayers;
+bool g_disableValidationLayers = false;
+
 Game::Game() :
     serviceUpdaterRegistry(std::make_unique<World::ServiceUpdaterRegistry>()),
     input(Input::UserInput::GetInstance()),
-    debugMessenger(VK_NULL_HANDLE)
+    debugMessenger(VK_NULL_HANDLE),
+    headless(false)
 {
 }
 
@@ -71,6 +76,20 @@ void Game::Run()
     Draw();
   }
   vkDeviceWaitIdle(binding.device);
+}
+
+void Game::Init()
+{
+  if (!headless)
+  {
+    InitWindow();
+  }
+  InitGraphics();
+}
+
+void Game::SetHeadless(bool headless)
+{
+  this->headless = headless;
 }
 
 void Game::DestroyGraphics()
@@ -155,12 +174,12 @@ void Game::DestroyGraphics()
     binding.instance = VK_NULL_HANDLE;
   }
 
-  if (window != nullptr)
+  if (!headless && window != nullptr)
   {
     glfwDestroyWindow(window);
     window = nullptr;
+    glfwTerminate();
   }
-  glfwTerminate();
 }
 
 void Game::DestroyResources()
@@ -171,17 +190,32 @@ void Game::InitGraphics()
 {
   CreateInstance();
   SetupDebugMessenger();
-  CreateSurface();
+  if (!headless)
+  {
+    CreateSurface();
+  }
   PickPhysicalDevice();
   CreateLogicalDevice();
-  CreateSwapChain();
-  CreateImageViews();
-  CreateRenderPass();
+  if (!headless)
+  {
+    CreateSwapChain();
+    CreateImageViews();
+  }
+  if (!headless)
+  {
+    CreateRenderPass();
+  }
   CreateResources();
-  CreateFramebuffers();
+  if (!headless)
+  {
+    CreateFramebuffers();
+  }
   CreateCommandPool();
   CreateCommandBuffers();
-  CreateSyncObjects();
+  if (!headless)
+  {
+    CreateSyncObjects();
+  }
 }
 
 void Game::InitWindow()
@@ -365,8 +399,12 @@ void Game::CreateLogicalDevice()
   vkGetPhysicalDeviceFeatures(binding.physicalDevice, &deviceFeatures);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set uniqueQueueFamilies = {binding.queueFamilyIndices.graphicsFamily.value(),
-                                  binding.queueFamilyIndices.presentFamily.value()};
+  std::set uniqueQueueFamilies = {binding.queueFamilyIndices.graphicsFamily.value()};
+
+  if (!headless)
+  {
+    uniqueQueueFamilies.insert(binding.queueFamilyIndices.presentFamily.value());
+  }
 
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -378,7 +416,11 @@ void Game::CreateLogicalDevice()
     queueCreateInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(queueCreateInfo);
   }
-  std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  std::vector<const char*> deviceExtensions;
+  if (!headless)
+  {
+    deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  }
   if (enableValidationLayers)
   {
     // deviceExtensions.push_back(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
@@ -411,8 +453,11 @@ void Game::CreateLogicalDevice()
 
   vkGetDeviceQueue(binding.device, binding.queueFamilyIndices.graphicsFamily.value(), 0,
                    &binding.graphicsQueue);
-  vkGetDeviceQueue(binding.device, binding.queueFamilyIndices.presentFamily.value(), 0,
-                   &binding.presentQueue);
+  if (!headless)
+  {
+    vkGetDeviceQueue(binding.device, binding.queueFamilyIndices.presentFamily.value(), 0,
+                     &binding.presentQueue);
+  }
 }
 
 void Game::CreateSwapChain()
@@ -754,15 +799,27 @@ MainBinding::QueueFamilyIndices Game::FindQueueFamilies(VkPhysicalDevice device)
     {
       indices.graphicsFamily = i;
     }
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, binding.surface, &presentSupport);
-    if (presentSupport)
+    if (!headless)
     {
-      indices.presentFamily = i;
+      VkBool32 presentSupport = false;
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, binding.surface, &presentSupport);
+      if (presentSupport)
+      {
+        indices.presentFamily = i;
+      }
+      if (indices.isComplete())
+      {
+        break;
+      }
     }
-    if (indices.isComplete())
+    else
     {
-      break;
+      // In headless mode, we don't need present family
+      indices.presentFamily = i;
+      if (indices.isCompleteHeadless())
+      {
+        break;
+      }
     }
     i++;
   }
@@ -774,11 +831,20 @@ bool Game::IsDeviceSuitable(const VkPhysicalDevice device) const
 {
   const MainBinding::QueueFamilyIndices indices = FindQueueFamilies(device);
 
+  if (headless)
+  {
+    return indices.isCompleteHeadless();
+  }
   return indices.isComplete();
 }
 
 bool Game::CheckValidationLayerSupport() const
 {
+  if (g_disableValidationLayers)
+  {
+    return false;
+  }
+
   uint32_t layerCount;
   vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 

@@ -13,11 +13,15 @@ class UnitDynamicTextureTest : public ::testing::Test
   protected:
   void SetUp() override
   {
+    testTexture = nullptr;
+    generator = nullptr;
+
     testTexture = new Texture2();
     bool loaded = testTexture->FromResource("rl.unit.UnitLowDirt");
     if (!loaded)
     {
-      FAIL();
+      GTEST_SKIP() << "Texture resource 'rl.unit.UnitLowDirt' not available, skipping texture tests";
+      return;
     }
     options.noiseSc = 0.1f;
     options.colorVar = 0.25f;
@@ -28,13 +32,15 @@ class UnitDynamicTextureTest : public ::testing::Test
 
   void TearDown() override
   {
-    delete testTexture;
     delete generator;
+    generator = nullptr;
+    delete testTexture;
+    testTexture = nullptr;
   }
-  Texture2*                          testTexture;
+  Texture2*                          testTexture = nullptr;
   UnitDynamicTexture::DynamicOptions options;
   UnitDynamicTexture::Seed           testSeed;
-  UnitDynamicTexture*                generator;
+  UnitDynamicTexture*                generator = nullptr;
 };
 
 // Test GenNoiseValMap

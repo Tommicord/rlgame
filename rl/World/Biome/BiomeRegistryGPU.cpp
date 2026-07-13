@@ -1,6 +1,6 @@
 import Rl.World.Biome.BiomeRegistryGPU;
 
-import Rl.World.Biome.IBiome;
+import Rl.World.Biome;
 import Rl.World.Biome.BaseBiome;
 import Rl.RayLog.Macro;
 import Rl.RayLog.Logger;
@@ -105,7 +105,7 @@ void BiomeRegistryGPU::RegisterBiome(const IBiome& biome)
 
   // Create GPU params from biome
   BiomeGPUParams params{};
-  params.biomeType = biome.GetBiomeType();
+  params.biomeType = biome.GetBiomeType().value;
 
   // Extract temperature layer
   auto tempLayer              = biome.GetTemperatureNoiseLayer();
@@ -150,7 +150,7 @@ void BiomeRegistryGPU::RegisterBiome(const IBiome& biome)
   }
 
   gpuDirty = true;
-  RayLog::LogInfo(RAYLOG_TAG, "Registered biome: %s (ID: %u, Rules: %u)",
+  RayLog::LogInfo(RAYLOG_TAG, "Registered biome: %s (ID: %d, Rules: %d)",
                   biome.GetBiomeName(), params.biomeType.value, params.unitRuleCount);
 }
 

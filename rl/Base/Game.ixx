@@ -27,16 +27,19 @@ export class Game
   void         DestroyResources();
   void         InitGraphics();
   void         InitWindow();
+  void         Init();
   void         Update();
   void         UpdateServices();
   static Game& GetInstance();
   MainBinding& GetMainBinding();
+  void         SetHeadless(bool headless);
   ~Game();
 
   Game();
   GLFWwindow*       window;
   Input::UserInput& input;
   MainBinding       binding;
+  bool              headless;
 
   /* Debug messenger */
   VkDebugUtilsMessengerEXT debugMessenger;

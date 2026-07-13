@@ -71,7 +71,7 @@ export class ChunkSystem
   void RemoveOutOfRangeChunks();
   uint32_t DetermineMaxChunksPerFrame() const;
 
-  std::unique_ptr<ChunkInRenderUnits>           chunkStore;
+  ChunkInRenderUnits*                           chunkStore;
   WorldChunkCoord                               renderDistance;
   UnitPosition                                  playerPosition;
   ChunkGenerator                                chunkGenerator;

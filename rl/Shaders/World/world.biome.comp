@@ -31,17 +31,6 @@ layout(std430, binding = 3) readonly buffer BiomeRegistry
     uint padding0;
     uint padding1;
     uint padding2;
-
-// BiomeGPUParams structure (aligned to 16 bytes)
-// uint32_t biomeType;
-// float temperatureBase;
-// float temperatureVariation;
-// float moistureBase;
-// float moistureVariation;
-// float elevationBase;
-// float elevationVariation;
-// uint32_t unitRuleCount;
-// float padding[3];
     float biomes[]; // Packed float data for alignment
 } biomeReg;
 

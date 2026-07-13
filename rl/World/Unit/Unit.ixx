@@ -56,21 +56,41 @@ export class UnitTextureMaterial
   ~UnitTextureMaterial();
 
   Material& GetTextures2()
-  { return textures; }
+  {
+    return textures;
+  }
   Material::Faces& GetFaces()
-  { return textures.material; }
+  {
+    return textures.material;
+  }
   [[nodiscard]]
   bool GetHeap() const
-  { return heap; }
+  {
+    return heap;
+  }
   void SetHeap(const bool value)
-  { heap = value; }
+  {
+    heap = value;
+  }
 };
 
 // Forward reference to default block
 class UnitAir;
+export class IUnit;
+
+export using RegistryV   = IUnit*;
+export using Registry    = UnitRegistryPair3<UnitResourceName, RegistryV>;
+export using RegistryGPU = UnitRegistryGPU;
 
 export class IUnit : public IUpdatable
 {
+  /* The registry value type */
+  protected:
+  /* Internal Field: Stores the count of registered world units */
+  inline static std::vector<std::string_view> defaultName = {std::string_view("rl.unit")};
+  inline static auto registry    = Registry(UnitResourceName(defaultName));
+  inline static auto registryGPU = std::make_shared<RegistryGPU>();
+
   public:
   static constexpr float LIGHT_EMIT            = 0.0f;
   static constexpr float LIGHT_OPACITY         = 0.0f;
@@ -95,14 +115,11 @@ export class IUnit : public IUpdatable
   static constexpr float SUBSURFACE_SCATTERING = 0.0f;
   static constexpr float FLAMMABILITY          = 0.0f;
 
-  /* The registry value type */
-  using RegistryV   = IUnit*;
-  using Registry    = UnitRegistryPair3<UnitResourceName, RegistryV>;
-  using RegistryGPU = UnitRegistryGPU;
-
   /* Creates a basic WorldUnit, automatically registers the unit */
   explicit IUnit(unsigned short id) noexcept : IUnit()
-  { textures = std::make_unique<UnitTextureMaterial>(); }
+  {
+    textures = std::make_unique<UnitTextureMaterial>();
+  }
   IUnit(const IUnit& other)            = delete;
   IUnit(const IUnit&& other)           = delete;
   IUnit& operator=(const IUnit& other) = delete;
@@ -158,128 +175,182 @@ export class IUnit : public IUpdatable
   /* Gets the light emission from property strategy */
   [[nodiscard]]
   virtual float GetStrategyLightEmit() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the light opacity from property strategy */
   [[nodiscard]]
   virtual float GetStrategyLightOpacity() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the ambient occlusion from property strategy */
   [[nodiscard]]
   virtual float GetStrategyAmbientOcclusion() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the roughness from property strategy */
   [[nodiscard]]
   virtual float GetStrategyRoughness() const
-  { return 0.5f; }
+  {
+    return 0.5f;
+  }
 
   /* Gets the metallic from property strategy */
   [[nodiscard]]
   virtual float GetStrategyMetallic() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the albedo R from property strategy */
   [[nodiscard]]
   virtual float GetStrategyAlbedoR() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the albedo G from property strategy */
   [[nodiscard]]
   virtual float GetStrategyAlbedoG() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the albedo B from property strategy */
   [[nodiscard]]
   virtual float GetStrategyAlbedoB() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the dirtiness from property strategy */
   [[nodiscard]]
   virtual float GetStrategyDirtiness() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the wetness from property strategy */
   [[nodiscard]]
   virtual float GetStrategyWetness() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the temperature from property strategy */
   [[nodiscard]]
   virtual float GetStrategyTemperature() const
-  { return 20.0f; }
+  {
+    return 20.0f;
+  }
 
   /* Gets the hardness from property strategy */
   [[nodiscard]]
   virtual float GetStrategyHardness() const
-  { return 1.0f; }
+  {
+    return 1.0f;
+  }
 
   /* Gets the explosion resistance from property strategy */
   [[nodiscard]]
   virtual float GetStrategyExplosionResistance() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the transparency from property strategy */
   [[nodiscard]]
   virtual float GetStrategyTransparency() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Gets the flammability from property strategy */
   [[nodiscard]]
   virtual float GetStrategyFlammability() const
-  { return 0.0f; }
+  {
+    return 0.0f;
+  }
 
   /* Checks if unit is liquid from property strategy */
   [[nodiscard]]
   virtual bool IsStrategyLiquid() const
-  { return false; }
+  {
+    return false;
+  }
 
   /* Checks if unit is gas from property strategy */
   [[nodiscard]]
   virtual bool IsStrategyGas() const
-  { return false; }
+  {
+    return false;
+  }
 
   /* Checks if unit is solid from property strategy */
   [[nodiscard]]
   virtual bool IsStrategySolid() const
-  { return true; }
+  {
+    return true;
+  }
 
   [[nodiscard]]
   float GetPolTL() const
-  { return polTl; }
+  {
+    return polTl;
+  }
 
   [[nodiscard]]
   float GetPolTr() const
-  { return polTr; }
+  {
+    return polTr;
+  }
 
   [[nodiscard]]
   float GetPolDl() const
-  { return polDl; }
+  {
+    return polDl;
+  }
 
   [[nodiscard]]
   float GetPolDr() const
-  { return polDr; }
+  {
+    return polDr;
+  }
 
   [[nodiscard]]
   float GetPolBl() const
-  { return polBl; }
+  {
+    return polBl;
+  }
 
   [[nodiscard]]
   float GetPolBr() const
-  { return polBr; }
+  {
+    return polBr;
+  }
 
   [[nodiscard]]
   float GetPolFl() const
-  { return polFl; }
+  {
+    return polFl;
+  }
 
   [[nodiscard]]
   float GetPolFr() const
-  { return polFr; }
+  {
+    return polFr;
+  }
 
   [[nodiscard]]
   float GetPolCurve() const
-  { return polCurveV; }
+  {
+    return polCurveV;
+  }
 
   /* Virtual function for derived classes to provide their class ID */
   [[nodiscard]]
@@ -288,6 +359,12 @@ export class IUnit : public IUpdatable
   /* Virtual function for derived classes to provide their class name */
   [[nodiscard]]
   virtual std::string_view GetDerivedClassName() const = 0;
+
+  /* Returns a read-only reference to the GPU registry */
+  static UnitRegistryGPU* GetGPUIDRegistry()
+  {
+    return registryGPU.get();
+  }
 
   protected:
   /* Registers in compile-time a Unit id into the registry */
@@ -321,7 +398,6 @@ export class IUnit : public IUpdatable
     {
       return;
     }
-
     UnitGPURegisterDerived registerDerived(*registryGPU);
     registerDerived.Register(ptr);
   }
@@ -378,53 +454,73 @@ export class IUnit : public IUpdatable
   private:
   /* Private IUnit constructor, only to init the fields */
   IUnit() = default;
-
-  protected:
-  /* Internal Field: Stores the count of registered world units */
-  inline static std::vector<std::string_view> defaultName = {std::string_view("rl.unit")};
-  inline static auto registry    = Registry(UnitResourceName(defaultName));
-  inline static auto registryGPU = std::make_shared<RegistryGPU>();
 };
 
 // Implementations for IUnit
 IUnit::~IUnit()
-{ textures.reset(); }
+{
+  textures.reset();
+}
 
 UnitTextureMaterial& IUnit::GetMaterial() const
-{ return *textures; }
+{
+  return *textures;
+}
 
 void IUnit::SetResistance(const float resistance)
-{ this->unitResistance = resistance; }
+{
+  this->unitResistance = resistance;
+}
 
 void IUnit::SetLightEmit(const float emit)
-{ this->lightEmit = emit; }
+{
+  this->lightEmit = emit;
+}
 
 void IUnit::SetLightOpacity(const float opacity)
-{ this->lightOpacity = opacity; }
+{
+  this->lightOpacity = opacity;
+}
 
 void IUnit::SetUnitHardness(const float hardness)
-{ this->unitHardness = hardness; }
+{
+  this->unitHardness = hardness;
+}
 
 void IUnit::SetPolFenceRight(const PolFence& fence)
-{ std::memcpy(&polTr, &fence, sizeof(fence)); }
+{
+  std::memcpy(&polTr, &fence, sizeof(fence));
+}
 
 void IUnit::SetPolFenceLeft(const PolFence& fence)
-{ std::memcpy(&polTl, &fence, sizeof(fence)); }
+{
+  std::memcpy(&polTl, &fence, sizeof(fence));
+}
 
 void IUnit::SetPolCurve(const float curve)
-{ this->polCurveV = curve; }
+{
+  this->polCurveV = curve;
+}
 
 void IUnit::EnableCollision()
-{ mustCollide = true; }
+{
+  mustCollide = true;
+}
 
 void IUnit::DisableCollision()
-{ mustCollide = false; }
+{
+  mustCollide = false;
+}
 
 bool IUnit::IsCollisionEnabled() const
-{ return mustCollide; }
+{
+  return mustCollide;
+}
 
 bool IUnit::IsVisible() const
-{ return mustVisible; }
+{
+  return mustVisible;
+}
 
 void IUnit::Update()
 {

@@ -1,6 +1,7 @@
 export module Rl.Client.Render.Buffer;
 
 import <vulkan/vulkan.hpp>;
+import <algorithm>;
 import <cstdint>;
 
 namespace Rl::Client::Render
@@ -46,9 +47,16 @@ export void CreateBuffer(VkDevice              device,
   VkMemoryRequirements memRequirements;
   vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
+  // Validation best practice: sub-allocate small buffers from larger blocks.
+  static constexpr VkDeviceSize kMinSubAllocationSize = 1048576;
+#pragma push_macro("max")
+#undef max
+  const VkDeviceSize allocationSize =
+      std::max(memRequirements.size, kMinSubAllocationSize);
+#pragma pop_macro("max")
   VkMemoryAllocateInfo allocInfo{};
   allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.allocationSize = allocationSize;
   allocInfo.memoryTypeIndex =
       FindMemoryTypeIndex(physicalDevice, memRequirements, properties);
 

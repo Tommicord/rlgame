@@ -5,6 +5,9 @@ import <stdexcept>;
 import <vector>;
 import <vulkan/vulkan.hpp>;
 
+import Rl.RayLog.Macro;
+import Rl.RayLog.Logger;
+
 namespace Rl::Providers
 {
 
@@ -35,18 +38,28 @@ void ShaderObject::DestroyShaderModule(VkDevice device, ShaderModule& shaderModu
 
 std::vector<char> ShaderObject::Shader(const std::string& filename)
 {
-  const std::string base = "Shaders/";
-  std::ifstream     file(base + filename, std::ios::ate | std::ios::binary);
-  if (!file.is_open())
+  // Try multiple possible shader directories
+  const std::vector<std::string> possiblePaths = {
+    "Shaders/",                    // Relative to current working directory
+    "build/Shaders/",              // If running from project root
+    "build/Debug/Shaders/",        // If running from project root with Debug build
+  };
+
+  for (const auto& base : possiblePaths)
   {
-    throw std::runtime_error("Failed to open shader file " + base + filename);
+    std::ifstream file(base + filename, std::ios::ate | std::ios::binary);
+    if (file.is_open())
+    {
+      const size_t      fileSize = file.tellg();
+      std::vector<char> buffer(fileSize);
+      file.seekg(0);
+      file.read(buffer.data(), fileSize);
+      file.close();
+      return buffer;
+    }
   }
-  const size_t      fileSize = file.tellg();
-  std::vector<char> buffer(fileSize);
-  file.seekg(0);
-  file.read(buffer.data(), fileSize);
-  file.close();
-  return buffer;
+  RayLog::LogFatal(RAYLOG_TAG, "Failed to open shader file %s", filename.c_str());
+  return std::vector<char>();
 }
 
 } // namespace Rl::Providers

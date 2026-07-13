@@ -229,7 +229,7 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
 }
 
 ChunkSystem::ChunkSystem(ChunkInRenderUnits* chunkStore, WorldChunkCoord renderDistance) :
-    chunkStore(std::move(chunkStore)), renderDistance(renderDistance), workerPool(4),
+    chunkStore(chunkStore), renderDistance(renderDistance), workerPool(4),
     running(false), refreshRequested(false), generationInProgress(false),
     stopRequested(false)
 {
@@ -537,7 +537,6 @@ uint32_t ChunkSystem::DetermineMaxChunksPerFrame() const
     if (gpuGenerator)
     {
       auto g = const_cast<ChunkGeneratorGPU*>(gpuGenerator);
-      g->SetReducedDimensions(useReducedDimensions);
       g->SetSkipPolFence(false); // Keep polFence enabled with optimizations
       g->SetSkipBiomeStage(isIntegratedGPU); // Skip biome on integrated GPUs
       g->SetSkipHeightmapStage(isIntegratedGPU); // Skip heightmap on integrated GPUs

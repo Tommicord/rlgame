@@ -1,8 +1,13 @@
-export module Rl.World.Biome.IBiome;
+export module Rl.World.Biome;
+
+import Rl.World.Biome.BiomeRegistryGPU;
+import Rl.Base.Game;
+import Rl.Base.Binding;
 
 import <cstdint>;
 import <string>;
 import <vector>;
+import <memory>;
 
 namespace Rl::World::Biome
 {
@@ -44,7 +49,21 @@ export struct BiomeUnitRule
 /* Pure virtual interface for biome definition */
 export class IBiome
 {
+  private:
+  /* The biome GPU registry */
+  inline static auto registryGPU = std::make_shared<BiomeRegistryGPU>();
   public:
+  template <typename Derived>
+    requires std::is_base_of_v<IBiome, Derived>
+  explicit IBiome(Derived* ptr) noexcept
+  {
+    if (!registryGPU->IsInitialized())
+    {
+      const Main::MainBinding& binding = Main::Game::GetInstance().GetMainBinding();
+      registryGPU->Initialize(binding.device, binding.physicalDevice);
+    }
+    registryGPU->RegisterBiome(ptr);
+  }
   virtual ~IBiome() = default;
 
   /* Gets the biome type identifier */
@@ -82,6 +101,10 @@ export class IBiome
                                    float moisture,
                                    float elevation,
                                    float height) const = 0;
+
+  static BiomeRegistryGPU& GetGPUIDRegistry() {
+    return registryGPU.get()
+  }
 };
 
 } // namespace Rl::World::Biome

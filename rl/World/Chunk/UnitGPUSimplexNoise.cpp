@@ -1,8 +1,9 @@
 import Rl.World.Chunk.UnitGPUSimplexNoise;
 import Rl.Base.Shader;
 import Rl.Client.Render.Buffer;
+import Rl.RayLog.Macro;
+import Rl.RayLog.Logger;
 
-import <cstring>;
 import <limits>;
 import <stdexcept>;
 import <vector>;
@@ -12,137 +13,6 @@ namespace Rl::World::Chunk
 
 namespace
 {
-void DispatchInitShader(VkDevice device,
-    VkPhysicalDevice                 physicalDevice,
-    VkPipelineLayout                 pipelineLayout,
-    VkPipeline                       initPipeline,
-    VkDescriptorSet                  descriptorSet,
-    uint32_t                         seed)
-{
-  uint32_t queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-      queueFamilies.data());
-
-  uint32_t queueFamilyIndex = 0xFFFFFFFFu;
-  for (uint32_t i = 0; i < queueFamilyCount; ++i)
-  {
-    if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
-    {
-      queueFamilyIndex = i;
-      break;
-    }
-  }
-  if (queueFamilyIndex == 0xFFFFFFFFu)
-  {
-    throw std::runtime_error("No compute-capable queue family found for simplex init");
-  }
-
-  VkCommandPoolCreateInfo poolInfo{};
-  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  poolInfo.queueFamilyIndex = queueFamilyIndex;
-  poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-  VkCommandPool commandPool = VK_NULL_HANDLE;
-  if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("Failed to create command pool for simplex init");
-  }
-
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool = commandPool;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandBufferCount = 1;
-
-  VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
-  {
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to allocate command buffer for simplex init");
-  }
-
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-  {
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to begin command buffer for simplex init");
-  }
-
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, initPipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-      pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-
-  vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-      sizeof(uint32_t), &seed);
-
-  vkCmdDispatch(commandBuffer, 1, 1, 1);
-
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to end command buffer for simplex init");
-  }
-
-  VkQueue queue = VK_NULL_HANDLE;
-  vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
-
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
-
-  // Create fence for synchronization with timeout
-  VkFenceCreateInfo fenceInfo{};
-  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  VkFence fence = VK_NULL_HANDLE;
-  if (vkCreateFence(device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
-  {
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to create fence for simplex init");
-  }
-
-  if (vkQueueSubmit(queue, 1, &submitInfo, fence) != VK_SUCCESS)
-  {
-    vkDestroyFence(device, fence, nullptr);
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to submit simplex init command buffer");
-  }
-
-  // Wait with 2 second timeout instead of indefinite wait
-  VkResult waitResult = vkWaitForFences(device, 1, &fence, VK_TRUE, 2000000000ULL);
-  if (waitResult != VK_SUCCESS)
-  {
-    if (waitResult == VK_TIMEOUT)
-    {
-      vkDestroyFence(device, fence, nullptr);
-      vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      throw std::runtime_error("Simplex init timeout (2s)");
-    }
-    else
-    {
-      vkDestroyFence(device, fence, nullptr);
-      vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      throw std::runtime_error("Failed to wait for simplex init fence");
-    }
-  }
-
-  vkDestroyFence(device, fence, nullptr);
-  vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-  vkDestroyCommandPool(device, commandPool, nullptr);
-}
-
 void CreateWorldMappingPipeline(VkDevice device,
     VkDescriptorSetLayout                     descriptorSetLayout,
     VkPipelineLayout&                        pipelineLayout,
@@ -211,6 +81,8 @@ void UnitGPUSimplexNoise::Create(
     return; // Already initialized
   }
 
+  this->seed = seed;
+
   const VkDeviceSize permBufferSize = 256 * sizeof(int32_t);
   Client::Render::CreateBuffer(device, physicalDevice, permBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -221,27 +93,29 @@ void UnitGPUSimplexNoise::Create(
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permGradIndex3DBuffer,
       permGradIndex3DBufferMemory);
 
-  VkDescriptorPoolSize poolSizes[3] = {};
+  // Create init flag buffer
+  const VkDeviceSize initFlagSize = sizeof(uint32_t);
+  Client::Render::CreateBuffer(device, physicalDevice, initFlagSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, initFlagBuffer, initFlagBufferMemory);
+
+  VkDescriptorPoolSize poolSizes[1] = {};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[0].descriptorCount = 3; // perm, permGradIndex3D, noise output
-  poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[1].descriptorCount = 1;
-  poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[2].descriptorCount = 1;
+  poolSizes[0].descriptorCount = 4; // perm, permGradIndex3D, noise output, init flag
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolInfo.poolSizeCount = 3;
+  poolInfo.poolSizeCount = 1;
   poolInfo.pPoolSizes = poolSizes;
-  poolInfo.maxSets = 2; // One for init, one for generation
+  poolInfo.maxSets = 1;
 
   if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("Failed to create descriptor pool for Simplex noise");
   }
 
-  // Create descriptor set layout
-  VkDescriptorSetLayoutBinding bindings[3] = {};
+  // Create descriptor set layout with 4 bindings
+  VkDescriptorSetLayoutBinding bindings[4] = {};
   bindings[0].binding = 0;
   bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   bindings[0].descriptorCount = 1;
@@ -257,9 +131,14 @@ void UnitGPUSimplexNoise::Create(
   bindings[2].descriptorCount = 1;
   bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
+  bindings[3].binding = 3;
+  bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[3].descriptorCount = 1;
+  bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
   VkDescriptorSetLayoutCreateInfo layoutInfo{};
   layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  layoutInfo.bindingCount = 3;
+  layoutInfo.bindingCount = 4;
   layoutInfo.pBindings = bindings;
 
   if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) !=
@@ -279,90 +158,50 @@ void UnitGPUSimplexNoise::Create(
     throw std::runtime_error("Failed to allocate descriptor set for Simplex noise");
   }
 
-  VkPushConstantRange initPushConstantRange{};
-  initPushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  initPushConstantRange.offset = 0;
-  initPushConstantRange.size = sizeof(uint32_t);
-
-  VkPipelineLayoutCreateInfo initLayoutInfo{};
-  initLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  initLayoutInfo.setLayoutCount = 1;
-  initLayoutInfo.pSetLayouts = &descriptorSetLayout;
-  initLayoutInfo.pushConstantRangeCount = 1;
-  initLayoutInfo.pPushConstantRanges = &initPushConstantRange;
-
-  if (vkCreatePipelineLayout(device, &initLayoutInfo, nullptr, &initPipelineLayout) !=
-      VK_SUCCESS)
-  {
-    throw std::runtime_error("Failed to create init pipeline layout for Simplex noise");
-  }
-
-  // Create init compute pipeline
-  auto initShaderCode = Providers::ShaderObject::Shader("simplex.init.comp.spv");
-  auto initShaderModule = Providers::ShaderObject::Module(device, initShaderCode);
-
-  VkPipelineShaderStageCreateInfo initShaderStageInfo{};
-  initShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  initShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-  initShaderStageInfo.module = initShaderModule.module;
-  initShaderStageInfo.pName = "main";
-
-  VkComputePipelineCreateInfo initPipelineInfo{};
-  initPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  initPipelineInfo.stage = initShaderStageInfo;
-  initPipelineInfo.layout = initPipelineLayout;
-
-  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &initPipelineInfo, nullptr,
-          &initPipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("Failed to create init compute pipeline for Simplex noise");
-  }
-  Providers::ShaderObject::DestroyShaderModule(device, initShaderModule);
-
+  // Update descriptor set with permutation buffers
   VkDescriptorBufferInfo permBufferInfo{};
   permBufferInfo.buffer = permBuffer;
   permBufferInfo.offset = 0;
   permBufferInfo.range = VK_WHOLE_SIZE;
 
-  VkDescriptorBufferInfo permGradIndexBufferInfo{};
-  permGradIndexBufferInfo.buffer = permGradIndex3DBuffer;
-  permGradIndexBufferInfo.offset = 0;
-  permGradIndexBufferInfo.range = VK_WHOLE_SIZE;
+  VkDescriptorBufferInfo permGradIndex3DBufferInfo{};
+  permGradIndex3DBufferInfo.buffer = permGradIndex3DBuffer;
+  permGradIndex3DBufferInfo.offset = 0;
+  permGradIndex3DBufferInfo.range = VK_WHOLE_SIZE;
 
-  VkDescriptorBufferInfo dummyNoiseBufferInfo{};
-  dummyNoiseBufferInfo.buffer = permBuffer; // Use any valid buffer as placeholder
-  dummyNoiseBufferInfo.offset = 0;
-  dummyNoiseBufferInfo.range = sizeof(float);
+  VkDescriptorBufferInfo initFlagBufferInfo{};
+  initFlagBufferInfo.buffer = initFlagBuffer;
+  initFlagBufferInfo.offset = 0;
+  initFlagBufferInfo.range = VK_WHOLE_SIZE;
 
-  VkWriteDescriptorSet initWrites[3] = {};
-  initWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[0].dstSet = descriptorSet;
-  initWrites[0].dstBinding = 0;
-  initWrites[0].dstArrayElement = 0;
-  initWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  initWrites[0].descriptorCount = 1;
-  initWrites[0].pBufferInfo = &permBufferInfo;
+  VkWriteDescriptorSet writes[3] = {};
 
-  initWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[1].dstSet = descriptorSet;
-  initWrites[1].dstBinding = 1;
-  initWrites[1].dstArrayElement = 0;
-  initWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  initWrites[1].descriptorCount = 1;
-  initWrites[1].pBufferInfo = &permGradIndexBufferInfo;
+  writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[0].dstSet = descriptorSet;
+  writes[0].dstBinding = 0;
+  writes[0].dstArrayElement = 0;
+  writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[0].descriptorCount = 1;
+  writes[0].pBufferInfo = &permBufferInfo;
 
-  initWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  initWrites[2].dstSet = descriptorSet;
-  initWrites[2].dstBinding = 2;
-  initWrites[2].dstArrayElement = 0;
-  initWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  initWrites[2].descriptorCount = 1;
-  initWrites[2].pBufferInfo = &dummyNoiseBufferInfo;
+  writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[1].dstSet = descriptorSet;
+  writes[1].dstBinding = 1;
+  writes[1].dstArrayElement = 0;
+  writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[1].descriptorCount = 1;
+  writes[1].pBufferInfo = &permGradIndex3DBufferInfo;
 
-  vkUpdateDescriptorSets(device, 3, initWrites, 0, nullptr);
+  writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[2].dstSet = descriptorSet;
+  writes[2].dstBinding = 3;
+  writes[2].dstArrayElement = 0;
+  writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[2].descriptorCount = 1;
+  writes[2].pBufferInfo = &initFlagBufferInfo;
 
-  DispatchInitShader(device, physicalDevice, initPipelineLayout, initPipeline,
-      descriptorSet, seed);
+  vkUpdateDescriptorSets(device, 3, writes, 0, nullptr);
+
   isInitialized = true;
 }
 
@@ -595,6 +434,8 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
     throw std::runtime_error("Simplex noise not initialized. Call Initialize() first");
   }
 
+  Rl::RayLog::LogInfo("UnitGPUSimplexNoise", "GenNoise: Creating pipeline layout");
+
   VkPushConstantRange genPushConstantRange{};
   genPushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
   genPushConstantRange.offset = 0;
@@ -615,6 +456,8 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
         "Failed to create generation pipeline layout for Simplex noise");
   }
 
+  Rl::RayLog::LogInfo("UnitGPUSimplexNoise", "GenNoise: Loading shader");
+
   auto genShaderCode = Providers::ShaderObject::Shader("simplex.comp.spv");
   auto genShaderModule = Providers::ShaderObject::Module(device, genShaderCode);
 
@@ -629,6 +472,8 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
   genPipelineInfo.stage = genShaderStageInfo;
   genPipelineInfo.layout = genPipelineLayout;
 
+  Rl::RayLog::LogInfo("UnitGPUSimplexNoise", "GenNoise: Creating compute pipeline");
+
   VkPipeline genPipeline;
   if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &genPipelineInfo, nullptr,
           &genPipeline) != VK_SUCCESS)
@@ -638,13 +483,17 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
   }
   Providers::ShaderObject::DestroyShaderModule(device, genShaderModule);
 
+  Rl::RayLog::LogInfo("UnitGPUSimplexNoise", "GenNoise: Binding pipeline and descriptor sets");
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, genPipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
       genPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
-  // Push constants
+  // Push constants (include seed)
+  SimplexNoisePushConstants paramsWithSeed = params;
+  paramsWithSeed.seed = seed;
   vkCmdPushConstants(commandBuffer, genPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-      sizeof(SimplexNoisePushConstants), &params);
+      sizeof(SimplexNoisePushConstants), &paramsWithSeed);
 
   // Dispatch compute shader
   const uint32_t workgroupSize = 4;
@@ -754,28 +603,16 @@ void UnitGPUSimplexNoise::Destroy(VkDevice device)
     permGradIndex3DBufferMemory = VK_NULL_HANDLE;
   }
 
-  if (initPipeline != VK_NULL_HANDLE)
+  if (this->mappingPipeline != VK_NULL_HANDLE)
   {
-    vkDestroyPipeline(device, initPipeline, nullptr);
-    initPipeline = VK_NULL_HANDLE;
+    vkDestroyPipeline(device, mappingPipeline, nullptr);
+    mappingPipeline = VK_NULL_HANDLE;
   }
 
-  if (initPipelineLayout != VK_NULL_HANDLE)
+  if (mappingPipelineLayout != VK_NULL_HANDLE)
   {
-    vkDestroyPipelineLayout(device, initPipelineLayout, nullptr);
-    initPipelineLayout = VK_NULL_HANDLE;
-  }
-
-  if (pipeline != VK_NULL_HANDLE)
-  {
-    vkDestroyPipeline(device, pipeline, nullptr);
-    pipeline = VK_NULL_HANDLE;
-  }
-
-  if (pipelineLayout != VK_NULL_HANDLE)
-  {
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    pipelineLayout = VK_NULL_HANDLE;
+    vkDestroyPipelineLayout(device, mappingPipelineLayout, nullptr);
+    mappingPipelineLayout = VK_NULL_HANDLE;
   }
 
   if (descriptorSetLayout != VK_NULL_HANDLE)

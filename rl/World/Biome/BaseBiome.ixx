@@ -1,6 +1,6 @@
 export module Rl.World.Biome.BaseBiome;
 
-import Rl.World.Biome.IBiome;
+import Rl.World.Biome;
 
 import <algorithm>;
 import <cmath>;
@@ -22,27 +22,39 @@ export class BaseBiome : public IBiome
   // IBiome interface implementations
   [[nodiscard]]
   BiomeType GetBiomeType() const override
-  { return biomeType; }
+  {
+    return biomeType;
+  }
 
   [[nodiscard]]
   const char* GetBiomeName() const override
-  { return biomeName; }
+  {
+    return biomeName;
+  }
 
   [[nodiscard]]
   BiomeNoiseLayer GetTemperatureNoiseLayer() const override
-  { return temperatureLayer; }
+  {
+    return temperatureLayer;
+  }
 
   [[nodiscard]]
   BiomeNoiseLayer GetMoistureNoiseLayer() const override
-  { return moistureLayer; }
+  {
+    return moistureLayer;
+  }
 
   [[nodiscard]]
   BiomeNoiseLayer GetElevationNoiseLayer() const override
-  { return elevationLayer; }
+  {
+    return elevationLayer;
+  }
 
   [[nodiscard]]
   const std::vector<BiomeUnitRule>& GetUnitRules() const override
-  { return unitRules; }
+  {
+    return unitRules;
+  }
 
   /* Default classification based on threshold ranges */
   [[nodiscard]]
@@ -55,11 +67,13 @@ export class BaseBiome : public IBiome
 
   /* Default unit selection based on matching rules */
   [[nodiscard]]
-  uint32_t GetDominantUnit(
-      float temperature, float moisture, float elevation, float height) const override
+  uint32_t GetDominantUnit(float temperature,
+                           float moisture,
+                           float elevation,
+                           float height) const override
   {
     uint32_t bestUnitId = 0; // Default to air/unknown
-    float    bestScore = 0.0f;
+    float    bestScore  = 0.0f;
 
     for (const auto& rule : unitRules)
     {
@@ -84,7 +98,7 @@ export class BaseBiome : public IBiome
 
       if (score > bestScore)
       {
-        bestScore = score;
+        bestScore  = score;
         bestUnitId = rule.unitId;
       }
     }
@@ -94,16 +108,24 @@ export class BaseBiome : public IBiome
 
   // Configuration methods
   void SetTemperatureNoiseLayer(const BiomeNoiseLayer& layer)
-  { temperatureLayer = layer; }
+  {
+    temperatureLayer = layer;
+  }
 
   void SetMoistureNoiseLayer(const BiomeNoiseLayer& layer)
-  { moistureLayer = layer; }
+  {
+    moistureLayer = layer;
+  }
 
   void SetElevationNoiseLayer(const BiomeNoiseLayer& layer)
-  { elevationLayer = layer; }
+  {
+    elevationLayer = layer;
+  }
 
   void AddUnitRule(const BiomeUnitRule& rule)
-  { unitRules.push_back(rule); }
+  {
+    unitRules.push_back(rule);
+  }
 
   void SetTemperatureThresholds(float minTemp, float maxTemp)
   {
@@ -135,10 +157,10 @@ export class BaseBiome : public IBiome
   // Threshold ranges for biome classification
   float minTemperature = 0.0f;
   float maxTemperature = 1.0f;
-  float minMoisture = 0.0f;
-  float maxMoisture = 1.0f;
-  float minElevation = 0.0f;
-  float maxElevation = 1.0f;
+  float minMoisture    = 0.0f;
+  float maxMoisture    = 1.0f;
+  float minElevation   = 0.0f;
+  float maxElevation   = 1.0f;
 };
 
 } // namespace Rl::World::Biome
