@@ -12,119 +12,141 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 layout(std430, binding = 0) readonly buffer TempIn
 {
-  float temperature[];
+    float temperature[];
 } inTemp;
 
 layout(std430, binding = 1) readonly buffer MoistIn
 {
-  float moisture[];
+    float moisture[];
 } inMoist;
 
 layout(std430, binding = 2) readonly buffer ElevIn
 {
-  float elevation[];
+    float elevation[];
 } inElev;
 
 layout(std430, binding = 3) readonly buffer BiomeRegistry
 {
-  uint biomeCount;
-  uint padding0;
-  uint padding1;
-  uint padding2;
-  
-  // BiomeGPUParams structure (aligned to 16 bytes)
-  // uint32_t biomeType;
-  // float temperatureBase;
-  // float temperatureVariation;
-  // float moistureBase;
-  // float moistureVariation;
-  // float elevationBase;
-  // float elevationVariation;
-  // uint32_t unitRuleCount;
-  // float padding[3];
-  float biomes[]; // Packed float data for alignment
+    uint biomeCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+
+// BiomeGPUParams structure (aligned to 16 bytes)
+// uint32_t biomeType;
+// float temperatureBase;
+// float temperatureVariation;
+// float moistureBase;
+// float moistureVariation;
+// float elevationBase;
+// float elevationVariation;
+// uint32_t unitRuleCount;
+// float padding[3];
+    float biomes[]; // Packed float data for alignment
 } biomeReg;
 
 layout(std430, binding = 4) writeonly buffer BiomeOut
 {
-  uint biomeIds[];
+    uint biomeIds[];
 } outBiome;
 
 layout(push_constant) uniform PC
 {
-  uint width;     // chunk width (x)
-  uint height;    // chunk height (y)
-  uint depth;     // chunk depth (z)
-  float _pad0;
+    uint width;     // chunk width (x)
+    uint height;    // chunk height (y)
+    uint depth;     // chunk depth (z)
+    float _pad0;
 } pc;
+
+// Shared memory cache for temperature, moisture, and elevation
+shared float localBiomeCache[32][9];
+shared float cachedTemperature[8][8][9];
+shared float cachedMoisture[8][8][9];
+shared float cachedElevation[8][8][9];
 
 // Helper: compute linear index for (x,y,z) in row-major (x + y*W + z*W*H)
 uint ComputeIndex(uvec3 id)
 {
-  return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
+    return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
 }
 
 // Get biome parameter from packed array
 float GetBiomeParam(uint biomeIndex, uint paramOffset)
 {
-  uint baseIndex = biomeIndex * 8u + paramOffset; // 8 floats per biome
-  return biomeReg.biomes[baseIndex];
+    uint baseIndex = biomeIndex * 8u + paramOffset; // 8 floats per biome
+    return biomeReg.biomes[baseIndex];
 }
 
 void main()
 {
-  uvec3 gid = gl_GlobalInvocationID.xyz;
+    uvec3 gid = gl_GlobalInvocationID.xyz;
+    uvec3 tid = gl_LocalInvocationID.xyz; // Local ID within workgroup (0 to 7)
+    uint localId = gl_LocalInvocationIndex;
 
-  // Bounds check: dispatch might be larger than chunk dimensions
-  if (gid.x >= pc.width || gid.y >= pc.height || gid.z >= pc.depth)
-    return;
-
-  uint idx = ComputeIndex(gid);
-  float temp = inTemp.temperature[idx];
-  float moist = inMoist.moisture[idx];
-  float elev = inElev.elevation[idx];
-
-  uint bestBiome = 0u;
-  float bestScore = -1.0;
-
-  // Iterate through all registered biomes
-  for (uint i = 0; i < biomeReg.biomeCount; ++i)
-  {
-    // Extract biome parameters from packed array
-    uint biomeType = uint(GetBiomeParam(i, 0));
-    float tempBase = GetBiomeParam(i, 1);
-    float tempVar = GetBiomeParam(i, 2);
-    float moistBase = GetBiomeParam(i, 3);
-    float moistVar = GetBiomeParam(i, 4);
-    float elevBase = GetBiomeParam(i, 5);
-    float elevVar = GetBiomeParam(i, 6);
-
-    // Check if within biome thresholds
-    bool inTemp = (temp >= tempBase - tempVar) && (temp <= tempBase + tempVar);
-    bool inMoist = (moist >= moistBase - moistVar) && (moist <= moistBase + moistVar);
-    bool inElev = (elev >= elevBase - elevVar) && (elev <= elevBase + elevVar);
-
-    if (inTemp && inMoist && inElev)
-    {
-      // Calculate match score (closer to center = better)
-      float tempScore = 1.0 - abs(temp - tempBase) / max(tempVar, 0.001);
-      float moistScore = 1.0 - abs(moist - moistBase) / max(moistVar, 0.001);
-      float elevScore = 1.0 - abs(elev - elevBase) / max(elevVar, 0.001);
-      float score = (tempScore + moistScore + elevScore) / 3.0;
-
-      if (score > bestScore)
-      {
-        bestScore = score;
-        bestBiome = biomeType;
-      }
+    if (localId < biomeReg.biomeCount * 8u) {
+        uint bIdx = localId / 8u;
+        uint pIdx = localId % 8u;
+        localBiomeCache[bIdx][pIdx] = biomeReg.biomes[bIdx * 8u + pIdx];
     }
-  }
 
-  // If no biome matched, default to biome type 0
-  if (bestScore < 0.0)
-  {
-    bestBiome = 0u;
-  }
+    // Cooperative loading of data into shared memory
+    bool inBounds = (gid.x < pc.width && gid.y < pc.height && gid.z < pc.depth);
+    uint idx = ComputeIndex(gid);
 
-  outBiome.biomeIds[idx] = bestBiome;
+    cachedTemperature[tid.x][tid.y][tid.z] = inBounds ? inTemp.temperature[idx] : 0.0f;
+    cachedMoisture[tid.x][tid.y][tid.z] = inBounds ? inMoist.moisture[idx] : 0.0f;
+    cachedElevation[tid.x][tid.y][tid.z] = inBounds ? inElev.elevation[idx] : 0.0f;
+
+    memoryBarrierShared();
+    barrier();
+
+    // Bounds check: dispatch might be larger than chunk dimensions
+    if (!inBounds) return;
+
+    // Read from cache
+    float temp = cachedTemperature[tid.x][tid.y][tid.z];
+    float moist = cachedMoisture[tid.x][tid.y][tid.z];
+    float elev = cachedElevation[tid.x][tid.y][tid.z];
+
+    float bestBiome = 0u;
+    float bestScore = -1.0;
+
+    for (uint i = 0; i < biomeReg.biomeCount; ++i)
+    {
+        float biomeType = localBiomeCache[i][1];
+        float tempBase = localBiomeCache[i][2];
+        float tempVar = localBiomeCache[i][3];
+        float moistBase = localBiomeCache[i][4];
+        float moistVar = localBiomeCache[i][5];
+        float elevBase = localBiomeCache[i][6];
+        float elevVar = localBiomeCache[i][7];
+
+        // Check if within biome thresholds
+        bool inTemp = (temp >= tempBase - tempVar) && (temp <= tempBase + tempVar);
+        bool inMoist = (moist >= moistBase - moistVar) && (moist <= moistBase + moistVar);
+        bool inElev = (elev >= elevBase - elevVar) && (elev <= elevBase + elevVar);
+
+        if (inTemp && inMoist && inElev)
+        {
+            // Calculate match score (closer to center = better)
+            float tempScore = 1.0 - abs(temp - tempBase) / max(tempVar, 0.001);
+            float moistScore = 1.0 - abs(moist - moistBase) / max(moistVar, 0.001);
+            float elevScore = 1.0 - abs(elev - elevBase) / max(elevVar, 0.001);
+            float score = (tempScore + moistScore + elevScore) / 3.0;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestBiome = biomeType;
+            }
+        }
+
+        // If no biome matched, default to biome type 0
+        if (bestScore < 0.0)
+        {
+            bestBiome = 0u;
+        }
+    }
+
+    outBiome.biomeIds[idx] = uint(bestBiome);
 }

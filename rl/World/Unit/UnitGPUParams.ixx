@@ -7,7 +7,9 @@ namespace Rl::World
 {
 
 /* GPU-compatible unit parameters structure for compute shaders */
-export struct UnitGPUParams
+// Must match the UnitData structure in unit.vert shader exactly
+// Aligned to 16 bytes for std430/std140 compatibility
+export struct alignas(16) UnitGPUParams
 {
   uint32_t  unitId;
   float     temperature;
@@ -32,12 +34,10 @@ export struct UnitGPUParams
   float     lightAbsorption;
   float     lightScattering;
   float     humidity;
-  glm::vec4 polCurve;
-  glm::vec4 polLeft;
-  glm::vec4 polRight;
   uint32_t  isLiquid;
   uint32_t  isGas;
   uint32_t  isSolid;
+  float     padding[3]; // Pad to 16-byte boundary (total 120 bytes)
 };
 
 } // namespace Rl::World

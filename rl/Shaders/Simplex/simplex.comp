@@ -8,7 +8,10 @@
 #include "simplex.noise3d.glsl"
 #include "simplex.octaves.glsl"
 
-layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+shared int cachedPerm[264];
+shared int cachedPermGradIndex3D[264];
 
 // Output buffer for noise values
 layout(std430, binding = 2) buffer NoiseBuffer {
@@ -33,10 +36,24 @@ layout(push_constant) uniform PushConstants {
 } pc;
 
 void main() {
+    uint localId = gl_LocalInvocationIndex;
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
     uint z = gl_GlobalInvocationID.z;
-    
+
+    // Cooperative loading of permutation and gradient tables into shared memory
+    if (localId < 256) {
+        cachedPerm[localId] = perm[localId];
+        cachedPermGradIndex3D[localId] = permGradIndex3D[localId];
+    }
+    // Pad remaining elements to avoid bank conflicts
+    if (localId < 8) {
+        cachedPerm[256 + localId] = 0;
+        cachedPermGradIndex3D[256 + localId] = 0;
+    }
+    memoryBarrierShared();
+    barrier();
+
     // Check bounds
     if (x >= pc.width || y >= pc.height || z >= pc.depth) {
         return;
@@ -51,7 +68,7 @@ void main() {
     float noiseValue = 0.0;
     
     // Default values for single octave
-    int octaves = int(pc.octaves);
+    int octaves = clamp(int(pc.octaves), 1, 6);
     float persistence = pc.persistence;
     float lacunarity = pc.lacunarity;
     
@@ -59,7 +76,7 @@ void main() {
     if (octaves < 1) {
         octaves = 1;
     }
-    
+
     if (pc.dimension == 2) {
         if (pc.noiseType == 0) {
             // Standard noise

@@ -27,6 +27,8 @@ struct VertexInput {
     uint padFinal1;
     uint padFinal2;
 };
+// Shared memory cache for base vertices to avoid repeated global memory access
+shared VertexInput cachedVertices[5];
 
 // Output vertex structure (same as input for rendering)
 struct VertexOutput {
@@ -193,6 +195,7 @@ void ApplyCurvature(inout VertexInput v, float adjVertical, float adjHorizontal,
 }
 
 void main() {
+    uint localId = gl_LocalInvocationIndex;
     uint globalID = gl_GlobalInvocationID.x;
 
     // Each workgroup processes one face
@@ -202,10 +205,24 @@ void main() {
 
     // Get the 4 vertices for this face
     uint baseIndex = globalID * verticesPerFace;
-    VertexInput v0 = vertices[baseIndex];
-    VertexInput v1 = vertices[baseIndex + 1];
-    VertexInput v2 = vertices[baseIndex + 2];
-    VertexInput v3 = vertices[baseIndex + 3];
+    
+    // Thread 0 loads all 4 vertices for this face into shared memory cache
+    if (localId == 0) {
+        if (baseIndex + 3 < vertices.length()) {
+            cachedVertices[0] = vertices[baseIndex];
+            cachedVertices[1] = vertices[baseIndex + 1];
+            cachedVertices[2] = vertices[baseIndex + 2];
+            cachedVertices[3] = vertices[baseIndex + 3];
+        }
+    }
+    memoryBarrierShared();
+    barrier();
+
+    // Read from cache
+    VertexInput v0 = cachedVertices[0];
+    VertexInput v1 = cachedVertices[1];
+    VertexInput v2 = cachedVertices[2];
+    VertexInput v3 = cachedVertices[3];
 
     // Get curvature packed values
     float polCurveV = v0.polCurve.x;

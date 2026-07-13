@@ -1,13 +1,16 @@
-export module Rl.RayLog.SymbolDemangler;
+module;
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <dbghelp.h>
+#include <DbgHelp.h>
 #elif defined(__linux__) || defined(__APPLE__)
 #include <cxxabi.h>
 #include <execinfo.h>
 #endif
+
+export module Rl.RayLog.SymbolDemangler;
+
 import <string>;
 import <vector>;
 
@@ -21,7 +24,7 @@ export class RayLogSymbolDemangler
   static std::string Demangle(const char* mangledName)
   {
 #if defined(__linux__) || defined(__APPLE__)
-    int   status = 0;
+    int   status    = 0;
     char* demangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, &status);
     if (demangled && status == 0)
     {
@@ -66,28 +69,29 @@ export class RayLogSymbolDemangler
     HANDLE process = GetCurrentProcess();
     SymInitialize(process, nullptr, TRUE);
 
+    std::string start    = "                   #";
     for (size_t i = 0; i < frames.size(); ++i)
     {
       char       buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-      const auto symbol = reinterpret_cast<SYMBOL_INFO*>(buffer);
+      const auto symbol    = reinterpret_cast<SYMBOL_INFO*>(buffer);
       symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-      symbol->MaxNameLen = MAX_SYM_NAME;
+      symbol->MaxNameLen   = MAX_SYM_NAME;
 
       DWORD64 displacement = 0;
-      if (SymFromAddr(
-              process, reinterpret_cast<DWORD64>(frames[i]), &displacement, symbol))
+      if (SymFromAddr(process, reinterpret_cast<DWORD64>(frames[i]), &displacement,
+                      symbol))
       {
-        result += "  #" + std::to_string(i) + " " + std::string(symbol->Name) + "\n";
+        result += start + std::to_string(i) + " " + std::string(symbol->Name) + "\n";
       }
       else
       {
-        result += "  #" + std::to_string(i) + " ??\n";
+        result += start + std::to_string(i) + " ??\n";
       }
     }
 #else
     for (size_t i = 0; i < frames.size(); ++i)
     {
-      result += "  #" + std::to_string(i) + " ??" + "\n";
+      result += start + std::to_string(i) + " ??" + "\n";
     }
 #endif
     return result;

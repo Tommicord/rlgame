@@ -6,6 +6,7 @@ import Rl.RayLog.Logger;
 
 import <cstring>;
 import <stdexcept>;
+import <algorithm>;
 import <vulkan/vulkan.hpp>;
 
 namespace Rl::World
@@ -115,6 +116,12 @@ bool UnitRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBu
     }
     unitBufferSize = newUnitSize;
   }
+
+  // Sort units by unitId for binary search optimization in compute shaders
+  std::sort(cpuUnits.begin(), cpuUnits.end(),
+            [](const UnitGPUParams& a, const UnitGPUParams& b) {
+              return a.unitId < b.unitId;
+            });
 
   // Copy unit data to staging buffer
   void* stagingData = nullptr;

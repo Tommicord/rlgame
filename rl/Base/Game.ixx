@@ -2,7 +2,6 @@ export module Rl.Base.Game;
 
 import Rl.Base.UserInput;
 import Rl.Base.Binding;
-import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
 import Rl.Player.CameraController;
 import Rl.World.ServiceUpdaterRegistry;
@@ -20,7 +19,6 @@ namespace Rl::Main
 export class Game
 {
   private:
-  std::unique_ptr<Providers::UnitModel>          unitModel;
   std::unique_ptr<World::ServiceUpdaterRegistry> serviceUpdaterRegistry;
 
   public:
@@ -40,9 +38,11 @@ export class Game
   Input::UserInput& input;
   MainBinding       binding;
 
+  /* Debug messenger */
+  VkDebugUtilsMessengerEXT debugMessenger;
+
   void CreateInstance();
   void CreateSurface();
-  void CreateUnitModel();
   void CreateResources();
   void PickPhysicalDevice();
   void CreateLogicalDevice();
@@ -53,6 +53,7 @@ export class Game
   void CreateCommandPool();
   void CreateCommandBuffers();
   void CreateSyncObjects();
+  void SetupDebugMessenger();
   void DrawCallback();
   void Draw();
 

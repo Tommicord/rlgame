@@ -13,7 +13,7 @@ TEST(ChunkSystemTest, RefreshGeneratesChunksAroundPlayerAndTracksThem)
   ChunkInRenderUnits backing(3, 3, 3);
   ASSERT_TRUE(backing.Initialize());
 
-  ChunkSystem system(backing, WorldChunkCoord{3, 3, 3});
+  ChunkSystem system(&backing, WorldChunkCoord{3, 3, 3});
   int generationCalls = 0;
 
   system.SetChunkGenerator([&](const WorldChunkCoord& coord, UnitChunkBuffer& chunkBuffer) {
@@ -40,7 +40,7 @@ TEST(ChunkSystemTest, GpuGenerationEnabledSkipsCpuFallbackWhenGeneratorUnavailab
   ChunkInRenderUnits backing(3, 3, 3);
   ASSERT_TRUE(backing.Initialize());
 
-  ChunkSystem system(backing, WorldChunkCoord{3, 3, 3});
+  ChunkSystem system(&backing, WorldChunkCoord{3, 3, 3});
   system.EnableGPUGeneration(nullptr, VK_NULL_HANDLE, VK_NULL_HANDLE);
 
   system.SetPlayerPosition(UnitPosition{0, 0, 0});

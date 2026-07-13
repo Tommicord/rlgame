@@ -53,6 +53,9 @@ layout(push_constant) uniform PC
     float _pad0;
 } pc;
 
+// Shared memory cache for noise values
+shared float cachedNoise[8][8][9];
+
 // Helper: compute linear index for (x,y,z) in row-major (x + y*W + z*W*H)
 uint ComputeIndex(uvec3 id)
 {
@@ -65,22 +68,28 @@ float NormalizeNoise(float n)
     // Heuristic: if values appear to already be in [0,1], keep as-is.
     if (n >= 0.0 && n <= 1.0)
     return n;
-    // Otherwise assume -1..1
     return (n * 0.5) + 0.5;
 }
 
 void main()
 {
     uvec3 gid = gl_GlobalInvocationID.xyz;
+    uvec3 tid = gl_LocalInvocationID.xyz; // Local ID within workgroup (0 to 7)
 
-    // Bounds check: dispatch might be larger than chunk dimensions
-    if (gid.x >= pc.width || gid.y >= pc.height || gid.z >= pc.depth)
-    return;
-
+    bool inBounds = (gid.x < pc.width && gid.y < pc.height && gid.z < pc.depth);
     uint idx = ComputeIndex(gid);
 
-    // Read the provided simplex noise value
-    float rawNoise = inNoise.noise[idx];
+    cachedNoise[tid.x][tid.y][tid.z] = inBounds ? inNoise.noise[idx] : 0.0f;
+
+    memoryBarrierShared();
+    barrier();
+
+    // Bounds check: dispatch might be larger than chunk dimensions
+    if (!inBounds)
+    return;
+
+    // Read from cache
+    float rawNoise = cachedNoise[tid.x][tid.y][tid.z];
     float n = NormalizeNoise(rawNoise);
 
     // Normalize vertical coordinate (height) to [0..1]

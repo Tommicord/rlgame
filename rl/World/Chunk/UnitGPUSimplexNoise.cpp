@@ -1,6 +1,6 @@
 import Rl.World.Chunk.UnitGPUSimplexNoise;
 import Rl.Base.Shader;
-import Rl.Client.Render.Unit.UnitRendererBasicBuffer;
+import Rl.Client.Render.Buffer;
 
 import <cstring>;
 import <limits>;
@@ -99,20 +99,46 @@ void DispatchInitShader(VkDevice device,
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
 
-  if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  // Create fence for synchronization with timeout
+  VkFenceCreateInfo fenceInfo{};
+  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  VkFence fence = VK_NULL_HANDLE;
+  if (vkCreateFence(device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
   {
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    throw std::runtime_error("Failed to create fence for simplex init");
+  }
+
+  if (vkQueueSubmit(queue, 1, &submitInfo, fence) != VK_SUCCESS)
+  {
+    vkDestroyFence(device, fence, nullptr);
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
     vkDestroyCommandPool(device, commandPool, nullptr);
     throw std::runtime_error("Failed to submit simplex init command buffer");
   }
 
-  if (vkQueueWaitIdle(queue) != VK_SUCCESS)
+  // Wait with 2 second timeout instead of indefinite wait
+  VkResult waitResult = vkWaitForFences(device, 1, &fence, VK_TRUE, 2000000000ULL);
+  if (waitResult != VK_SUCCESS)
   {
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    throw std::runtime_error("Failed to wait for simplex init queue idle");
+    if (waitResult == VK_TIMEOUT)
+    {
+      vkDestroyFence(device, fence, nullptr);
+      vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      throw std::runtime_error("Simplex init timeout (2s)");
+    }
+    else
+    {
+      vkDestroyFence(device, fence, nullptr);
+      vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+      vkDestroyCommandPool(device, commandPool, nullptr);
+      throw std::runtime_error("Failed to wait for simplex init fence");
+    }
   }
 
+  vkDestroyFence(device, fence, nullptr);
   vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
   vkDestroyCommandPool(device, commandPool, nullptr);
 }
@@ -186,11 +212,11 @@ void UnitGPUSimplexNoise::Create(
   }
 
   const VkDeviceSize permBufferSize = 256 * sizeof(int32_t);
-  Rl::Client::Render::UnitCreateBuffer(device, physicalDevice, permBufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, permBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permBuffer, permBufferMemory);
 
-  Rl::Client::Render::UnitCreateBuffer(device, physicalDevice, permBufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, permBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, permGradIndex3DBuffer,
       permGradIndex3DBufferMemory);
@@ -359,7 +385,7 @@ void UnitGPUSimplexNoise::CreateNoiseBuffer(VkDevice device,
   const uint32_t     totalElements = width * height * depth;
   const VkDeviceSize noiseBufferSize = totalElements * sizeof(float);
 
-  Client::Render::UnitCreateBuffer(device, physicalDevice, noiseBufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, noiseBufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, noiseBuffer, noiseBufferMemory);
 
@@ -432,15 +458,15 @@ void UnitGPUSimplexNoise::CreateWorldOutputBuffers(VkDevice device,
   const uint32_t totalElements = width * height * depth;
   const VkDeviceSize bufferSize = totalElements * sizeof(float);
 
-  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, bufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, temperatureBuffer, temperatureBufferMemory);
 
-  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, bufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, moistureBuffer, moistureBufferMemory);
 
-  Client::Render::UnitCreateBuffer(device, physicalDevice, bufferSize,
+  Client::Render::CreateBuffer(device, physicalDevice, bufferSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, elevationBuffer, elevationBufferMemory);
 
@@ -621,18 +647,18 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
       sizeof(SimplexNoisePushConstants), &params);
 
   // Dispatch compute shader
-  const uint32_t workgroupSize = 8;
+  const uint32_t workgroupSize = 4;
   uint32_t       workgroupsX = (params.width + workgroupSize - 1) / workgroupSize;
   uint32_t       workgroupsY = (params.height + workgroupSize - 1) / workgroupSize;
   uint32_t       workgroupsZ = (params.depth + workgroupSize - 1) / workgroupSize;
 
   vkCmdDispatch(commandBuffer, workgroupsX, workgroupsY, workgroupsZ);
 
-  // Add memory barrier to ensure shader writes are complete
+  // Add memory barrier to ensure shader writes are complete before next compute stage
   VkBufferMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
   barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-  barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.buffer = noiseBuffer;
@@ -640,7 +666,7 @@ void UnitGPUSimplexNoise::GenNoise(VkDevice device,
   barrier.size = VK_WHOLE_SIZE;
 
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 
   // Clean up temporary pipeline and layout
   vkDestroyPipeline(device, genPipeline, nullptr);
@@ -674,18 +700,18 @@ void UnitGPUSimplexNoise::GenWorldNoise(VkDevice device,
   vkCmdPushConstants(commandBuffer, mappingPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
       sizeof(WorldNoisePushConstants), &params);
 
-  const uint32_t workgroupSize = 8;
+  const uint32_t workgroupSize = 4;
   uint32_t workgroupsX = (params.width + workgroupSize - 1) / workgroupSize;
   uint32_t workgroupsY = (params.height + workgroupSize - 1) / workgroupSize;
   uint32_t workgroupsZ = (params.depth + workgroupSize - 1) / workgroupSize;
 
   vkCmdDispatch(commandBuffer, workgroupsX, workgroupsY, workgroupsZ);
 
-  // Barrier to ensure shader writes are visible for transfer/read operations
+  // Barrier to ensure shader writes are visible for next compute stage
   VkBufferMemoryBarrier barriers[3] = {};
   barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
   barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-  barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  barriers[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
   barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barriers[0].buffer = temperatureBuffer;
@@ -699,7 +725,7 @@ void UnitGPUSimplexNoise::GenWorldNoise(VkDevice device,
   barriers[2].buffer = elevationBuffer;
 
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 3, barriers, 0, nullptr);
+      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 3, barriers, 0, nullptr);
 }
 
 void UnitGPUSimplexNoise::Destroy(VkDevice device)

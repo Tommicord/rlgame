@@ -1,6 +1,5 @@
 #version 450
 
-// world.unitplace.comp
 // Compute shader that places units based on biome classification and unit rules
 // - Input:  binding=0, readonly uint biomeIds[]
 // - Input:  binding=1, readonly float temperature[]
@@ -15,227 +14,306 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 layout(std430, binding = 0) readonly buffer BiomeIn
 {
-  uint biomeIds[];
+    uint biomeIds[];
 } inBiome;
 
 layout(std430, binding = 1) readonly buffer TempIn
 {
-  float temperature[];
+    float temperature[];
 } inTemp;
 
 layout(std430, binding = 2) readonly buffer MoistIn
 {
-  float moisture[];
+    float moisture[];
 } inMoist;
 
 layout(std430, binding = 3) readonly buffer ElevIn
 {
-  float elevation[];
+    float elevation[];
 } inElev;
 
 layout(std430, binding = 4) readonly buffer HeightmapIn
 {
-  float heightmap[];
+    float heightmap[];
 } inHeight;
+
+
+// UnitGPUParams structure (aligned to 16 bytes)
+// Matches C++ UnitGPUParams structure exactly
+struct UnitData {
+    uint unitId;
+    float temperature;
+    float moisture;
+    float roughness;
+    float metallic;
+    float albedoR;
+    float albedoG;
+    float albedoB;
+    float reflectivity;
+    float refractiveIndex;
+    float dirtiness;
+    float hardness;
+    float explosionResistance;
+    float transparency;
+    float emissiveIntensity;
+    float subsurfaceScattering;
+    float flammability;
+    float lightEmit;
+    float lightOpacity;
+    float ambientOcclusion;
+    float lightAbsorption;
+    float lightScattering;
+    float humidity;
+    uint isLiquid;
+    uint isGas;
+    uint isSolid;
+    float padding[3];
+};
 
 layout(std430, binding = 5) readonly buffer UnitRegistry
 {
-  uint unitCount;
-  uint padding0;
-  uint padding1;
-  uint padding2;
-  
-  // UnitGPUParams structure (aligned to 16 bytes)
-  // Packed float array for all unit properties
-  float units[];
+    uint unitCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+    UnitData units[];
 } unitReg;
+
+// BiomeUnitRuleGPU structure (aligned to 16 bytes)
+// Matches C++ BiomeUnitRuleGPU structure exactly
+struct BiomeRule {
+    uint unitId;
+    float minHeight;
+    float maxHeight;
+    float minTemperature;
+    float maxTemperature;
+    float minMoisture;
+    float maxMoisture;
+    float minElevation;
+    float maxElevation;
+    float probability;
+    float density;
+    float padding[2];
+};
 
 layout(std430, binding = 6) readonly buffer BiomeUnitRules
 {
-  uint ruleCount;
-  uint padding0;
-  uint padding1;
-  uint padding2;
-  
-  // BiomeUnitRuleGPU structure (aligned to 16 bytes)
-  // uint32_t unitId;
-  // float minHeight, maxHeight;
-  // float minTemperature, maxTemperature;
-  // float minMoisture, maxMoisture;
-  // float minElevation, maxElevation;
-  // float probability, density;
-  // float padding[2];
-  float rules[];
+    uint ruleCount;
+    uint padding0;
+    uint padding1;
+    uint padding2;
+    BiomeRule rules[];
 } biomeRules;
 
 layout(std430, binding = 7) writeonly buffer UnitOut
 {
-  uint unitIds[];
+    uint unitIds[];
 } outUnit;
 
 layout(push_constant) uniform PC
 {
-  uint width;     // chunk width (x)
-  uint height;    // chunk height (y)
-  uint depth;     // chunk depth (z)
-  float seaLevel; // sea level threshold
-  uint airUnitId; // default unit ID for air
-  uint padding1;
-  uint padding2;
+    uint width;     // chunk width (x)
+    uint height;    // chunk height (y)
+    uint depth;     // chunk depth (z)
+    float seaLevel; // sea level threshold
+    uint airUnitId; // default unit ID for air
+    uint padding1;
+    uint padding2;
 } pc;
+
+// Shared memory cache: local workgroup cache with 1-block border (10x10x11)
+shared uint cachedBiomeIds[10][10][11];
+shared float cachedTemperature[10][10][11];
+shared float cachedMoisture[10][10][11];
+shared float cachedElevation[10][10][11];
+shared float cachedHeightmap[10][10][11];
+
+shared float localRulesCache[128][12];
+shared uint totalRulesCount;
+shared uint cachedHottestUnitId;
+shared uint cachedUnitCount;
 
 // Helper: compute linear index for (x,y,z) in row-major (x + y*W + z*W*H)
 uint ComputeIndex(uvec3 id)
 {
-  return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
+    return id.x + id.y * pc.width + id.z * (pc.width * pc.height);
 }
 
 // Simple hash function for probabilistic placement
 float Hash3D(uint x, uint y, uint z)
 {
-  uint seed = (x * 374761393u + y * 668265263u + z * 2504567u) ^ 2984356u;
-  seed = (seed ^ (seed >> 13u)) * 1274126177u;
-  return float(seed & 0x7FFFFFFFu) / float(0x7FFFFFFF);
-}
-
-// Get unit rule parameter from packed array
-float GetRuleParam(uint ruleIndex, uint paramOffset)
-{
-  uint baseIndex = ruleIndex * 12u + paramOffset; // 12 floats per rule
-  return biomeRules.rules[baseIndex];
-}
-
-// Get unit parameter from packed array
-float GetUnitParam(uint unitIndex, uint paramOffset)
-{
-  uint baseIndex = unitIndex * 28u + paramOffset; // 28 floats per unit
-  return unitReg.units[baseIndex];
+    uint seed = (x * 374761393u + y * 668265263u + z * 2504567u) ^ 2984356u;
+    seed = (seed ^ (seed >> 13u)) * 1274126177u;
+    return float(seed & 0x7FFFFFFFu) / float(0x7FFFFFFF);
 }
 
 void main()
 {
-  uvec3 gid = gl_GlobalInvocationID.xyz;
+    uint localId = gl_LocalInvocationIndex;
 
-  // Bounds check: dispatch might be larger than chunk dimensions
-  if (gid.x >= pc.width || gid.y >= pc.height || gid.z >= pc.depth)
+    if (localId == 0)
+    {
+        uint hottestUnit = pc.airUnitId;
+        float maxTemperature = -1000.0;
+        uint count = min(unitReg.unitCount, 256u);
+
+        for (uint i = 0; i < count; ++i)
+        {
+            float unitTemp = unitReg.units[i].temperature;
+            if (unitTemp > maxTemperature)
+            {
+                maxTemperature = unitTemp;
+                hottestUnit = unitReg.units[i].unitId;
+            }
+        }
+        cachedHottestUnitId = hottestUnit;
+        totalRulesCount = min(biomeRules.ruleCount, 128u);
+    }
+    memoryBarrierShared();
+    barrier();
+
+    if (localId < 128u * 11u) {
+        uint ruleIdx = localId / 11u;
+        uint paramIdx = localId % 11u;
+
+        if (ruleIdx < biomeRules.ruleCount) {
+            if (paramIdx == 0u)  localRulesCache[ruleIdx][0] = float(biomeRules.rules[ruleIdx].unitId);
+            if (paramIdx == 1u)  localRulesCache[ruleIdx][1] = biomeRules.rules[ruleIdx].minHeight;
+            if (paramIdx == 2u)  localRulesCache[ruleIdx][2] = biomeRules.rules[ruleIdx].maxHeight;
+            if (paramIdx == 3u)  localRulesCache[ruleIdx][3] = biomeRules.rules[ruleIdx].minTemperature;
+            if (paramIdx == 4u)  localRulesCache[ruleIdx][4] = biomeRules.rules[ruleIdx].maxTemperature;
+            if (paramIdx == 5u)  localRulesCache[ruleIdx][5] = biomeRules.rules[ruleIdx].minMoisture;
+            if (paramIdx == 6u)  localRulesCache[ruleIdx][6] = biomeRules.rules[ruleIdx].maxMoisture;
+            if (paramIdx == 7u)  localRulesCache[ruleIdx][7] = biomeRules.rules[ruleIdx].minElevation;
+            if (paramIdx == 8u)  localRulesCache[ruleIdx][8] = biomeRules.rules[ruleIdx].maxElevation;
+            if (paramIdx == 9u)  localRulesCache[ruleIdx][9] = biomeRules.rules[ruleIdx].probability;
+            if (paramIdx == 10u) localRulesCache[ruleIdx][10] = biomeRules.rules[ruleIdx].density;
+        }
+    }
+
+    uvec3 gid = gl_GlobalInvocationID.xyz;
+    uvec3 tid = gl_LocalInvocationID.xyz; // Local ID within workgroup (0 to 7)
+
+    int lx = int(tid.x) + 1;
+    int ly = int(tid.y) + 1;
+    int lz = int(tid.z) + 1;
+
+    int gx = int(gid.x);
+    int gy = int(gid.y);
+    int gz = int(gid.z);
+
+    uint idx = ComputeIndex(gid);
+
+    bool inBounds = (gid.x < pc.width && gid.y < pc.height && gid.z < pc.depth);
+    cachedBiomeIds[lx][ly][lz] = inBounds ? inBiome.biomeIds[idx] : 0;
+    cachedTemperature[lx][ly][lz] = inBounds ? inTemp.temperature[idx] : 0.0f;
+    cachedMoisture[lx][ly][lz] = inBounds ? inMoist.moisture[idx] : 0.0f;
+    cachedElevation[lx][ly][lz] = inBounds ? inElev.elevation[idx] : 0.0f;
+    cachedHeightmap[lx][ly][lz] = inBounds ? inHeight.heightmap[idx] : 0.0f;
+
+    // Edge threads cooperatively load external neighbors from global memory
+    uint neighborIdx;
+    if (tid.x == 0) {
+        neighborIdx = ComputeIndex(uvec3(max(0, gx - 1), gy, gz));
+        cachedBiomeIds[0][ly][lz] = (gx > 0) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[0][ly][lz] = (gx > 0) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[0][ly][lz] = (gx > 0) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[0][ly][lz] = (gx > 0) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[0][ly][lz] = (gx > 0) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+    if (tid.x == 7) {
+        neighborIdx = ComputeIndex(uvec3(gx + 1, gy, gz));
+        cachedBiomeIds[9][ly][lz] = (gx + 1 < pc.width) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[9][ly][lz] = (gx + 1 < pc.width) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[9][ly][lz] = (gx + 1 < pc.width) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[9][ly][lz] = (gx + 1 < pc.width) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[9][ly][lz] = (gx + 1 < pc.width) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+    if (tid.y == 0) {
+        neighborIdx = ComputeIndex(uvec3(gx, max(0, gy - 1), gz));
+        cachedBiomeIds[lx][0][lz] = (gy > 0) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[lx][0][lz] = (gy > 0) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[lx][0][lz] = (gy > 0) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[lx][0][lz] = (gy > 0) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[lx][0][lz] = (gy > 0) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+    if (tid.y == 7) {
+        neighborIdx = ComputeIndex(uvec3(gx, gy + 1, gz));
+        cachedBiomeIds[lx][9][lz] = (gy + 1 < pc.height) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[lx][9][lz] = (gy + 1 < pc.height) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[lx][9][lz] = (gy + 1 < pc.height) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[lx][9][lz] = (gy + 1 < pc.height) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[lx][9][lz] = (gy + 1 < pc.height) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+    if (tid.z == 0) {
+        neighborIdx = ComputeIndex(uvec3(gx, gy, max(0, gz - 1)));
+        cachedBiomeIds[lx][ly][0] = (gz > 0) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[lx][ly][0] = (gz > 0) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[lx][ly][0] = (gz > 0) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[lx][ly][0] = (gz > 0) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[lx][ly][0] = (gz > 0) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+    if (tid.z == 7) {
+        neighborIdx = ComputeIndex(uvec3(gx, gy, gz + 1));
+        cachedBiomeIds[lx][ly][10] = (gz + 1 < pc.depth) ? inBiome.biomeIds[neighborIdx] : 0;
+        cachedTemperature[lx][ly][10] = (gz + 1 < pc.depth) ? inTemp.temperature[neighborIdx] : 0.0f;
+        cachedMoisture[lx][ly][10] = (gz + 1 < pc.depth) ? inMoist.moisture[neighborIdx] : 0.0f;
+        cachedElevation[lx][ly][10] = (gz + 1 < pc.depth) ? inElev.elevation[neighborIdx] : 0.0f;
+        cachedHeightmap[lx][ly][10] = (gz + 1 < pc.depth) ? inHeight.heightmap[neighborIdx] : 0.0f;
+    }
+
+    memoryBarrierShared();
+    barrier();
+
+    if (!inBounds)
     return;
 
-  uint idx = ComputeIndex(gid);
-  uint biomeId = inBiome.biomeIds[idx];
-  float temp = inTemp.temperature[idx];
-  float moist = inMoist.moisture[idx];
-  float elev = inElev.elevation[idx];
-  float height = inHeight.heightmap[idx];
+    uint biomeId = cachedBiomeIds[lx][ly][lz];
+    float temp = cachedTemperature[lx][ly][lz];
+    float moist = cachedMoisture[lx][ly][lz];
+    float elev = cachedElevation[lx][ly][lz];
+    float height = cachedHeightmap[lx][ly][lz];
 
-  // Default to air
-  uint selectedUnit = pc.airUnitId;
+    uint selectedUnit = pc.airUnitId;
 
-  // Check if below terrain surface
-  if (float(gid.y) < height)
-  {
-    // Underground: select based on temperature
-    // Deeper = hotter, so find unit with highest temperature
-    float depth = height - float(gid.y);
-    float targetTemperature = depth * 50.0; // Temperature increases with depth
-    
-    uint hottestUnit = pc.airUnitId;
-    float maxTemperature = -1000.0;
-    
-    // Find unit with temperature closest to target
-    for (uint i = 0; i < unitReg.unitCount; ++i)
+    // Check if below terrain surface
+    if (float(gid.y) < height)
     {
-      uint unitId = uint(GetUnitParam(i, 0));
-      float unitTemp = GetUnitParam(i, 1); // Temperature is at offset 1
-      
-      // Prefer hotter units for deeper locations
-      if (unitTemp > maxTemperature)
-      {
-        maxTemperature = unitTemp;
-        hottestUnit = unitId;
-      }
+        selectedUnit = cachedHottestUnitId;
     }
-    
-    // Select unit based on depth temperature gradient
-    // Starts as 35KM
-    if (depth > 35000.0)
+    else if (abs(float(gid.y) - height) < 1.0)
     {
-      // Very deep: use hottest unit available
-      selectedUnit = hottestUnit;
-    }
-    else if (depth > 4000.0) // 4 KM
-    {
-      // Medium depth: find unit with medium-high temperature
-      float bestMatch = 1000.0;
-      for (uint i = 0; i < unitReg.unitCount; ++i)
-      {
-        uint unitId = uint(GetUnitParam(i, 0));
-        float unitTemp = GetUnitParam(i, 1);
-        float tempDiff = abs(unitTemp - 400.0); // Target ~400°C for medium depth
-        
-        if (tempDiff < bestMatch)
+        for (uint i = 0; i < totalRulesCount; ++i)
         {
-          bestMatch = tempDiff;
-          selectedUnit = unitId;
+            uint ruleBiomeId = uint(localRulesCache[i][0]);
+            if (ruleBiomeId != biomeId)
+            continue;
+
+            float minHeight = localRulesCache[i][1];
+            float maxHeight = localRulesCache[i][2];
+            float minTemp = localRulesCache[i][3];
+            float maxTemp = localRulesCache[i][4];
+            float minMoist = localRulesCache[i][5];
+            float maxMoist = localRulesCache[i][6];
+            float minElev = localRulesCache[i][7];
+            float maxElev = localRulesCache[i][8];
+            float probability = localRulesCache[i][9];
+            float density = localRulesCache[i][10];
+
+            if ((height >= minHeight) && (height <= maxHeight) &&
+                (temp >= minTemp) && (temp <= maxTemp) &&
+                (moist >= minMoist) && (moist <= maxMoist) &&
+                (elev >= minElev) && (elev <= maxElev))
+            {
+                float hash = Hash3D(gid.x, gid.y, gid.z);
+                if (hash < probability * density)
+                {
+                    selectedUnit = uint(localRulesCache[i][0]);
+                    break;
+                }
+            }
         }
-      }
     }
-    else
-    {
-      // Near surface underground: find unit with moderate temperature
-      float bestMatch = 1000.0;
-      for (uint i = 0; i < unitReg.unitCount; ++i)
-      {
-        uint unitId = uint(GetUnitParam(i, 0));
-        float unitTemp = GetUnitParam(i, 1);
-        float tempDiff = abs(unitTemp - 100.0); // Target ~100°C for near surface
-        
-        if (tempDiff < bestMatch)
-        {
-          bestMatch = tempDiff;
-          selectedUnit = unitId;
-        }
-      }
-    }
-  }
-  else if (abs(float(gid.y) - height) < 1.0)
-  {
-    // Surface layer: apply biome rules
-    for (uint i = 0; i < biomeRules.ruleCount; ++i)
-    {
-      uint ruleBiomeId = uint(GetRuleParam(i, 0));
-      if (ruleBiomeId != biomeId)
-        continue;
 
-      uint ruleUnitId = uint(GetRuleParam(i, 1));
-      float minHeight = GetRuleParam(i, 2);
-      float maxHeight = GetRuleParam(i, 3);
-      float minTemp = GetRuleParam(i, 4);
-      float maxTemp = GetRuleParam(i, 5);
-      float minMoist = GetRuleParam(i, 6);
-      float maxMoist = GetRuleParam(i, 7);
-      float minElev = GetRuleParam(i, 8);
-      float maxElev = GetRuleParam(i, 9);
-      float probability = GetRuleParam(i, 10);
-      float density = GetRuleParam(i, 11);
-
-      // Check if rule conditions match
-      bool heightMatch = (height >= minHeight) && (height <= maxHeight);
-      bool tempMatch = (temp >= minTemp) && (temp <= maxTemp);
-      bool moistMatch = (moist >= minMoist) && (moist <= maxMoist);
-      bool elevMatch = (elev >= minElev) && (elev <= maxElev);
-
-      if (heightMatch && tempMatch && moistMatch && elevMatch)
-      {
-        // Probabilistic placement using hash
-        float hash = Hash3D(gid.x, gid.y, gid.z);
-        if (hash < probability * density)
-        {
-          selectedUnit = ruleUnitId;
-          break;
-        }
-      }
-    }
-  }
-
-  outUnit.unitIds[idx] = selectedUnit;
+    outUnit.unitIds[idx] = selectedUnit;
 }

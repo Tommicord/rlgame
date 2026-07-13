@@ -57,6 +57,8 @@ struct UnitData {
     uint isSolid;
     uint padFinal;
 };
+// Shared memory cache for unit data to avoid repeated global memory access
+shared UnitData cachedUnitData[1];
 
 struct PolFence {
     float t;
@@ -114,8 +116,31 @@ vec3(0, 0, 1)    // Left
 
 void main() {
     uint globalId = gl_GlobalInvocationID.x;
+    uint localId = gl_LocalInvocationIndex;
     uint localIndex = globalId; // 0..23 expected
     uint outputIndex = startVertex + localIndex;
+
+    // Thread 0 loads unit data into shared memory cache
+    if (localId == 0) {
+        bool foundUnit = false;
+        for (uint i = 0u; i < unitArray.unitCount; ++i) {
+            if (unitArray.units[i].unitId == unitId) {
+                cachedUnitData[0] = unitArray.units[i];
+                foundUnit = true;
+                break;
+            }
+        }
+        if (!foundUnit) {
+            cachedUnitData[0].unitId = 0; // Mark as not found
+        }
+    }
+    memoryBarrierShared();
+    barrier();
+
+    // Check if unit was found
+    if (cachedUnitData[0].unitId == 0 && unitId != 0) {
+        return;
+    }
 
     // Require unit and fence data present; do not use fixed fallback
     if (unitArray.unitCount == 0u || polFenceArray.fenceCount == 0u) {
@@ -134,26 +159,12 @@ void main() {
 
     UnitRenderVertex v;
 
-    // Find unit data by unitId; require a match (no hardcoded defaults)
-    bool foundUnit = false;
-    bool foundFence = false;
-    UnitData unitData;
+    // Use cached unit data from shared memory
+    UnitData unitData = cachedUnitData[0];
+
+    // Find the fence data by unitId (separate lookup)
     PolFence fence;
-    
-    // First find the unit data
-    for (uint i = 0u; i < unitArray.unitCount; ++i) {
-        if (unitArray.units[i].unitId == unitId) {
-            unitData = unitArray.units[i];
-            foundUnit = true;
-            break;
-        }
-    }
-    
-    if (!foundUnit) {
-        return;
-    }
-    
-    // Then find the fence data by unitId (separate lookup)
+    bool foundFence = false;
     for (uint i = 0u; i < polFenceArray.fenceCount; ++i) {
         if (i < unitArray.unitCount && unitArray.units[i].unitId == unitId) {
             fence = polFenceArray.fences[i];
@@ -161,7 +172,7 @@ void main() {
             break;
         }
     }
-    
+
     // If fence not found, use default zero fence
     if (!foundFence) {
         fence = PolFence(0.0, 0.0, 0.0, 0.0);

@@ -69,6 +69,7 @@ export class ChunkSystem
   bool ShouldGenerate(const WorldChunkCoord& coord) const;
   bool GenerateChunk(const WorldChunkCoord& coord);
   void RemoveOutOfRangeChunks();
+  uint32_t DetermineMaxChunksPerFrame() const;
 
   std::unique_ptr<ChunkInRenderUnits>           chunkStore;
   WorldChunkCoord                               renderDistance;
@@ -83,12 +84,15 @@ export class ChunkSystem
   mutable std::mutex                            stateMutex;
   std::unordered_map<uint64_t, WorldChunkCoord> generatedChunkStorageCoords;
   std::jthread                                  generationThread;
+  std::vector<WorldChunkCoord>                  pendingChunks; // Chunks waiting to be generated
+  size_t                                        pendingChunkIndex = 0; // Current index in pendingChunks
 
   /* GPU generation support */
   ChunkGeneratorGPU* gpuGenerator         = nullptr;
   VkDevice           gpuDevice            = VK_NULL_HANDLE;
   VkPhysicalDevice   gpuPhysicalDevice    = VK_NULL_HANDLE;
   bool               gpuGenerationEnabled = false;
+  uint32_t           maxChunksPerFrame    = 2; // Dynamic based on GPU power
 };
 
 } // namespace Rl::World::Chunk

@@ -10,44 +10,38 @@ layout(std430, binding = 1) buffer PermGradIndex3DBuffer {
     int permGradIndex3D[256];
 };
 
-// Seed for reproducible noise
 layout(push_constant) uniform PushConstants {
     uint seed;
 } pc;
 
-// Linear congruential generator for pseudo-random numbers
+shared int cachedSource[256];
+
 uint LCG(uint state) {
     return state * 1664525u + 1013904223u;
 }
 
 void main() {
-    uint globalID = gl_GlobalInvocationID.x;
-    
-    if (globalID >= 256) {
-        return;
+    uint localID = gl_LocalInvocationIndex;
+    if (localID < 256) {
+        cachedSource[localID] = int(localID);
     }
-    
-    // Initialize source array
-    int source[256];
-    for (int i = 0; i < 256; i++) {
-        source[i] = i;
-    }
-    
-    // Initialize seed
-    uint currentSeed = pc.seed;
-    currentSeed = LCG(currentSeed);
-    currentSeed = LCG(currentSeed);
-    currentSeed = LCG(currentSeed);
-    
-    // Fisher-Yates shuffle
-    for (int i = 255; i >= 0; i--) {
+    barrier();
+    if (localID == 0) {
+        uint currentSeed = pc.seed;
         currentSeed = LCG(currentSeed);
-        int r = int((currentSeed + 31u) % uint(i + 1));
-        if (r < 0) {
-            r += (i + 1);
+        currentSeed = LCG(currentSeed);
+        currentSeed = LCG(currentSeed);
+
+        for (int i = 255; i >= 0; i--) {
+            currentSeed = LCG(currentSeed);
+            int r = int((currentSeed + 31u) % uint(i + 1));
+            if (r < 0) {
+                r += (i + 1);
+            }
+            int pickedValue = cachedSource[r];
+            perm[i] = pickedValue;
+            permGradIndex3D[i] = (pickedValue % 24) * 3;
+            cachedSource[r] = cachedSource[i];
         }
-        perm[i] = source[r];
-        permGradIndex3D[i] = (perm[i] % 24) * 3; // 24 gradients in 3D, 3 components each
-        source[r] = source[i];
     }
 }

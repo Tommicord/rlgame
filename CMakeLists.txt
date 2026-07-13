@@ -86,30 +86,6 @@ set(CXX_MODULES
   rl/World/Unit/UnitGPURegisterDerived.ixx
   rl/World/Unit/UnitGrassGrowBehavior.ixx
   rl/World/Unit/UnitTextureFactory.ixx
-  rl/Client/State/UnitState.ixx
-  rl/Client/Render/Unit/UnitRendererAOTextures.ixx
-  rl/Client/Render/Unit/UnitRendererBarriers.ixx
-  rl/Client/Render/Unit/UnitRendererBasicBuffer.ixx
-  rl/Client/Render/Unit/UnitRendererCleanup.ixx
-  rl/Client/Render/Unit/UnitRendererCommandBuffers.ixx
-  rl/Client/Render/Unit/UnitRendererComputePipeline.ixx
-  rl/Client/Render/Unit/UnitRendererCurvatureCompute.ixx
-  rl/Client/Render/Unit/UnitRendererDescriptorSets.ixx
-  rl/Client/Render/Unit/UnitRendererDraw.ixx
-  rl/Client/Render/Unit/UnitRendererDrawCompute.ixx
-  rl/Client/Render/Unit/UnitRendererFrustum.ixx
-  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.ixx
-  rl/Client/Render/Unit/UnitRendererShadowPipeline.ixx
-  rl/Client/Render/Unit/UnitRendererIndirectDraw.ixx
-  rl/Client/Render/Unit/UnitRendererInfo.ixx
-  rl/Client/Render/Unit/UnitRendererNormalTextures.ixx
-  rl/Client/Render/Unit/UnitRendererPlaceholderResource.ixx
-  rl/Client/Render/Unit/UnitRendererShadowMap.ixx
-  rl/Client/Render/Unit/UnitRendererSampler.ixx
-  rl/Client/Render/Unit/UnitRendererTextureManage.ixx
-  rl/Client/Render/Unit/UnitRendererVertexInput.ixx
-  rl/Client/Render/Unit/UnitRendererVertices.ixx
-  rl/Client/Render/Unit/UnitRendererMeshGen.ixx
   rl/World/Chunk/UnitChunkBuffer.ixx
   rl/World/Chunk/UnitGPUSimplexNoise.ixx
   rl/World/Chunk/ChunkGPUNoiseGen.ixx
@@ -154,6 +130,7 @@ set(CXX_MODULES
   rl/RayLog/RayLog.ixx
   rl/RayLog/RayLogMacro.ixx
   rl/World/Chunk/ChunkSystemNotify.ixx
+  rl/Client/Render/Buffer.ixx
 )
 
 set(SOURCES
@@ -174,32 +151,6 @@ set(SOURCES
   rl/World/Unit/UnitTextureFactory.cpp
   rl/World/Unit/UnitRegistryGPU.cpp
   rl/World/Unit/UnitGrass.cpp
-  rl/Client/Render/Unit/UnitRenderer.cpp
-  rl/Client/Render/Unit/UnitRendererAOTextures.cpp
-  rl/Client/Render/Unit/UnitRendererBarriers.cpp
-  rl/Client/Render/Unit/UnitRendererBuffer.cpp
-  rl/Client/Render/Unit/UnitRendererCleanup.cpp
-  rl/Client/Render/Unit/UnitRendererCommandBuffers.cpp
-  rl/Client/Render/Unit/UnitRendererComputeBuffer.cpp
-  rl/Client/Render/Unit/UnitRendererComputePipeline.cpp
-  rl/Client/Render/Unit/UnitRendererCurvatureCompute.cpp
-  rl/Client/Render/Unit/UnitRendererDescriptorSets.cpp
-  rl/Client/Render/Unit/UnitRendererDraw.cpp
-  rl/Client/Render/Unit/UnitRendererDrawCompute.cpp
-  rl/Client/Render/Unit/UnitRendererFrustum.cpp
-  rl/Client/Render/Unit/UnitRendererGraphicsPipeline.cpp
-  rl/Client/Render/Unit/UnitRendererShadowPipeline.cpp
-  rl/Client/Render/Unit/UnitRendererIndirectDraw.cpp
-  rl/Client/Render/Unit/UnitRendererNormalTextures.cpp
-  rl/Client/Render/Unit/UnitRendererPlaceholderResource.cpp
-  rl/Client/Render/Unit/UnitRendererShadowMap.cpp
-  rl/Client/Render/Unit/UnitRendererSampler.cpp
-  rl/Client/Render/Unit/UnitRendererSSBOBuffer.cpp
-  rl/Client/Render/Unit/UnitRendererTextureManage.cpp
-  rl/Client/Render/Unit/UnitRendererVertexBuffer.cpp
-  rl/Client/Render/Unit/UnitRendererVertexInput.cpp
-  rl/Client/Render/Unit/UnitRendererVertices.cpp
-  rl/Client/Render/Unit/UnitRendererMeshGen.cpp
   rl/World/Biome/BiomeRegistryGPU.cpp
   rl/World/Chunk/UnitChunkBuffer.cpp
   rl/World/Chunk/UnitGPUSimplexNoise.cpp
@@ -332,6 +283,7 @@ add_executable(
   Tests/ChunkTransactionRingBufferTest.cpp
   Tests/ChunkTransactionTest.cpp
   Tests/UnitChunkAccessorTest.cpp
+  Tests/ChunkGeneratorGPUTest.cpp
 )
 target_sources(
   rlgame_tests

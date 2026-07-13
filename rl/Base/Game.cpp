@@ -2,7 +2,6 @@ import Rl.Base.Game;
 import Rl.Base.Shader;
 import Rl.Base.Binding;
 import Rl.Base.UserInput;
-import Rl.Client.State.UnitState;
 import Rl.Player.PlayerCamera;
 import Rl.Player.CameraController;
 import Rl.Player.PlayerProvider;
@@ -46,7 +45,8 @@ constexpr bool enableValidationLayers = true;
 
 Game::Game() :
     serviceUpdaterRegistry(std::make_unique<World::ServiceUpdaterRegistry>()),
-    input(Input::UserInput::GetInstance())
+    input(Input::UserInput::GetInstance()),
+    debugMessenger(VK_NULL_HANDLE)
 {
 }
 
@@ -139,6 +139,14 @@ void Game::DestroyGraphics()
 
   if (binding.instance != VK_NULL_HANDLE)
   {
+    if (enableValidationLayers && debugMessenger != VK_NULL_HANDLE)
+    {
+      auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(binding.instance, "vkDestroyDebugUtilsMessengerEXT");
+      if (func != nullptr)
+      {
+        func(binding.instance, debugMessenger, nullptr);
+      }
+    }
     if (binding.surface != VK_NULL_HANDLE)
     {
       vkDestroySurfaceKHR(binding.instance, binding.surface, nullptr);
@@ -157,12 +165,12 @@ void Game::DestroyGraphics()
 
 void Game::DestroyResources()
 {
-  unitModel.reset();
 }
 
 void Game::InitGraphics()
 {
   CreateInstance();
+  SetupDebugMessenger();
   CreateSurface();
   PickPhysicalDevice();
   CreateLogicalDevice();
@@ -239,7 +247,6 @@ void Game::InitWindow()
 
 void Game::Update()
 {
-  unitModel->Update(binding);
 }
 
 void Game::UpdateServices()
@@ -276,10 +283,11 @@ void Game::CreateInstance()
   appInfo.apiVersion         = VK_API_VERSION_1_0;
 
   VkValidationFeatureEnableEXT enables[] = {
-    VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT};
+    VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
+    VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
   VkValidationFeaturesEXT validationFeatures{};
   validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-  validationFeatures.enabledValidationFeatureCount = 1;
+  validationFeatures.enabledValidationFeatureCount = 2;
   validationFeatures.pEnabledValidationFeatures    = enables;
 
   VkInstanceCreateInfo createInfo{};
@@ -316,14 +324,8 @@ void Game::CreateSurface()
   }
 }
 
-void Game::CreateUnitModel()
-{
-  unitModel = std::make_unique<UnitModel>(binding);
-}
-
 void Game::CreateResources()
 {
-  CreateUnitModel();
 }
 
 void Game::PickPhysicalDevice()
@@ -358,6 +360,10 @@ void Game::CreateLogicalDevice()
 {
   binding.queueFamilyIndices = FindQueueFamilies(binding.physicalDevice);
 
+  // Get physical device features before creating device
+  VkPhysicalDeviceFeatures deviceFeatures{};
+  vkGetPhysicalDeviceFeatures(binding.physicalDevice, &deviceFeatures);
+
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set uniqueQueueFamilies = {binding.queueFamilyIndices.graphicsFamily.value(),
                                   binding.queueFamilyIndices.presentFamily.value()};
@@ -378,7 +384,6 @@ void Game::CreateLogicalDevice()
     // deviceExtensions.push_back(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{};
   VkDeviceCreateInfo createInfo{};
   createInfo.sType                = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -416,6 +421,10 @@ void Game::CreateSwapChain()
   VkSurfaceCapabilitiesKHR        caps;
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(binding.physicalDevice, binding.surface,
                                             &caps);
+
+  // Get surface formats before creating swapchain (validation requirement)
+  uint32_t formatCount;
+  vkGetPhysicalDeviceSurfaceFormatsKHR(binding.physicalDevice, binding.surface, &formatCount, nullptr);
 
   constexpr VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_B8G8R8A8_SRGB,
                                                 VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -527,8 +536,8 @@ void Game::CreateRenderPass()
   dependency.dstSubpass    = 0;
   dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.srcAccessMask = 0;
-  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
 
   VkRenderPassCreateInfo renderPassInfo{};
   renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -635,7 +644,6 @@ void Game::CreateSyncObjects()
 
 void Game::DrawCallback()
 {
-  unitModel->Draw(binding);
 }
 
 void Game::Draw()
@@ -656,8 +664,6 @@ void Game::Draw()
   {
     throw std::runtime_error("Failed to begin recording command buffer");
   }
-
-  unitModel->DrawCompute(binding);
 
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -808,8 +814,52 @@ std::vector<const char*> Game::GetRequiredExtensions() const
   {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+    extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
   }
   return extensions;
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData)
+{
+  if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+  {
+    RayLog::LogFatal(RAYLOG_TAG, "Validation layer: %s", pCallbackData->pMessage);
+  }
+  return VK_FALSE;
+}
+
+void Game::SetupDebugMessenger()
+{
+  if (!enableValidationLayers) return;
+
+  VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+  createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+  createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+  createInfo.pfnUserCallback = DebugCallback;
+  createInfo.pUserData = nullptr;
+
+  auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+      vkGetInstanceProcAddr(binding.instance, "vkCreateDebugUtilsMessengerEXT"));
+  if (func != nullptr)
+  {
+    if (func(binding.instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+    {
+      RayLog::LogError(RAYLOG_TAG, "Failed to set up debug messenger");
+    }
+  }
+  else
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to load vkCreateDebugUtilsMessengerEXT");
+  }
 }
 
 } // namespace Rl::Main

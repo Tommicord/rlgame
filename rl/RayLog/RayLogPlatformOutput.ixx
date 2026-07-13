@@ -1,8 +1,4 @@
-export module Rl.RayLog.PlatformOutput;
-
-import Rl.RayLog.Platform;
-import <string>;
-import <iostream>;
+module;
 
 #if defined(__ANDROID__)
 #include <android/log.h>
@@ -13,6 +9,12 @@ import <iostream>;
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
+
+export module Rl.RayLog.PlatformOutput;
+
+import Rl.RayLog.Platform;
+import <string>;
+import <iostream>;
 
 namespace Rl::RayLog
 {

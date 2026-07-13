@@ -5,8 +5,11 @@ import Rl.World.Unit.UnitRegistryGPU;
 import Rl.World.Chunk.UnitChunkBuffer;
 import Rl.World.Chunk.UnitGPUSimplexNoise;
 import Rl.World.Chunk.ChunkInRenderUnits;
+import Rl.World.Unit.UnitAir;
 import Rl.RayLog.Macro;
 import Rl.RayLog.Logger;
+import Rl.Base.Game;
+import Rl.Base.Shader;
 
 import <cstring>;
 import <stdexcept>;
@@ -44,6 +47,9 @@ bool ChunkGeneratorGPU::Initialize(VkDevice device, VkPhysicalDevice physicalDev
     RayLog::LogError(RAYLOG_TAG, "Failed to create descriptor sets");
     return false;
   }
+  // Create noise buffers
+  noiseGenerator.CreateNoiseBuffer(device, physicalDevice, chunkWidth, chunkHeight, chunkDepth);
+  noiseGenerator.CreateWorldOutputBuffers(device, physicalDevice, chunkWidth, chunkHeight, chunkDepth);
 
   // Initialize async queue with priority comparator
   asyncQueue = std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>, Comparator>(comparator);
@@ -59,6 +65,16 @@ void ChunkGeneratorGPU::Shutdown(VkDevice device)
     return;
 
   vkDeviceWaitIdle(device);
+
+  // Cleanup lookup table buffers
+  if (transparencyLUTBuffer != VK_NULL_HANDLE)
+    vkDestroyBuffer(device, transparencyLUTBuffer, nullptr);
+  if (transparencyLUTMemory != VK_NULL_HANDLE)
+    vkFreeMemory(device, transparencyLUTMemory, nullptr);
+  if (curableLUTBuffer != VK_NULL_HANDLE)
+    vkDestroyBuffer(device, curableLUTBuffer, nullptr);
+  if (curableLUTMemory != VK_NULL_HANDLE)
+    vkFreeMemory(device, curableLUTMemory, nullptr);
 
   // Cleanup pipelines
   if (heightmapPipeline != VK_NULL_HANDLE)
@@ -79,6 +95,10 @@ void ChunkGeneratorGPU::Shutdown(VkDevice device)
     vkDestroyPipelineLayout(device, unitPlaceLayout, nullptr);
   if (polFenceLayout != VK_NULL_HANDLE)
     vkDestroyPipelineLayout(device, polFenceLayout, nullptr);
+
+  // Cleanup descriptor set layout
+  if (polFenceDescriptorSetLayout != VK_NULL_HANDLE)
+    vkDestroyDescriptorSetLayout(device, polFenceDescriptorSetLayout, nullptr);
 
   // Cleanup descriptor pool
   if (descriptorPool != VK_NULL_HANDLE)
@@ -134,11 +154,62 @@ void ChunkGeneratorGPU::SetUnitRegistry(UnitRegistryGPU* unitRegistry)
 {
   this->unitRegistry = unitRegistry;
   registriesSet = true;
+
+  // Create lookup table buffers now that we have the unit registry
+  if (initialized && device != VK_NULL_HANDLE && physicalDevice != VK_NULL_HANDLE)
+  {
+    CreateLookupTableBuffers(device, physicalDevice);
+  }
 }
 
-void ChunkGeneratorGPU::SetNonCurableUnits(const std::vector<uint32_t>& nonCurableIds)
+void ChunkGeneratorGPU::SetNonCurableUnits(std::vector<uint32_t>& nonCurableIds)
 {
   nonCurableUnitIds = nonCurableIds;
+
+  // Update lookup table buffers if initialized
+  if (initialized && device != VK_NULL_HANDLE && transparencyLUTBuffer != VK_NULL_HANDLE)
+  {
+    // Get command buffer from Game's MainBinding
+    auto& game = Rl::Main::Game::GetInstance();
+    auto& binding = game.GetMainBinding();
+
+    if (!binding.commandBuffers.empty())
+    {
+      VkCommandBuffer cmdBuffer = binding.commandBuffers[0];
+
+      // Begin command buffer for one-time use
+      VkCommandBufferBeginInfo beginInfo{};
+      beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+      beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+      if (vkBeginCommandBuffer(cmdBuffer, &beginInfo) == VK_SUCCESS)
+      {
+        // Update lookup table buffers
+        UpdateLookupTableBuffers(device, cmdBuffer);
+
+        if (vkEndCommandBuffer(cmdBuffer) == VK_SUCCESS)
+        {
+          // Submit and wait for completion
+          VkSubmitInfo submitInfo{};
+          submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+          submitInfo.commandBufferCount = 1;
+          submitInfo.pCommandBuffers = &cmdBuffer;
+
+          VkFence fence = VK_NULL_HANDLE;
+          VkFenceCreateInfo fenceInfo{};
+          fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+          if (vkCreateFence(device, &fenceInfo, nullptr, &fence) == VK_SUCCESS)
+          {
+            if (vkQueueSubmit(binding.graphicsQueue, 1, &submitInfo, fence) == VK_SUCCESS)
+            {
+              vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL); // 5s timeout
+            }
+            vkDestroyFence(device, fence, nullptr);
+          }
+        }
+      }
+    }
+  }
 
   // Update GPU buffer if initialized
   if (initialized && device != VK_NULL_HANDLE)
@@ -151,111 +222,21 @@ void ChunkGeneratorGPU::SetNonCurableUnits(const std::vector<uint32_t>& nonCurab
     }
 
     CreateBuffer(device, physicalDevice, bufferSize,
-                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 nonCurableBuffer, nonCurableMemory);
 
-    // Upload data via staging
-    VkBuffer staging = VK_NULL_HANDLE;
-    VkDeviceMemory stagingMem = VK_NULL_HANDLE;
-    CreateBuffer(device, physicalDevice, bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                staging, stagingMem);
-
+    // Upload data directly to host-visible memory
     void* data = nullptr;
-    vkMapMemory(device, stagingMem, 0, bufferSize, 0, &data);
+    vkMapMemory(device, nonCurableMemory, 0, bufferSize, 0, &data);
+    
+    // Sort non-curable units for binary search optimization in compute shaders
+    std::sort(nonCurableIds.begin(), nonCurableIds.end());
+    
     uint32_t count = static_cast<uint32_t>(nonCurableIds.size());
     memcpy(data, &count, sizeof(uint32_t));
     memcpy(static_cast<uint8_t*>(data) + sizeof(uint32_t), nonCurableIds.data(), nonCurableIds.size() * sizeof(uint32_t));
-    vkUnmapMemory(device, stagingMem);
-
-    // Copy to device buffer using temporary command buffer
-    uint32_t queueFamilyIndex = 0;
-    VkQueue queue = nullptr;
-    vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
-
-    VkCommandPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-    poolInfo.queueFamilyIndex = queueFamilyIndex;
-
-    VkCommandPool commandPool = VK_NULL_HANDLE;
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-    {
-      RayLog::LogError(RAYLOG_TAG, "Failed to create command pool for non-curable buffer upload");
-      vkDestroyBuffer(device, staging, nullptr);
-      vkFreeMemory(device, stagingMem, nullptr);
-      return;
-    }
-
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer cmd = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(device, &allocInfo, &cmd) != VK_SUCCESS)
-    {
-      RayLog::LogError(RAYLOG_TAG, "Failed to allocate command buffer for non-curable buffer upload");
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      vkDestroyBuffer(device, staging, nullptr);
-      vkFreeMemory(device, stagingMem, nullptr);
-      return;
-    }
-
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
-    {
-      RayLog::LogError(RAYLOG_TAG, "Failed to begin command buffer for non-curable buffer upload");
-      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      vkDestroyBuffer(device, staging, nullptr);
-      vkFreeMemory(device, stagingMem, nullptr);
-      return;
-    }
-
-    VkBufferCopy copyRegion{};
-    copyRegion.srcOffset = 0;
-    copyRegion.dstOffset = 0;
-    copyRegion.size = bufferSize;
-    vkCmdCopyBuffer(cmd, staging, nonCurableBuffer, 1, &copyRegion);
-
-    if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
-    {
-      RayLog::LogError(RAYLOG_TAG, "Failed to end command buffer for non-curable buffer upload");
-      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      vkDestroyBuffer(device, staging, nullptr);
-      vkFreeMemory(device, stagingMem, nullptr);
-      return;
-    }
-
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &cmd;
-
-    if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
-    {
-      RayLog::LogError(RAYLOG_TAG, "Failed to submit non-curable buffer upload");
-      vkFreeCommandBuffers(device, commandPool, 1, &cmd);
-      vkDestroyCommandPool(device, commandPool, nullptr);
-      vkDestroyBuffer(device, staging, nullptr);
-      vkFreeMemory(device, stagingMem, nullptr);
-      return;
-    }
-
-    vkQueueWaitIdle(queue);
-
-    vkFreeCommandBuffers(device, commandPool, 1, &cmd);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    vkDestroyBuffer(device, staging, nullptr);
-    vkFreeMemory(device, stagingMem, nullptr);
+    vkUnmapMemory(device, nonCurableMemory);
   }
 }
 
@@ -268,7 +249,6 @@ bool ChunkGeneratorGPU::GenerateChunk(VkDevice device, VkCommandBuffer commandBu
     return false;
   }
 
-  // Set chunk dimensions
   chunkWidth = UnitChunkBuffer::W;
   chunkHeight = UnitChunkBuffer::H;
   chunkDepth = UnitChunkBuffer::D;
@@ -279,6 +259,12 @@ bool ChunkGeneratorGPU::GenerateChunk(VkDevice device, VkCommandBuffer commandBu
     RayLog::LogError(RAYLOG_TAG, "Failed to create intermediate buffers");
     return false;
   }
+  // Update polFence descriptor set with current buffer handles
+  if (!UpdatePolFenceDescriptorSet(device))
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to update polFence descriptor set");
+    return false;
+  }
 
   // Update registry GPU buffers
   if (biomeRegistry)
@@ -286,44 +272,73 @@ bool ChunkGeneratorGPU::GenerateChunk(VkDevice device, VkCommandBuffer commandBu
   if (unitRegistry)
     unitRegistry->UpdateGPUBuffer(device, commandBuffer);
 
-  // Execute pipeline stages
+  // Update lookup table buffers
+  if (transparencyLUTBuffer != VK_NULL_HANDLE && curableLUTBuffer != VK_NULL_HANDLE)
+  {
+    UpdateLookupTableBuffers(device, commandBuffer);
+  }
+
+  // Execute pipeline stages with progress logging
+  RayLog::LogInfo(RAYLOG_TAG, "Starting chunk generation pipeline for dimensions %dx%dx%d", chunkWidth, chunkHeight, chunkDepth);
+
+  RayLog::LogInfo(RAYLOG_TAG, "Executing noise stage...");
   if (!ExecuteNoiseStage(device, commandBuffer, coord))
   {
     RayLog::LogError(RAYLOG_TAG, "Noise stage failed");
     return false;
   }
+  RayLog::LogInfo(RAYLOG_TAG, "Noise stage completed");
 
+  RayLog::LogInfo(RAYLOG_TAG, "Executing heightmap stage");
   if (!ExecuteHeightmapStage(device, commandBuffer))
   {
     RayLog::LogError(RAYLOG_TAG, "Heightmap stage failed");
     return false;
   }
 
+  RayLog::LogInfo(RAYLOG_TAG, "Executing biome stage");
   if (!ExecuteBiomeStage(device, commandBuffer))
   {
     RayLog::LogError(RAYLOG_TAG, "Biome stage failed");
     return false;
   }
+  RayLog::LogInfo(RAYLOG_TAG, "Biome stage completed");
 
+  RayLog::LogInfo(RAYLOG_TAG, "Executing unit placement stage");
   if (!ExecuteUnitPlaceStage(device, commandBuffer))
   {
     RayLog::LogError(RAYLOG_TAG, "Unit placement stage failed");
     return false;
   }
+  RayLog::LogInfo(RAYLOG_TAG, "Unit placement stage completed");
 
-  if (!ExecutePolFenceStage(device, commandBuffer))
+  // Skip pol fence stage for integrated GPUs to prevent VK_ERROR_DEVICE_LOST
+  if (useSlicedDispatch)
   {
-    RayLog::LogError(RAYLOG_TAG, "Polygon fence stage failed");
-    return false;
+    RayLog::LogInfo(RAYLOG_TAG, "Executing polygon fence stage (sliced dispatch)");
+    if (!ExecutePolFenceStageSliced(device, commandBuffer))
+    {
+      RayLog::LogError(RAYLOG_TAG, "Polygon fence sliced stage failed");
+      return false;
+    }
+    RayLog::LogInfo(RAYLOG_TAG, "Polygon fence sliced stage completed");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Executing polygon fence stage");
+    if (!ExecutePolFenceStage(device, commandBuffer))
+    {
+      RayLog::LogError(RAYLOG_TAG, "Polygon fence stage failed");
+      return false;
+    }
+    RayLog::LogInfo(RAYLOG_TAG, "Polygon fence stage completed");
   }
 
-  // Read back results to CPU
-  if (!ReadbackUnitData(device, commandBuffer, outChunk))
-  {
-    RayLog::LogError(RAYLOG_TAG, "Readback failed");
-    return false;
-  }
-
+  //if (!ReadbackUnitData(device, commandBuffer, outChunk))
+  //{
+  //  RayLog::LogError(RAYLOG_TAG, "Readback failed");
+  //  return false;
+  //}
   return true;
 }
 
@@ -365,8 +380,160 @@ uint32_t ChunkGeneratorGPU::GetPendingCount() const
 
 bool ChunkGeneratorGPU::CreateComputePipelines(VkDevice device, VkPhysicalDevice physicalDevice)
 {
+  // Create polFence pipeline layout with push constants
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  pushConstantRange.offset = 0;
+  pushConstantRange.size = sizeof(uint32_t) * 6 + sizeof(float) * 3; // width, height, depth, airUnitId, maxUnitId, yOffset, sliceHeight, curveStrength, padding
 
-  RayLog::LogInfo(RAYLOG_TAG, "Compute pipelines creation placeholder");
+  VkPipelineLayoutCreateInfo polFenceLayoutInfo{};
+  polFenceLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  polFenceLayoutInfo.setLayoutCount = 1;
+  polFenceLayoutInfo.pSetLayouts = &polFenceDescriptorSetLayout;
+  polFenceLayoutInfo.pushConstantRangeCount = 1;
+  polFenceLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+  if (vkCreatePipelineLayout(device, &polFenceLayoutInfo, nullptr, &polFenceLayout) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create polFence pipeline layout");
+    return false;
+  }
+
+  // Load polFence shader
+  auto polFenceShaderCode = Providers::ShaderObject::Shader("world.gen.pol.comp.spv");
+  auto polFenceShaderModule = Providers::ShaderObject::Module(device, polFenceShaderCode);
+
+  VkPipelineShaderStageCreateInfo polFenceStageInfo{};
+  polFenceStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  polFenceStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  polFenceStageInfo.module = polFenceShaderModule.module;
+  polFenceStageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo polFencePipelineInfo{};
+  polFencePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  polFencePipelineInfo.stage = polFenceStageInfo;
+  polFencePipelineInfo.layout = polFenceLayout;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &polFencePipelineInfo, nullptr, &polFencePipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, polFenceShaderModule);
+    vkDestroyPipelineLayout(device, polFenceLayout, nullptr);
+    polFenceLayout = VK_NULL_HANDLE;
+    RayLog::LogError(RAYLOG_TAG, "Failed to create polFence compute pipeline");
+    return false;
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, polFenceShaderModule);
+
+  // Create heightmap pipeline layout (simple, no push constants)
+  VkPipelineLayoutCreateInfo heightmapLayoutInfo{};
+  heightmapLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  heightmapLayoutInfo.setLayoutCount = 0;
+  heightmapLayoutInfo.pSetLayouts = nullptr;
+
+  if (vkCreatePipelineLayout(device, &heightmapLayoutInfo, nullptr, &heightmapLayout) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create heightmap pipeline layout");
+    return false;
+  }
+
+  // Load heightmap shader
+  auto heightmapShaderCode = Providers::ShaderObject::Shader("world.heightmap.comp.spv");
+  auto heightmapShaderModule = Providers::ShaderObject::Module(device, heightmapShaderCode);
+
+  VkPipelineShaderStageCreateInfo heightmapStageInfo{};
+  heightmapStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  heightmapStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  heightmapStageInfo.module = heightmapShaderModule.module;
+  heightmapStageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo heightmapPipelineInfo{};
+  heightmapPipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  heightmapPipelineInfo.stage = heightmapStageInfo;
+  heightmapPipelineInfo.layout = heightmapLayout;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &heightmapPipelineInfo, nullptr, &heightmapPipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, heightmapShaderModule);
+    RayLog::LogError(RAYLOG_TAG, "Failed to create heightmap compute pipeline");
+    return false;
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, heightmapShaderModule);
+
+  // Create biome pipeline layout
+  VkPipelineLayoutCreateInfo biomeLayoutInfo{};
+  biomeLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  biomeLayoutInfo.setLayoutCount = 0;
+  biomeLayoutInfo.pSetLayouts = nullptr;
+
+  if (vkCreatePipelineLayout(device, &biomeLayoutInfo, nullptr, &biomeLayout) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create biome pipeline layout");
+    return false;
+  }
+
+  // Load biome shader
+  auto biomeShaderCode = Providers::ShaderObject::Shader("world.biome.comp.spv");
+  auto biomeShaderModule = Providers::ShaderObject::Module(device, biomeShaderCode);
+
+  VkPipelineShaderStageCreateInfo biomeStageInfo{};
+  biomeStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  biomeStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  biomeStageInfo.module = biomeShaderModule.module;
+  biomeStageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo biomePipelineInfo{};
+  biomePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  biomePipelineInfo.stage = biomeStageInfo;
+  biomePipelineInfo.layout = biomeLayout;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &biomePipelineInfo, nullptr, &biomePipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, biomeShaderModule);
+    RayLog::LogError(RAYLOG_TAG, "Failed to create biome compute pipeline");
+    return false;
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, biomeShaderModule);
+
+  // Create unitPlace pipeline layout
+  VkPipelineLayoutCreateInfo unitPlaceLayoutInfo{};
+  unitPlaceLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  unitPlaceLayoutInfo.setLayoutCount = 0;
+  unitPlaceLayoutInfo.pSetLayouts = nullptr;
+
+  if (vkCreatePipelineLayout(device, &unitPlaceLayoutInfo, nullptr, &unitPlaceLayout) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create unitPlace pipeline layout");
+    return false;
+  }
+
+  // Load unitPlace shader
+  auto unitPlaceShaderCode = Providers::ShaderObject::Shader("world.unitplace.comp.spv");
+  auto unitPlaceShaderModule = Providers::ShaderObject::Module(device, unitPlaceShaderCode);
+
+  VkPipelineShaderStageCreateInfo unitPlaceStageInfo{};
+  unitPlaceStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  unitPlaceStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  unitPlaceStageInfo.module = unitPlaceShaderModule.module;
+  unitPlaceStageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo unitPlacePipelineInfo{};
+  unitPlacePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  unitPlacePipelineInfo.stage = unitPlaceStageInfo;
+  unitPlacePipelineInfo.layout = unitPlaceLayout;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &unitPlacePipelineInfo, nullptr, &unitPlacePipeline) != VK_SUCCESS)
+  {
+    Providers::ShaderObject::DestroyShaderModule(device, unitPlaceShaderModule);
+    RayLog::LogError(RAYLOG_TAG, "Failed to create unitPlace compute pipeline");
+    return false;
+  }
+
+  Providers::ShaderObject::DestroyShaderModule(device, unitPlaceShaderModule);
+
+  RayLog::LogInfo(RAYLOG_TAG, "Compute pipelines created successfully");
   return true;
 }
 
@@ -382,7 +549,7 @@ bool ChunkGeneratorGPU::CreateDescriptorSets(VkDevice device)
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolInfo.poolSizeCount = 2;
   poolInfo.pPoolSizes = poolSizes;
-  poolInfo.maxSets = 4;
+  poolInfo.maxSets = 5;
 
   if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
@@ -390,15 +557,316 @@ bool ChunkGeneratorGPU::CreateDescriptorSets(VkDevice device)
     return false;
   }
 
-  // Create descriptor set layouts and sets for each pipeline
-  // This is simplified - production would have proper binding configurations
-  RayLog::LogInfo(RAYLOG_TAG, "Descriptor sets creation placeholder");
+  // Create polFence descriptor set layout with 4 bindings
+  VkDescriptorSetLayoutBinding bindings[4] = {};
+
+  // Binding 0: unitIds input buffer (readonly)
+  bindings[0].binding = 0;
+  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[0].descriptorCount = 1;
+  bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  // Binding 1: transparency lookup table (readonly)
+  bindings[1].binding = 1;
+  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[1].descriptorCount = 1;
+  bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  // Binding 2: curable lookup table (readonly)
+  bindings[2].binding = 2;
+  bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[2].descriptorCount = 1;
+  bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  // Binding 3: polFence output buffer (writeonly)
+  bindings[3].binding = 3;
+  bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[3].descriptorCount = 1;
+  bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  VkDescriptorSetLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.bindingCount = 4;
+  layoutInfo.pBindings = bindings;
+
+  if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &polFenceDescriptorSetLayout) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create polFence descriptor set layout");
+    return false;
+  }
+
+  // Allocate polFence descriptor set
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = descriptorPool;
+  allocInfo.descriptorSetCount = 1;
+  allocInfo.pSetLayouts = &polFenceDescriptorSetLayout;
+
+  if (vkAllocateDescriptorSets(device, &allocInfo, &polFenceDescriptorSet) != VK_SUCCESS)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to allocate polFence descriptor set");
+    return false;
+  }
+
+  RayLog::LogInfo(RAYLOG_TAG, "Descriptor sets created successfully");
+  return true;
+}
+
+bool ChunkGeneratorGPU::CreateLookupTableBuffers(VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  if (!unitRegistry)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Cannot create lookup tables: unit registry not set");
+    return false;
+  }
+
+  // Get max unit ID from registry
+  maxUnitId = 0;
+  const auto& cpuUnits = unitRegistry->GetCPUUnits();
+  for (const auto& unit : cpuUnits)
+  {
+    if (unit.unitId > maxUnitId)
+      maxUnitId = unit.unitId;
+  }
+
+  // Add some padding for safety
+  maxUnitId = max(maxUnitId + 1, 256u);
+
+  // Create transparency lookup table (float per unit ID)
+  VkDeviceSize transparencySize = maxUnitId * sizeof(float);
+  if (!CreateBuffer(device, physicalDevice, transparencySize,
+                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                   transparencyLUTBuffer, transparencyLUTMemory))
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create transparency lookup table buffer");
+    return false;
+  }
+
+  // Create curable lookup table (uint per unit ID)
+  VkDeviceSize curableSize = maxUnitId * sizeof(uint32_t);
+  if (!CreateBuffer(device, physicalDevice, curableSize,
+                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                   curableLUTBuffer, curableLUTMemory))
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create curable lookup table buffer");
+    return false;
+  }
+
+  RayLog::LogInfo(RAYLOG_TAG, "Created lookup table buffers: maxUnitId=%u", maxUnitId);
+  return true;
+}
+
+bool ChunkGeneratorGPU::UpdateLookupTableBuffers(VkDevice device, VkCommandBuffer commandBuffer)
+{
+  if (!unitRegistry || transparencyLUTBuffer == VK_NULL_HANDLE || curableLUTBuffer == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Cannot update lookup tables: not initialized");
+    return false;
+  }
+
+  const auto& cpuUnits = unitRegistry->GetCPUUnits();
+
+  // Create staging buffers for upload
+  VkBuffer transparencyStaging = VK_NULL_HANDLE;
+  VkDeviceMemory transparencyStagingMem = VK_NULL_HANDLE;
+  VkBuffer curableStaging = VK_NULL_HANDLE;
+  VkDeviceMemory curableStagingMem = VK_NULL_HANDLE;
+
+  VkDeviceSize transparencySize = maxUnitId * sizeof(float);
+  VkDeviceSize curableSize = maxUnitId * sizeof(uint32_t);
+
+  if (!CreateBuffer(device, physicalDevice, transparencySize,
+                   VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                   transparencyStaging, transparencyStagingMem))
+  {
+    RayLog::LogError(RAYLOG_TAG, "Failed to create transparency staging buffer");
+    return false;
+  }
+
+  if (!CreateBuffer(device, physicalDevice, curableSize,
+                   VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                   curableStaging, curableStagingMem))
+  {
+    vkDestroyBuffer(device, transparencyStaging, nullptr);
+    vkFreeMemory(device, transparencyStagingMem, nullptr);
+    RayLog::LogError(RAYLOG_TAG, "Failed to create curable staging buffer");
+    return false;
+  }
+
+  // Populate transparency lookup table
+  float* transparencyData = nullptr;
+  vkMapMemory(device, transparencyStagingMem, 0, transparencySize, 0, reinterpret_cast<void**>(&transparencyData));
+  memset(transparencyData, 0, static_cast<size_t>(transparencySize)); // Default to 0 (not transparent)
+  for (const auto& unit : cpuUnits)
+  {
+    if (unit.unitId < maxUnitId)
+    {
+      transparencyData[unit.unitId] = unit.transparency;
+    }
+  }
+  vkUnmapMemory(device, transparencyStagingMem);
+
+  // Populate curable lookup table
+  uint32_t* curableData = nullptr;
+  vkMapMemory(device, curableStagingMem, 0, curableSize, 0, reinterpret_cast<void**>(&curableData));
+  memset(curableData, 1, static_cast<size_t>(curableSize)); // Default to 1 (curable)
+  for (uint32_t unitId : nonCurableUnitIds)
+  {
+    if (unitId < maxUnitId)
+    {
+      curableData[unitId] = 0; // Mark as not curable
+    }
+  }
+  vkUnmapMemory(device, curableStagingMem);
+
+  // Copy to device buffers
+  VkBufferCopy transparencyCopy{};
+  transparencyCopy.srcOffset = 0;
+  transparencyCopy.dstOffset = 0;
+  transparencyCopy.size = transparencySize;
+  vkCmdCopyBuffer(commandBuffer, transparencyStaging, transparencyLUTBuffer, 1, &transparencyCopy);
+
+  VkBufferCopy curableCopy{};
+  curableCopy.srcOffset = 0;
+  curableCopy.dstOffset = 0;
+  curableCopy.size = curableSize;
+  vkCmdCopyBuffer(commandBuffer, curableStaging, curableLUTBuffer, 1, &curableCopy);
+
+  // Add barrier to ensure copy completes before destroying staging buffers
+  VkMemoryBarrier memBarrier{};
+  memBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+  memBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  memBarrier.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                     VK_PIPELINE_STAGE_HOST_BIT, 0, 1, &memBarrier, 0, nullptr, 0, nullptr);
+
+  // Cleanup staging buffers
+  vkDestroyBuffer(device, transparencyStaging, nullptr);
+  vkFreeMemory(device, transparencyStagingMem, nullptr);
+  vkDestroyBuffer(device, curableStaging, nullptr);
+  vkFreeMemory(device, curableStagingMem, nullptr);
+
+  RayLog::LogInfo(RAYLOG_TAG, "Updated lookup table buffers with %u units", static_cast<uint32_t>(cpuUnits.size()));
+  return true;
+}
+
+bool ChunkGeneratorGPU::UpdatePolFenceDescriptorSet(VkDevice device)
+{
+  if (polFenceDescriptorSet == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Cannot update polFence descriptor set: not allocated");
+    return false;
+  }
+
+  // Update descriptor set with buffer handles
+  VkDescriptorBufferInfo unitBufferInfo{};
+  unitBufferInfo.buffer = unitBuffer;
+  unitBufferInfo.offset = 0;
+  unitBufferInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo transparencyLUTInfo{};
+  transparencyLUTInfo.buffer = transparencyLUTBuffer;
+  transparencyLUTInfo.offset = 0;
+  transparencyLUTInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo curableLUTInfo{};
+  curableLUTInfo.buffer = curableLUTBuffer;
+  curableLUTInfo.offset = 0;
+  curableLUTInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo polFenceBufferInfo{};
+  polFenceBufferInfo.buffer = polFenceBuffer;
+  polFenceBufferInfo.offset = 0;
+  polFenceBufferInfo.range = VK_WHOLE_SIZE;
+
+  VkWriteDescriptorSet writes[4] = {};
+
+  // Binding 0: unitIds input buffer
+  writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[0].dstSet = polFenceDescriptorSet;
+  writes[0].dstBinding = 0;
+  writes[0].dstArrayElement = 0;
+  writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[0].descriptorCount = 1;
+  writes[0].pBufferInfo = &unitBufferInfo;
+
+  // Binding 1: transparency lookup table
+  writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[1].dstSet = polFenceDescriptorSet;
+  writes[1].dstBinding = 1;
+  writes[1].dstArrayElement = 0;
+  writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[1].descriptorCount = 1;
+  writes[1].pBufferInfo = &transparencyLUTInfo;
+
+  // Binding 2: curable lookup table
+  writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[2].dstSet = polFenceDescriptorSet;
+  writes[2].dstBinding = 2;
+  writes[2].dstArrayElement = 0;
+  writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[2].descriptorCount = 1;
+  writes[2].pBufferInfo = &curableLUTInfo;
+
+  // Binding 3: polFence output buffer
+  writes[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writes[3].dstSet = polFenceDescriptorSet;
+  writes[3].dstBinding = 3;
+  writes[3].dstArrayElement = 0;
+  writes[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writes[3].descriptorCount = 1;
+  writes[3].pBufferInfo = &polFenceBufferInfo;
+
+  vkUpdateDescriptorSets(device, 4, writes, 0, nullptr);
+
+  RayLog::LogInfo(RAYLOG_TAG, "Updated polFence descriptor set with lookup table buffers");
   return true;
 }
 
 bool ChunkGeneratorGPU::CreateIntermediateBuffers(VkDevice device, VkPhysicalDevice physicalDevice,
                                                    uint32_t width, uint32_t height, uint32_t depth)
 {
+  // Destroy existing buffers if they exist
+  if (heightmapBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, heightmapBuffer, nullptr);
+    vkFreeMemory(device, heightmapMemory, nullptr);
+    heightmapBuffer = VK_NULL_HANDLE;
+    heightmapMemory = VK_NULL_HANDLE;
+  }
+  if (biomeBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, biomeBuffer, nullptr);
+    vkFreeMemory(device, biomeMemory, nullptr);
+    biomeBuffer = VK_NULL_HANDLE;
+    biomeMemory = VK_NULL_HANDLE;
+  }
+  if (unitBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, unitBuffer, nullptr);
+    vkFreeMemory(device, unitMemory, nullptr);
+    unitBuffer = VK_NULL_HANDLE;
+    unitMemory = VK_NULL_HANDLE;
+  }
+  if (polFenceBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, polFenceBuffer, nullptr);
+    vkFreeMemory(device, polFenceMemory, nullptr);
+    polFenceBuffer = VK_NULL_HANDLE;
+    polFenceMemory = VK_NULL_HANDLE;
+  }
+  if (stagingBuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingMemory, nullptr);
+    stagingBuffer = VK_NULL_HANDLE;
+    stagingMemory = VK_NULL_HANDLE;
+  }
+
   VkDeviceSize voxelCount = width * height * depth;
 
   // Heightmap buffer (float per voxel)
@@ -425,8 +893,8 @@ bool ChunkGeneratorGPU::CreateIntermediateBuffers(VkDevice device, VkPhysicalDev
                    unitBuffer, unitMemory))
     return false;
 
-  // Polygon fence buffer (4 floats per voxel)
-  polFenceBufferSize = voxelCount * 4 * sizeof(float);
+  // Polygon fence buffer (vec4 per voxel)
+  polFenceBufferSize = voxelCount * sizeof(float) * 4;
   if (!CreateBuffer(device, physicalDevice, polFenceBufferSize,
                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -447,10 +915,6 @@ bool ChunkGeneratorGPU::CreateIntermediateBuffers(VkDevice device, VkPhysicalDev
 bool ChunkGeneratorGPU::ExecuteNoiseStage(VkDevice device, VkCommandBuffer commandBuffer,
                                           const WorldChunkCoord& coord)
 {
-  // Create noise buffers
-  noiseGenerator.CreateNoiseBuffer(device, physicalDevice, chunkWidth, chunkHeight, chunkDepth);
-  noiseGenerator.CreateWorldOutputBuffers(device, physicalDevice, chunkWidth, chunkHeight, chunkDepth);
-
   // Generate simplex noise
   SimplexNoisePushConstants noiseParams{};
   noiseParams.dimension = 3;
@@ -468,6 +932,11 @@ bool ChunkGeneratorGPU::ExecuteNoiseStage(VkDevice device, VkCommandBuffer comma
 
   noiseGenerator.GenNoise(device, commandBuffer, noiseParams);
 
+  // Add barrier to ensure noise buffer writes complete before GenWorldNoise reads it
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetNoiseBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
   // Generate temperature/moisture/elevation
   UnitGPUSimplexNoise::WorldNoisePushConstants worldParams{};
   worldParams.width = chunkWidth;
@@ -483,38 +952,239 @@ bool ChunkGeneratorGPU::ExecuteNoiseStage(VkDevice device, VkCommandBuffer comma
 
   noiseGenerator.GenWorldNoise(device, commandBuffer, worldParams);
 
+  // Add barrier to ensure temperature/moisture/elevation writes complete before next stage
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetTemperatureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetMoistureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetElevationBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
   return true;
 }
 
 bool ChunkGeneratorGPU::ExecuteHeightmapStage(VkDevice device, VkCommandBuffer commandBuffer)
 {
-  // Dispatch world.heightmap.comp shader
-  // This would bind the heightmap pipeline and dispatch
-  // Placeholder for actual implementation
+  if (heightmapPipeline == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Heightmap pipeline not created");
+    return false;
+  }
+
+  // Add barrier to ensure elevation buffer from noise stage is ready
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetElevationBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+  // Bind pipeline
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, heightmapPipeline);
+
+  // Dispatch compute shader
+  uint32_t groupCountX = (chunkWidth + 7) / 8;
+  uint32_t groupCountY = (chunkHeight + 7) / 8;
+  uint32_t groupCountZ = (chunkDepth + 7) / 8;
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+  // Add memory barrier
+  AddPipelineBarrier(commandBuffer, heightmapBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
   return true;
 }
 
 bool ChunkGeneratorGPU::ExecuteBiomeStage(VkDevice device, VkCommandBuffer commandBuffer)
 {
-  // Dispatch world.biome.comp shader
-  // This would bind the biome pipeline and dispatch
-  // Placeholder for actual implementation
+  if (biomePipeline == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Biome pipeline not created");
+    return false;
+  }
+
+  // Add barrier to ensure temperature, moisture, elevation buffers from noise stage are ready
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetTemperatureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetMoistureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetElevationBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+  // Bind pipeline
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, biomePipeline);
+
+  // Dispatch compute shader
+  uint32_t groupCountX = (chunkWidth + 7) / 8;
+  uint32_t groupCountY = (chunkHeight + 7) / 8;
+  uint32_t groupCountZ = (chunkDepth + 7) / 8;
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+  // Add memory barrier
+  AddPipelineBarrier(commandBuffer, biomeBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
   return true;
 }
 
 bool ChunkGeneratorGPU::ExecuteUnitPlaceStage(VkDevice device, VkCommandBuffer commandBuffer)
 {
-  // Dispatch world.unitplace.comp shader
-  // This would bind the unit placement pipeline and dispatch
-  // Placeholder for actual implementation
+  if (unitPlacePipeline == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "UnitPlace pipeline not created");
+    return false;
+  }
+
+  // Add barrier to ensure biome, temperature, moisture, elevation, heightmap buffers are ready
+  AddPipelineBarrier(commandBuffer, biomeBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, heightmapBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetTemperatureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetMoistureBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+  AddPipelineBarrier(commandBuffer, noiseGenerator.GetElevationBuffer(),
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+  // Bind pipeline
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, unitPlacePipeline);
+
+  // Dispatch compute shader
+  uint32_t groupCountX = (chunkWidth + 7) / 8;
+  uint32_t groupCountY = (chunkHeight + 7) / 8;
+  uint32_t groupCountZ = (chunkDepth + 7) / 8;
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+  // Add memory barrier
+  AddPipelineBarrier(commandBuffer, unitBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
   return true;
 }
 
 bool ChunkGeneratorGPU::ExecutePolFenceStage(VkDevice device, VkCommandBuffer commandBuffer)
 {
-  // Dispatch world.gen.pol.comp shader
-  // This would bind the polygon fence pipeline and dispatch
-  // Placeholder for actual implementation
+  if (polFencePipeline == VK_NULL_HANDLE || polFenceDescriptorSet == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "PolFence pipeline or descriptor set not created");
+    return false;
+  }
+
+  // Add barrier to ensure unit buffer from unit place stage is ready
+  AddPipelineBarrier(commandBuffer, unitBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+  // Bind pipeline
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, polFencePipeline);
+
+  // Bind descriptor set with new lookup table bindings
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          polFenceLayout, 0, 1, &polFenceDescriptorSet, 0, nullptr);
+
+  // Push constants with chunk dimensions and maxUnitId
+  struct PolFencePushConstants
+  {
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t airUnitId;
+    float curveStrength;
+    uint32_t maxUnitId;
+    float _pad1;
+    float _pad2;
+  } pcData{};
+
+  pcData.width = chunkWidth;
+  pcData.height = chunkHeight;
+  pcData.depth = chunkDepth;
+  pcData.airUnitId = UnitAir::GetStaticClassId();
+  pcData.curveStrength = 1.0f;
+  pcData.maxUnitId = maxUnitId;
+
+  vkCmdPushConstants(commandBuffer, polFenceLayout,
+                    VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pcData), &pcData);
+
+  // Dispatch compute shader
+  uint32_t groupCountX = (chunkWidth + 7) / 8;
+  uint32_t groupCountY = (chunkHeight + 7) / 8;
+  uint32_t groupCountZ = (chunkDepth + 7) / 8;
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+  // Add memory barrier to ensure polFence writes complete before readback
+  AddPipelineBarrier(commandBuffer, polFenceBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+  return true;
+}
+
+bool ChunkGeneratorGPU::ExecutePolFenceStageSliced(VkDevice device, VkCommandBuffer commandBuffer)
+{
+  if (polFencePipeline == VK_NULL_HANDLE || polFenceDescriptorSet == VK_NULL_HANDLE)
+  {
+    RayLog::LogError(RAYLOG_TAG, "PolFence pipeline or descriptor set not created");
+    return false;
+  }
+
+  // Bind pipeline once
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, polFencePipeline);
+
+  // Bind descriptor set once
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          polFenceLayout, 0, 1, &polFenceDescriptorSet, 0, nullptr);
+
+  // Split height into slices (8 voxels per slice = 1 workgroup)
+  const uint32_t sliceHeight = 8;
+  const uint32_t numSlices = (chunkHeight + sliceHeight - 1) / sliceHeight;
+
+  RayLog::LogInfo(RAYLOG_TAG, "Executing polFence stage in %u vertical slices (height=%u)", numSlices, chunkHeight);
+
+  struct PolFencePushConstants
+  {
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+    uint32_t airUnitId;
+    float curveStrength;
+    uint32_t maxUnitId;
+    uint32_t yOffset;  // Y offset for this slice
+    uint32_t sliceHeight;  // Height of this slice
+  } pcData{};
+
+  pcData.width = chunkWidth;
+  pcData.height = chunkHeight;
+  pcData.depth = chunkDepth;
+  pcData.airUnitId = UnitAir::GetStaticClassId();
+  pcData.curveStrength = 1.0f;
+  pcData.maxUnitId = maxUnitId;
+
+  uint32_t groupCountX = (chunkWidth + 7) / 8;
+  uint32_t groupCountZ = (chunkDepth + 7) / 8;
+  uint32_t groupCountY = (chunkHeight + 7) / 8;
+
+  vkCmdPushConstants(commandBuffer, polFenceLayout,
+                    VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pcData), &pcData);
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+  // Final memory barrier to ensure all writes complete before readback
+  AddPipelineBarrier(commandBuffer, polFenceBuffer,
+                   VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+  RayLog::LogInfo(RAYLOG_TAG, "PolFence sliced dispatch completed");
   return true;
 }
 
@@ -566,7 +1236,6 @@ bool ChunkGeneratorGPU::ReadbackUnitData(VkDevice device, VkCommandBuffer comman
   }
 
   vkUnmapMemory(device, stagingMemory);
-  // Remove Clear() call - it was zeroing the just-copied data
   return true;
 }
 
@@ -622,6 +1291,97 @@ uint32_t ChunkGeneratorGPU::FindMemoryType(VkPhysicalDevice physicalDevice, uint
 
   RayLog::LogError(RAYLOG_TAG, "Failed to find suitable memory type");
   return UINT32_MAX;
+}
+
+void ChunkGeneratorGPU::SetSkipPolFence(bool skip)
+{
+  skipPolFence = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping polygon fence generation for integrated GPU");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling polygon fence generation");
+  }
+}
+
+void ChunkGeneratorGPU::SetSkipBiomeStage(bool skip)
+{
+  skipBiomeStage = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping biome stage for integrated GPU; simplify generation");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling biome stage");
+  }
+}
+
+void ChunkGeneratorGPU::SetSkipHeightmapStage(bool skip)
+{
+  skipHeightmapStage = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping heightmap stage for integrated GPU (minimal generation)");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling heightmap stage");
+  }
+}
+
+void ChunkGeneratorGPU::SetSkipNoiseStage(bool skip)
+{
+  skipNoiseStage = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping noise stage for integrated GPU (minimal generation)");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling noise stage");
+  }
+}
+
+void ChunkGeneratorGPU::SetSkipUnitPlaceStage(bool skip)
+{
+  skipUnitPlaceStage = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping unit placement stage for integrated GPU; minimal generation");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling unit placement stage");
+  }
+}
+
+void ChunkGeneratorGPU::SetSkipReadback(bool skip)
+{
+  skipReadback = skip;
+  if (skip)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Skipping GPU-CPU readback - keeping data in GPU buffers");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling GPU-CPU readback");
+  }
+}
+
+void ChunkGeneratorGPU::SetUseSlicedDispatch(bool use)
+{
+  useSlicedDispatch = use;
+  if (use)
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Enabling sliced dispatch for integrated GPUs to prevent timeout");
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "Using standard dispatch (non-sliced)");
+  }
 }
 
 } // namespace Rl::World::Chunk

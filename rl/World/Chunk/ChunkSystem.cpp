@@ -15,6 +15,7 @@ import <utility>;
 import <vector>;
 import <mutex>;
 import <ranges>;
+import <string>;
 import <vulkan/vulkan.hpp>;
 import Rl.Base.UserInput;
 
@@ -181,64 +182,49 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
     VkQueue queue = VK_NULL_HANDLE;
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &commandBuffer;
-
-    VkResult submitResult = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-    if (submitResult == VK_SUCCESS)
+    // Use a fence with timeout instead of vkQueueWaitIdle to prevent indefinite hangs
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    VkFence fence   = VK_NULL_HANDLE;
+    if (vkCreateFence(device, &fenceInfo, nullptr, &fence) == VK_SUCCESS)
     {
-      // Use a fence with timeout instead of vkQueueWaitIdle to prevent indefinite hangs
-      VkFenceCreateInfo fenceInfo{};
-      fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-      VkFence fence   = VK_NULL_HANDLE;
-      if (vkCreateFence(device, &fenceInfo, nullptr, &fence) == VK_SUCCESS)
-      {
-        submitInfo.pSignalSemaphores    = nullptr;
-        submitInfo.signalSemaphoreCount = 0;
+      VkSubmitInfo submitInfo{};
+      submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+      submitInfo.commandBufferCount = 1;
+      submitInfo.pCommandBuffers    = &commandBuffer;
+      submitInfo.pSignalSemaphores    = nullptr;
+      submitInfo.signalSemaphoreCount = 0;
 
-        VkResult submitWithFence = vkQueueSubmit(queue, 1, &submitInfo, fence);
-        if (submitWithFence == VK_SUCCESS)
+      VkResult submitWithFence = vkQueueSubmit(queue, 1, &submitInfo, fence);
+      if (submitWithFence == VK_SUCCESS)
+      {
+        // Wait with 5 second timeout
+        VkResult waitResult =
+            vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL);
+        if (waitResult != VK_SUCCESS)
         {
-          // Wait with 5 second timeout
-          VkResult waitResult =
-              vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL);
-          if (waitResult != VK_SUCCESS)
-          {
-            RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d",
-                             waitResult);
-            success = false;
-          }
-        }
-        else
-        {
-          RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d",
-                           submitWithFence);
+          RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d",
+                           waitResult);
           success = false;
         }
-        vkDestroyFence(device, fence, nullptr);
       }
       else
       {
-        RayLog::LogError(RAYLOG_TAG, "Failed to create fence for GPU generation");
+        RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d",
+                         submitWithFence);
         success = false;
       }
+      vkDestroyFence(device, fence, nullptr);
     }
     else
     {
-      RayLog::LogError(RAYLOG_TAG, "Failed to submit GPU generation: %d", submitResult);
+      RayLog::LogError(RAYLOG_TAG, "Failed to create fence for GPU generation");
       success = false;
     }
   }
 
   vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
   vkDestroyCommandPool(device, commandPool, nullptr);
-
-  if (!success)
-    RayLog::LogError(RAYLOG_TAG, "GPU chunk generation failed for chunk [%d, %d, %d]",
-                     coord.chunkX, coord.chunkY, coord.chunkZ);
-
   return success;
 }
 
@@ -383,6 +369,9 @@ void ChunkSystem::RefreshInternal()
     return;
   try
   {
+    // Determine GPU power and set chunk limit
+    maxChunksPerFrame = DetermineMaxChunksPerFrame();
+
     std::vector<WorldChunkCoord> coordsToGenerate;
     {
       std::scoped_lock      lock(stateMutex);
@@ -409,10 +398,51 @@ void ChunkSystem::RefreshInternal()
         }
       }
     }
+
+    // Add new chunks to pending list
     for (const auto& coord : coordsToGenerate)
     {
-      GenerateChunk(coord);
+      // Check if already in pending list
+      bool alreadyPending = false;
+      for (const auto& pending : pendingChunks)
+      {
+        if (pending.chunkX == coord.chunkX && pending.chunkY == coord.chunkY &&
+            pending.chunkZ == coord.chunkZ)
+        {
+          alreadyPending = true;
+          break;
+        }
+      }
+      if (!alreadyPending)
+      {
+        pendingChunks.push_back(coord);
+      }
     }
+
+    // Process only maxChunksPerFrame chunks this frame
+    uint32_t chunksProcessed = 0;
+    while (pendingChunkIndex < pendingChunks.size() && chunksProcessed < maxChunksPerFrame)
+    {
+      const auto& coord = pendingChunks[pendingChunkIndex];
+      if (GenerateChunk(coord))
+      {
+        // Successfully generated, remove from pending
+        pendingChunks.erase(pendingChunks.begin() + pendingChunkIndex);
+        chunksProcessed++;
+      }
+      else
+      {
+        // Failed, try next chunk
+        pendingChunkIndex++;
+      }
+    }
+
+    // Reset index if we've processed all chunks
+    if (pendingChunkIndex >= pendingChunks.size())
+    {
+      pendingChunkIndex = 0;
+    }
+
     RemoveOutOfRangeChunks();
   }
   catch (...)
@@ -421,6 +451,108 @@ void ChunkSystem::RefreshInternal()
     throw;
   }
   generationInProgress.store(false, std::memory_order_release);
+}
+
+uint32_t ChunkSystem::DetermineMaxChunksPerFrame() const
+{
+  // Default conservative limit for unknown GPUs
+  uint32_t maxChunks = 2;
+  std::string gpuType = "Unknown";
+  bool useReducedDimensions = false;
+
+  if (gpuGenerationEnabled && gpuPhysicalDevice != VK_NULL_HANDLE)
+  {
+    VkPhysicalDeviceProperties deviceProperties{};
+    vkGetPhysicalDeviceProperties(gpuPhysicalDevice, &deviceProperties);
+
+    VkPhysicalDeviceMemoryProperties memoryProperties{};
+    vkGetPhysicalDeviceMemoryProperties(gpuPhysicalDevice, &memoryProperties);
+
+    // Check if this is an integrated GPU
+    bool isIntegratedGPU = (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU);
+    gpuType = isIntegratedGPU ? "Integrated" : "Discrete";
+
+    // Calculate total device memory (sum of all heaps)
+    VkDeviceSize totalMemory = 0;
+    for (uint32_t i = 0; i < memoryProperties.memoryHeapCount; ++i)
+    {
+      totalMemory += memoryProperties.memoryHeaps[i].size;
+    }
+
+    // Determine chunk limit based on GPU characteristics
+    if (isIntegratedGPU)
+    {
+      // Integrated GPU - very conservative limits
+      if (totalMemory < 2ULL * 1024 * 1024 * 1024) // < 2GB
+      {
+        maxChunks = 1; // Very low-end integrated
+        useReducedDimensions = true;
+      }
+      else if (totalMemory < 4ULL * 1024 * 1024 * 1024) // < 4GB
+      {
+        maxChunks = 1; // Typical integrated (like Intel HD), reduced to 1 to prevent timeout
+        useReducedDimensions = true;
+      }
+      else
+      {
+        maxChunks = 1; // High-end integrated, reduced to 1 to prevent device lost
+        useReducedDimensions = true; // Always use reduced dimensions for integrated
+      }
+    }
+    else
+    {
+      // Discrete GPU: can handle more chunks
+      if (totalMemory < 4ULL * 1024 * 1024 * 1024) // < 4GB
+      {
+        maxChunks = 3; // Low-end discrete
+        useReducedDimensions = false;
+      }
+      else if (totalMemory < 8ULL * 1024 * 1024 * 1024) // < 8GB
+      {
+        maxChunks = 4; // Mid-range discrete
+        useReducedDimensions = false;
+      }
+      else
+      {
+        maxChunks = 6; // High-end discrete
+        useReducedDimensions = false;
+      }
+    }
+
+    // Additional check for Intel-specific GPUs (known to have timeout issues)
+    uint32_t vendorID = deviceProperties.vendorID;
+    if (vendorID == 0x8086) // Intel vendor ID
+    {
+      maxChunks = min(maxChunks, 2u); // Cap at 2 for Intel GPUs
+      useReducedDimensions = true; // Always use reduced dimensions for Intel
+      gpuType += " (Intel)";
+    }
+
+    RayLog::LogInfo(RAYLOG_TAG, "GPU detected: %s, Total Memory: %.2f GB, Max chunks/frame: %u, Reduced dimensions: %s",
+                    gpuType.c_str(), totalMemory / (1024.0 * 1024.0 * 1024.0), maxChunks,
+                    useReducedDimensions ? "Yes" : "No");
+    // Note: polFence is now aggressively optimized with binary search, so we don't skip it
+    // Skip GPU-CPU readback for integrated GPUs to prevent timeout
+    // Skip biome, heightmap, and noise stages for integrated GPUs to reduce workload
+    if (gpuGenerator)
+    {
+      auto g = const_cast<ChunkGeneratorGPU*>(gpuGenerator);
+      g->SetReducedDimensions(useReducedDimensions);
+      g->SetSkipPolFence(false); // Keep polFence enabled with optimizations
+      g->SetSkipBiomeStage(isIntegratedGPU); // Skip biome on integrated GPUs
+      g->SetSkipHeightmapStage(isIntegratedGPU); // Skip heightmap on integrated GPUs
+      g->SetSkipNoiseStage(isIntegratedGPU); // Skip noise on integrated GPUs
+      g->SetSkipReadback(isIntegratedGPU); // Skip readback on integrated GPUs
+      g->SetUseSlicedDispatch(isIntegratedGPU); // Use sliced dispatch on integrated GPUs to prevent timeout
+    }
+  }
+  else
+  {
+    RayLog::LogInfo(RAYLOG_TAG, "GPU generation disabled or not available, using default chunk limit: %u",
+                    maxChunks);
+  }
+
+  return maxChunks;
 }
 
 bool ChunkSystem::ShouldGenerate(const WorldChunkCoord& coord) const

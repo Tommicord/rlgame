@@ -12,6 +12,7 @@ int main()
   } catch (std::exception& e)
   {
     Rl::RayLog::LogFatal("Game", e.what());
+    return 1;
   }
   return 0;
 }

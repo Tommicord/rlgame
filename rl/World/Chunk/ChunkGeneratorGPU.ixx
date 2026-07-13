@@ -68,11 +68,45 @@ export class ChunkGeneratorGPU
   void SetUnitRegistry(UnitRegistryGPU* unitRegistry);
 
   /* Set non-curable unit IDs for polygon fence generation */
-  void SetNonCurableUnits(const std::vector<uint32_t>& nonCurableIds);
+  void SetNonCurableUnits(std::vector<uint32_t>& nonCurableIds);
 
   /* Generate a single chunk synchronously */
   bool GenerateChunk(VkDevice device, VkCommandBuffer commandBuffer,
                     const WorldChunkCoord& coord, UnitChunkBuffer& outChunk);
+
+  /* Skip polygon fence generation for integrated GPUs */
+  void SetSkipPolFence(bool skip);
+
+  /* Skip biome stage for integrated GPUs (simplified generation) */
+  void SetSkipBiomeStage(bool skip);
+
+  /* Skip heightmap stage for integrated GPUs (minimal generation) */
+  void SetSkipHeightmapStage(bool skip);
+
+  /* Skip noise stage for integrated GPUs (minimal generation) */
+  void SetSkipNoiseStage(bool skip);
+
+  /* Skip unit placement stage for integrated GPUs (minimal generation) */
+  void SetSkipUnitPlaceStage(bool skip);
+
+  /* Skip GPU-CPU readback for integrated GPUs (keep data in GPU) */
+  void SetSkipReadback(bool skip);
+
+  /* Enable sub-dispatch slicing for integrated GPUs to prevent timeout */
+  void SetUseSlicedDispatch(bool use);
+
+  /* Get the GPU unit buffer handle for direct rendering access */
+  [[nodiscard]]
+  VkBuffer GetGPUUnitBuffer() const { return unitBuffer; }
+
+  /* Get the current chunk dimensions */
+  [[nodiscard]]
+  void GetChunkDimensions(uint32_t& outWidth, uint32_t& outHeight, uint32_t& outDepth) const
+  {
+    outWidth = chunkWidth;
+    outHeight = chunkHeight;
+    outDepth = chunkDepth;
+  }
 
   /* Enqueue chunk for async generation */
   void EnqueueChunkGeneration(const ChunkGenRequest& request);
@@ -105,6 +139,15 @@ export class ChunkGeneratorGPU
   /* Create descriptor sets for each pipeline */
   bool CreateDescriptorSets(VkDevice device);
 
+  /* Create lookup table buffers for polFence shader */
+  bool CreateLookupTableBuffers(VkDevice device, VkPhysicalDevice physicalDevice);
+
+  /* Update lookup table buffers with unit data */
+  bool UpdateLookupTableBuffers(VkDevice device, VkCommandBuffer commandBuffer);
+
+  /* Update polFence descriptor set with buffer handles */
+  bool UpdatePolFenceDescriptorSet(VkDevice device);
+
   /* Create buffers for intermediate pipeline stages */
   bool CreateIntermediateBuffers(VkDevice device, VkPhysicalDevice physicalDevice,
                                   uint32_t width, uint32_t height, uint32_t depth);
@@ -125,14 +168,80 @@ export class ChunkGeneratorGPU
   /* Execute polygon fence generation stage */
   bool ExecutePolFenceStage(VkDevice device, VkCommandBuffer commandBuffer);
 
+  /* Execute polygon fence generation with vertical slice splitting for integrated GPUs */
+  bool ExecutePolFenceStageSliced(VkDevice device, VkCommandBuffer commandBuffer);
+
+  /* Read back generated data to CPU */
+  bool ReadbackUnitData(VkDevice device, VkCommandBuffer commandBuffer, UnitChunkBuffer& outChunk);
+
+  VkDevice               device           = VK_NULL_HANDLE;
+  VkPhysicalDevice       physicalDevice   = VK_NULL_HANDLE;
+  VkCommandPool          commandPool      = VK_NULL_HANDLE;
+  VkPipeline             noisePipeline     = VK_NULL_HANDLE;
+  VkPipelineLayout       noiseLayout      = VK_NULL_HANDLE;
+  VkPipeline             heightmapPipeline = VK_NULL_HANDLE;
+  VkPipelineLayout       heightmapLayout  = VK_NULL_HANDLE;
+  VkPipeline             biomePipeline     = VK_NULL_HANDLE;
+  VkPipelineLayout       biomeLayout      = VK_NULL_HANDLE;
+  VkPipeline             unitPlacePipeline = VK_NULL_HANDLE;
+  VkPipelineLayout       unitPlaceLayout  = VK_NULL_HANDLE;
+  VkPipeline             polFencePipeline   = VK_NULL_HANDLE;
+  VkPipelineLayout       polFenceLayout    = VK_NULL_HANDLE;
+  VkDescriptorSetLayout  polFenceDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorPool       descriptorPool    = VK_NULL_HANDLE;
+  VkDescriptorSet        noiseDescriptorSet      = VK_NULL_HANDLE;
+  VkDescriptorSet        heightmapDescriptorSet = VK_NULL_HANDLE;
+  VkDescriptorSet        biomeDescriptorSet     = VK_NULL_HANDLE;
+  VkDescriptorSet        unitPlaceDescriptorSet = VK_NULL_HANDLE;
+  VkDescriptorSet        polFenceDescriptorSet  = VK_NULL_HANDLE;
+
+  // Intermediate buffers
+  VkBuffer       noiseBuffer       = VK_NULL_HANDLE;
+  VkDeviceMemory noiseMemory       = VK_NULL_HANDLE;
+  VkBuffer       heightmapBuffer   = VK_NULL_HANDLE;
+  VkDeviceMemory heightmapMemory   = VK_NULL_HANDLE;
+  VkBuffer       biomeBuffer       = VK_NULL_HANDLE;
+  VkDeviceMemory biomeMemory       = VK_NULL_HANDLE;
+  VkBuffer       unitBuffer        = VK_NULL_HANDLE;
+  VkDeviceMemory unitMemory        = VK_NULL_HANDLE;
+  VkBuffer       polFenceBuffer    = VK_NULL_HANDLE;
+  VkDeviceMemory polFenceMemory    = VK_NULL_HANDLE;
+  VkBuffer       stagingBuffer     = VK_NULL_HANDLE;
+  VkDeviceMemory stagingMemory     = VK_NULL_HANDLE;
+
+  VkDeviceSize noiseBufferSize       = 0;
+  VkDeviceSize heightmapBufferSize   = 0;
+  VkDeviceSize biomeBufferSize       = 0;
+  VkDeviceSize unitBufferSize        = 0;
+  VkDeviceSize polFenceBufferSize    = 0;
+
+  uint32_t chunkWidth  = 0;
+  uint32_t chunkHeight = 0;
+  uint32_t chunkDepth  = 0;
+
+  bool initialized = false;
+  bool registriesSet = false;
+
+  Biome::BiomeRegistryGPU* biomeRegistry = nullptr;
+  UnitRegistryGPU*         unitRegistry = nullptr;
+
+  std::priority_queue<ChunkGenRequest,
+                      std::vector<ChunkGenRequest>,
+                      Comparator> asyncQueue;
+  mutable std::mutex queueMutex;
+
+  bool skipPolFence = false; // Skip polygon fence generation for integrated GPUs
+  bool skipBiomeStage = false; // Skip biome stage for integrated GPUs
+  bool skipHeightmapStage = false; // Skip heightmap stage for integrated GPUs
+  bool skipNoiseStage = false; // Skip noise stage for integrated GPUs
+  bool skipUnitPlaceStage = false; // Skip unit placement stage for integrated GPUs
+  bool skipReadback = false; // Skip GPU-CPU readback for integrated GPUs
+  bool useSlicedDispatch = false; // Use sliced dispatch for integrated GPUs
+
   /* Add pipeline barrier between stages */
   void AddPipelineBarrier(VkCommandBuffer commandBuffer, VkBuffer buffer,
                          VkAccessFlags srcAccess, VkAccessFlags dstAccess,
                          VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
-
-  /* Read back generated unit data to CPU */
-  bool ReadbackUnitData(VkDevice device, VkCommandBuffer commandBuffer,
-                       UnitChunkBuffer& outChunk);
 
   /* Vulkan buffer creation helper */
   bool CreateBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
@@ -147,75 +256,19 @@ export class ChunkGeneratorGPU
   /* Simplex noise generator */
   UnitGPUSimplexNoise noiseGenerator;
 
-  /* Biome and unit registries */
-  Biome::BiomeRegistryGPU* biomeRegistry = nullptr;
-  UnitRegistryGPU* unitRegistry = nullptr;
-
   /* Non-curable unit IDs */
   std::vector<uint32_t> nonCurableUnitIds;
 
-  /* Vulkan device handles */
-  VkDevice device = VK_NULL_HANDLE;
-  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-  /* Compute pipelines */
-  VkPipeline heightmapPipeline = VK_NULL_HANDLE;
-  VkPipeline biomePipeline = VK_NULL_HANDLE;
-  VkPipeline unitPlacePipeline = VK_NULL_HANDLE;
-  VkPipeline polFencePipeline = VK_NULL_HANDLE;
-
-  /* Pipeline layouts */
-  VkPipelineLayout heightmapLayout = VK_NULL_HANDLE;
-  VkPipelineLayout biomeLayout = VK_NULL_HANDLE;
-  VkPipelineLayout unitPlaceLayout = VK_NULL_HANDLE;
-  VkPipelineLayout polFenceLayout = VK_NULL_HANDLE;
-
-  /* Descriptor pools and sets */
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  VkDescriptorSet heightmapDescriptorSet = VK_NULL_HANDLE;
-  VkDescriptorSet biomeDescriptorSet = VK_NULL_HANDLE;
-  VkDescriptorSet unitPlaceDescriptorSet = VK_NULL_HANDLE;
-  VkDescriptorSet polFenceDescriptorSet = VK_NULL_HANDLE;
-
-  /* Intermediate buffers */
-  VkBuffer heightmapBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory heightmapMemory = VK_NULL_HANDLE;
-  VkBuffer biomeBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory biomeMemory = VK_NULL_HANDLE;
-  VkBuffer unitBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory unitMemory = VK_NULL_HANDLE;
-  VkBuffer polFenceBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory polFenceMemory = VK_NULL_HANDLE;
-
-  /* Staging buffer for readback */
-  VkBuffer stagingBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-
-  /* Non-curable units GPU buffer */
-  VkBuffer nonCurableBuffer = VK_NULL_HANDLE;
+  /* Non-curable unit buffer */
+  VkBuffer       nonCurableBuffer  = VK_NULL_HANDLE;
   VkDeviceMemory nonCurableMemory = VK_NULL_HANDLE;
 
-  /* Buffer sizes */
-  VkDeviceSize heightmapBufferSize = 0;
-  VkDeviceSize biomeBufferSize = 0;
-  VkDeviceSize unitBufferSize = 0;
-  VkDeviceSize polFenceBufferSize = 0;
-
-  /* Chunk dimensions */
-  uint32_t chunkWidth = 0;
-  uint32_t chunkHeight = 0;
-  uint32_t chunkDepth = 0;
-
-  /* Async generation queue */
-  std::priority_queue<ChunkGenRequest, std::vector<ChunkGenRequest>, Comparator>
-      asyncQueue;
-
-  /* Queue mutex */
-  mutable std::mutex queueMutex;
-
-  /* Initialization state */
-  bool initialized = false;
-  bool registriesSet = false;
+  /* Lookup table buffers for optimized polFence shader */
+  VkBuffer       transparencyLUTBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory transparencyLUTMemory = VK_NULL_HANDLE;
+  VkBuffer       curableLUTBuffer      = VK_NULL_HANDLE;
+  VkDeviceMemory curableLUTMemory      = VK_NULL_HANDLE;
+  uint32_t       maxUnitId = 0;
 };
 
 } // namespace Rl::World::Chunk
