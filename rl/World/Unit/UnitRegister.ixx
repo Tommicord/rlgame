@@ -10,114 +10,118 @@ namespace Rl::World
 /* Defines an abstract class for Unit register */
 export class UnitRegister
 {
-  public:
-  /* Constructs a basic unit register */
-  virtual ~UnitRegister() = default;
+public:
+    /* Constructs a basic unit register */
+    virtual ~UnitRegister() = default;
 
-  /* Gets the Unit class id */
-  [[nodiscard]]
-  virtual consteval unsigned short GetClassId() const = 0;
+    /* Gets the Unit class id */
+    [[nodiscard]]
+    virtual consteval unsigned short GetClassId() const = 0;
 };
 
 /* Defines an interface for Unit identification */
 export template <typename T> class IUnitIdentifiable : public UnitRegister
 {
-  public:
-  using Id = unsigned int;
+public:
+    using Id = unsigned int;
 
-  /* Compile-Time Static method, Gens a hash for the Unit class */
-  static consteval unsigned short GenClassId()
-  {
-    constexpr unsigned int     factor = 6;
-    constexpr unsigned int     complete = 65535;
-    unsigned int               hash = 0x0000;
-    constexpr std::string_view name = SimpleClassName();
-
-    for (const char c : name)
+    /* Compile-Time Static method, Gens a hash for the Unit class */
+    static consteval unsigned short GenClassId()
     {
-      hash ^= static_cast<unsigned int>(c);
-      hash &= complete;
-      hash >>= factor;
+        constexpr unsigned int     factor   = 6;
+        constexpr unsigned int     complete = 65535;
+        unsigned int               hash     = 0x0000;
+        constexpr std::string_view name     = SimpleClassName();
+
+        for (const char c : name)
+        {
+            hash ^= static_cast<unsigned int>(c);
+            hash &= complete;
+            hash >>= factor;
+        }
+
+        hash ^= hash >> 7;
+        hash *= 0x89ea6bfa;
+        hash ^= hash >> 12;
+        hash *= 0xc252ae35;
+        hash ^= (hash >> 15);
+        return (hash + 1) & 0xFFFFu;
     }
 
-    hash ^= hash >> 7;
-    hash *= 0x89ea6bfa;
-    hash ^= hash >> 12;
-    hash *= 0xc252ae35;
-    hash ^= (hash >> 15);
-    return (hash + 1) & 0xFFFFu;
-  }
+    /* Compile-Evaluated static function that gets the id for the Unit */
+    [[nodiscard]]
+    static consteval unsigned short GetStaticClassId()
+    {
+        const int id = GenClassId();
+        return id;
+    }
 
-  /* Compile-Evaluated static function that gets the id for the Unit */
-  [[nodiscard]]
-  static consteval unsigned short GetStaticClassId()
-  {
-    const int id = GenClassId();
-    return id;
-  }
+    /* Compile-Evaluated function that gets the id of the Unit  */
+    [[nodiscard]]
+    consteval unsigned short GetClassId() const override
+    {
+        return GetStaticClassId();
+    }
 
-  /* Compile-Evaluated function that gets the id of the Unit  */
-  [[nodiscard]]
-  consteval unsigned short GetClassId() const override
-  { return GetStaticClassId(); }
-
-  private:
-  /* Helper function to get type name from signature */
-  template <typename U>
-  [[nodiscard]]
-  static consteval std::string_view GetTypeName()
-  {
+private:
+    /* Helper function to get type name from signature */
+    template <typename U>
+    [[nodiscard]]
+    static consteval std::string_view GetTypeName()
+    {
 #if defined(__clang__)
-    constexpr std::string_view name{__PRETTY_FUNCTION__};
-    constexpr std::string_view prefix = "std::string_view GetTypeName() [U = ";
-    constexpr std::string_view suffix = "]";
+        constexpr std::string_view name{__PRETTY_FUNCTION__};
+        constexpr std::string_view prefix = "std::string_view GetTypeName() [U = ";
+        constexpr std::string_view suffix = "]";
 #elif defined(__GNUC__)
-    constexpr std::string_view name{__PRETTY_FUNCTION__};
-    constexpr std::string_view prefix =
-        "constexpr std::string_view GetTypeName() [with U = ";
-    constexpr std::string_view suffix = "]";
+        constexpr std::string_view name{__PRETTY_FUNCTION__};
+        constexpr std::string_view prefix =
+            "constexpr std::string_view GetTypeName() [with U = ";
+        constexpr std::string_view suffix = "]";
 #elif defined(_MSC_VER)
-    constexpr std::string_view name{__FUNCSIG__};
-    // MSVC format: ... GetTypeName<U>(void)
-    // Extract from function template parameter
-    constexpr std::string_view prefix = "GetTypeName<";
-    constexpr std::string_view suffix = ">(void)";
+        constexpr std::string_view name{__FUNCSIG__};
+        // MSVC format: ... GetTypeName<U>(void)
+        // Extract from function template parameter
+        constexpr std::string_view prefix = "GetTypeName<";
+        constexpr std::string_view suffix = ">(void)";
 #else
-    return "UnitError";
+        return "UnitError";
 #endif
-    auto start = name.find(prefix);
-    if (start == std::string_view::npos)
-      return "UnitError";
-    auto currentStart = start + prefix.length();
-    auto end = name.find(suffix, currentStart);
-    if (end == std::string_view::npos)
-      return "UnitError";
-    std::string_view typeName = name.substr(currentStart, end - currentStart);
+        auto start = name.find(prefix);
+        if (start == std::string_view::npos)
+            return "UnitError";
+        auto currentStart = start + prefix.length();
+        auto end          = name.find(suffix, currentStart);
+        if (end == std::string_view::npos)
+            return "UnitError";
+        std::string_view typeName = name.substr(currentStart, end - currentStart);
 #if defined(_MSC_VER)
-    // Remove common MSVC prefixes
-    if (typeName.starts_with("class "))
-    {
-      typeName.remove_prefix(6);
-    }
-    else if (typeName.starts_with("struct "))
-    {
-      typeName.remove_prefix(7);
-    }
+        // Remove common MSVC prefixes
+        if (typeName.starts_with("class "))
+        {
+            typeName.remove_prefix(6);
+        }
+        else if (typeName.starts_with("struct "))
+        {
+            typeName.remove_prefix(7);
+        }
 #endif
 
-    // Extract just the simple class name (after last ::)
-    auto last = typeName.rfind("::");
-    if (last != std::string_view::npos)
-    {
-      typeName.remove_prefix(last + 2);
+        // Extract just the simple class name (after last ::)
+        auto last = typeName.rfind("::");
+        if (last != std::string_view::npos)
+        {
+            typeName.remove_prefix(last + 2);
+        }
+        return typeName;
     }
-    return typeName;
-  }
 
-  public:
-  [[nodiscard]]
-  static consteval std::string_view SimpleClassName()
-  { return GetTypeName<T>(); }
+public:
+    [[nodiscard]]
+    static consteval std::string_view SimpleClassName()
+    {
+        return GetTypeName<T>();
+    }
 };
 
 } // namespace Rl::World

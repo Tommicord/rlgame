@@ -8,15 +8,15 @@ float FBM2D(float x, float y, int octaves, float persistence, float lacunarity) 
     float maxValue = 0.0;  // Used for normalizing result to 0.0 - 1.0
 
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         total += Noise2D(x * frequency, y * frequency) * amplitude;
-        
+
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }
 
@@ -26,17 +26,17 @@ float FBM3D(float x, float y, float z, int octaves, float persistence, float lac
     float frequency = 1.0;
     float amplitude = 1.0;
     float maxValue = 0.0;  // Used for normalizing result to 0.0 - 1.0
-    
+
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         total += Noise3D(x * frequency, y * frequency, z * frequency) * amplitude;
-        
+
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }
 
@@ -46,21 +46,21 @@ float RidgedNoise2D(float x, float y, int octaves, float persistence, float lacu
     float frequency = 1.0;
     float amplitude = 1.0;
     float maxValue = 0.0;
-    
+
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         float signal = Noise2D(x * frequency, y * frequency);
         signal = abs(signal);  // Take absolute value
         signal = 1.0 - signal;  // Invert to create ridges
         signal = signal * signal;  // Square for sharper ridges
-        
+
         total += signal * amplitude;
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }
 
@@ -70,21 +70,21 @@ float RidgedNoise3D(float x, float y, float z, int octaves, float persistence, f
     float frequency = 1.0;
     float amplitude = 1.0;
     float maxValue = 0.0;
-    
+
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         float signal = Noise3D(x * frequency, y * frequency, z * frequency);
         signal = abs(signal);  // Take absolute value
         signal = 1.0 - signal;  // Invert to create ridges
         signal = signal * signal;  // Square for sharper ridges
-        
+
         total += signal * amplitude;
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }
 
@@ -96,15 +96,15 @@ float Turbulence2D(float x, float y, int octaves, float persistence, float lacun
     float maxValue = 0.0;
 
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         float signal = abs(Noise2D(x * frequency, y * frequency));
         total += signal * amplitude;
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }
 
@@ -116,14 +116,14 @@ float Turbulence3D(float x, float y, float z, int octaves, float persistence, fl
     float maxValue = 0.0;
 
     int numOctaves = clamp(int(octaves), 1, 6);
-    for(int i = 0; i < numOctaves; i++) {
+    for (int i = 0; i < numOctaves; i++) {
         float signal = abs(Noise3D(x * frequency, y * frequency, z * frequency));
         total += signal * amplitude;
         maxValue += amplitude;
-        
+
         amplitude *= persistence;
         frequency *= lacunarity;
     }
-    
+
     return total / maxValue;
 }

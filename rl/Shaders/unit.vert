@@ -140,10 +140,10 @@ void main() {
         for (uint i = 0; i < polFenceArray.fenceCount; ++i) {
             if (i == targetUnitId) {
                 // Apply polygon fence offsets
-                vec4 polRight = vec4(polFenceArray.fences[i].t, polFenceArray.fences[i].d, 
-                                     polFenceArray.fences[i].b, polFenceArray.fences[i].f);
+                vec4 polRight = vec4(polFenceArray.fences[i].t, polFenceArray.fences[i].d,
+                        polFenceArray.fences[i].b, polFenceArray.fences[i].f);
                 vec4 polLeft = vec4(polFenceArray.fences[i].t, polFenceArray.fences[i].d,
-                                    polFenceArray.fences[i].b, polFenceArray.fences[i].f);
+                        polFenceArray.fences[i].b, polFenceArray.fences[i].f);
                 // Apply to position based on face index
                 switch (faceIndex) {
                     case 0: localPos.y += polRight.x; break; // Top

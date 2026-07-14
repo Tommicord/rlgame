@@ -14,47 +14,67 @@ std::shared_ptr<Skybox::SkyboxSystem> WorldServiceLocator::skyboxSystem = nullpt
 std::shared_ptr<Chunk::ChunkSystem>   WorldServiceLocator::chunkSystem  = nullptr;
 
 void WorldServiceLocator::RegisterTimeSystem(std::shared_ptr<Time::TimeSystem> timeSystem)
-{ WorldServiceLocator::timeSystem = std::move(timeSystem); }
+{
+    WorldServiceLocator::timeSystem = std::move(timeSystem);
+}
 
 void WorldServiceLocator::RegisterSkyboxSystem(
     std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem)
-{ WorldServiceLocator::skyboxSystem = std::move(skyboxSystem); }
+{
+    WorldServiceLocator::skyboxSystem = std::move(skyboxSystem);
+}
 
 void WorldServiceLocator::RegisterChunkSystem(
     std::shared_ptr<Chunk::ChunkSystem> chunkSystem)
-{ WorldServiceLocator::chunkSystem = std::move(chunkSystem); }
+{
+    WorldServiceLocator::chunkSystem = std::move(chunkSystem);
+}
 
 std::shared_ptr<Time::TimeSystem> WorldServiceLocator::GetTimeSystem()
-{ return timeSystem; }
+{
+    return timeSystem;
+}
 
 std::shared_ptr<Skybox::SkyboxSystem> WorldServiceLocator::GetSkyboxSystem()
-{ return skyboxSystem; }
+{
+    return skyboxSystem;
+}
 
 std::shared_ptr<Chunk::ChunkSystem> WorldServiceLocator::GetChunkSystem()
-{ return chunkSystem; }
+{
+    return chunkSystem;
+}
 
 bool WorldServiceLocator::HasTimeSystem()
-{ return timeSystem != nullptr; }
+{
+    return timeSystem != nullptr;
+}
 
 bool WorldServiceLocator::HasSkyboxSystem()
-{ return skyboxSystem != nullptr; }
+{
+    return skyboxSystem != nullptr;
+}
 
 void WorldServiceLocator::UnregisterTimeSystem()
-{ timeSystem.reset(); }
+{
+    timeSystem.reset();
+}
 
 void WorldServiceLocator::UnregisterSkyboxSystem()
-{ skyboxSystem.reset(); }
+{
+    skyboxSystem.reset();
+}
 
 void WorldServiceLocator::UnregisterChunkSystem()
 {
-  chunkSystem.reset();
+    chunkSystem.reset();
 }
 
 void WorldServiceLocator::ClearAll()
 {
-  timeSystem.reset();
-  skyboxSystem.reset();
-  chunkSystem.reset();
+    timeSystem.reset();
+    skyboxSystem.reset();
+    chunkSystem.reset();
 }
 
 } // namespace Rl::World

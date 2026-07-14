@@ -13,49 +13,51 @@ namespace Rl::World
 /* Registry for managing service updaters */
 export class ServiceUpdaterRegistry
 {
-  protected:
-  static constexpr auto RAYLOG_TAG = "ServiceUpdaterRegistry";
-  public:
-  ServiceUpdaterRegistry() = default;
-  ~ServiceUpdaterRegistry() = default;
+protected:
+    static constexpr auto RAYLOG_TAG = "ServiceUpdaterRegistry";
 
-  ServiceUpdaterRegistry(const ServiceUpdaterRegistry&) = delete;
-  ServiceUpdaterRegistry& operator=(const ServiceUpdaterRegistry&) = delete;
+public:
+    ServiceUpdaterRegistry()  = default;
+    ~ServiceUpdaterRegistry() = default;
 
-  /* Enable move operations */
-  ServiceUpdaterRegistry(ServiceUpdaterRegistry&& other) noexcept = default;
-  ServiceUpdaterRegistry& operator=(ServiceUpdaterRegistry&& other) noexcept = default;
+    ServiceUpdaterRegistry(const ServiceUpdaterRegistry&)            = delete;
+    ServiceUpdaterRegistry& operator=(const ServiceUpdaterRegistry&) = delete;
 
-  /* Register a service updater */
-  void RegisterUpdater(const std::string& name, std::shared_ptr<ServiceUpdater> updater);
+    /* Enable move operations */
+    ServiceUpdaterRegistry(ServiceUpdaterRegistry&& other) noexcept            = default;
+    ServiceUpdaterRegistry& operator=(ServiceUpdaterRegistry&& other) noexcept = default;
 
-  /* Unregister a service updater by name */
-  void UnregisterUpdater(const std::string& name);
+    /* Register a service updater */
+    void RegisterUpdater(const std::string&              name,
+                         std::shared_ptr<ServiceUpdater> updater);
 
-  /* Get a service updater by name */
-  [[nodiscard]]
-  std::shared_ptr<ServiceUpdater> GetUpdater(const std::string& name) const;
+    /* Unregister a service updater by name */
+    void UnregisterUpdater(const std::string& name);
 
-  /* Check if a service updater is registered */
-  [[nodiscard]]
-  bool HasUpdater(const std::string& name) const;
+    /* Get a service updater by name */
+    [[nodiscard]]
+    std::shared_ptr<ServiceUpdater> GetUpdater(const std::string& name) const;
 
-  /* Update all registered service updaters */
-  void UpdateAll();
+    /* Check if a service updater is registered */
+    [[nodiscard]]
+    bool HasUpdater(const std::string& name) const;
 
-  /* Get the count of registered updaters */
-  [[nodiscard]]
-  size_t GetUpdaterCount() const;
+    /* Update all registered service updaters */
+    void UpdateAll();
 
-  /* Clear all registered updaters */
-  void ClearAll();
+    /* Get the count of registered updaters */
+    [[nodiscard]]
+    size_t GetUpdaterCount() const;
 
-  /* Get all updater names */
-  [[nodiscard]]
-  std::vector<std::string> GetUpdaterNames() const;
+    /* Clear all registered updaters */
+    void ClearAll();
 
-  private:
-  std::unordered_map<std::string, std::shared_ptr<ServiceUpdater>> updaters;
+    /* Get all updater names */
+    [[nodiscard]]
+    std::vector<std::string> GetUpdaterNames() const;
+
+private:
+    std::unordered_map<std::string, std::shared_ptr<ServiceUpdater>> updaters;
 };
 
 } // namespace Rl::World

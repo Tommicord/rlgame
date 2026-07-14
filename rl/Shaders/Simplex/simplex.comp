@@ -117,7 +117,7 @@ void main() {
         cachedPermGradIndex3D[localId] = permGradIndex3D[localId];
     }
     barrier();
-    
+
     if (x >= pc.width || y >= pc.height || z >= pc.depth) {
         return;
     }

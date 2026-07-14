@@ -11,13 +11,15 @@ namespace Rl::RayLog
  */
 export template <class T> class IRayLogSerializable
 {
-  public:
-  /* Default destructor for the printer strategy */
-  virtual ~IRayLogSerializable() = default;
+public:
+    /* Default destructor for the printer strategy */
+    virtual ~IRayLogSerializable() = default;
 
-  /* Must inherit the ToString method (needs a value) */
-  virtual constexpr std::string ToString(T type) const
-  { return {}; };
+    /* Must inherit the ToString method (needs a value) */
+    virtual constexpr std::string ToString(T type) const
+    {
+        return {};
+    };
 };
 
 /*
@@ -26,13 +28,15 @@ export template <class T> class IRayLogSerializable
  */
 export class IRayLogSerializable2
 {
-  public:
-  /* Default destructor for the printer strategy */
-  virtual ~IRayLogSerializable2() = default;
+public:
+    /* Default destructor for the printer strategy */
+    virtual ~IRayLogSerializable2() = default;
 
-  /* Must inherit the ToString method (needs a value) */
-  virtual constexpr std::string ToString() const
-  { return {}; };
+    /* Must inherit the ToString method (needs a value) */
+    virtual constexpr std::string ToString() const
+    {
+        return {};
+    };
 };
 
 } // namespace Rl::RayLog

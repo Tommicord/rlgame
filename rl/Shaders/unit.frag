@@ -32,16 +32,16 @@ layout (std140, set = 0, binding = 4) uniform LightingBlock {
     vec4 u_CameraPosition;
     Light u_AdditionalLights[4];
 
-    // Spherical harmonics for GI
+// Spherical harmonics for GI
     vec4 u_SHCoefficients[9];
     vec4 u_GroundColor;
     vec4 u_SkyColor;
     mat4 u_LightSpaceMatrix0;
 
-    // Splits: x=split1, y=split2, z=split3, w=unused
+// Splits: x=split1, y=split2, z=split3, w=unused
     vec4 u_CascadeSplits;
 
-    // LOD settings
+// LOD settings
     float u_LODDistanceNear;
     float u_LODDistanceFar;
     uint u_QualityLevel;

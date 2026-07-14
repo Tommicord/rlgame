@@ -7,30 +7,30 @@ import Rl.World.Chunk.ChunkSystem;
 
 namespace Rl::World::Chunk
 {
-void ChunkSystemNotify::OnKeyEvent(const Input::KeyEvent& event) {
-  if (event.action == Input::Action::Press || event.action == Input::Action::Repeat)
-  {
-    switch (event.key)
+void ChunkSystemNotify::OnKeyEvent(const Input::KeyEvent& event)
+{
+    if (event.action == Input::Action::Press || event.action == Input::Action::Repeat)
     {
-    case Input::Key::W:
-    case Input::Key::S:
-    case Input::Key::A:
-    case Input::Key::D:
-    case Input::Key::Space:
-    case Input::Key::LeftShift:
-      if (chunkSystem)
-      {
-        if (!chunkSystem->IsRunning())
+        switch (event.key)
         {
-          RayLog::LogWarning(
-            RAYLOG_TAG, "The chunk system isn't running");
-          return;
+        case Input::Key::W:
+        case Input::Key::S:
+        case Input::Key::A:
+        case Input::Key::D:
+        case Input::Key::Space:
+        case Input::Key::LeftShift:
+            if (chunkSystem)
+            {
+                if (!chunkSystem->IsRunning())
+                {
+                    RayLog::LogWarning(RAYLOG_TAG, "The chunk system isn't running");
+                    return;
+                }
+                chunkSystem->RefreshNow();
+            }
+        default:
+            break;
         }
-        chunkSystem->RefreshNow();
-      }
-    default:
-      break;
     }
-  }
 }
 }

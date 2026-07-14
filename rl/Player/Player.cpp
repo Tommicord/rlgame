@@ -18,41 +18,43 @@ std::unique_ptr<IPlayer> PlayerProvider::player = nullptr;
 
 IPlayer& PlayerProvider::GetInstance()
 {
-  if (!player)
-  {
-    player = std::make_unique<Player>();
-  }
-  return *player;
+    if (!player)
+    {
+        player = std::make_unique<Player>();
+    }
+    return *player;
 }
 
 Player::Player() noexcept
 {
-  cX = cY = cZ = 0L;
-  CreateInputCamera();
-  CreateInputPlayer();
+    cX = cY = cZ = 0L;
+    CreateInputCamera();
+    CreateInputPlayer();
 }
 
 void Player::CreateInputCamera() noexcept
 {
-  // Set camera aspect
-  camera = std::make_unique<PlayerCamera>();
-  const auto  binding = Main::Game::GetInstance().GetMainBinding();
-  const float aspect = static_cast<float>(binding.swapChainExtent.width) /
-                       static_cast<float>(binding.swapChainExtent.height);
-  camera->SetAspectRatio(aspect);
-  camera->SetEyePosition(IPlayerCamera::Eye{GetXfp(), GetYfp(), GetZfp()});
-  cameraControl = std::make_unique<PlayerCameraController>(*camera);
+    // Set camera aspect
+    camera              = std::make_unique<PlayerCamera>();
+    const auto  binding = Main::Game::GetInstance().GetMainBinding();
+    const float aspect  = static_cast<float>(binding.swapChainExtent.width) /
+                         static_cast<float>(binding.swapChainExtent.height);
+    camera->SetAspectRatio(aspect);
+    camera->SetEyePosition(IPlayerCamera::Eye{GetXfp(), GetYfp(), GetZfp()});
+    cameraControl = std::make_unique<PlayerCameraController>(*camera);
 }
 
 void Player::CreateInputPlayer() noexcept
-{ playerControl = std::make_unique<PlayerController>(*this); }
+{
+    playerControl = std::make_unique<PlayerController>(*this);
+}
 
 Player::~Player()
 {
-  // Delete camera controller using the ~IPlayerCameraController
-  cameraControl.reset();
-  // Delete player controller using the ~IPlayerCameraController
-  playerControl.reset();
+    // Delete camera controller using the ~IPlayerCameraController
+    cameraControl.reset();
+    // Delete player controller using the ~IPlayerCameraController
+    playerControl.reset();
 }
 
 } // namespace Rl::Player

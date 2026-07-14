@@ -18,47 +18,53 @@ TimeSystemUpdater::TimeSystemUpdater(std::shared_ptr<Time::TimeSystem> timeSyste
                                      const int64_t fragmentsPerUpdate) :
     timeSystem(std::move(timeSystem)), fragmentsPerUpdate(fragmentsPerUpdate)
 {
-  RayLog::LogInfo(GetRayLogTag(),
-                  "TimeSystemUpdater initialized with fragmentsPerUpdate: %d",
-                  fragmentsPerUpdate);
+    RayLog::LogInfo(GetRayLogTag(),
+                    "TimeSystemUpdater initialized with fragmentsPerUpdate: %d",
+                    fragmentsPerUpdate);
 }
 
 void TimeSystemUpdater::Update()
 {
-  if (timeSystem)
-  {
-    timeSystem->Update(fragmentsPerUpdate);
-  }
-  else
-  {
-    RayLog::LogError(GetRayLogTag(),
-                     "TimeSystemUpdater::Update called with null TimeSystem");
-  }
+    if (timeSystem)
+    {
+        timeSystem->Update(fragmentsPerUpdate);
+    }
+    else
+    {
+        RayLog::LogError(GetRayLogTag(),
+                         "TimeSystemUpdater::Update called with null TimeSystem");
+    }
 }
 
 std::string TimeSystemUpdater::GetServiceName() const
-{ return "TimeSystem"; }
+{
+    return "TimeSystem";
+}
 
 SkyboxSystemUpdater::SkyboxSystemUpdater(
     std::shared_ptr<Skybox::SkyboxSystem> skyboxSystem) :
     skyboxSystem(std::move(skyboxSystem))
-{ RayLog::LogInfo(GetRayLogTag(), "SkyboxSystemUpdater initialized"); }
+{
+    RayLog::LogInfo(GetRayLogTag(), "SkyboxSystemUpdater initialized");
+}
 
 void SkyboxSystemUpdater::Update()
 {
-  if (skyboxSystem)
-  {
-    skyboxSystem->Update();
-  }
-  else
-  {
-    RayLog::LogError(GetRayLogTag(),
-                     "SkyboxSystemUpdater::Update called with null SkyboxSystem");
-  }
+    if (skyboxSystem)
+    {
+        skyboxSystem->Update();
+    }
+    else
+    {
+        RayLog::LogError(GetRayLogTag(),
+                         "SkyboxSystemUpdater::Update called with null SkyboxSystem");
+    }
 }
 
 std::string SkyboxSystemUpdater::GetServiceName() const
-{ return "SkyboxSystem"; }
+{
+    return "SkyboxSystem";
+}
 
 ChunkSystemUpdater::ChunkSystemUpdater(std::shared_ptr<Chunk::ChunkSystem> chunkSystem) :
     chunkSystem(std::move(chunkSystem))
@@ -67,39 +73,45 @@ ChunkSystemUpdater::ChunkSystemUpdater(std::shared_ptr<Chunk::ChunkSystem> chunk
 
 void ChunkSystemUpdater::Update()
 {
-  if (chunkSystem)
-  {
-    // TODO: Implement here the missing code
-  }
-  else
-  {
-    RayLog::LogError(GetRayLogTag(),
-                     "ChunkSystemUpdater::Update called with null ChunkSystem");
-  }
+    if (chunkSystem)
+    {
+        // TODO: Implement here the missing code
+    }
+    else
+    {
+        RayLog::LogError(GetRayLogTag(),
+                         "ChunkSystemUpdater::Update called with null ChunkSystem");
+    }
 }
 
 std::string ChunkSystemUpdater::GetServiceName() const
-{ return "ChunkSystem"; }
+{
+    return "ChunkSystem";
+}
 
 PlayerServicesUpdater::PlayerServicesUpdater()
-{ RayLog::LogInfo(GetRayLogTag(), "PlayerServicesUpdater initialized"); }
+{
+    RayLog::LogInfo(GetRayLogTag(), "PlayerServicesUpdater initialized");
+}
 
 void PlayerServicesUpdater::Update()
 {
-  auto& player = Player::PlayerProvider::GetInstance();
+    auto& player = Player::PlayerProvider::GetInstance();
 
-  if (player.cameraControl)
-  {
-    player.cameraControl->Update();
-  }
+    if (player.cameraControl)
+    {
+        player.cameraControl->Update();
+    }
 
-  if (player.playerControl)
-  {
-    player.playerControl->Update();
-  }
+    if (player.playerControl)
+    {
+        player.playerControl->Update();
+    }
 }
 
 std::string PlayerServicesUpdater::GetServiceName() const
-{ return "PlayerServices"; }
+{
+    return "PlayerServices";
+}
 
 } // namespace Rl::World

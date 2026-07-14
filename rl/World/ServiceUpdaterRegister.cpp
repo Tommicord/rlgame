@@ -25,84 +25,86 @@ ServiceUpdaterRegister::ServiceUpdaterRegister(ServiceUpdaterRegistry& registry)
 void ServiceUpdaterRegister::RegisterTimeSystemUpdater(const std::string& name,
                                                        int64_t fragmentsPerUpdate)
 {
-  auto timeSystem = WorldServiceLocator::GetTimeSystem();
-  if (!timeSystem)
-  {
-    auto time = std::make_shared<Time::TimeSystem>();
-    WorldServiceLocator::RegisterTimeSystem(time);
-    timeSystem = WorldServiceLocator::GetTimeSystem();
-  }
-  const auto updater =
-      std::make_shared<TimeSystemUpdater>(timeSystem, fragmentsPerUpdate);
-  registry.RegisterUpdater(name, updater);
+    auto timeSystem = WorldServiceLocator::GetTimeSystem();
+    if (!timeSystem)
+    {
+        auto time = std::make_shared<Time::TimeSystem>();
+        WorldServiceLocator::RegisterTimeSystem(time);
+        timeSystem = WorldServiceLocator::GetTimeSystem();
+    }
+    const auto updater =
+        std::make_shared<TimeSystemUpdater>(timeSystem, fragmentsPerUpdate);
+    registry.RegisterUpdater(name, updater);
 }
 
 void ServiceUpdaterRegister::RegisterSkyboxSystemUpdater(const std::string& name)
 {
-  auto skyboxSystem = WorldServiceLocator::GetSkyboxSystem();
-  if (!skyboxSystem)
-  {
-    const auto timeSystem = WorldServiceLocator::GetTimeSystem();
-    if (!timeSystem)
+    auto skyboxSystem = WorldServiceLocator::GetSkyboxSystem();
+    if (!skyboxSystem)
     {
-      return;
+        const auto timeSystem = WorldServiceLocator::GetTimeSystem();
+        if (!timeSystem)
+        {
+            return;
+        }
+        WorldServiceLocator::RegisterSkyboxSystem(
+            std::make_shared<Skybox::SkyboxSystem>(*timeSystem));
+        skyboxSystem = WorldServiceLocator::GetSkyboxSystem();
     }
-    WorldServiceLocator::RegisterSkyboxSystem(
-        std::make_shared<Skybox::SkyboxSystem>(*timeSystem));
-    skyboxSystem = WorldServiceLocator::GetSkyboxSystem();
-  }
-  const auto updater = std::make_shared<SkyboxSystemUpdater>(skyboxSystem);
-  registry.RegisterUpdater(name, updater);
+    const auto updater = std::make_shared<SkyboxSystemUpdater>(skyboxSystem);
+    registry.RegisterUpdater(name, updater);
 }
 
 void ServiceUpdaterRegister::RegisterPlayerServicesUpdater(const std::string& name)
 {
-  auto updater = std::make_shared<PlayerServicesUpdater>();
-  registry.RegisterUpdater(name, updater);
+    auto updater = std::make_shared<PlayerServicesUpdater>();
+    registry.RegisterUpdater(name, updater);
 }
 
 void ServiceUpdaterRegister::RegisterChunkServicesUpdater(const std::string& name)
 {
-  auto chunkSystem = WorldServiceLocator::GetChunkSystem();
-  if (!chunkSystem)
-  {
-    constexpr int renderDist = 4;
-    Chunk::ChunkInRenderUnits* chunkStore = new Chunk::ChunkInRenderUnits(renderDist, renderDist, renderDist);
-    Chunk::WorldChunkCoord     worldRenderDist = chunkStore->GetRenderDistance();
+    auto chunkSystem = WorldServiceLocator::GetChunkSystem();
+    if (!chunkSystem)
+    {
+        constexpr int              renderDist = 4;
+        Chunk::ChunkInRenderUnits* chunkStore =
+            new Chunk::ChunkInRenderUnits(renderDist, renderDist, renderDist);
+        Chunk::WorldChunkCoord worldRenderDist = chunkStore->GetRenderDistance();
 
-    auto chunkSystemNew = std::make_shared<Chunk::ChunkSystem>(chunkStore, worldRenderDist);
-    auto finalNotifier = std::make_unique<Chunk::ChunkSystemNotify>();
-    chunkSystemNew->SetNotifier(std::move(finalNotifier));
+        auto chunkSystemNew =
+            std::make_shared<Chunk::ChunkSystem>(chunkStore, worldRenderDist);
+        auto finalNotifier = std::make_unique<Chunk::ChunkSystemNotify>();
+        chunkSystemNew->SetNotifier(std::move(finalNotifier));
 
-    WorldServiceLocator::RegisterChunkSystem(chunkSystemNew);
-    chunkSystem = WorldServiceLocator::GetChunkSystem();
-  }
-  const auto updater = std::make_shared<ChunkSystemUpdater>(chunkSystem);
-  registry.RegisterUpdater(name, updater);
+        WorldServiceLocator::RegisterChunkSystem(chunkSystemNew);
+        chunkSystem = WorldServiceLocator::GetChunkSystem();
+    }
+    const auto updater = std::make_shared<ChunkSystemUpdater>(chunkSystem);
+    registry.RegisterUpdater(name, updater);
 }
 
 void ServiceUpdaterRegister::RegisterCustomUpdater(
     const std::string& name, std::shared_ptr<ServiceUpdater> updater)
 {
-  if (updater)
-  {
-    registry.RegisterUpdater(name, updater);
-  }
+    if (updater)
+    {
+        registry.RegisterUpdater(name, updater);
+    }
 }
 
 void ServiceUpdaterRegister::RegisterFromServiceLocator(int64_t timeFragmentsPerUpdate)
 {
-  RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
-  RegisterSkyboxSystemUpdater("SkyboxSystem");
-  RegisterPlayerServicesUpdater("PlayerServices");
-  RegisterChunkServicesUpdater("ChunkServices");
+    RegisterTimeSystemUpdater("TimeSystem", timeFragmentsPerUpdate);
+    RegisterSkyboxSystemUpdater("SkyboxSystem");
+    RegisterPlayerServicesUpdater("PlayerServices");
+    RegisterChunkServicesUpdater("ChunkServices");
 }
 
 void RegisterStandardServices(ServiceUpdaterRegistry& registry,
                               std::int64_t            timeFragmentsPerUpdate)
 {
-  ServiceUpdaterRegister registerer(registry);
-  registerer.RegisterFromServiceLocator(timeFragmentsPerUpdate);
+    ServiceUpdaterRegister registerer(registry);
+    registerer.RegisterFromServiceLocator(timeFragmentsPerUpdate);
 }
 
 } // namespace Rl::World

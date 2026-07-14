@@ -11,20 +11,22 @@ namespace Rl::RayLog
 
 export class RayLogFatalHandler
 {
-  public:
-  [[noreturn]]
-  static void Handle(const std::string& message)
-  {
-    const auto  frames = RayLogStackTrace::Capture(1);
-    const auto  demangled = RayLogSymbolDemangler::DemangleStackTrace(frames);
-    std::string fatalMessage = message + "\n";
-    fatalMessage += demangled;
-    RayLogPlatformOutput::WriteError(fatalMessage);
-  }
+public:
+    [[noreturn]]
+    static void Handle(const std::string& message)
+    {
+        const auto  frames       = RayLogStackTrace::Capture(1);
+        const auto  demangled    = RayLogSymbolDemangler::DemangleStackTrace(frames);
+        std::string fatalMessage = message + "\n";
+        fatalMessage += demangled;
+        RayLogPlatformOutput::WriteError(fatalMessage);
+    }
 
-  [[noreturn]]
-  static void Handle()
-  { Handle("Unknown fatal error"); }
+    [[noreturn]]
+    static void Handle()
+    {
+        Handle("Unknown fatal error");
+    }
 };
 
 } // namespace Rl::RayLog

@@ -34,19 +34,19 @@ float Noise2D(float x, float y) {
     bool useCorner = inLower ? (zins > xins || zins > yins) : (zins < xins || zins < yins);
     bool xGreater = xins > yins;
 
-    int xsv_ext = inLower ? 
-        (useCorner ? (xGreater ? xsb + 1 : xsb - 1) : xsb + 1) :
-        (useCorner ? (xGreater ? xsb + 2 : xsb) : xsb);
-    int ysv_ext = inLower ? 
-        (useCorner ? (xGreater ? ysb - 1 : ysb + 1) : ysb + 1) :
-        (useCorner ? (xGreater ? ysb : ysb + 2) : ysb);
+    int xsv_ext = inLower ?
+    (useCorner ? (xGreater ? xsb + 1 : xsb - 1) : xsb + 1) :
+    (useCorner ? (xGreater ? xsb + 2 : xsb) : xsb);
+    int ysv_ext = inLower ?
+    (useCorner ? (xGreater ? ysb - 1 : ysb + 1) : ysb + 1) :
+    (useCorner ? (xGreater ? ysb : ysb + 2) : ysb);
 
     float dx_ext = inLower ?
-        (useCorner ? (xGreater ? dx0 - 1.0 : dx0 + 1.0) : dx0 - 1.0 - 2.0 * SQUISH_2D) :
-        (useCorner ? (xGreater ? dx0 - 2.0 - 2.0 * SQUISH_2D : dx0 - 2.0 * SQUISH_2D) : dx0);
+    (useCorner ? (xGreater ? dx0 - 1.0 : dx0 + 1.0) : dx0 - 1.0 - 2.0 * SQUISH_2D) :
+    (useCorner ? (xGreater ? dx0 - 2.0 - 2.0 * SQUISH_2D : dx0 - 2.0 * SQUISH_2D) : dx0);
     float dy_ext = inLower ?
-        (useCorner ? (xGreater ? dy0 + 1.0 : dy0 - 1.0) : dy0 - 1.0 - 2.0 * SQUISH_2D) :
-        (useCorner ? (xGreater ? dy0 - 2.0 * SQUISH_2D : dy0 - 2.0 - 2.0 * SQUISH_2D) : dy0);
+    (useCorner ? (xGreater ? dy0 + 1.0 : dy0 - 1.0) : dy0 - 1.0 - 2.0 * SQUISH_2D) :
+    (useCorner ? (xGreater ? dy0 - 2.0 * SQUISH_2D : dy0 - 2.0 - 2.0 * SQUISH_2D) : dy0);
 
     // Adjust origin for upper region
     if (!inLower) {

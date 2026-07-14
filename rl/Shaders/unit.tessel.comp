@@ -205,7 +205,7 @@ void main() {
 
     // Get the 4 vertices for this face
     uint baseIndex = globalID * verticesPerFace;
-    
+
     // Thread 0 loads all 4 vertices for this face into shared memory cache
     if (localId == 0) {
         if (baseIndex + 3 < vertices.length()) {

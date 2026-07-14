@@ -25,70 +25,70 @@ namespace Rl::RayLog
 
 export class RayLog
 {
-  RayLogRingBuffer<RayLogMessage> messageQueue{MaxQueueSize};
-  RayLogMessageBuilder            messageBuilder;
-  RayLogThreadPool                threadPool{WorkerThreads};
-  RayLogFileOutput                fileOutput;
-  mutable std::mutex              logMutex;
+    RayLogRingBuffer<RayLogMessage> messageQueue{MaxQueueSize};
+    RayLogMessageBuilder            messageBuilder;
+    RayLogThreadPool                threadPool{WorkerThreads};
+    RayLogFileOutput                fileOutput;
+    mutable std::mutex              logMutex;
 
-  RayLog() = default;
+    RayLog() = default;
 
-  public:
-  RayLog(const RayLog&) = delete;
-  RayLog& operator=(const RayLog&) = delete;
+public:
+    RayLog(const RayLog&)            = delete;
+    RayLog& operator=(const RayLog&) = delete;
 
-  static RayLog& GetInstance()
-  {
-    static RayLog instance;
-    return instance;
-  }
-
-  void Log(const RayLogLevel          level,
-      const std::string&              tag,
-      const std::string&              format,
-      const std::vector<std::variant<int,
-          float,
-          double,
-          std::string,
-          bool,
-          void*,
-          const void*,
-          std::vector<int>,
-          std::vector<float>,
-          std::vector<std::string>>>& args)
-  {
-    const std::string   formatted = messageBuilder.FormatMessage(format, args);
-    const RayLogMessage message(level, formatted, tag);
-    if (!messageQueue.Push(message))
+    static RayLog& GetInstance()
     {
-      FlushQueue();
-      messageQueue.Push(message);
+        static RayLog instance;
+        return instance;
     }
 
-    if (level == RayLogLevel::Fatal)
+    void Log(const RayLogLevel                                          level,
+             const std::string&                                         tag,
+             const std::string&                                         format,
+             const std::vector<std::variant<int,
+                                            float,
+                                            double,
+                                            std::string,
+                                            bool,
+                                            void*,
+                                            const void*,
+                                            std::vector<int>,
+                                            std::vector<float>,
+                                            std::vector<std::string>>>& args)
     {
-      FlushQueue();
-      RayLogFatalHandler::Handle(formatted);
+        const std::string   formatted = messageBuilder.FormatMessage(format, args);
+        const RayLogMessage message(level, formatted, tag);
+        if (!messageQueue.Push(message))
+        {
+            FlushQueue();
+            messageQueue.Push(message);
+        }
+
+        if (level == RayLogLevel::Fatal)
+        {
+            FlushQueue();
+            RayLogFatalHandler::Handle(formatted);
+        }
+
+        if (ImmediateFlush)
+            FlushQueue();
     }
 
-    if (ImmediateFlush)
-      FlushQueue();
-  }
-
-  void FlushQueue()
-  {
-    RayLogMessage message;
-    while (messageQueue.Pop(message))
+    void FlushQueue()
     {
-      threadPool.Enqueue(
-          [this, message]
-          {
-            const std::string logLine = messageBuilder.BuildLogLine(message);
-            fileOutput.Write(logLine);
-            RayLogPlatformOutput::Write(logLine);
-          });
+        RayLogMessage message;
+        while (messageQueue.Pop(message))
+        {
+            threadPool.Enqueue(
+                [this, message]
+                {
+                    const std::string logLine = messageBuilder.BuildLogLine(message);
+                    fileOutput.Write(logLine);
+                    RayLogPlatformOutput::Write(logLine);
+                });
+        }
     }
-  }
 };
 
 } // namespace Rl::RayLog

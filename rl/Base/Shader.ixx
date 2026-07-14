@@ -9,20 +9,21 @@ namespace Rl::Providers
 
 export class ShaderObject
 {
-  protected:
-  static constexpr const char* RAYLOG_TAG = "Shader";
-  public:
-  struct ShaderModule
-  {
-    VkShaderModule module;
-  };
-  static ShaderModule Module(VkDevice device, const std::vector<char>& code);
-  static void         DestroyShaderModule(VkDevice device, ShaderModule& shaderModule);
-  static std::vector<char> Shader(const std::string& filename);
-  ShaderObject() = delete;
-  ~ShaderObject() = delete;
-  ShaderObject(const ShaderObject&) = delete;
-  ShaderObject& operator=(const ShaderObject&) = delete;
+protected:
+    static constexpr const char* RAYLOG_TAG = "Shader";
+
+public:
+    struct ShaderModule
+    {
+        VkShaderModule module;
+    };
+    static ShaderModule Module(VkDevice device, const std::vector<char>& code);
+    static void         DestroyShaderModule(VkDevice device, ShaderModule& shaderModule);
+    static std::vector<char> Shader(const std::string& filename);
+    ShaderObject()                               = delete;
+    ~ShaderObject()                              = delete;
+    ShaderObject(const ShaderObject&)            = delete;
+    ShaderObject& operator=(const ShaderObject&) = delete;
 };
 
 } // namespace Rl::Providers

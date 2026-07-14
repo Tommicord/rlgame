@@ -13,35 +13,37 @@ namespace Rl::World::Chunk
 
 export class ChunkSystemNotify final : public Input::IInputObserver
 {
-  protected:
-  static constexpr auto RAYLOG_TAG = "ChunkSystemNotify";
+protected:
+    static constexpr auto RAYLOG_TAG = "ChunkSystemNotify";
 
-  public:
-  ChunkSystemNotify() : IInputObserver(*this), chunkSystem(nullptr)
-  {
-    RayLog::LogInfo(RAYLOG_TAG, "Initialized ChunkSystem event notifier");
-  }
+public:
+    ChunkSystemNotify() : IInputObserver(*this), chunkSystem(nullptr)
+    {
+        RayLog::LogInfo(RAYLOG_TAG, "Initialized ChunkSystem event notifier");
+    }
 
-  explicit ChunkSystemNotify(ChunkSystem& system) : IInputObserver(*this), chunkSystem(&system)
-  {
-    RayLog::LogInfo(RAYLOG_TAG, "Initialized ChunkSystem event notifier for ChunkSystem");
-  }
+    explicit ChunkSystemNotify(ChunkSystem& system) :
+        IInputObserver(*this), chunkSystem(&system)
+    {
+        RayLog::LogInfo(RAYLOG_TAG,
+                        "Initialized ChunkSystem event notifier for ChunkSystem");
+    }
 
-  ~ChunkSystemNotify() override = default;
+    ~ChunkSystemNotify() override = default;
 
-  void OnKeyEvent(const Input::KeyEvent& event) override;
-  void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override
-  {
-  }
-  void OnMouseButtonEvent(const Input::MouseButtonEvent& event) override
-  {
-  }
-  void OnMouseMoveEvent(const Input::MouseMoveEvent& event) override
-  {
-  }
+    void OnKeyEvent(const Input::KeyEvent& event) override;
+    void OnMouseScrollEvent(const Input::MouseScrollEvent& event) override
+    {
+    }
+    void OnMouseButtonEvent(const Input::MouseButtonEvent& event) override
+    {
+    }
+    void OnMouseMoveEvent(const Input::MouseMoveEvent& event) override
+    {
+    }
 
-  private:
-  ChunkSystem* chunkSystem;
+private:
+    ChunkSystem* chunkSystem;
 };
 
 } // namespace Rl::World::Chunk
