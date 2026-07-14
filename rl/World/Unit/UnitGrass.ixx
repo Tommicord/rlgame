@@ -176,8 +176,6 @@ export class UnitGrass final : public IUnit,
   [[nodiscard]]
   const Unit::GrassGrowConfig& GetConfig() const;
 
-  protected:
-  [[nodiscard]]
   unsigned short GetDerivedClassId() const override
   { return IUnitIdentifiable<UnitGrass>::GetClassId(); }
 
@@ -185,6 +183,8 @@ export class UnitGrass final : public IUnit,
   std::string_view GetDerivedClassName() const override
   { return IUnitIdentifiable<UnitGrass>::SimpleClassName(); }
 
+  protected:
+  [[nodiscard]]
   std::unique_ptr<Unit::UnitGrassGrowBehavior> growBehavior;
 };
 

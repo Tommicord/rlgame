@@ -28,17 +28,11 @@ bool UnitRegistryGPU::Initialize(VkDevice device, VkPhysicalDevice physicalDevic
   this->device         = device;
   this->physicalDevice = physicalDevice;
 
-  // Pre-allocate staging buffer (max expected size: 512 units * 128 bytes = 64KB)
   constexpr VkDeviceSize maxStagingSize = 131072; // 128KB
   Client::Render::CreateBuffer(
       device, physicalDevice, maxStagingSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
       stagingBuffer, stagingMemory);
-  {
-    RayLog::LogError(RAYLOG_TAG, "Failed to create staging buffer");
-    return false;
-  }
-
   initialized = true;
   RayLog::LogInfo(RAYLOG_TAG, "UnitRegistryGPU initialized successfully");
   return true;
@@ -93,11 +87,15 @@ bool UnitRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBu
   {
     return true; // No changes needed
   }
-
-  // Calculate required buffer size
   VkDeviceSize newUnitSize = cpuUnits.size() * sizeof(UnitGPUParams);
-
-  // Recreate buffer if size changed or first time
+  
+  // Skip update if no units registered
+  if (newUnitSize == 0)
+  {
+    RayLog::LogWarning(RAYLOG_TAG, "No units registered, skipping GPU buffer update");
+    return true;
+  }
+  
   if (newUnitSize > unitBufferSize || unitBuffer == VK_NULL_HANDLE)
   {
     if (unitBuffer != VK_NULL_HANDLE)
@@ -112,8 +110,6 @@ bool UnitRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBu
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, unitBuffer, unitMemory);
     unitBufferSize = newUnitSize;
   }
-
-  // Copy unit data to staging buffer
   void* stagingData = nullptr;
   if (vkMapMemory(device, stagingMemory, 0, newUnitSize, 0, &stagingData) != VK_SUCCESS)
   {

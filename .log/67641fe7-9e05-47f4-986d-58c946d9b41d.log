@@ -1,0 +1,22 @@
+[1;34m[TID 14636] 07-14-11:03:04.224 INFO WorldGeneratorGPU: Initialize - Set chunk dimensions to 64x128x64[0m
+[1;34m[TID 10052] 07-14-11:03:04.224 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Setting device pointers[0m
+[1;34m[TID 14860] 07-14-11:03:04.224 INFO WorldGeneratorGPU: Initialize - Creating noise generator[0m
+[1;34m[TID 16760] 07-14-11:03:04.242 INFO UnitGPUSimplexNoise: GenNoise: Creating pipeline layout[0m
+[1;34m[TID 14636] 07-14-11:03:04.243 INFO UnitGPUSimplexNoise: GenNoise: Loading shader[0m
+[1;34m[TID 14860] 07-14-11:03:04.244 INFO UnitGPUSimplexNoise: GenNoise: Creating compute pipeline[0m
+[1;34m[TID 10052] 07-14-11:03:04.548 INFO UnitGPUSimplexNoise: GenNoise: Binding pipeline and descriptor sets[0m
+[1;34m[TID 16760] 07-14-11:03:04.548 INFO WorldGeneratorGPU: Initialize - Noise generator created[0m
+[1;34m[TID 14636] 07-14-11:03:04.548 INFO WorldGeneratorGPU: Initialize - Creating descriptor sets[0m
+[1;34m[TID 14860] 07-14-11:03:04.548 INFO WorldGeneratorGPU: Descriptor sets created successfully[0m
+[1;34m[TID 10052] 07-14-11:03:04.549 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Descriptor sets created[0m
+[1;34m[TID 14636] 07-14-11:03:04.549 INFO WorldGeneratorGPU: Initialize - Creating compute pipelines[0m
+[1;34m[TID 14860] 07-14-11:03:04.718 INFO WorldGeneratorGPU: Compute pipelines created successfully[0m
+[1;34m[TID 16760] 07-14-11:03:04.718 INFO WorldGeneratorGPU: Initialize - Compute pipelines created[0m
+[1;34m[TID 10052] 07-14-11:03:04.718 INFO WorldGeneratorGPU: Initialize - Creating noise buffers[0m
+[1;34m[TID 14636] 07-14-11:03:04.719 INFO WorldGeneratorGPU: Initialize - Noise buffers created[0m
+[1;34m[TID 14860] 07-14-11:03:04.719 INFO WorldGeneratorGPU: Initialize - Creating world output buffers[0m
+[1;34m[TID 16760] 07-14-11:03:04.742 INFO WorldGeneratorGPU: Initialize - Initializing async queue[0m
+[1;34m[TID 10052] 07-14-11:03:04.742 INFO WorldGeneratorGPU: Initialize - World output buffers created[0m
+[1;34m[TID 14636] 07-14-11:03:04.742 INFO WorldGeneratorGPU: WorldGeneratorGPU initialized successfully[0m
+[1;34m[TID 14860] 07-14-11:03:04.744 INFO UnitRegistryGPU: UnitRegistryGPU initialized successfully[0m
+[1;34m[TID 16760] 07-14-11:03:04.746 WARN UnitRegistryGPU: No units registered, skipping GPU buffer update[0m

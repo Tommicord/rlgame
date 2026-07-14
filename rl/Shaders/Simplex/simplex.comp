@@ -2,8 +2,8 @@
 
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-shared int cachedPerm[264];
-shared int cachedPermGradIndex3D[264];
+shared int cachedPerm[256];
+shared int cachedPermGradIndex3D[256];
 
 layout(std430, binding = 0) buffer PermutationBuffer {
     int perm[256];
@@ -13,12 +13,16 @@ layout(std430, binding = 1) buffer PermGradIndex3DBuffer {
     int permGradIndex3D[256];
 };
 
+layout(std430, binding = 2) buffer NoiseBuffer {
+    float noiseValues[];
+};
+
 int GetPerm(int index) {
-    return perm[index & 255];
+    return cachedPerm[index & 255];
 }
 
 int GetPermGradIndex3D(int index) {
-    return permGradIndex3D[index & 255];
+    return cachedPermGradIndex3D[index & 255];
 }
 
 const int GRADIENTS_2D[16] = int[](
@@ -78,23 +82,13 @@ float Extrapolate3d(int xsb, int ysb, int zsb, float dx, float dy, float dz) {
     return gradX * dx + gradY * dy + gradZ * dz;
 }
 
-// Output buffer for noise values
-layout(std430, binding = 2) buffer NoiseBuffer {
-    float noiseValues[];
-};
-
-// Initialization flag (0 = not initialized, 1 = initialized)
-layout(std430, binding = 3) buffer InitFlagBuffer {
-    uint initialized;
-};
-
 #include "simplex.noise.constants.glsl"
 #include "simplex.noise2d.glsl"
 #include "simplex.noise3d.glsl"
 #include "simplex.octaves.glsl"
 
 // Noise generation parameters
-layout(push_constant) uniform PushConstants {
+layout(std430, push_constant) uniform PushConstants {
     uint dimension;      // 2 or 3
     float scale;         // Noise scale
     float offsetX;       // X offset
@@ -111,71 +105,19 @@ layout(push_constant) uniform PushConstants {
     uint seed;           // Seed for permutation initialization
 } pc;
 
-shared int cachedSource[256];
-
-uint LCG(uint state) {
-    return state * 1664525u + 1013904223u;
-}
-
-void InitializePermutations() {
-    uint localId = gl_LocalInvocationIndex;
-    
-    // Only first workgroup initializes
-    if (gl_WorkGroupID.x == 0 && gl_WorkGroupID.y == 0 && gl_WorkGroupID.z == 0) {
-        if (localId < 256) {
-            cachedSource[localId] = int(localId);
-        }
-        barrier();
-        
-        if (localId == 0) {
-            uint currentSeed = pc.seed;
-            currentSeed = LCG(currentSeed);
-            currentSeed = LCG(currentSeed);
-            currentSeed = LCG(currentSeed);
-            
-            for (int i = 255; i >= 0; i--) {
-                currentSeed = LCG(currentSeed);
-                int r = int((currentSeed + 31u) % uint(i + 1));
-                if (r < 0) {
-                    r += (i + 1);
-                }
-                int pickedValue = cachedSource[r];
-                perm[i] = pickedValue;
-                permGradIndex3D[i] = (pickedValue % 24) * 3;
-                cachedSource[r] = cachedSource[i];
-            }
-            
-            initialized = 1;
-        }
-    }
-}
-
 void main() {
     uint localId = gl_LocalInvocationIndex;
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
     uint z = gl_GlobalInvocationID.z;
 
-    // Initialize permutations if not already done (only first workgroup)
-    if (initialized == 0) {
-        InitializePermutations();
-        barrier();
-    }
-
-    // Cooperative loading of permutation and gradient tables into shared memory
+    // Load permutation tables into shared memory
     if (localId < 256) {
         cachedPerm[localId] = perm[localId];
         cachedPermGradIndex3D[localId] = permGradIndex3D[localId];
     }
-    // Pad remaining elements to avoid bank conflicts
-    if (localId < 8) {
-        cachedPerm[256 + localId] = 0;
-        cachedPermGradIndex3D[256 + localId] = 0;
-    }
-    memoryBarrierShared();
     barrier();
-
-    // Check bounds
+    
     if (x >= pc.width || y >= pc.height || z >= pc.depth) {
         return;
     }
@@ -187,57 +129,14 @@ void main() {
     uint index = x + y * pc.width + z * pc.width * pc.height;
 
     float noiseValue = 0.0;
-    
-    // Default values for single octave
     int octaves = clamp(int(pc.octaves), 1, 6);
     float persistence = pc.persistence;
     float lacunarity = pc.lacunarity;
-    
-    // Ensure at least 1 octave
-    if (octaves < 1) {
-        octaves = 1;
-    }
 
-    if (pc.dimension == 2) {
-        if (pc.noiseType == 0) {
-            // Standard noise
-            if (octaves == 1) {
-                noiseValue = Noise2D(worldX, worldY);
-            } else {
-                noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
-            }
-        } else if (pc.noiseType == 1) {
-            // FBM
-            noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
-        } else if (pc.noiseType == 2) {
-            // Ridged
-            noiseValue = RidgedNoise2D(worldX, worldY, octaves, persistence, lacunarity);
-        } else if (pc.noiseType == 3) {
-            // Turbulence
-            noiseValue = Turbulence2D(worldX, worldY, octaves, persistence, lacunarity);
+    if (pc.dimension == 3) {
+        if (octaves == 1) {
+            noiseValue = Noise3D(worldX, worldY, worldZ);
         } else {
-            // Default to FBM
-            noiseValue = FBM2D(worldX, worldY, octaves, persistence, lacunarity);
-        }
-    } else if (pc.dimension == 3) {
-        if (pc.noiseType == 0) {
-            // Standard noise
-            if (octaves == 1) {
-                noiseValue = Noise3D(worldX, worldY, worldZ);
-            } else {
-                noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
-            }
-        } else if (pc.noiseType == 1) {
-            // FBM
-            noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
-        } else if (pc.noiseType == 2) {
-            // Ridged
-            noiseValue = RidgedNoise3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
-        } else if (pc.noiseType == 3) {
-            // Turbulence
-            noiseValue = Turbulence3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
-        } else {
-            // Default to FBM
             noiseValue = FBM3D(worldX, worldY, worldZ, octaves, persistence, lacunarity);
         }
     }

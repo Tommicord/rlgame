@@ -1,0 +1,23 @@
+[1;34m[TID 2568] 07-14-11:00:05.304 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Setting device pointers[0m
+[1;34m[TID 16516] 07-14-11:00:05.304 INFO WorldGeneratorGPU: Initialize - Set chunk dimensions to 64x128x64[0m
+[1;34m[TID 14784] 07-14-11:00:05.304 INFO WorldGeneratorGPU: Initialize - Creating noise generator[0m
+[1;34m[TID 17100] 07-14-11:00:05.321 INFO UnitGPUSimplexNoise: GenNoise: Creating pipeline layout[0m
+[1;34m[TID 2568] 07-14-11:00:05.321 INFO UnitGPUSimplexNoise: GenNoise: Loading shader[0m
+[1;34m[TID 14784] 07-14-11:00:05.335 INFO UnitGPUSimplexNoise: GenNoise: Creating compute pipeline[0m
+[1;34m[TID 16516] 07-14-11:00:05.625 INFO UnitGPUSimplexNoise: GenNoise: Binding pipeline and descriptor sets[0m
+[1;34m[TID 17100] 07-14-11:00:05.625 INFO WorldGeneratorGPU: Initialize - Noise generator created[0m
+[1;34m[TID 2568] 07-14-11:00:05.625 INFO WorldGeneratorGPU: Initialize - Creating descriptor sets[0m
+[1;34m[TID 14784] 07-14-11:00:05.625 INFO WorldGeneratorGPU: Descriptor sets created successfully[0m
+[1;34m[TID 16516] 07-14-11:00:05.626 INFO WorldGeneratorGPU: ChunkGeneratorGPU::Initialize - Descriptor sets created[0m
+[1;34m[TID 2568] 07-14-11:00:05.626 INFO WorldGeneratorGPU: Initialize - Creating compute pipelines[0m
+[1;34m[TID 17100] 07-14-11:00:05.789 INFO WorldGeneratorGPU: Compute pipelines created successfully[0m
+[1;34m[TID 14784] 07-14-11:00:05.789 INFO WorldGeneratorGPU: Initialize - Compute pipelines created[0m
+[1;34m[TID 16516] 07-14-11:00:05.789 INFO WorldGeneratorGPU: Initialize - Creating noise buffers[0m
+[1;34m[TID 2568] 07-14-11:00:05.790 INFO WorldGeneratorGPU: Initialize - Noise buffers created[0m
+[1;34m[TID 17100] 07-14-11:00:05.790 INFO WorldGeneratorGPU: Initialize - Creating world output buffers[0m
+[1;34m[TID 16516] 07-14-11:00:05.806 INFO WorldGeneratorGPU: Initialize - World output buffers created[0m
+[1;34m[TID 14784] 07-14-11:00:05.806 INFO WorldGeneratorGPU: Initialize - Initializing async queue[0m
+[1;34m[TID 2568] 07-14-11:00:05.806 INFO WorldGeneratorGPU: WorldGeneratorGPU initialized successfully[0m
+[1;34m[TID 17100] 07-14-11:00:05.807 INFO UnitRegistryGPU: UnitRegistryGPU initialized successfully[0m
+[1;35m[1;33m[1;34m[TID 16516] 07-14-11:00:05.887 FATAL Game: Validation layer: vkCreateBuffer(): pCreateInfo->size is zero.
+The Vulkan spec states: size must be greater than 0 (https://docs.vulkan.org/spec/latest/chapters/resources.html#VUID-VkBufferCreateInfo-size-00912)[0m

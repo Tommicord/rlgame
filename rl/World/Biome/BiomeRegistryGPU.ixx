@@ -10,7 +10,6 @@ import <vulkan/vulkan.hpp>;
 
 namespace Rl::World::Biome
 {
-
 class IBiome;
 
 /* GPU biome registry for compute shader access */
@@ -20,8 +19,9 @@ export class BiomeRegistryGPU
   static constexpr auto RAYLOG_TAG = "BiomeRegistryGPU";
 
   public:
+  /* Default constructor, doesn't need to receive anything */
   BiomeRegistryGPU() = default;
-  ~BiomeRegistryGPU();
+  ~BiomeRegistryGPU() = default;
 
   /* Initialize GPU resources for biome registry */
   bool Initialize(VkDevice device, VkPhysicalDevice physicalDevice);
@@ -30,7 +30,9 @@ export class BiomeRegistryGPU
   void Shutdown(VkDevice device);
 
   /* Register a biome for GPU access */
-  void RegisterBiome(const IBiome& biome);
+  template <typename T>
+    requires std::is_base_of_v<IBiome, T>
+  void RegisterBiome(const T& biome);
 
   /* Update GPU buffer with registered biomes (call after RegisterBiome) */
   bool UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBuffer);
@@ -79,27 +81,6 @@ export class BiomeRegistryGPU
   BiomeRegistryGPU& operator=(BiomeRegistryGPU&&) = delete;
 
   private:
-  /* Create Vulkan buffer with proper memory allocation */
-  bool CreateBuffer(VkDevice              device,
-                    VkPhysicalDevice      physicalDevice,
-                    VkDeviceSize          size,
-                    VkBufferUsageFlags    usage,
-                    VkMemoryPropertyFlags properties,
-                    VkBuffer&             buffer,
-                    VkDeviceMemory&       memory);
-
-  /* Copy data from CPU to GPU buffer */
-  bool CopyBufferToGPU(VkDevice        device,
-                       VkCommandBuffer commandBuffer,
-                       VkBuffer        srcBuffer,
-                       VkBuffer        dstBuffer,
-                       VkDeviceSize    size);
-
-  /* Find memory type index for buffer allocation */
-  uint32_t FindMemoryType(VkPhysicalDevice      physicalDevice,
-                          uint32_t              typeFilter,
-                          VkMemoryPropertyFlags properties);
-
   /* CPU-side biome data */
   std::vector<BiomeGPUParams>   cpuBiomes;
   std::vector<BiomeUnitRuleGPU> cpuUnitRules;
@@ -126,5 +107,66 @@ export class BiomeRegistryGPU
   VkDevice         device         = VK_NULL_HANDLE;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 };
+
+template <typename T>
+  requires std::is_base_of_v<IBiome, T>
+void BiomeRegistryGPU::RegisterBiome(const T& biome)
+{
+  if (!initialized)
+  {
+    RayLog::LogError(RAYLOG_TAG, "Cannot register biome: registry not initialized");
+    return;
+  }
+
+  // Create GPU params from biome
+  BiomeGPUParams params{};
+  params.biomeType = biome.GetBiomeType().value;
+
+  // Extract temperature layer
+  auto tempLayer              = biome.GetTemperatureNoiseLayer();
+  params.temperatureBase      = 0.5f; // Default, can be customized
+  params.temperatureVariation = tempLayer.persistence;
+
+  // Extract moisture layer
+  auto moistLayer          = biome.GetMoistureNoiseLayer();
+  params.moistureBase      = 0.5f; // Default, can be customized
+  params.moistureVariation = moistLayer.persistence;
+
+  // Extract elevation layer
+  auto elevLayer            = biome.GetElevationNoiseLayer();
+  params.elevationBase      = 0.5f; // Default, can be customized
+  params.elevationVariation = elevLayer.persistence;
+
+  // Count unit rules
+  const auto& rules    = biome.GetUnitRules();
+  params.unitRuleCount = static_cast<uint32_t>(rules.size());
+
+  cpuBiomes.push_back(params);
+
+  // Convert unit rules to GPU format
+  for (const auto& rule : rules)
+  {
+    BiomeUnitRuleGPU gpuRule{};
+    gpuRule.unitId         = rule.unitId;
+    gpuRule.minHeight      = rule.minHeight;
+    gpuRule.maxHeight      = rule.maxHeight;
+    gpuRule.minTemperature = rule.minTemperature;
+    gpuRule.maxTemperature = rule.maxTemperature;
+    gpuRule.minMoisture    = rule.minMoisture;
+    gpuRule.maxMoisture    = rule.maxMoisture;
+    gpuRule.minElevation   = rule.minElevation;
+    gpuRule.maxElevation   = rule.maxElevation;
+    gpuRule.probability    = rule.probability;
+    gpuRule.density        = rule.density;
+    gpuRule.padding[0]     = 0.0f;
+    gpuRule.padding[1]     = 0.0f;
+
+    cpuUnitRules.push_back(gpuRule);
+  }
+
+  gpuDirty = true;
+  RayLog::LogInfo(RAYLOG_TAG, "Registered biome: %s (ID: %d, Rules: %d)",
+                  biome.GetBiomeName(), params.biomeType, params.unitRuleCount);
+}
 
 } // namespace Rl::World::Biome

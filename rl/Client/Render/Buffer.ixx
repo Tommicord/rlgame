@@ -8,8 +8,8 @@ namespace Rl::Client::Render
 {
 
 export uint32_t FindMemoryTypeIndex(VkPhysicalDevice      physicalDevice,
-                             VkMemoryRequirements  memRequirements,
-                             VkMemoryPropertyFlags properties)
+                                    VkMemoryRequirements  memRequirements,
+                                    VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memProperties;
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -26,12 +26,12 @@ export uint32_t FindMemoryTypeIndex(VkPhysicalDevice      physicalDevice,
 }
 
 export void CreateBuffer(VkDevice              device,
-                  VkPhysicalDevice      physicalDevice,
-                  VkDeviceSize          size,
-                  VkBufferUsageFlags    usage,
-                  VkMemoryPropertyFlags properties,
-                  VkBuffer&             buffer,
-                  VkDeviceMemory&       bufferMemory)
+                         VkPhysicalDevice      physicalDevice,
+                         VkDeviceSize          size,
+                         VkBufferUsageFlags    usage,
+                         VkMemoryPropertyFlags properties,
+                         VkBuffer&             buffer,
+                         VkDeviceMemory&       bufferMemory)
 {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -69,10 +69,10 @@ export void CreateBuffer(VkDevice              device,
 }
 
 export void CopyDataToBuffer(VkDevice       device,
-                      VkDeviceMemory bufferMemory,
-                      VkDeviceSize   offset,
-                      VkDeviceSize   size,
-                      const void*    data)
+                             VkDeviceMemory bufferMemory,
+                             VkDeviceSize   offset,
+                             VkDeviceSize   size,
+                             const void*    data)
 {
   void* mappedData;
   vkMapMemory(device, bufferMemory, offset, size, 0, &mappedData);
@@ -82,30 +82,29 @@ export void CopyDataToBuffer(VkDevice       device,
 
 // Create index buffer for the cube
 export void CreateIndexBuffer(VkDevice                     device,
-                       VkPhysicalDevice             physicalDevice,
-                       uint32_t                     queueFamilyIndex,
-                       const std::vector<uint32_t>& indices,
-                       VkBuffer&                    indexBuffer,
-                       VkDeviceMemory&              indexBufferMemory)
+                              VkPhysicalDevice             physicalDevice,
+                              uint32_t                     queueFamilyIndex,
+                              const std::vector<uint32_t>& indices,
+                              VkBuffer&                    indexBuffer,
+                              VkDeviceMemory&              indexBufferMemory)
 {
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   // Create staging buffer (host-visible)
   VkBuffer       stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  CreateBuffer(
-      device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-      stagingBuffer, stagingBufferMemory);
+  CreateBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuffer, stagingBufferMemory);
 
   // Copy data to staging buffer
   CopyDataToBuffer(device, stagingBufferMemory, 0, bufferSize, indices.data());
 
   // Create device-local index buffer
   CreateBuffer(device, physicalDevice, bufferSize,
-                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                       VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+               VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
   // Create temporary command pool for buffer copy
   VkCommandPoolCreateInfo commandPoolInfo{};

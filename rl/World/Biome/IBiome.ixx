@@ -1,8 +1,8 @@
 export module Rl.World.Biome;
 
-import Rl.World.Biome.BiomeRegistryGPU;
 import Rl.Base.Game;
 import Rl.Base.Binding;
+import Rl.World.Biome.BiomeRegistryGPU;
 
 import <cstdint>;
 import <string>;
@@ -49,9 +49,9 @@ export struct BiomeUnitRule
 /* Pure virtual interface for biome definition */
 export class IBiome
 {
-  private:
   /* The biome GPU registry */
   inline static auto registryGPU = std::make_shared<BiomeRegistryGPU>();
+
   public:
   template <typename Derived>
     requires std::is_base_of_v<IBiome, Derived>
@@ -66,45 +66,138 @@ export class IBiome
   }
   virtual ~IBiome() = default;
 
-  /* Gets the biome type identifier */
-  [[nodiscard]]
-  virtual BiomeType GetBiomeType() const = 0;
-
-  /* Gets the biome name for debugging */
-  [[nodiscard]]
-  virtual const char* GetBiomeName() const = 0;
-
-  /* Gets the temperature noise layer configuration */
-  [[nodiscard]]
-  virtual BiomeNoiseLayer GetTemperatureNoiseLayer() const = 0;
-
-  /* Gets the moisture noise layer configuration */
-  [[nodiscard]]
-  virtual BiomeNoiseLayer GetMoistureNoiseLayer() const = 0;
-
-  /* Gets the elevation noise layer configuration */
-  [[nodiscard]]
-  virtual BiomeNoiseLayer GetElevationNoiseLayer() const = 0;
-
-  /* Gets the unit generation rules for this biome */
-  [[nodiscard]]
-  virtual const std::vector<BiomeUnitRule>& GetUnitRules() const = 0;
-
-  /* Classifies a position as belonging to this biome based on noise values */
-  [[nodiscard]]
-  virtual bool
-  BelongsToBiome(float temperature, float moisture, float elevation) const = 0;
-
-  /* Gets the dominant unit ID for a given position in this biome */
-  [[nodiscard]]
-  virtual uint32_t GetDominantUnit(float temperature,
-                                   float moisture,
-                                   float elevation,
-                                   float height) const = 0;
-
-  static BiomeRegistryGPU& GetGPUIDRegistry() {
-    return registryGPU.get()
+  static BiomeRegistryGPU* GetGPUIDRegistry()
+  {
+    return registryGPU.get();
   }
+
+  [[nodiscard]]
+  BiomeNoiseLayer GetTemperatureNoiseLayer() const
+  {
+    return temperatureLayer;
+  }
+
+  [[nodiscard]]
+  BiomeNoiseLayer GetMoistureNoiseLayer() const
+  {
+    return moistureLayer;
+  }
+
+  [[nodiscard]]
+  BiomeNoiseLayer GetElevationNoiseLayer() const
+  {
+    return elevationLayer;
+  }
+
+  [[nodiscard]]
+  const std::vector<BiomeUnitRule>& GetUnitRules() const
+  {
+    return unitRules;
+  }
+
+  /* Default classification based on threshold ranges */
+  [[nodiscard]]
+  bool BelongsToBiome(float temperature, float moisture, float elevation) const
+  {
+    return (temperature >= minTemperature && temperature <= maxTemperature) &&
+           (moisture >= minMoisture && moisture <= maxMoisture) &&
+           (elevation >= minElevation && elevation <= maxElevation);
+  }
+
+  /* Default unit selection based on matching rules */
+  [[nodiscard]]
+  uint32_t
+  GetDominantUnit(float temperature, float moisture, float elevation, float height) const
+  {
+    uint32_t bestUnitId = 0; // Default to air/unknown
+    float    bestScore  = 0.0f;
+
+    for (const auto& rule : unitRules)
+    {
+      // Check if height matches
+      if (height < rule.minHeight || height > rule.maxHeight)
+        continue;
+
+      // Check if temperature matches
+      if (temperature < rule.minTemperature || temperature > rule.maxTemperature)
+        continue;
+
+      // Check if moisture matches
+      if (moisture < rule.minMoisture || moisture > rule.maxMoisture)
+        continue;
+
+      // Check if elevation matches
+      if (elevation < rule.minElevation || elevation > rule.maxElevation)
+        continue;
+
+      // Calculate score based on probability and density
+      float score = rule.probability * rule.density;
+
+      if (score > bestScore)
+      {
+        bestScore  = score;
+        bestUnitId = rule.unitId;
+      }
+    }
+
+    return bestUnitId;
+  }
+
+  // Configuration methods
+  void SetTemperatureNoiseLayer(const BiomeNoiseLayer& layer)
+  {
+    temperatureLayer = layer;
+  }
+
+  void SetMoistureNoiseLayer(const BiomeNoiseLayer& layer)
+  {
+    moistureLayer = layer;
+  }
+
+  void SetElevationNoiseLayer(const BiomeNoiseLayer& layer)
+  {
+    elevationLayer = layer;
+  }
+
+  void AddUnitRule(const BiomeUnitRule& rule)
+  {
+    unitRules.push_back(rule);
+  }
+
+  void SetTemperatureThresholds(float minTemp, float maxTemp)
+  {
+    minTemperature = minTemp;
+    maxTemperature = maxTemp;
+  }
+
+  void SetMoistureThresholds(float minMoist, float maxMoist)
+  {
+    minMoisture = minMoist;
+    maxMoisture = maxMoist;
+  }
+
+  void SetElevationThresholds(float minElev, float maxElev)
+  {
+    minElevation = minElev;
+    maxElevation = maxElev;
+  }
+
+  protected:
+  BiomeType   biomeType;
+  const char* biomeName;
+
+  BiomeNoiseLayer            temperatureLayer{};
+  BiomeNoiseLayer            moistureLayer{};
+  BiomeNoiseLayer            elevationLayer{};
+  std::vector<BiomeUnitRule> unitRules;
+
+  // Threshold ranges for biome classification
+  float minTemperature = 0.0f;
+  float maxTemperature = 1.0f;
+  float minMoisture    = 0.0f;
+  float maxMoisture    = 1.0f;
+  float minElevation   = 0.0f;
+  float maxElevation   = 1.0f;
 };
 
 } // namespace Rl::World::Biome

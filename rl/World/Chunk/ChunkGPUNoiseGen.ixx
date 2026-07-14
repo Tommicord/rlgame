@@ -26,7 +26,7 @@ export class ChunkGPUNoiseGen
 
   void Initialize(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0)
   {
-    noiseGenerator.Create(device, physicalDevice, seed);
+    noiseGenerator.Initialize(device, physicalDevice, seed);
     initialized = true;
   }
 

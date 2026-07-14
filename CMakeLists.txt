@@ -105,7 +105,6 @@ set(CXX_MODULES
   rl/World/ServiceUpdater.ixx
   rl/World/ServiceUpdaterRegistry.ixx
   rl/World/ServiceUpdaterRegister.ixx
-  rl/World/Biome/BaseBiome.ixx
   rl/World/Biome/BiomeGPUParams.ixx
   rl/World/Biome/BiomeRegistryGPU.ixx
   rl/World/Biome/IBiome.ixx

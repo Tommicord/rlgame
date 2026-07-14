@@ -7,7 +7,7 @@ namespace Rl::World::Chunk
 {
 
 /* Push constants for the Simplex noise generation */
-export struct SimplexNoisePushConstants
+export struct alignas(16) SimplexNoisePushConstants
 {
   uint32_t dimension; // 2 or 3
   float    scale; // Noise scale
@@ -37,7 +37,7 @@ export class UnitGPUSimplexNoise
   ~UnitGPUSimplexNoise() = default;
 
   /* Initialize Simplex noise resources like permutation tables, etc. */
-  void Create(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
+  void Initialize(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
 
   /* Create noise output buffer for a chunk */
   void CreateNoiseBuffer(VkDevice device,
@@ -133,6 +133,12 @@ export class UnitGPUSimplexNoise
 
   /* The descriptor set layout */
   VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+
+  /* The pipeline for compute shader */
+  VkPipeline genPipeline;
+
+  /* The pipeline layout for compute shader */
+  VkPipelineLayout genPipelineLayout;
 
   /* The descriptor set for the pipeline */
   VkDescriptorSet descriptorSet = VK_NULL_HANDLE;

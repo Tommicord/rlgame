@@ -55,8 +55,9 @@ export class ChunkGeneratorGPU
   static constexpr Comparator comparator{};
 
   public:
-  ChunkGeneratorGPU() = default;
-  ~ChunkGeneratorGPU();
+  /* Default constructor, doesn't receive anything */
+  ChunkGeneratorGPU()  = default;
+  ~ChunkGeneratorGPU() = default;
 
   /* Initialize the GPU world generation system */
   bool Initialize(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t seed = 0);
@@ -106,7 +107,6 @@ export class ChunkGeneratorGPU
   }
 
   /* Get the current chunk dimensions */
-  [[nodiscard]]
   void
   GetChunkDimensions(uint32_t& outWidth, uint32_t& outHeight, uint32_t& outDepth) const
   {
@@ -187,10 +187,8 @@ export class ChunkGeneratorGPU
   /* Read back generated data to CPU */
   bool ReadbackUnitData(VkDevice         device,
                         VkCommandBuffer  commandBuffer,
+                        VkQueue          graphicsQueue,
                         UnitChunkBuffer& outChunk);
-
-  /* Actually read the data from staging buffer after GPU execution */
-  bool CompleteReadback(VkDevice device, UnitChunkBuffer& outChunk);
 
   private:
   VkDevice              device                       = VK_NULL_HANDLE;
@@ -207,7 +205,7 @@ export class ChunkGeneratorGPU
   VkPipeline            polFencePipeline             = VK_NULL_HANDLE;
   VkPipelineLayout      polFenceLayout               = VK_NULL_HANDLE;
   VkDescriptorSetLayout polFenceDescriptorSetLayout  = VK_NULL_HANDLE;
-  VkDescriptorSetLayout biomeDescriptorSetLayout       = VK_NULL_HANDLE;
+  VkDescriptorSetLayout biomeDescriptorSetLayout     = VK_NULL_HANDLE;
   VkDescriptorSetLayout heightmapDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSetLayout unitPlaceDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorPool      descriptorPool               = VK_NULL_HANDLE;
@@ -266,6 +264,7 @@ export class ChunkGeneratorGPU
                           VkAccessFlags        dstAccess,
                           VkPipelineStageFlags srcStage,
                           VkPipelineStageFlags dstStage);
+  void BeginExecute(VkCommandBuffer commandBuffer);
 
   /* Simplex noise generator */
   UnitGPUSimplexNoise noiseGenerator;
