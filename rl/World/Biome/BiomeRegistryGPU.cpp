@@ -103,50 +103,68 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
     // Calculate required buffer sizes
     VkDeviceSize newBiomeSize     = cpuBiomes.size() * sizeof(BiomeGPUParams);
     VkDeviceSize newUnitRulesSize = cpuUnitRules.size() * sizeof(BiomeUnitRuleGPU);
+    const VkDeviceSize uploadSize = newBiomeSize + newUnitRulesSize;
+    const VkDeviceSize biomeUploadSize = newBiomeSize == 0 ? sizeof(BiomeGPUParams) : newBiomeSize;
+    const VkDeviceSize rulesUploadSize = newUnitRulesSize == 0 ? sizeof(BiomeUnitRuleGPU) : newUnitRulesSize;
 
     // Recreate buffers if size changed or first time
-    if (newBiomeSize > biomeBufferSize || biomeBuffer == VK_NULL_HANDLE)
+    if (biomeUploadSize > biomeBufferSize || biomeBuffer == VK_NULL_HANDLE)
     {
         if (biomeBuffer != VK_NULL_HANDLE)
         {
             vkDestroyBuffer(device, biomeBuffer, nullptr);
             vkFreeMemory(device, biomeMemory, nullptr);
         }
-
         Client::Render::CreateBuffer(
-            device, physicalDevice, newBiomeSize,
+            device, physicalDevice, biomeUploadSize,
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, biomeBuffer, biomeMemory);
-        biomeBufferSize = newBiomeSize;
+        biomeBufferSize = biomeUploadSize;
     }
-
-    if (newUnitRulesSize > unitRulesBufferSize || unitRulesBuffer == VK_NULL_HANDLE)
+    if (rulesUploadSize > 0)
     {
-        if (unitRulesBuffer != VK_NULL_HANDLE)
+        if (rulesUploadSize > unitRulesBufferSize || unitRulesBuffer == VK_NULL_HANDLE)
         {
-            vkDestroyBuffer(device, unitRulesBuffer, nullptr);
-            vkFreeMemory(device, unitRulesMemory, nullptr);
-        }
+            if (unitRulesBuffer != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer(device, unitRulesBuffer, nullptr);
+                vkFreeMemory(device, unitRulesMemory, nullptr);
+            }
 
-        Client::Render::CreateBuffer(
-            device, physicalDevice, newUnitRulesSize,
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, unitRulesBuffer, unitRulesMemory);
-        unitRulesBufferSize = newUnitRulesSize;
+            Client::Render::CreateBuffer(
+                device, physicalDevice, rulesUploadSize,
+                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, unitRulesBuffer, unitRulesMemory);
+            unitRulesBufferSize = rulesUploadSize;
+        }
     }
 
     // Copy biome data to staging buffer
     void* stagingData = nullptr;
-    if (vkMapMemory(device, stagingMemory, 0, newBiomeSize + newUnitRulesSize, 0,
-                    &stagingData) != VK_SUCCESS)
+    if (vkMapMemory(device, stagingMemory, 0, uploadSize, 0, &stagingData) != VK_SUCCESS)
     {
         RayLog::LogError(RAYLOG_TAG, "Failed to map staging memory");
         return false;
     }
 
-    memcpy(stagingData, cpuBiomes.data(), newBiomeSize);
-    memcpy(static_cast<uint8_t*>(stagingData) + newBiomeSize, cpuUnitRules.data(),
-           newUnitRulesSize);
+    if (newBiomeSize > 0)
+    {
+        memcpy(stagingData, cpuBiomes.data(), newBiomeSize);
+    }
+    else
+    {
+        std::memset(stagingData, 0, static_cast<size_t>(biomeUploadSize));
+    }
+    if (newUnitRulesSize > 0)
+    {
+        memcpy(static_cast<uint8_t*>(stagingData) + newBiomeSize, cpuUnitRules.data(),
+               newUnitRulesSize);
+    }
+    else
+    {
+        std::memset(static_cast<uint8_t*>(stagingData) + biomeUploadSize, 0,
+                    static_cast<size_t>(rulesUploadSize));
+    }
     vkUnmapMemory(device, stagingMemory);
 
     // Copy from staging to GPU buffers
@@ -156,14 +174,17 @@ bool BiomeRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandB
     biomeCopy.size      = newBiomeSize;
     vkCmdCopyBuffer(commandBuffer, stagingBuffer, biomeBuffer, 1, &biomeCopy);
 
-    VkBufferCopy rulesCopy{};
-    rulesCopy.srcOffset = newBiomeSize;
-    rulesCopy.dstOffset = 0;
-    rulesCopy.size      = newUnitRulesSize;
-    vkCmdCopyBuffer(commandBuffer, stagingBuffer, unitRulesBuffer, 1, &rulesCopy);
+    if (unitRulesBuffer != VK_NULL_HANDLE)
+    {
+        VkBufferCopy rulesCopy{};
+        rulesCopy.srcOffset = newBiomeSize;
+        rulesCopy.dstOffset = 0;
+        rulesCopy.size      = newUnitRulesSize == 0 ? sizeof(BiomeUnitRuleGPU) : newUnitRulesSize;
+        vkCmdCopyBuffer(commandBuffer, stagingBuffer, unitRulesBuffer, 1, &rulesCopy);
+    }
 
     gpuDirty = false;
-    RayLog::LogInfo(RAYLOG_TAG, "GPU buffers updated: %u biomes, %u unit rules",
+    RayLog::LogInfo(RAYLOG_TAG, "GPU buffers updated: %d biomes, %d unit rules",
                     static_cast<uint32_t>(cpuBiomes.size()),
                     static_cast<uint32_t>(cpuUnitRules.size()));
 

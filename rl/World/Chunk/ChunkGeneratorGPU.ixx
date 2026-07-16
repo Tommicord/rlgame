@@ -282,7 +282,11 @@ private:
     VkDeviceMemory transparencyLUTMemory = VK_NULL_HANDLE;
     VkBuffer       curableLUTBuffer      = VK_NULL_HANDLE;
     VkDeviceMemory curableLUTMemory      = VK_NULL_HANDLE;
-    uint32_t       maxUnitId             = 0;
+    VkBuffer       transparencyStagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory transparencyStagingMemory = VK_NULL_HANDLE;
+    VkBuffer       curableStagingBuffer      = VK_NULL_HANDLE;
+    VkDeviceMemory curableStagingMemory      = VK_NULL_HANDLE;
+    uint32_t       maxUnitId                 = 0;
 };
 
 } // namespace Rl::World::Chunk

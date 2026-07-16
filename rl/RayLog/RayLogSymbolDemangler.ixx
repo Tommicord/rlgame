@@ -2,8 +2,8 @@ module;
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
-#include <DbgHelp.h>
 #include <windows.h>
+#include <DbgHelp.h>
 #elif defined(__linux__) || defined(__APPLE__)
 #include <cxxabi.h>
 #include <execinfo.h>

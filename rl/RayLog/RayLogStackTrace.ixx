@@ -1,14 +1,17 @@
+module;
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <DbgHelp.h>
+#elif defined(__linux__) || defined(__APPLE__)
+#include <execinfo.h>
+#endif
+
 export module Rl.RayLog.StackTrace;
 
 import <vector>;
 import <string>;
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <DbgHelp.h>
-#include <windows.h>
-#elif defined(__linux__) || defined(__APPLE__)
-#include <execinfo.h>
-#endif
 
 namespace Rl::RayLog
 {

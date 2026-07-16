@@ -105,6 +105,14 @@ void ChunkGeneratorGPU::Shutdown(VkDevice device)
         vkDestroyBuffer(device, curableLUTBuffer, nullptr);
     if (curableLUTMemory != VK_NULL_HANDLE)
         vkFreeMemory(device, curableLUTMemory, nullptr);
+    if (transparencyStagingBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(device, transparencyStagingBuffer, nullptr);
+    if (transparencyStagingMemory != VK_NULL_HANDLE)
+        vkFreeMemory(device, transparencyStagingMemory, nullptr);
+    if (curableStagingBuffer != VK_NULL_HANDLE)
+        vkDestroyBuffer(device, curableStagingBuffer, nullptr);
+    if (curableStagingMemory != VK_NULL_HANDLE)
+        vkFreeMemory(device, curableStagingMemory, nullptr);
     if (heightmapPipeline != VK_NULL_HANDLE)
         vkDestroyPipeline(device, heightmapPipeline, nullptr);
     if (biomePipeline != VK_NULL_HANDLE)
@@ -323,12 +331,12 @@ bool ChunkGeneratorGPU::GenerateChunk(VkDevice               device,
         }
     }
 
+    BeginExecute(commandBuffer);
+
     if (transparencyLUTBuffer != VK_NULL_HANDLE && curableLUTBuffer != VK_NULL_HANDLE)
     {
         UpdateLookupTableBuffers(device, commandBuffer);
     }
-
-    BeginExecute(commandBuffer);
 
     // Execute pipeline stages with progress logging
     RayLog::LogInfo(RAYLOG_TAG,
@@ -355,13 +363,20 @@ bool ChunkGeneratorGPU::GenerateChunk(VkDevice               device,
     }
     RayLog::LogInfo(RAYLOG_TAG, "Biome stage completed");
 
-    RayLog::LogInfo(RAYLOG_TAG, "Executing unit placement stage");
-    if (!ExecuteUnitPlaceStage(device, commandBuffer))
+    if (!skipUnitPlaceStage)
     {
-        RayLog::LogError(RAYLOG_TAG, "Unit placement stage failed");
-        return false;
+        RayLog::LogInfo(RAYLOG_TAG, "Executing unit placement stage");
+        if (!ExecuteUnitPlaceStage(device, commandBuffer))
+        {
+            RayLog::LogError(RAYLOG_TAG, "Unit placement stage failed");
+            return false;
+        }
+        RayLog::LogInfo(RAYLOG_TAG, "Unit placement stage completed");
     }
-    RayLog::LogInfo(RAYLOG_TAG, "Unit placement stage completed");
+    else
+    {
+        RayLog::LogInfo(RAYLOG_TAG, "Skipping unit placement stage");
+    }
 
     if (useSlicedDispatch)
     {
@@ -857,6 +872,21 @@ bool ChunkGeneratorGPU::CreateLookupTableBuffers(VkDevice         device,
     // Add some padding for safety
     maxUnitId = max(maxUnitId + 1, 256u);
 
+    if (transparencyStagingBuffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device, transparencyStagingBuffer, nullptr);
+        vkFreeMemory(device, transparencyStagingMemory, nullptr);
+        transparencyStagingBuffer = VK_NULL_HANDLE;
+        transparencyStagingMemory = VK_NULL_HANDLE;
+    }
+    if (curableStagingBuffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device, curableStagingBuffer, nullptr);
+        vkFreeMemory(device, curableStagingMemory, nullptr);
+        curableStagingBuffer = VK_NULL_HANDLE;
+        curableStagingMemory = VK_NULL_HANDLE;
+    }
+
     // Create transparency lookup table (float per unit ID)
     VkDeviceSize transparencySize = maxUnitId * sizeof(float);
     Client::Render::CreateBuffer(
@@ -871,6 +901,17 @@ bool ChunkGeneratorGPU::CreateLookupTableBuffers(VkDevice         device,
         device, physicalDevice, curableSize,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, curableLUTBuffer, curableLUTMemory);
+
+    // Create persistent staging buffers for lookup table updates.
+    Client::Render::CreateBuffer(
+        device, physicalDevice, transparencySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        transparencyStagingBuffer, transparencyStagingMemory);
+
+    Client::Render::CreateBuffer(
+        device, physicalDevice, curableSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        curableStagingBuffer, curableStagingMemory);
 
     RayLog::LogInfo(RAYLOG_TAG, "Created lookup table buffers: maxUnitId=%d", maxUnitId);
     return true;
@@ -888,28 +929,22 @@ bool ChunkGeneratorGPU::UpdateLookupTableBuffers(VkDevice        device,
 
     const auto& cpuUnits = unitRegistry->GetCPUUnits();
 
-    // Create staging buffers for upload
-    VkBuffer       transparencyStaging    = VK_NULL_HANDLE;
-    VkDeviceMemory transparencyStagingMem = VK_NULL_HANDLE;
-    VkBuffer       curableStaging         = VK_NULL_HANDLE;
-    VkDeviceMemory curableStagingMem      = VK_NULL_HANDLE;
-
     VkDeviceSize transparencySize = maxUnitId * sizeof(float);
     VkDeviceSize curableSize      = maxUnitId * sizeof(uint32_t);
 
-    Client::Render::CreateBuffer(
-        device, physicalDevice, transparencySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        transparencyStaging, transparencyStagingMem);
-
-    Client::Render::CreateBuffer(
-        device, physicalDevice, curableSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        curableStaging, curableStagingMem);
+    if (transparencyStagingBuffer == VK_NULL_HANDLE ||
+        curableStagingBuffer == VK_NULL_HANDLE)
+    {
+        if (!CreateLookupTableBuffers(device, physicalDevice))
+        {
+            RayLog::LogError(RAYLOG_TAG, "Failed to recreate lookup table staging buffers");
+            return false;
+        }
+    }
 
     // Populate transparency lookup table
     float* transparencyData = nullptr;
-    vkMapMemory(device, transparencyStagingMem, 0, transparencySize, 0,
+    vkMapMemory(device, transparencyStagingMemory, 0, transparencySize, 0,
                 reinterpret_cast<void**>(&transparencyData));
     memset(transparencyData, 0,
            static_cast<size_t>(transparencySize)); // Default to 0 (not transparent)
@@ -920,11 +955,11 @@ bool ChunkGeneratorGPU::UpdateLookupTableBuffers(VkDevice        device,
             transparencyData[unit.unitId] = unit.transparency;
         }
     }
-    vkUnmapMemory(device, transparencyStagingMem);
+    vkUnmapMemory(device, transparencyStagingMemory);
 
     // Populate curable lookup table
     uint32_t* curableData = nullptr;
-    vkMapMemory(device, curableStagingMem, 0, curableSize, 0,
+    vkMapMemory(device, curableStagingMemory, 0, curableSize, 0,
                 reinterpret_cast<void**>(&curableData));
     memset(curableData, 1, static_cast<size_t>(curableSize)); // Default to 1 (curable)
     for (uint32_t unitId : nonCurableUnitIds)
@@ -934,21 +969,21 @@ bool ChunkGeneratorGPU::UpdateLookupTableBuffers(VkDevice        device,
             curableData[unitId] = 0; // Mark as not curable
         }
     }
-    vkUnmapMemory(device, curableStagingMem);
+    vkUnmapMemory(device, curableStagingMemory);
 
     // Copy to device buffers
     VkBufferCopy transparencyCopy{};
     transparencyCopy.srcOffset = 0;
     transparencyCopy.dstOffset = 0;
     transparencyCopy.size      = transparencySize;
-    vkCmdCopyBuffer(commandBuffer, transparencyStaging, transparencyLUTBuffer, 1,
+    vkCmdCopyBuffer(commandBuffer, transparencyStagingBuffer, transparencyLUTBuffer, 1,
                     &transparencyCopy);
 
     VkBufferCopy curableCopy{};
     curableCopy.srcOffset = 0;
     curableCopy.dstOffset = 0;
     curableCopy.size      = curableSize;
-    vkCmdCopyBuffer(commandBuffer, curableStaging, curableLUTBuffer, 1, &curableCopy);
+    vkCmdCopyBuffer(commandBuffer, curableStagingBuffer, curableLUTBuffer, 1, &curableCopy);
 
     // Add barrier to ensure copy completes before destroying staging buffers
     VkMemoryBarrier memBarrier{};
@@ -958,12 +993,6 @@ bool ChunkGeneratorGPU::UpdateLookupTableBuffers(VkDevice        device,
     vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VK_PIPELINE_STAGE_HOST_BIT, 0, 1, &memBarrier, 0, nullptr, 0,
                          nullptr);
-
-    // Cleanup staging buffers
-    vkDestroyBuffer(device, transparencyStaging, nullptr);
-    vkFreeMemory(device, transparencyStagingMem, nullptr);
-    vkDestroyBuffer(device, curableStaging, nullptr);
-    vkFreeMemory(device, curableStagingMem, nullptr);
 
     RayLog::LogInfo(RAYLOG_TAG, "Updated lookup table buffers with %d units",
                     static_cast<uint32_t>(cpuUnits.size()));
@@ -1703,7 +1732,8 @@ bool ChunkGeneratorGPU::ReadbackUnitData(VkDevice         device,
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-    poolInfo.queueFamilyIndex = 0; // Use first queue family (graphics)
+    auto& game               = Rl::Main::Game::GetInstance();
+    poolInfo.queueFamilyIndex = game.GetMainBinding().queueFamilyIndices.graphicsFamily.value();
 
     VkCommandPool tempCommandPool = VK_NULL_HANDLE;
     if (vkCreateCommandPool(device, &poolInfo, nullptr, &tempCommandPool) != VK_SUCCESS)
@@ -1757,7 +1787,7 @@ bool ChunkGeneratorGPU::ReadbackUnitData(VkDevice         device,
     void* mapped = nullptr;
     if (vkMapMemory(device, stagingMemory, 0, unitBufferSize, 0, &mapped) == VK_SUCCESS)
     {
-        std::memcpy(&outChunk, mapped, unitBufferSize);
+        std::memcpy(outChunk.GetRaw(), mapped, unitBufferSize);
         vkUnmapMemory(device, stagingMemory);
         return true;
     }

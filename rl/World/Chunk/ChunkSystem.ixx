@@ -71,6 +71,19 @@ private:
     void     RemoveOutOfRangeChunks();
     uint32_t DetermineMaxChunksPerFrame() const;
 
+    bool FindComputeQueueFamily(VkPhysicalDevice physicalDevice,
+                                uint32_t&       outQueueFamilyIndex) const;
+    bool CreateComputeCommandPool(VkDevice device,
+                                  uint32_t queueFamilyIndex,
+                                  VkCommandPool& outCommandPool) const;
+    bool AllocateAndBeginCommandBuffer(VkDevice device,
+                                       VkCommandPool commandPool,
+                                       VkCommandBuffer& outCommandBuffer) const;
+    bool SubmitCommandBufferWithFence(VkQueue queue,
+                                      VkDevice device,
+                                      VkCommandBuffer commandBuffer,
+                                      uint64_t timeoutNs = 5000000000ULL) const;
+
     ChunkInRenderUnits*                           chunkStore;
     WorldChunkCoord                               renderDistance;
     UnitPosition                                  playerPosition;

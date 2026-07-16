@@ -31,7 +31,6 @@ public:
 
     /* Register a biome for GPU access */
     template <typename T>
-        requires std::is_base_of_v<IBiome, T>
     void RegisterBiome(const T& biome);
 
     /* Update GPU buffer with registered biomes (call after RegisterBiome) */
@@ -109,7 +108,6 @@ private:
 };
 
 template <typename T>
-    requires std::is_base_of_v<IBiome, T>
 void BiomeRegistryGPU::RegisterBiome(const T& biome)
 {
     if (!initialized)

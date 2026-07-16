@@ -200,7 +200,7 @@ target_link_libraries(
 
 # Platform-specific libraries for input polling
 if (WIN32)
-  target_link_libraries(rlgame PRIVATE dbghelp)
+  link_libraries(dbghelp)
 elseif (UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
   target_link_libraries(rlgame PRIVATE X11::X11)

@@ -34,10 +34,10 @@ struct TestBiome : IBiome
     BiomeNoiseLayer moistureLayer    = {1.3, 0.5f, 0.2f, 0.9f, 3, 1.0, 1.2f, 1, 1.2};
     BiomeNoiseLayer elevationLayer{1.3, 0.5f, 0.2f, 0.9f, 3, 1.0, 1.5f, 1, 1.3};
     std::vector<BiomeUnitRule> unitRules = {
-        {UnitMantle::GetStaticClassId(), 0.4, 0.6, 600.0, 900.0, 0.01, 12.0, 0.0, 0.8,
+        {UnitMantle::GetStaticClassId(), 0.4, 0.6, 0.6, 1.0, 0.01, 0.3, 0.0, 0.8,
          0.7, 0.9},
-        {UnitGrass::GetStaticClassId(), 0.7, 0.8, 2.0f, 40.0f, 0.01, 12.0, 0.7, 0.8, 0.9,
-         0.2}};
+        {UnitGrass::GetStaticClassId(), 0.7, 0.8, 2.0f, 40.0f, 0.01, 0.3, 0.7, 0.8, 0.6,
+         0.3}};
     float       minTemperature = 0.1f;
     float       maxTemperature = 1.0f;
     float       minMoisture    = 0.0f;
@@ -47,8 +47,19 @@ struct TestBiome : IBiome
     BiomeType   biomeType      = {1};
     const char* biomeName      = "TestLands";
 
-    TestBiome() : IBiome(*this)
+    TestBiome()
     {
+        RegisterDerivedBiome(this);
+    }
+
+    [[nodiscard]] BiomeType GetBiomeType() const
+    {
+        return biomeType;
+    }
+
+    [[nodiscard]] const char* GetBiomeName() const
+    {
+        return biomeName;
     }
 };
 
@@ -57,34 +68,59 @@ class ChunkGeneratorGPUTest : public ::testing::Test
 protected:
     void SetUp() override
     {
+        std::cout << "[TEST SETUP] Begin" << std::endl;
         // Use Game class with headless mode for proper Vulkan initialization
         Game& game = Game::GetInstance();
+        std::cout << "[TEST SETUP] Calling game.SetHeadless" << std::endl;
         game.SetHeadless(true);
+        std::cout << "[TEST SETUP] Calling game.Init" << std::endl;
         game.Init();
 
         // Get Vulkan resources from Game
         device         = game.GetMainBinding().device;
         physicalDevice = game.GetMainBinding().physicalDevice;
         commandPool    = game.GetMainBinding().commandPool;
+        std::cout << "[TEST SETUP] Vulkan device and physical device acquired" << std::endl;
 
         // Initialize chunk generator
         generator = std::make_unique<ChunkGeneratorGPU>();
+        std::cout << "[TEST SETUP] Created chunk generator" << std::endl;
         if (!generator->Initialize(device, physicalDevice, 42))
         {
+            std::cout << "[TEST SETUP] Chunk generator initialization failed" << std::endl;
             GTEST_SKIP() << "Failed to initialize chunk generator, skipping GPU tests";
             return;
         }
+        std::cout << "[TEST SETUP] Chunk generator initialized" << std::endl;
 
-        auto* unitRegistry = IUnit::GetGPUIDRegistry();
+        testBiome = std::make_unique<TestBiome>();
+        std::cout << "[TEST SETUP] Created TestBiome" << std::endl;
+        mantle    = std::make_unique<UnitMantle>();
+        grass     = std::make_unique<UnitGrass>();
+        std::cout << "[TEST SETUP] Created unit prototypes" << std::endl;
 
-        auto biomeRegistry = IBiome::GetGPUIDRegistry();
-        biomeRegistry-
+        auto* unitRegistry  = IUnit::GetGPUIDRegistry();
+        auto* biomeRegistry = IBiome::GetGPUIDRegistry();
+        std::cout << "[TEST SETUP] Retrieved GPU registries" << std::endl;
+
+        // Initialize registries before use
+        unitRegistry->Initialize(device, physicalDevice);
+        std::cout << "[TEST SETUP] Unit registry initialized" << std::endl;
+        biomeRegistry->Initialize(device, physicalDevice);
+        std::cout << "[TEST SETUP] Biome registry initialized" << std::endl;
+
+        unitRegistry->Register<UnitMantle>(mantle.get());
+        std::cout << "[TEST SETUP] Registered UnitMantle" << std::endl;
+        unitRegistry->Register<UnitGrass>(grass.get());
+        std::cout << "[TEST SETUP] Registered UnitGrass" << std::endl;
+        biomeRegistry->RegisterBiome(*testBiome.get());
+        std::cout << "[TEST SETUP] Registered TestBiome" << std::endl;
 
         // Update GPU buffer using temporary command buffer
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags            = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-        poolInfo.queueFamilyIndex = 0; // Use first queue family (graphics)
+        poolInfo.queueFamilyIndex = game.GetMainBinding().queueFamilyIndices.graphicsFamily.value();
 
         VkCommandPool tempCommandPool = VK_NULL_HANDLE;
         vkCreateCommandPool(device, &poolInfo, nullptr, &tempCommandPool);
@@ -104,6 +140,7 @@ protected:
         vkBeginCommandBuffer(tempCmdBuffer, &beginInfo);
 
         unitRegistry->UpdateGPUBuffer(device, tempCmdBuffer);
+        biomeRegistry->UpdateGPUBuffer(device, tempCmdBuffer);
 
         vkEndCommandBuffer(tempCmdBuffer);
 
@@ -120,7 +157,7 @@ protected:
         vkDestroyCommandPool(device, tempCommandPool, nullptr);
 
         generator->SetUnitRegistry(unitRegistry);
-        generator->SetBiomeRegistry();
+        generator->SetBiomeRegistry(biomeRegistry);
         generator->SetSkipPolFence(true);
     }
 
@@ -185,6 +222,9 @@ protected:
     VkDevice         device         = VK_NULL_HANDLE;
     VkCommandPool    commandPool    = VK_NULL_HANDLE;
 
+    std::unique_ptr<UnitMantle>        mantle;
+    std::unique_ptr<UnitGrass>         grass;
+    std::unique_ptr<TestBiome>         testBiome;
     std::unique_ptr<ChunkGeneratorGPU> generator;
 };
 
@@ -213,8 +253,9 @@ TEST_F(ChunkGeneratorGPUTest, GenerateChunkWithCPUReadback)
 
     // Generate chunk (records commands to cmdBuffer)
     bool generated = generator->GenerateChunk(device, cmdBuffer, coord, chunkBuffer);
+    ASSERT_TRUE(SubmitAndWait());
 
-    // Record readback command
+    // Read back the generated chunk data
     ASSERT_TRUE(generator->ReadbackUnitData(
         device, cmdBuffer, game.GetMainBinding().graphicsQueue, chunkBuffer));
 
@@ -287,11 +328,13 @@ TEST_F(ChunkGeneratorGPUTest, MultipleChunkGenerationConsistency)
 
     ASSERT_TRUE(ExecuteCommandBuffer());
     bool generated1 = generator->GenerateChunk(device, cmdBuffer, coord1, chunk1);
+    ASSERT_TRUE(SubmitAndWait());
     ASSERT_TRUE(generator->ReadbackUnitData(device, cmdBuffer,
                                             game.GetMainBinding().graphicsQueue, chunk1));
 
     ASSERT_TRUE(ExecuteCommandBuffer());
     bool generated2 = generator->GenerateChunk(device, cmdBuffer, coord2, chunk2);
+    ASSERT_TRUE(SubmitAndWait());
     ASSERT_TRUE(generator->ReadbackUnitData(device, cmdBuffer,
                                             game.GetMainBinding().graphicsQueue, chunk2));
 
@@ -336,11 +379,13 @@ TEST_F(ChunkGeneratorGPUTest, DifferentCoordinatesProduceDifferentChunks)
 
     ASSERT_TRUE(ExecuteCommandBuffer());
     bool generated1 = generator->GenerateChunk(device, cmdBuffer, coord1, chunk1);
+    ASSERT_TRUE(SubmitAndWait());
     ASSERT_TRUE(generator->ReadbackUnitData(device, cmdBuffer,
                                             game.GetMainBinding().graphicsQueue, chunk1));
 
     ASSERT_TRUE(ExecuteCommandBuffer());
     bool generated2 = generator->GenerateChunk(device, cmdBuffer, coord2, chunk2);
+    ASSERT_TRUE(SubmitAndWait());
     ASSERT_TRUE(generator->ReadbackUnitData(device, cmdBuffer,
                                             game.GetMainBinding().graphicsQueue, chunk2));
 
@@ -407,6 +452,7 @@ TEST_F(ChunkGeneratorGPUTest, ChunkBoundsAreRespected)
 
     bool generated = generator->GenerateChunk(device, cmdBuffer, coord, chunkBuffer);
     EXPECT_TRUE(generated);
+    ASSERT_TRUE(SubmitAndWait());
 
     // ReadbackUnitData creates its own temporary command buffer
     ASSERT_TRUE(generator->ReadbackUnitData(
@@ -419,16 +465,21 @@ TEST_F(ChunkGeneratorGPUTest, ChunkBoundsAreRespected)
             for (uint32_t z = 0; z < UnitChunkBuffer::D; ++z)
             {
                 auto unitIdOpt = chunkBuffer.GetUnitIdXYZ(x, y, z);
-                if (unitIdOpt.has_value())
+                if (!unitIdOpt.has_value())
                 {
-                    uint32_t unitId    = unitIdOpt.value();
-                    auto     unitValue = Registry::GetObjectById(unitId).value();
-                    EXPECT_LT(unitId, 65535u) << "Unit ID at position (" << x << ", " << y
-                                              << ", " << z << ") is suspiciously large";
-                    LogDebug("ChunkGeneratorGPUTest",
-                             "Unit %s with id %d at (%d, %d, %d)",
-                             unitValue->GetDerivedClassName(), unitId, x, y, z);
+                    continue;
                 }
+                uint32_t unitId = unitIdOpt.value();
+                auto unitValueOpt = Registry::GetObjectById(unitId);
+                ASSERT_TRUE(unitValueOpt.has_value())
+                    << "Unknown unit ID " << unitId << " at position (" << x << ", "
+                    << y << ", " << z << ")";
+                auto unitValue = unitValueOpt.value();
+                EXPECT_LT(unitId, 65535u) << "Unit ID at position (" << x << ", " << y
+                                          << ", " << z << ") is suspiciously large";
+                LogDebug("ChunkGeneratorGPUTest",
+                         "Unit %s with id %d at (%d, %d, %d)",
+                         unitValue->GetDerivedClassName(), unitId, x, y, z);
             }
         }
     }

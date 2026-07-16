@@ -89,15 +89,9 @@ bool UnitRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBu
         return true; // No changes needed
     }
     VkDeviceSize newUnitSize = cpuUnits.size() * sizeof(UnitGPUParams);
+    const VkDeviceSize uploadSize = newUnitSize == 0 ? sizeof(UnitGPUParams) : newUnitSize;
 
-    // Skip update if no units registered
-    if (newUnitSize == 0)
-    {
-        RayLog::LogWarning(RAYLOG_TAG, "No units registered, skipping GPU buffer update");
-        return true;
-    }
-
-    if (newUnitSize > unitBufferSize || unitBuffer == VK_NULL_HANDLE)
+    if (uploadSize > unitBufferSize || unitBuffer == VK_NULL_HANDLE)
     {
         if (unitBuffer != VK_NULL_HANDLE)
         {
@@ -106,26 +100,33 @@ bool UnitRegistryGPU::UpdateGPUBuffer(VkDevice device, VkCommandBuffer commandBu
         }
 
         Client::Render::CreateBuffer(
-            device, physicalDevice, newUnitSize,
+            device, physicalDevice, uploadSize,
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, unitBuffer, unitMemory);
-        unitBufferSize = newUnitSize;
+        unitBufferSize = uploadSize;
     }
     void* stagingData = nullptr;
-    if (vkMapMemory(device, stagingMemory, 0, newUnitSize, 0, &stagingData) != VK_SUCCESS)
+    if (vkMapMemory(device, stagingMemory, 0, uploadSize, 0, &stagingData) != VK_SUCCESS)
     {
         RayLog::LogError(RAYLOG_TAG, "Failed to map staging memory");
         return false;
     }
 
-    memcpy(stagingData, cpuUnits.data(), newUnitSize);
+    if (newUnitSize > 0)
+    {
+        memcpy(stagingData, cpuUnits.data(), newUnitSize);
+    }
+    else
+    {
+        std::memset(stagingData, 0, static_cast<size_t>(uploadSize));
+    }
     vkUnmapMemory(device, stagingMemory);
 
     // Copy from staging to GPU buffer
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
     copyRegion.dstOffset = 0;
-    copyRegion.size      = newUnitSize;
+    copyRegion.size      = uploadSize;
     vkCmdCopyBuffer(commandBuffer, stagingBuffer, unitBuffer, 1, &copyRegion);
 
     gpuDirty = false;

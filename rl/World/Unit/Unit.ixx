@@ -371,7 +371,7 @@ public:
 protected:
     static void InitGPURegistry()
     {
-        auto gpuRegistry = GetGPUIDRegistry();
+        const auto gpuRegistry = GetGPUIDRegistry();
         if (!gpuRegistry)
         {
             return;
@@ -411,7 +411,7 @@ protected:
     {
         if (!registryGPU->IsInitialized())
         {
-            return;
+            InitGPURegistry();
         }
         UnitGPURegisterDerived registerDerived(*registryGPU);
         registerDerived.Register(ptr);

@@ -97,53 +97,120 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
         return false;
     }
 
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                             queueFamilies.data());
-
     uint32_t queueFamilyIndex = 0xFFFFFFFFu;
-    for (uint32_t i = 0; i < queueFamilyCount; ++i)
-    {
-        if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
-        {
-            queueFamilyIndex = i;
-            break;
-        }
-    }
-
-    if (queueFamilyIndex == 0xFFFFFFFFu)
+    if (!FindComputeQueueFamily(physicalDevice, queueFamilyIndex))
     {
         RayLog::LogError(
             RAYLOG_TAG, "No compute-capable queue family found for chunk GPU generation");
         return false;
     }
 
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    if (!CreateComputeCommandPool(device, queueFamilyIndex, commandPool))
+    {
+        return false;
+    }
+
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+    if (!AllocateAndBeginCommandBuffer(device, commandPool, commandBuffer))
+    {
+        vkDestroyCommandPool(device, commandPool, nullptr);
+        return false;
+    }
+
+    bool     success     = false;
+    VkResult endResult   = VK_SUCCESS;
+    if (gpuGenerator->GenerateChunk(device, commandBuffer, coord, chunkBuffer))
+    {
+        endResult = vkEndCommandBuffer(commandBuffer);
+        if (endResult == VK_SUCCESS)
+        {
+            success = true;
+        }
+        else
+        {
+            RayLog::LogError(RAYLOG_TAG, "Failed to end command buffer: %d",
+                             endResult);
+        }
+    }
+    else
+    {
+        RayLog::LogError(RAYLOG_TAG, "GPU generator failed to generate chunk");
+    }
+
+    if (success)
+    {
+        VkQueue queue = VK_NULL_HANDLE;
+        vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+        success = SubmitCommandBufferWithFence(queue, device, commandBuffer);
+    }
+
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    return success;
+}
+
+bool ChunkSystem::FindComputeQueueFamily(VkPhysicalDevice physicalDevice,
+                                        uint32_t&       outQueueFamilyIndex) const
+{
+    outQueueFamilyIndex = 0xFFFFFFFFu;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+    if (queueFamilyCount == 0)
+    {
+        return false;
+    }
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                             queueFamilies.data());
+
+    for (uint32_t i = 0; i < queueFamilyCount; ++i)
+    {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+        {
+            outQueueFamilyIndex = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ChunkSystem::CreateComputeCommandPool(VkDevice device,
+                                          uint32_t queueFamilyIndex,
+                                          VkCommandPool& outCommandPool) const
+{
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndex;
     poolInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    VkCommandPool commandPool = VK_NULL_HANDLE;
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+    outCommandPool = VK_NULL_HANDLE;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &outCommandPool) != VK_SUCCESS)
     {
         RayLog::LogError(RAYLOG_TAG,
                          "Failed to create command pool for chunk GPU generation");
         return false;
     }
 
+    return true;
+}
+
+bool ChunkSystem::AllocateAndBeginCommandBuffer(VkDevice device,
+                                                VkCommandPool commandPool,
+                                                VkCommandBuffer& outCommandBuffer) const
+{
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool        = commandPool;
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    outCommandBuffer = VK_NULL_HANDLE;
+    if (vkAllocateCommandBuffers(device, &allocInfo, &outCommandBuffer) != VK_SUCCESS)
     {
-        vkDestroyCommandPool(device, commandPool, nullptr);
         RayLog::LogError(RAYLOG_TAG,
                          "Failed to allocate command buffer for chunk GPU generation");
         return false;
@@ -153,80 +220,58 @@ bool ChunkSystem::GenerateChunkWithGpu(ChunkGeneratorGPU*     gpuGenerator,
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    bool     success     = false;
-    VkResult beginResult = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-    if (beginResult == VK_SUCCESS)
-    {
-        success = gpuGenerator->GenerateChunk(device, commandBuffer, coord, chunkBuffer);
-        if (success)
-        {
-            VkResult endResult = vkEndCommandBuffer(commandBuffer);
-            if (endResult != VK_SUCCESS)
-            {
-                RayLog::LogError(RAYLOG_TAG, "Failed to end command buffer: %d",
-                                 endResult);
-                success = false;
-            }
-        }
-        else
-        {
-            RayLog::LogError(RAYLOG_TAG, "GPU generator failed to generate chunk");
-        }
-    }
-    else
+    VkResult beginResult = vkBeginCommandBuffer(outCommandBuffer, &beginInfo);
+    if (beginResult != VK_SUCCESS)
     {
         RayLog::LogError(RAYLOG_TAG, "Failed to begin command buffer: %d", beginResult);
+        vkFreeCommandBuffers(device, commandPool, 1, &outCommandBuffer);
+        outCommandBuffer = VK_NULL_HANDLE;
+        return false;
     }
 
-    if (success)
+    return true;
+}
+
+bool ChunkSystem::SubmitCommandBufferWithFence(VkQueue queue,
+                                               VkDevice device,
+                                               VkCommandBuffer commandBuffer,
+                                               uint64_t timeoutNs) const
+{
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    VkFence fence   = VK_NULL_HANDLE;
+    if (vkCreateFence(device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
     {
-        VkQueue queue = VK_NULL_HANDLE;
-        vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
-
-        // Use a fence with timeout instead of vkQueueWaitIdle to prevent indefinite hangs
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        VkFence fence   = VK_NULL_HANDLE;
-        if (vkCreateFence(device, &fenceInfo, nullptr, &fence) == VK_SUCCESS)
-        {
-            VkSubmitInfo submitInfo{};
-            submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.commandBufferCount   = 1;
-            submitInfo.pCommandBuffers      = &commandBuffer;
-            submitInfo.pSignalSemaphores    = nullptr;
-            submitInfo.signalSemaphoreCount = 0;
-
-            VkResult submitWithFence = vkQueueSubmit(queue, 1, &submitInfo, fence);
-            if (submitWithFence == VK_SUCCESS)
-            {
-                // Wait with 5 second timeout
-                VkResult waitResult =
-                    vkWaitForFences(device, 1, &fence, VK_TRUE, 5000000000ULL);
-                if (waitResult != VK_SUCCESS)
-                {
-                    RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d",
-                                     waitResult);
-                    success = false;
-                }
-            }
-            else
-            {
-                RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d",
-                                 submitWithFence);
-                success = false;
-            }
-            vkDestroyFence(device, fence, nullptr);
-        }
-        else
-        {
-            RayLog::LogError(RAYLOG_TAG, "Failed to create fence for GPU generation");
-            success = false;
-        }
+        RayLog::LogError(RAYLOG_TAG, "Failed to create fence for GPU generation");
+        return false;
     }
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    vkDestroyCommandPool(device, commandPool, nullptr);
-    return success;
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = &commandBuffer;
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.pSignalSemaphores    = nullptr;
+
+    VkResult submitWithFence = vkQueueSubmit(queue, 1, &submitInfo, fence);
+    if (submitWithFence != VK_SUCCESS)
+    {
+        RayLog::LogError(RAYLOG_TAG, "Failed to submit with fence: %d",
+                         submitWithFence);
+        vkDestroyFence(device, fence, nullptr);
+        return false;
+    }
+
+    VkResult waitResult = vkWaitForFences(device, 1, &fence, VK_TRUE, timeoutNs);
+    vkDestroyFence(device, fence, nullptr);
+    if (waitResult != VK_SUCCESS)
+    {
+        RayLog::LogError(RAYLOG_TAG, "GPU generation timeout or error: %d",
+                         waitResult);
+        return false;
+    }
+
+    return true;
 }
 
 ChunkSystem::ChunkSystem(ChunkInRenderUnits* chunkStore, WorldChunkCoord renderDistance) :
@@ -539,17 +584,10 @@ uint32_t ChunkSystem::DetermineMaxChunksPerFrame() const
                         "Reduced dimensions: %s",
                         gpuType.c_str(), totalMemory / (1024.0 * 1024.0 * 1024.0),
                         maxChunks, useReducedDimensions ? "Yes" : "No");
-        // Note: polFence is now aggressively optimized with binary search, so we don't
-        // skip it Skip GPU-CPU readback for integrated GPUs to prevent timeout Skip
-        // biome, heightmap, and noise stages for integrated GPUs to reduce workload
         if (gpuGenerator)
         {
             auto g = const_cast<ChunkGeneratorGPU*>(gpuGenerator);
             g->SetSkipPolFence(false); // Keep polFence enabled with optimizations
-            g->SetSkipBiomeStage(isIntegratedGPU); // Skip biome on integrated GPUs
-            g->SetSkipHeightmapStage(
-                isIntegratedGPU); // Skip heightmap on integrated GPUs
-            g->SetSkipNoiseStage(isIntegratedGPU); // Skip noise on integrated GPUs
             g->SetSkipReadback(isIntegratedGPU); // Skip readback on integrated GPUs
             g->SetUseSlicedDispatch(isIntegratedGPU); // Use sliced dispatch on integrated
                                                       // GPUs to prevent timeout
@@ -559,7 +597,7 @@ uint32_t ChunkSystem::DetermineMaxChunksPerFrame() const
     {
         RayLog::LogInfo(
             RAYLOG_TAG,
-            "GPU generation disabled or not available, using default chunk limit: %u",
+            "GPU generation disabled or not available, using default chunk limit: %d",
             maxChunks);
     }
 
