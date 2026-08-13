@@ -1,0 +1,294 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct MappedUnitShapeCurve
+{
+    uint polyCurvePlanes;
+    uint polyCurveRotation;
+};
+
+struct MappedUnitShape
+{
+    MappedUnitShapeCurve top;
+    MappedUnitShapeCurve down;
+    MappedUnitShapeCurve left;
+    MappedUnitShapeCurve right;
+    MappedUnitShapeCurve front;
+    MappedUnitShapeCurve back;
+
+    uint polyCurveLTop;
+    uint polyCurveRTop;
+    uint polyCurveLDown;
+    uint polyCurveRDown;
+    uint polyCurveLRight;
+    uint polyCurveRLeft;
+    uint polyCurveLLeft;
+    uint polyCurveRRight;
+
+    uint width;
+    uint height;
+    uint depth;
+};
+
+// Compressed unit shape data (16 bytes total)
+struct CompressedUnitShape
+{
+    uint packedRotations;      // 6 faces x 5 bits = 30 bits for rotation data
+    uint packedCurvatures;     // 6 faces x 5 bits = 30 bits for curvature planes
+    uint packedEdges;          // 6 edges x 4 bits = 24 bits for edge curves
+    uint packedDimensions;     // width (10 bits) | height (10 bits) | depth (10 bits) | padding (2 bits)
+};
+
+// Extract rotation for a specific face (0-5) from packed data
+uint getFaceRotation(uint packedRotations, uint faceIndex)
+{
+    return (packedRotations >> (faceIndex * 5)) & 0x1F;
+}
+
+// Extract curvature for a specific face (0-5) from packed data
+uint getFaceCurvature(uint packedCurvatures, uint faceIndex)
+{
+    return (packedCurvatures >> (faceIndex * 5)) & 0x1F;
+}
+
+// Extract edge curve for a specific edge (0-5) from packed data
+uint getEdgeCurve(uint packedEdges, uint edgeIndex)
+{
+    return (packedEdges >> (edgeIndex * 4)) & 0x0F;
+}
+
+// Extract width from packed dimensions
+uint getWidth(uint packedDimensions)
+{
+    return packedDimensions & 0x3FF;
+}
+
+// Extract height from packed dimensions
+uint getHeight(uint packedDimensions)
+{
+    return (packedDimensions >> 10) & 0x3FF;
+}
+
+// Extract depth from packed dimensions
+uint getDepth(uint packedDimensions)
+{
+    return (packedDimensions >> 20) & 0x3FF;
+}
+
+// Compressed PostUnit struct (32 bytes total for std430 alignment)
+struct PostUnit
+{
+    uint packedFlags;   // lodLevel (8 bits) | flags (8 bits) | reserved (16 bits)
+    uint _padding;      // Alignment padding for std430
+    CompressedUnitShape shape;
+    uint _padding2[2];  // Additional padding to align to 32 bytes
+};
+
+// Output vertex for triangulation
+struct MeshVertex
+{
+    vec3 position;
+    vec3 normal;
+    vec2 uv;
+};
+
+layout(std430, binding = 0) readonly buffer InputPostUnitBuffer
+{
+    PostUnit postUnits[];
+};
+
+layout(std430, binding = 1) buffer OutputVertexBuffer
+{
+    MeshVertex vertices[];
+};
+
+layout(std430, binding = 2) buffer OutputIndexBuffer
+{
+    uint indices[];
+};
+
+layout(std430, binding = 3) buffer CountBuffer
+{
+    uint vertexCount;
+};
+
+layout(push_constant) uniform MeshGenPushConstants
+{
+    uint width;
+    uint height;
+    uint depth;
+    uint maxVertices;
+    uint maxIndices;
+    uint subdivisions;
+    uint _padding[2];
+} pc;
+
+vec3 getUnitPosition(uint unitIndex)
+{
+    uint x = unitIndex % pc.width;
+    uint y = (unitIndex / pc.width) % pc.height;
+    uint z = unitIndex / (pc.width * pc.height);
+    
+    return vec3(float(x), float(y), float(z));
+}
+
+vec2 decodeCurvature(uint planes)
+{
+    return vec2(float(planes & 0xFFFF) / 65535.0, float((planes >> 16) & 0xFFFF) / 65535.0);
+}
+
+vec2 decodeRotation(uint rotation)
+{
+    return vec2(float(rotation & 0xFFFF) / 65535.0, float((rotation >> 16) & 0xFFFF) / 65535.0);
+}
+
+vec3 applyCurvature(vec3 vertex, vec3 unitPos, CompressedUnitShape shape, uint face)
+{
+    vec3 localPos = vertex - unitPos;
+    vec3 curvedPos = localPos;
+    
+    float curveStrength = 0.2;
+    uint rotation = getFaceRotation(shape.packedRotations, face);
+    uint curvature = getFaceCurvature(shape.packedCurvatures, face);
+    
+    // Decode 5-bit values to 0.0-1.0 range
+    float rotValue = float(rotation) / 31.0;
+    float curveValue = float(curvature) / 31.0;
+    
+    float angle = rotValue * 6.28318;
+    float cosA = cos(angle);
+    float sinA = sin(angle);
+    
+    mat2 rotMat = mat2(cosA, -sinA, sinA, cosA);
+    vec2 rotated = rotMat * localPos.xy;
+    
+    curvedPos.x = rotated.x * (1.0 + curveValue * curveStrength);
+    curvedPos.y = rotated.y * (1.0 + curveValue * curveStrength);
+    
+    return unitPos + curvedPos;
+}
+
+void generateFaceVertices(vec3 unitPos, vec3 unitSize, CompressedUnitShape shape,
+                          uint face, uint subdiv, uint vertexOffset)
+{
+    vec3 corners[4];
+    vec3 normals[4];
+    
+    switch(face)
+    {
+        case 0: corners[0] = unitPos + vec3(0.0, unitSize.y, 0.0);
+                corners[1] = unitPos + vec3(unitSize.x, unitSize.y, 0.0);
+                corners[2] = unitPos + vec3(unitSize.x, unitSize.y, unitSize.z);
+                corners[3] = unitPos + vec3(0.0, unitSize.y, unitSize.z);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(0.0, 1.0, 0.0); break;
+        case 1: corners[0] = unitPos + vec3(0.0, 0.0, 0.0);
+                corners[1] = unitPos + vec3(unitSize.x, 0.0, 0.0);
+                corners[2] = unitPos + vec3(unitSize.x, 0.0, unitSize.z);
+                corners[3] = unitPos + vec3(0.0, 0.0, unitSize.z);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(0.0, -1.0, 0.0); break;
+        case 2: corners[0] = unitPos + vec3(0.0, 0.0, 0.0);
+                corners[1] = unitPos + vec3(0.0, 0.0, unitSize.z);
+                corners[2] = unitPos + vec3(0.0, unitSize.y, unitSize.z);
+                corners[3] = unitPos + vec3(0.0, unitSize.y, 0.0);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(-1.0, 0.0, 0.0); break;
+        case 3: corners[0] = unitPos + vec3(unitSize.x, 0.0, 0.0);
+                corners[1] = unitPos + vec3(unitSize.x, 0.0, unitSize.z);
+                corners[2] = unitPos + vec3(unitSize.x, unitSize.y, unitSize.z);
+                corners[3] = unitPos + vec3(unitSize.x, unitSize.y, 0.0);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(1.0, 0.0, 0.0); break;
+        case 4: corners[0] = unitPos + vec3(0.0, 0.0, unitSize.z);
+                corners[1] = unitPos + vec3(unitSize.x, 0.0, unitSize.z);
+                corners[2] = unitPos + vec3(unitSize.x, unitSize.y, unitSize.z);
+                corners[3] = unitPos + vec3(0.0, unitSize.y, unitSize.z);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(0.0, 0.0, 1.0); break;
+        case 5: corners[0] = unitPos + vec3(0.0, 0.0, 0.0);
+                corners[1] = unitPos + vec3(unitSize.x, 0.0, 0.0);
+                corners[2] = unitPos + vec3(unitSize.x, unitSize.y, 0.0);
+                corners[3] = unitPos + vec3(0.0, unitSize.y, 0.0);
+                normals[0] = normals[1] = normals[2] = normals[3] = vec3(0.0, 0.0, -1.0); break;
+    }
+    
+    uint vertsPerEdge = subdiv + 1;
+    
+    for (uint y = 0; y < vertsPerEdge; y++)
+    {
+        for (uint x = 0; x < vertsPerEdge; x++)
+        {
+            float u = float(x) / float(subdiv);
+            float v = float(y) / float(subdiv);
+            
+            vec3 pos = mix(mix(corners[0], corners[1], u), mix(corners[3], corners[2], u), v);
+            pos = applyCurvature(pos, unitPos, shape, face);
+            
+            MeshVertex vert;
+            vert.position = pos;
+            vert.normal = normals[0];
+            vert.uv = vec2(u, v);
+            
+            uint idx = vertexOffset;
+            vertexOffset++;
+            if (idx < pc.maxVertices) 
+                vertices[idx] = vert;
+        }
+    }
+}
+
+void main()
+{
+    uint globalId = gl_GlobalInvocationID.x;
+    uint totalUnits = pc.width * pc.height * pc.depth;
+
+    if (globalId >= totalUnits)
+    {
+        return;
+    }
+
+    PostUnit unit = postUnits[globalId];
+
+    // Extract flags from packed data (bits 8-15)
+    uint flags = (unit.packedFlags >> 8) & 0xFF;
+    if ((flags & 0x02) == 0)
+    {
+        return;
+    }
+
+    vec3 unitPos = getUnitPosition(globalId);
+
+    uint unitWidth = getWidth(unit.shape.packedDimensions);
+    uint unitHeight = getHeight(unit.shape.packedDimensions);
+    uint unitDepth = getDepth(unit.shape.packedDimensions);
+
+    vec3 unitSize = vec3(float(unitWidth), float(unitHeight), float(unitDepth));
+
+    uint subdiv = pc.subdivisions;
+    if (subdiv < 1) subdiv = 1;
+
+    uint vertsPerEdge = subdiv + 1;
+    uint faceVertexCount = vertsPerEdge * vertsPerEdge;
+    uint totalVertices = faceVertexCount * 6;
+
+    uint vertexOffset = 0;
+    bool vertexAllocated = false;
+    
+    while (!vertexAllocated)
+    {
+        uint currentCount = atomicAdd(vertexCount, 0);
+        if (currentCount + totalVertices > pc.maxVertices) return;
+        
+        uint expected = currentCount;
+        uint desired = currentCount + totalVertices;
+        
+        if (atomicCompSwap(vertexCount, expected, desired) == expected)
+        {
+            vertexOffset = currentCount;
+            vertexAllocated = true;
+        }
+    }
+
+    for (uint face = 0; face < 6; face++)
+    {
+        generateFaceVertices(unitPos, unitSize, unit.shape, face, subdiv, vertexOffset);
+        vertexOffset += faceVertexCount;
+    }
+}

@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(rl LANGUAGES CXX)
+project(rlgame LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-# Platform-specific defines for Vulkan
 if (WIN32)
   add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
 elseif (APPLE)
@@ -16,299 +14,243 @@ elseif (UNIX)
   add_compile_definitions(VK_USE_PLATFORM_XCB_KHR)
 endif ()
 
+if (MSVC)
+  add_compile_definitions(_RL_COMPILER_MSVC)
+  message(STATUS "Compiler: MSVC detected")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  add_compile_definitions(_RL_COMPILER_GCC)
+  message(STATUS "Compiler: GCC detected")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_definitions(_RL_COMPILER_CLANG)
+  message(STATUS "Compiler: Clang detected")
+else ()
+  message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
+endif ()
+
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
-  add_compile_definitions(ARM_)
   message(STATUS "Target architecture ARM; NEON SIMD enabled")
+  add_compile_definitions(_RL_SIMD_ARM_NEON)
 elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
-  add_compile_definitions(X86_)
-  message(STATUS "Target architecture x86/x86-64; SSE/AVX SIMD enabled")
+  message(STATUS "Target architecture x86/x86-64")
+  
+  # Check for AVX2 support
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles("
+    #include <immintrin.h>
+    int main() {
+      __m256i test = _mm256_set1_epi32(0);
+      return 0;
+    }
+  " HAS_AVX2)
+  
+  if (HAS_AVX2)
+    message(STATUS "AVX2 SIMD enabled")
+    add_compile_definitions(_RL_SIMD_AVX2)
+    if(MSVC)
+      add_compile_options(/arch:AVX2)
+    else()
+      add_compile_options(-mavx2)
+    endif()
+  else()
+    # Check for SSE support
+    check_cxx_source_compiles("
+      #include <immintrin.h>
+      int main() {
+        __m128i test = _mm_set1_epi32(0);
+        return 0;
+      }
+    " HAS_SSE)
+    
+    if (HAS_SSE)
+      message(STATUS "SSE SIMD enabled")
+      add_compile_definitions(_RL_SIMD_SSE)
+      if(MSVC)
+        add_compile_options(/arch:SSE2)
+      else()
+        add_compile_options(-msse2)
+      endif()
+    else()
+      message(WARNING "No SIMD support detected for x86 architecture")
+    endif()
+  endif()
+  
+  # Always set x86 SIMD flag for generic x86 code
+  add_compile_definitions(_RL_SIMD_X86)
 else ()
   message(WARNING "Unknown target architecture ${CMAKE_SYSTEM_PROCESSOR}; SIMD optimizations disabled")
 endif ()
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
 
+# Check for RenderDoc in PATH for debugging integration
+find_program(RENDERDOC_EXE renderdoccmd DOC "RenderDoc command line tool")
+if(RENDERDOC_EXE)
+  message(STATUS "RenderDoc found: ${RENDERDOC_EXE}")
+  set(RENDERDOC_FOUND TRUE)
+else()
+  message(STATUS "RenderDoc not found in PATH; RenderDoc integration disabled")
+  set(RENDERDOC_FOUND FALSE)
+endif()
+
+function(target_add_renderdoc TARGET)
+  if(RENDERDOC_FOUND AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(${TARGET} PRIVATE _RL_RENDERDOC_ENABLE)
+    
+    get_filename_component(RENDERDOC_DIR "${RENDERDOC_EXE}" ABSOLUTE PATH)
+    get_filename_component(RENDERDOC_DIR "${RENDERDOC_DIR}" ABSOLUTE PATH)
+    get_filename_component(RENDERDOC_DIR "${RENDERDOC_DIR}" DIRECTORY)
+
+    set(RENDERDOC_INCLUDE_DIR "${RENDERDOC_DIR}")
+    message(LOG "RenderDoc include directory set to: ${RENDERDOC_INCLUDE_DIR}")
+    
+    if(EXISTS "${RENDERDOC_INCLUDE_DIR}")
+      target_include_directories(${TARGET} PRIVATE "${RENDERDOC_INCLUDE_DIR}")
+      message(STATUS "RenderDoc integration enabled for target: ${TARGET}")
+      message(STATUS "RenderDoc include directory: ${RENDERDOC_INCLUDE_DIR}")
+    else()
+      message(WARNING "RenderDoc include directory not found at: ${RENDERDOC_INCLUDE_DIR}")
+    endif()
+  endif()
+endfunction()
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-function(target_configure TARGET)
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-      target_compile_options(${TARGET} PRIVATE -mfpu=neon -mfloat-abi=hard)
-    endif ()
-  elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-      target_compile_options(${TARGET} PRIVATE -msse4.2 -mavx2 -std=c++20 -fmodules-ts)
-    elseif (MSVC)
-      target_compile_options(
-        ${TARGET}
-        PRIVATE
-        "/Zc:__cplusplus"
-        "/Zc:preprocessor"
-        "/arch:AVX2"
-        "/MP" "/Zm200" "/FS"
-        "/std:c++20"
-      )
-    endif ()
-  endif ()
-endfunction()
-
-set(CXX_MODULES
-  rl/Base/Game.ixx
-  rl/Base/Binding.ixx
-  rl/Base/Game.ixx
-  rl/Base/Shader.ixx
-  rl/Base/UserInput.ixx
-  rl/Base/SimplexNoise.ixx
-  rl/Base/Texture2.ixx
-  rl/Base/IStateModel.ixx
-  rl/Base/IStateDrawable.ixx
-  rl/Base/IUpdatable.ixx
-  rl/Player/PlayerCamera.ixx
-  rl/Player/PlayerCameraController.ixx
-  rl/Player/PlayerController.ixx
-  rl/Player/PlayerProvider.ixx
-  rl/Player/IPlayer.ixx
-  rl/Player/IPlayerController.ixx
-  rl/Player/IPlayerCameraController.ixx
-  rl/Player/Player.ixx
-  rl/World/Unit/Unit.ixx
-  rl/World/Unit/UnitRegistry.ixx
-  rl/World/Unit/UnitResourceName.ixx
-  rl/World/Unit/UnitGrass.ixx
-  rl/World/Unit/UnitMantle.ixx
-  rl/World/Unit/UnitAir.ixx
-  rl/World/Unit/UnitDynamicTexture.ixx
-  rl/World/Unit/UnitPropertyStrategy.ixx
-  rl/World/Unit/UnitRegister.ixx
-  rl/World/Unit/UnitGPUParams.ixx
-  rl/World/Unit/UnitRegistryGPU.ixx
-  rl/World/Unit/UnitGPURegisterDerived.ixx
-  rl/World/Unit/UnitGrassGrowBehavior.ixx
-  rl/World/Unit/UnitTextureFactory.ixx
-  rl/World/Chunk/UnitChunkBuffer.ixx
-  rl/World/Chunk/UnitGPUSimplexNoise.ixx
-  rl/World/Chunk/ChunkGPUNoiseGen.ixx
-  rl/World/Chunk/UnitChunkBufferFBM.ixx
-  rl/World/Chunk/ChunkErrorRecovery.ixx
-  rl/World/Chunk/ChunkInRenderUnits.ixx
-  rl/World/Chunk/ChunkThreadPool.ixx
-  rl/World/Chunk/ChunkSystem.ixx
-  rl/World/Chunk/ChunkLogger.ixx
-  rl/World/Chunk/ChunkTransaction.ixx
-  rl/World/Chunk/ChunkTransactionRingBuffer.ixx
-  rl/World/Chunk/UnitChunkAccessor.ixx
-  rl/World/Chunk/ChunkGeneratorGPU.ixx
-  rl/World/Time/TimeSystem.ixx
-  rl/World/Skybox/SkyboxSystem.ixx
-  rl/World/ServiceLocator.ixx
-  rl/World/ServiceUpdater.ixx
-  rl/World/ServiceUpdaterRegistry.ixx
-  rl/World/ServiceUpdaterRegister.ixx
-  rl/World/Biome/BiomeGPUParams.ixx
-  rl/World/Biome/BiomeRegistryGPU.ixx
-  rl/World/Biome/IBiome.ixx
-  rl/RayLog/RayLogConfig.ixx
-  rl/RayLog/RayLogPlatform.ixx
-  rl/RayLog/RayLogUuid.ixx
-  rl/RayLog/RayLogLevelPrinter.ixx
-  rl/RayLog/IRayLogSerializable.ixx
-  rl/RayLog/RayLogRingBuffer.ixx
-  rl/RayLog/RayLogMessage.ixx
-  rl/RayLog/RayLogColorPrinter.ixx
-  rl/RayLog/RayLogTimestamp.ixx
-  rl/RayLog/RayLogMessageBuilder.ixx
-  rl/RayLog/RayLogPlatformOutput.ixx
-  rl/RayLog/RayLogFormatter.ixx
-  rl/RayLog/RayLogFormatParser.ixx
-  rl/RayLog/RayLogThreadPool.ixx
-  rl/RayLog/RayLogFileOutput.ixx
-  rl/RayLog/RayLogStackTrace.ixx
-  rl/RayLog/RayLogSymbolDemangler.ixx
-  rl/RayLog/RayLogFatalHandler.ixx
-  rl/RayLog/RayLog.ixx
-  rl/RayLog/RayLogMacro.ixx
-  rl/World/Chunk/ChunkSystemNotify.ixx
-  rl/Client/Render/Buffer.ixx
-)
-
-set(SOURCES
-  rl/Base/Game.cpp
-  rl/Base/Shader.cpp
-  rl/Base/UserInput.cpp
-  rl/Base/SimplexNoise.cpp
-  rl/Base/Texture2.cpp
-  rl/Base/Texture2Lightning.cpp
-  rl/Base/Texture2Normal.cpp
-  rl/Base/Texture2Binding.cpp
-  rl/Player/PlayerCameraController.cpp
-  rl/Player/PlayerController.cpp
-  rl/Player/PlayerCamera.cpp
-  rl/Player/Player.cpp
-  rl/World/Unit/Unit.cpp
-  rl/World/Unit/UnitDynamicTexture.cpp
-  rl/World/Unit/UnitTextureFactory.cpp
-  rl/World/Unit/UnitRegistryGPU.cpp
-  rl/World/Unit/UnitGrass.cpp
-  rl/World/Biome/BiomeRegistryGPU.cpp
-  rl/World/Chunk/UnitChunkBuffer.cpp
-  rl/World/Chunk/UnitGPUSimplexNoise.cpp
-  rl/World/Chunk/ChunkInRenderUnits.cpp
-  rl/World/Chunk/ChunkSystem.cpp
-  rl/World/Chunk/ChunkErrorRecovery.cpp
-  rl/World/Chunk/ChunkLogger.cpp
-  rl/World/Chunk/ChunkThreadPool.cpp
-  rl/World/Chunk/ChunkTransactionRingBuffer.cpp
-  rl/World/Chunk/UnitChunkAccessor.cpp
-  rl/World/Chunk/ChunkGeneratorGPU.cpp
-  rl/World/Time/TimeSystem.cpp
-  rl/World/Skybox/SkyboxSystem.cpp
-  rl/World/ServiceLocator.cpp
-  rl/World/ServiceUpdater.cpp
-  rl/World/ServiceUpdaterRegistry.cpp
-  rl/World/ServiceUpdaterRegister.cpp
-  rl/World/Unit/UnitGrassGrowBehavior.cpp
-  rl/World/Chunk/ChunkSystemNotify.cpp
-)
-
-add_subdirectory(Deps/glfw)
-add_subdirectory(Deps/glm)
-add_subdirectory(Deps/gtest)
+add_subdirectory(deps/gtest)
 include(GoogleTest)
 
-add_executable(rlgame rl/Base/Main.cpp ${SOURCES})
+file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/**/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS src/**/*.h)
 
-target_sources(
-  rlgame
-  PUBLIC
-  FILE_SET CXX_MODULES
-  FILES ${CXX_MODULES}
-)
+list(FILTER ALL_SOURCES EXCLUDE REGEX ".*Main\\.cpp$")
+add_library(rlgame_lib STATIC ${ALL_SOURCES} ${HEADERS})
+
 target_include_directories(
-  rlgame
-  PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/glm
-  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/stb
+  rlgame_lib
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/deps/stb
+  ${CMAKE_CURRENT_BINARY_DIR}/.shader
 )
 target_link_libraries(
-  rlgame
-  PRIVATE
+  rlgame_lib
+  PUBLIC
   Vulkan::Vulkan
-  glfw
-  glm::glm
 )
+target_add_renderdoc(rlgame_lib)
 
-# Platform-specific libraries for input polling
-if (WIN32)
-  link_libraries(dbghelp)
-elseif (UNIX AND NOT APPLE)
+set(MAIN_SOURCE src/Rl.Base/Main.cpp)
+if(NOT WIN32)
+  add_executable(rlgame ${MAIN_SOURCE})
+else()
+  add_executable(rlgame WIN32 ${MAIN_SOURCE})
+endif()
+
+if(MSVC)
+  # MSVC: Use /WHOLEARCHIVE to force inclusion of all object files
+  target_link_libraries(rlgame PRIVATE rlgame_lib)
+  target_link_options(rlgame PRIVATE "/WHOLEARCHIVE:rlgame_lib")
+elseif(APPLE)
+  # macOS: Use -force_load
+  target_link_libraries(rlgame PRIVATE -force_load $<TARGET_FILE:rlgame_lib>)
+elseif(UNIX)
+  # Linux/Unix: Use -Wl,--whole-archive -Wl,--no-whole-archive
+  target_link_libraries(rlgame PRIVATE -Wl,--whole-archive rlgame_lib -Wl,--no-whole-archive)
+else()
+  target_link_libraries(rlgame PRIVATE rlgame_lib)
+endif()
+
+if (UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
-  target_link_libraries(rlgame PRIVATE X11::X11)
+  target_link_libraries(rlgame PRIVATE X11::X11 dl)
 elseif (APPLE)
   find_library(COCOA_LIBRARY Cocoa)
   find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
-  target_link_libraries(rlgame PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY})
+  find_library(FOUNDATION_LIBRARY Foundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+  target_link_libraries(rlgame PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY} ${FOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY})
 elseif (ANDROID)
   target_link_libraries(rlgame PRIVATE android log)
 elseif (IOS)
-  target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation")
+  target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
+elseif (WIN32)
+  target_link_libraries(rlgame PRIVATE dbghelp)
 endif ()
-# Compile Vulkan Shaders
-function(target_compile_shaders TARGET)
-  set(SHADERS ${ARGN})
-  set(SPV_OUTPUTS "")
-
-  foreach (SHADER IN LISTS SHADERS)
-    get_filename_component(
-      SHADER_ABS_PATH
-      "${SHADER}"
-      ABSOLUTE)
-    get_filename_component(
-      SHADER_NAME
-      "${SHADER}"
-      NAME)
-    set(SPV "${CMAKE_CURRENT_BINARY_DIR}/Shaders/${SHADER_NAME}.spv")
-    add_custom_command(
-      OUTPUT "${SPV}"
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/Shaders/"
-      COMMAND Vulkan::glslc "${SHADER_ABS_PATH}" -o "${SPV}"
-      DEPENDS "${SHADER_ABS_PATH}"
-      COMMENT "Compiling shader ${SHADER_NAME}"
-      VERBATIM
-    )
-    list(APPEND SPV_OUTPUTS "${SPV}")
-  endforeach ()
-  target_sources(${TARGET} PRIVATE ${SPV_OUTPUTS})
-endfunction()
 
 set(SHADERS
-  rl/Shaders/unit.shadow.vert
-  rl/Shaders/unit.shadow.frag
-  rl/Shaders/unit.face.comp
-  rl/Shaders/unit.tessel.comp
-  rl/Shaders/unit.mesh.comp
-  rl/Shaders/unit.frag
-  rl/Shaders/unit.vert
-  rl/Shaders/World/world.biome.comp
-  rl/Shaders/World/world.gen.pol.comp
-  rl/Shaders/World/world.heightmap.comp
-  rl/Shaders/World/world.noise.comp
-  rl/Shaders/World/world.unitplace.comp
-  rl/Shaders/Simplex/simplex.comp
+  src/Rl.Shader/Triangle.frag
+  src/Rl.Shader/Triangle.vert
+  src/Rl.Shader/Triangle3d.frag
+  src/Rl.Shader/Triangle3d.vert
+  src/Rl.Shader/Simplex.comp
+  src/Rl.Shader/WorldHeightmap.comp
+  src/Rl.Shader/WorldClimate.comp
+  src/Rl.Shader/WorldUnitPlace.comp
+  src/Rl.Shader/WorldMeshGen.comp
+  src/Rl.Shader/WorldMeshGen.vert
+  src/Rl.Shader/WorldMeshGen.frag
+  src/Rl.Shader/WorldMeshTess.comp
+  src/Rl.Shader/WorldMeshIndexDedup.comp
+  src/Rl.Shader/WorldMeshTessNoOcclusion.comp
+  src/Rl.Shader/WorldOcclusionCull.comp
+  src/Rl.Shader/FullscreenQuad.vert
+  src/Rl.Shader/FullscreenQuad.frag
 )
 
-target_compile_shaders(
-  rlgame ${SHADERS}
-)
 enable_testing()
 
-add_executable(
-  rlgame_tests
-  ${SOURCES}
-  Tests/UnitDynamicTextureTest.cpp
-  Tests/UnitChunkBufferTest.cpp
-  Tests/RayLogRingBufferTest.cpp
-  Tests/RayLogUuidTest.cpp
-  Tests/RayLogFormatterTest.cpp
-  Tests/RayLogFormatParserTest.cpp
-  Tests/RayLogTimestampTest.cpp
-  Tests/RayLogMessageTest.cpp
-  Tests/RayLogLevelPrinterTest.cpp
-  Tests/RayLogConfigTest.cpp
-  Tests/RayLogPlatformTest.cpp
-  Tests/ChunkErrorRecoveryTest.cpp
-  Tests/ChunkInRenderUnitsTest.cpp
-  Tests/ChunkLoggerTest.cpp
-  Tests/ChunkSystemTest.cpp
-  Tests/ChunkThreadPoolTest.cpp
-  Tests/ChunkTransactionRingBufferTest.cpp
-  Tests/ChunkTransactionTest.cpp
-  Tests/UnitChunkAccessorTest.cpp
-  Tests/ChunkGeneratorGPUTest.cpp
+file(
+  GLOB_RECURSE 
+    TEST_SOURCES 
+  CONFIGURE_DEPENDS 
+    tests/*.cpp
 )
-target_sources(
-  rlgame_tests
-  PUBLIC FILE_SET
-  CXX_MODULES FILES
-  ${CXX_MODULES}
-)
-target_compile_shaders(
-  rlgame_tests ${SHADERS}
-)
+
+add_executable(rlgame_test ${TEST_SOURCES})
 
 target_include_directories(
-  rlgame_tests
+  rlgame_test
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Deps/stb
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/deps/stb
 )
 
-target_compile_options(rlgame_tests PRIVATE /EHsc)
-set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD 20)
-set_property(TARGET rlgame_tests PROPERTY CXX_STANDARD_REQUIRED ON)
+target_link_libraries(
+  rlgame_test
+  PRIVATE
+  GTest::gtest_main
+  rlgame_lib
+)
+target_add_renderdoc(rlgame_test)
 
-set(EXTERN_IMPL
-  GLFW_INCLUDE_VULKAN
+# Platform-specific libraries for test target
+if (UNIX AND NOT APPLE)
+  target_link_libraries(rlgame_test PRIVATE X11::X11 dl)
+elseif (APPLE)
+  find_library(COCOA_LIBRARY Cocoa)
+  find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
+  find_library(FOUNDATION_LIBRARY Foundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+  target_link_libraries(rlgame_test PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY} ${FOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY})
+elseif (ANDROID)
+  target_link_libraries(rlgame_test PRIVATE android log)
+elseif (IOS)
+  target_link_libraries(rlgame_test PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
+elseif (WIN32)
+  target_link_libraries(rlgame_test PRIVATE dbghelp)
+endif ()
+
+set_target_properties(
+  rlgame_test 
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+)
+
+gtest_discover_tests(rlgame_test)
+
+set(
+  EXTERN_IMPL
   STB_IMAGE_IMPLEMENTATION
 )
 
@@ -317,40 +259,6 @@ target_compile_definitions(
   PRIVATE
   ${EXTERN_IMPL}
 )
-target_compile_definitions(
-  rlgame_tests
-  PRIVATE
-  ${EXTERN_IMPL}
-)
-target_link_libraries(
-  rlgame_tests
-  PRIVATE
-  Vulkan::Vulkan
-  gtest_main
-  glm::glm
-  glfw
-)
-if (WIN32)
-  target_link_libraries(rlgame_tests PRIVATE dbghelp)
-endif ()
-
-target_configure(rlgame)
-target_configure(rlgame_tests)
-
-# Enable SIMD instructions based on architecture for tests
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
-  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame_tests PRIVATE -mfpu=neon)
-    target_compile_options(rlgame_tests PRIVATE -mfloat-abi=hard)
-  endif ()
-elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
-  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(rlgame_tests PRIVATE -msse4.2)
-    target_compile_options(rlgame_tests PRIVATE -mavx2)
-  elseif (MSVC)
-    target_compile_options(rlgame_tests PRIVATE /arch:AVX2)
-  endif ()
-endif ()
 
 function(target_add_resource TARGET)
   set(options)
@@ -403,22 +311,70 @@ function(target_add_resource TARGET)
   endforeach ()
 endfunction()
 
-target_add_resource(rlgame
-  SOURCES
-  Public/Textures
-  ${CMAKE_CURRENT_BINARY_DIR}/Shaders
-  DESTINATIONS
-  CURRENT_DIR
-  Shaders/
-)
-target_add_resource(
-  rlgame_tests
-  SOURCES
-  Public/Textures
-  ${CMAKE_CURRENT_BINARY_DIR}/Shaders
-  DESTINATIONS
-  CURRENT_DIR
-  Shaders/
-)
+set(SPV_OUTPUTS "")
+set(EMBEDDED_HEADERS "")
+set(EMBEDDED_CPPS "")
 
-gtest_discover_tests(rlgame_tests)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(GLSLC_DEBUG_FLAGS -g)
+else()
+  set(GLSLC_DEBUG_FLAGS "")
+endif()
+
+set(UUID_NAMESPACE "6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+foreach (SHADER IN LISTS SHADERS)
+  get_filename_component(
+    SHADER_ABS_PATH
+    "${SHADER}"
+    ABSOLUTE)
+  get_filename_component(
+    SHADER_NAME
+    "${SHADER}"
+    NAME)
+  get_filename_component(
+    SHADER_NAME_WE
+    "${SHADER}"
+    NAME_WE)
+  get_filename_component(
+    SHADER_EXT
+    "${SHADER}"
+    EXT)
+  string(REPLACE "." "_" SHADER_VAR_NAME "${SHADER_NAME}")
+
+  string(RANDOM LENGTH 16 RANDOM_NAME)
+  string(
+    UUID EMBEDDED_UUID
+    NAMESPACE ${UUID_NAMESPACE} 
+    NAME ${RANDOM_NAME} 
+    TYPE MD5
+  )
+  
+  set(SPV "${CMAKE_CURRENT_BINARY_DIR}/.shader/spv/${SHADER_NAME}.spv")
+  set(EMBEDDED_HEADER "${CMAKE_CURRENT_BINARY_DIR}/.shader/${RANDOM_NAME}.h")
+  set(EMBEDDED_CPP "${CMAKE_CURRENT_BINARY_DIR}/.shader/${RANDOM_NAME}.cpp")
+  
+  add_custom_command(
+    OUTPUT "${SPV}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.shader/spv/"
+    COMMAND Vulkan::glslc ${GLSLC_DEBUG_FLAGS} "${SHADER_ABS_PATH}" -o "${SPV}"
+    DEPENDS "${SHADER_ABS_PATH}"
+    COMMENT "Compiling shader ${SHADER_NAME}"
+    VERBATIM
+  )
+  
+  add_custom_command(
+    OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CPP}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.shader/"
+    COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${SPV} -DOUTPUT_H=${EMBEDDED_HEADER} -DOUTPUT_CPP=${EMBEDDED_CPP} -DVARIABLE_NAME=${SHADER_VAR_NAME} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedBinary.cmake"
+    DEPENDS "${SPV}"
+    COMMENT "Embedding ${SHADER_NAME}"
+    VERBATIM
+  )
+  
+  list(APPEND SPV_OUTPUTS "${SPV}")
+  list(APPEND EMBEDDED_HEADERS "${EMBEDDED_HEADER}")
+  list(APPEND EMBEDDED_CPPS "${EMBEDDED_CPP}")
+endforeach ()
+
+target_sources(rlgame_lib PRIVATE ${EMBEDDED_HEADERS})
+target_sources(rlgame_lib PRIVATE ${EMBEDDED_CPPS})

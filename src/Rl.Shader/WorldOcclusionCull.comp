@@ -1,0 +1,103 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+layout(r32ui, binding = 0) uniform readonly uimage3D unitInputImage;
+layout(r32ui, binding = 1) uniform writeonly uimage3D visibilityOutputImage;
+
+layout(push_constant) uniform OcclusionCullPushConstants
+{
+    uint width;
+    uint height;
+    uint depth;
+    uint airUnitId;
+    uint _padding[3];
+} pc;
+
+void main()
+{
+    uint globalId = gl_GlobalInvocationID.x;
+    uint totalUnits = pc.width * pc.height * pc.depth;
+
+    if (globalId >= totalUnits)
+    {
+        return;
+    }
+
+    uint unitX = globalId % pc.width;
+    uint unitY = (globalId / pc.width) % pc.height;
+    uint unitZ = globalId / (pc.width * pc.height);
+
+    uvec4 unitImageData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY), int(unitZ)));
+    uint unitId = unitImageData.r;
+
+    if (unitId == pc.airUnitId)
+    {
+        imageStore(visibilityOutputImage, ivec3(int(unitX), int(unitY), int(unitZ)), uvec4(1));
+        return;
+    }
+
+    bool allNeighborsSolid = true;
+    if (unitX > 0)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX - 1), int(unitY), int(unitZ)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false; // Edge units are always visible
+    }
+
+    if (allNeighborsSolid && unitX < pc.width - 1)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX + 1), int(unitY), int(unitZ)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false;
+    }
+
+    if (allNeighborsSolid && unitY > 0)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY - 1), int(unitZ)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false;
+    }
+
+    if (allNeighborsSolid && unitY < pc.height - 1)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY + 1), int(unitZ)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false;
+    }
+
+    if (allNeighborsSolid && unitZ > 0)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY), int(unitZ - 1)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false;
+    }
+
+    if (allNeighborsSolid && unitZ < pc.depth - 1)
+    {
+        uvec4 neighborData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY), int(unitZ + 1)));
+        if (neighborData.r == pc.airUnitId) allNeighborsSolid = false;
+    }
+    else
+    {
+        allNeighborsSolid = false;
+    }
+
+    uint visibility = allNeighborsSolid ? 0 : 1;
+    imageStore(visibilityOutputImage, ivec3(int(unitX), int(unitY), int(unitZ)), uvec4(visibility));
+}

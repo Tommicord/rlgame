@@ -1,0 +1,82 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+shared int cachedPerm[256];
+shared int cachedPermGradIndex3D[256];
+
+#include "SimplexNoise.glslh"
+#include "WorldMeshTess.glslh"
+
+layout(r32ui, binding = 0) uniform uimage3D unitInputImage;
+
+layout(std430, binding = 1) buffer OutputPostUnitBuffer
+{
+    uint postUnits[];
+};
+
+layout(r32ui, binding = 2) uniform readonly uimage3D visibilityInputImage;
+
+layout(push_constant) uniform TessPushConstants
+{
+    uint seed;
+    uint width;
+    uint height;
+    uint depth;
+    uint airUnitId;
+    uint _padding[3];
+} pc;
+
+void main()
+{
+    uint globalId = gl_GlobalInvocationID.x;
+    uint totalUnits = pc.width * pc.height * pc.depth;
+
+    if (globalId >= totalUnits)
+    {
+        return;
+    }
+
+    uint unitX = globalId % pc.width;
+    uint unitY = (globalId / pc.width) % pc.height;
+    uint unitZ = globalId / (pc.width * pc.height);
+
+    bool isVisible = true;
+    if (imageSize(visibilityInputImage).x > 0)
+    {
+        uvec4 visibilityData = imageLoad(visibilityInputImage, ivec3(int(unitX), int(unitY), int(unitZ)));
+        isVisible = (visibilityData.r != 0);
+    }
+
+    PostUnit unit;
+    
+    if (!processUnitTessellation(globalId, pc.width, pc.height, pc.depth, 
+                                  pc.airUnitId, pc.seed, unit, isVisible))
+    {
+        uint baseOffset = globalId * 8;
+        postUnits[baseOffset + 0] = unit.packedFlags;
+        postUnits[baseOffset + 1] = unit._padding;
+        postUnits[baseOffset + 2] = unit.shape.packedRotations;
+        postUnits[baseOffset + 3] = unit.shape.packedCurvatures;
+        postUnits[baseOffset + 4] = unit.shape.packedEdges;
+        postUnits[baseOffset + 5] = unit.shape.packedDimensions;
+        postUnits[baseOffset + 6] = 0;
+        postUnits[baseOffset + 7] = 0;
+        return;
+    }
+
+    uvec4 unitImageData = imageLoad(unitInputImage, ivec3(int(unitX), int(unitY), int(unitZ)));
+    uint unitId = unitImageData.r;
+
+    completeUnitTessellation(unitId, pc.airUnitId, pc.seed, unitX, unitY, unitZ, unit);
+    
+    uint baseOffset = globalId * 8;
+    postUnits[baseOffset + 0] = unit.packedFlags;
+    postUnits[baseOffset + 1] = unit._padding;
+    postUnits[baseOffset + 2] = unit.shape.packedRotations;
+    postUnits[baseOffset + 3] = unit.shape.packedCurvatures;
+    postUnits[baseOffset + 4] = unit.shape.packedEdges;
+    postUnits[baseOffset + 5] = unit.shape.packedDimensions;
+    postUnits[baseOffset + 6] = 0;
+    postUnits[baseOffset + 7] = 0;
+}

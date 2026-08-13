@@ -1,0 +1,78 @@
+#version 450
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+shared int cachedPerm[256];
+shared int cachedPermGradIndex3D[256];
+
+layout(std430, binding = 0) buffer PermutationBuffer {
+    int perm[256];
+};
+
+layout(std430, binding = 1) buffer PermGradIndex3DBuffer {
+    int permGradIndex3D[256];
+};
+
+layout(std430, binding = 2) buffer NoiseBuffer {
+    float noiseValues[];
+};
+
+#include "SimplexNoise.glslh"
+
+layout(std430, push_constant) uniform PushConstants {
+    uint dimension;      // 2 or 3
+    float scale;         // Noise scale
+    float persistence;
+    float offsetX;
+    float offsetY;
+    float offsetZ;
+    uint width;
+    uint height;
+    uint depth;
+    uint time;
+    uint octaves;
+    uint seed;
+} pc;
+
+void main() {
+    uint localId = gl_LocalInvocationIndex;
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+    uint z = gl_GlobalInvocationID.z;
+
+    if (localId < 256) {
+        cachedPerm[localId] = perm[localId];
+        cachedPermGradIndex3D[localId] = permGradIndex3D[localId];
+    }
+    barrier();
+
+    if (x >= pc.width || y >= pc.height || z >= pc.depth) {
+        return;
+    }
+
+    float worldX = (float(x) / float(pc.width)) * pc.scale + pc.offsetX;
+    float worldY = (float(y) / float(pc.height)) * pc.scale + pc.offsetY;
+    float worldZ = (float(z) / float(pc.depth)) * pc.scale + pc.offsetZ;
+    
+    float seedOffset = float(pc.seed) * 0.001;
+
+    uint index = x + (y * pc.width) + (z * pc.width * pc.height);
+    float noiseValue = 0.0;
+    float persistence = pc.persistence;
+
+    if (pc.dimension == 2) {
+        if (pc.octaves == 1) {
+            noiseValue = noise2D(worldX + seedOffset, worldY + seedOffset);
+        } else {
+            noiseValue = fBM2D(worldX + seedOffset, worldY + seedOffset, int(pc.octaves), persistence);
+        }
+    }
+    else if (pc.dimension == 3) {
+        if (pc.octaves == 1) {
+            noiseValue = noise3D(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset);
+        } else {
+            noiseValue = fBM3D(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, int(pc.octaves), persistence);
+        }
+    }
+    noiseValues[index] = noiseValue;
+}

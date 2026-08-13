@@ -1,0 +1,178 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+// Output vertex for triangulation
+struct MeshVertex
+{
+    vec3 position;
+    vec3 normal;
+    vec2 uv;
+};
+
+layout(std430, binding = 0) readonly buffer InputVertexBuffer
+{
+    MeshVertex inputVertices[];
+};
+
+layout(std430, binding = 1) buffer OutputVertexBuffer
+{
+    MeshVertex vertices[];
+};
+
+layout(std430, binding = 2) buffer OutputIndexBuffer
+{
+    uint indices[];
+};
+
+layout(std430, binding = 3) buffer CountBuffer
+{
+    uint vertexCount;
+    uint indexCount;
+};
+
+layout(std430, binding = 4) buffer HashTable
+{
+    uint hashTable[];
+};
+
+// Temporary buffer to store mapping from input index to unique index
+layout(std430, binding = 5) buffer IndexMappingBuffer
+{
+    uint indexMapping[];
+};
+
+shared uint nextVertexIndex;
+
+layout(push_constant) uniform IndexDedupPushConstants
+{
+    uint inputVertexCount;
+    uint maxVertices;
+    uint maxIndices;
+    uint hashTableSize;
+    uint subdivisions;
+    uint _padding[3];
+} pc;
+
+// Spatial hash function for vertex deduplication
+uint hashVertex(vec3 pos, vec3 normal, vec2 uv)
+{
+    // Quantize position to reduce precision issues
+    const float quantization = 1000.0;
+    ivec3 ipos = ivec3(pos * quantization);
+    
+    uint h = uint(ipos.x) * 73856093u ^ uint(ipos.y)* 19349663u ^ uint(ipos.z) * 83492791u;
+    
+    // Include normal and UV in hash for vertices at same position but different attributes
+    ivec3 inormal = ivec3(normal * 255.0);
+    ivec2 iuv = ivec2(uv * 255.0);
+    h ^= uint(inormal.x) * 1664525u ^ uint(inormal.y) * 22695477u ^ uint(inormal.z) * 326648991u;
+    h ^= uint(iuv.x) * 668265263u ^ uint(iuv.y) * 1013904223u;
+    
+    return h;
+}
+
+// Find or insert vertex in hash table, returns unique vertex index
+uint findOrInsertVertex(MeshVertex vert, uint hashTableSize, uint globalId)
+{
+    uint hash = hashVertex(vert.position, vert.normal, vert.uv);
+    uint slot = hash & (hashTableSize - 1); // Power of 2 size assumed
+    
+    // Linear probing to find slot
+    for (uint i = 0; i < 16; i++) // Limit probe attempts
+    {
+        uint probeSlot = (slot + i) & (hashTableSize - 1);
+        uint existingIdx = atomicCompSwap(hashTable[probeSlot], 0xFFFFFFFFu, globalId);
+        
+        if (existingIdx == 0xFFFFFFFFu)
+        {
+            // Empty slot found, insert new vertex
+            if (vertexCount < pc.maxVertices)
+            {
+                vertices[globalId] = vert;
+                return atomicAdd(vertexCount, 1);
+            }
+            return 0xFFFFFFFFu; // Buffer full
+        }
+        
+        // Check if this is the same vertex
+        MeshVertex existing = vertices[existingIdx];
+        if (distance(existing.position, vert.position) < 0.0001 &&
+            dot(existing.normal, vert.normal) > 0.9999 &&
+            distance(existing.uv, vert.uv) < 0.001)
+        {
+            return existingIdx; // Found duplicate
+        }
+    }
+    
+    // Hash table full, fallback to direct insertion
+    if (vertexCount < pc.maxVertices)
+    {
+        vertices[vertexCount] = vert;
+        return atomicAdd(vertexCount, 1);
+    }
+    return 0xFFFFFFFFu;
+}
+
+void main()
+{
+    uint globalId = gl_GlobalInvocationID.x;
+    if (gl_LocalInvocationID.x == 0) {
+        nextVertexIndex = 0;
+    }
+    barrier();
+
+    if (globalId < pc.inputVertexCount)
+    {
+        MeshVertex vert = inputVertices[globalId];
+        uint uniqueIdx = findOrInsertVertex(vert, pc.hashTableSize, globalId);
+        indexMapping[globalId] = uniqueIdx;
+    }
+    barrier();
+    memoryBarrier();
+    
+    uint vertsPerEdge = pc.subdivisions + 1;
+    uint faceVertexCount = vertsPerEdge * vertsPerEdge;
+    uint totalVertices = faceVertexCount * 6;  // 6 faces
+    uint totalFaceQuads = totalVertices - (vertsPerEdge * 6);
+
+    if (globalId < totalFaceQuads)
+    {
+        uint faceIndex = globalId / (faceVertexCount - vertsPerEdge - 1);
+        uint faceLocalIdx = globalId % (faceVertexCount - vertsPerEdge - 1);
+        
+        uint y = faceLocalIdx / (vertsPerEdge - 1);
+        uint x = faceLocalIdx % (vertsPerEdge - 1);
+
+        uint faceStartVertex = faceIndex * faceVertexCount;
+        
+        uint topLeftIdx = faceStartVertex + y * vertsPerEdge + x;
+        uint topRightIdx = faceStartVertex + y * vertsPerEdge + x + 1;
+        uint bottomLeftIdx = faceStartVertex + (y + 1) * vertsPerEdge + x;
+        uint bottomRightIdx = faceStartVertex + (y + 1) * vertsPerEdge + x + 1;
+        
+        // Get deduplicated indices
+        uint topLeft = indexMapping[topLeftIdx];
+        uint topRight = indexMapping[topRightIdx];
+        uint bottomLeft = indexMapping[bottomLeftIdx];
+        uint bottomRight = indexMapping[bottomRightIdx];
+        
+        // Skip if any vertex is invalid
+        if (topLeft == 0xFFFFFFFFu || topRight == 0xFFFFFFFFu || 
+            bottomLeft == 0xFFFFFFFFu || bottomRight == 0xFFFFFFFFu)
+        {
+            return;
+        }
+        
+        uint idxOffset = atomicAdd(indexCount, 6);
+        if (idxOffset + 5 < pc.maxIndices)
+        {
+            indices[idxOffset] = topLeft;
+            indices[idxOffset + 1] = bottomLeft;
+            indices[idxOffset + 2] = topRight;
+            indices[idxOffset + 3] = topRight;
+            indices[idxOffset + 4] = bottomLeft;
+            indices[idxOffset + 5] = bottomRight;
+        }
+    }
+}

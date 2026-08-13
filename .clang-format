@@ -17,11 +17,13 @@ BreakTemplateDeclarations: MultiLine
 Cpp11BracedListStyle: true
 BinPackArguments: true
 BinPackParameters: false
+SortIncludes: Never
+IncludeBlocks: Preserve
 PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyExcessCharacter: 1000
 PackConstructorInitializers: BinPack
 AllowShortFunctionsOnASingleLine: None
-BraceWrapping: 
+BraceWrapping:
   AfterCaseLabel: true
   AfterClass: false
   AfterControlStatement: true
@@ -41,9 +43,9 @@ BraceWrapping:
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: AfterColon
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 90
+ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-IncludeCategories: 
+IncludeCategories:
   - Regex: '^<.*'
     Priority: 1
   - Regex: '^".*'
@@ -52,7 +54,8 @@ IncludeCategories:
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseBlocks: true
-IndentWidth: 4
+IndentWidth: 8
+IndentAccessModifiers: true
 InsertNewlineAtEOF: true
 MacroBlockBegin: ''
 MacroBlockEnd: ''
@@ -64,7 +67,7 @@ SpacesInAngles: false
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-TabWidth: 4
+TabWidth: 8
 UseTab: Never
-Standard: c++20
+Standard: c++11
 ...
