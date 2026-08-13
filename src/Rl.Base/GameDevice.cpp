@@ -1,6 +1,7 @@
 #include "Rl.Base/GameDevice.h"
 #include "Rl.Base/GameError.h"
 #include "Rl.Base/GameVulkanQueueSubmitter.h"
+#include "Rl.Base/GameVulkanCallback.h"
 #include "Rl.Base/IGameDrawable.h"
 #include "Rl.Base/MainGame.h"
 
@@ -134,6 +135,10 @@ void GameDeviceInstance::cleanup()
         {
                 vkDestroyRenderPass(gameDevice.device, gameDevice.renderPass, nullptr);
                 vkDestroySurfaceKHR(gameDevice.instance, gameDevice.surface, nullptr);
+        }
+        if (_enableValidationLayers)
+        {
+                GameVulkanCallback::destroyDebugCallback(gameDevice.instance, gameDevice.debugMessenger);
         }
 
         vkDestroyDevice(gameDevice.device, nullptr);
@@ -384,6 +389,10 @@ void GameDeviceInstance::createInstance()
         catch (const std::runtime_error& e)
         {
                 GameError::exitWithError("vkCreateInstance", e.what());
+        }
+        if (_enableValidationLayers)
+        {
+                gameDevice.debugMessenger = GameVulkanCallback::setupDebugCallback(gameDevice.instance);
         }
 }
 
