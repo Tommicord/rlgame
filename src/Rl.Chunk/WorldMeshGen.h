@@ -2,7 +2,7 @@
 #define RL_CHUNK_WORLD_MESH_GEN_H
 
 #include "Rl.Base/GameMatrix.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
@@ -158,7 +158,7 @@ class WorldMeshGen : public IGameComputeDispatch,
 
     VkDevice         device;
     VkPhysicalDevice physicalDevice;
-    VkQueue          graphicsQueue;
+    VkQueue          computeQueue;
     VkCommandPool    commandPool;
 
     uint32_t width;
@@ -170,7 +170,7 @@ class WorldMeshGen : public IGameComputeDispatch,
 
     IMeshTess& meshTess;
 
-    GameShaderModule      computeShader;
+    GameVulkanShaderModule      computeShader;
     VkPipeline            pipeline;
     VkPipelineLayout      pipelineLayout;
     VkDescriptorSet       descriptorSet;

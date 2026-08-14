@@ -123,23 +123,24 @@ void WorldHeightmap::dispatch(void*                      pResource,
   commandBuffer.reset();
   commandBuffer.begin();
 
-  vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-  vkCmdPushConstants(commandBuffer.getCommandBuffer(), pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT,
-                     0, sizeof(WorldHeightmapPushConstants), &params);
+  commandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  commandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                    &descriptorSet, 0, nullptr);
+  commandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                              sizeof(WorldHeightmapPushConstants), &params);
 
   uint32_t groupCountX = (params.width + 7) / 8;
   uint32_t groupCountY = (params.height + 7) / 8;
   uint32_t groupCountZ = (params.depth + 3) / 4;
 
-  vkCmdDispatch(commandBuffer.getCommandBuffer(), groupCountX, groupCountY, groupCountZ);
+  commandBuffer.dispatch(groupCountX, groupCountY, groupCountZ);
 
   VkMemoryBarrier memoryBarrier{};
   memoryBarrier.sType         = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
   memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
   memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-  vkCmdPipelineBarrier(commandBuffer.getCommandBuffer(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  vkCmdPipelineBarrier(commandBuffer.getCommandBuffer(),
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT |
                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                        0, 1, &memoryBarrier, 0, nullptr, 0, nullptr);
@@ -400,13 +401,13 @@ void WorldHeightmap::createDescriptorSets(VkDevice device)
 
 void WorldHeightmap::createComputePipeline(VkDevice device)
 {
-  computeShaderModule = GameShaderLoader::createShaderModule(device, WorldHeightmapComp_data,
+  computeShaderModule = GameVulkanShader::shader(device, WorldHeightmapComp_data,
                                                              WorldHeightmapComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShaderModule.shaderModule;
+  shaderStageInfo.module = computeShaderModule.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkPushConstantRange pushConstantRange{};
@@ -873,13 +874,12 @@ void WorldHeightmap::read(VkDevice                         device,
 
   localFence.wait();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
   const uint8_t* pixelData = static_cast<const uint8_t*>(data);
 
   unpackR8ToFloatSIMD(pixelData, output);
 
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 }
 
 const GameOpaqueImageHandle& WorldHeightmap::getBasemapElevationImage() const
@@ -1011,8 +1011,7 @@ void WorldHeightmap::generateCompressedGrayscale(VkDevice              device,
 
   localFence.wait();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
 
   uint8_t* pixelData = static_cast<uint8_t*>(data);
   for (size_t i = 0; i < output.size(); ++i)
@@ -1020,7 +1019,7 @@ void WorldHeightmap::generateCompressedGrayscale(VkDevice              device,
     output[i] = 1.0f - (pixelData[i] / 255.0f);
   }
 
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 }
 
 WorldHeightmap::~WorldHeightmap()

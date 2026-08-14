@@ -1,7 +1,7 @@
 #ifndef RL_CHUNK_WORLD_MESH_TESS_H
 #define RL_CHUNK_WORLD_MESH_TESS_H
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
@@ -126,7 +126,7 @@ class WorldMeshTess : public IGameComputeDispatch,
 
     VkDevice         device;
     VkPhysicalDevice physicalDevice;
-    VkQueue          graphicsQueue;
+    VkQueue          computeQueue;
     VkCommandPool    commandPool;
 
     uint32_t width;
@@ -138,12 +138,12 @@ class WorldMeshTess : public IGameComputeDispatch,
     IUnitPlacement&     unitPlacement;
     WorldOcclusionCull* occlusionCull; // Optional occlusion culling reference
 
-    GameShaderModule      computeShader;
-    VkPipeline            pipeline;
-    VkPipelineLayout      pipelineLayout;
-    VkDescriptorSet       descriptorSet;
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorPool      descriptorPool;
+    GameVulkanShaderModule computeShader;
+    VkPipeline             pipeline;
+    VkPipelineLayout       pipelineLayout;
+    VkDescriptorSet        descriptorSet;
+    VkDescriptorSetLayout  descriptorSetLayout;
+    VkDescriptorPool       descriptorPool;
 
     GameVulkanMemoryAllocator memoryAllocator;
     GameVulkanBuffer          outputBuffer;

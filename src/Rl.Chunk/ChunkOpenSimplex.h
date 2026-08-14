@@ -1,7 +1,7 @@
 #ifndef RL_CHUNK_CHUNK_OPEN_SIMPLEX_H
 #define RL_CHUNK_CHUNK_OPEN_SIMPLEX_H
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
 #include "Rl.Base/GameVulkanFence.h"
@@ -158,7 +158,7 @@ class ChunkOpenSimplex : public ChunkNoiseGenerator,
     GameVulkanBuffer    noiseBuffer; /**< Noise output buffer */
     GameVulkanSemaphore completionSemaphore; /**< Semaphore for signaling completion */
     GameVulkanFence     completionFence; /**< Fence for signaling completion */
-    GameShaderModule    computeShaderModule;
+    GameVulkanShaderModule    computeShaderModule;
 
     VkInstance            instance            = VK_NULL_HANDLE;
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE; /**< Descriptor set layout */

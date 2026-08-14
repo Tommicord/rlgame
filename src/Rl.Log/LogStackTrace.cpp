@@ -46,7 +46,6 @@ bool LogStackTrace::shouldSkipFrame(const char* symbol) noexcept
   // Skip logging functions
   if (strstr(symbol, "Rl::Log::") != nullptr)
     return true;
-
   // Skip system libraries
   if (LogDemangle::isSystemLibrary(symbol))
     return true;

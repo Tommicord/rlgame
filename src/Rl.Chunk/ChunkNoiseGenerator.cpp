@@ -81,11 +81,10 @@ void ChunkNoiseGenerator::updatePermutationBuffers(VkDevice device, VkPhysicalDe
       &memoryAllocator, permSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), 0, permSize * 2, 0, &data);
+  void* data = stagingBuffer.map(permSize * 2);
   memcpy(static_cast<char*>(data), perm.data(), permSize);
   memcpy(static_cast<char*>(data) + permSize, permGradIndex3d.data(), permSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 

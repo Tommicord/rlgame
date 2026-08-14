@@ -2,7 +2,7 @@
 #include "Rl.Chunk/WorldClimateCompute.h"
 #include "Rl.Chunk/ChunkNoiseGenerator.h"
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanCommandPool.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
@@ -14,7 +14,7 @@
 
 #include "Rl.Base/GameError.h"
 #include "Rl.Base/GameVulkanQueueSubmitter.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameDevice.h"
 
@@ -138,11 +138,10 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
       &memoryAllocator, permSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), 0, permSize * 2, 0, &data);
+  void* data = stagingBuffer.map(permSize * 2);
   memcpy(static_cast<char*>(data), perm.data(), permSize);
   memcpy(static_cast<char*>(data) + permSize, permGradIndex3d.data(), permSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
   computeCommandBuffer.begin();
@@ -231,14 +230,12 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
   computeCommandBuffer.reset();
   computeCommandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-  vkCmdBindPipeline(computeCommandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipeline);
-  vkCmdBindDescriptorSets(computeCommandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+  computeCommandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  computeCommandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                          &descriptorSet, 0, nullptr);
 
-  vkCmdPushConstants(computeCommandBuffer.getCommandBuffer(), pipelineLayout,
-                     VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(WorldUnitPlacementPushConstants),
-                     &params);
+  computeCommandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                     sizeof(WorldUnitPlacementPushConstants), &params);
 
   uint32_t groupCountX = (params.width + 7) / 8;
   uint32_t groupCountY = (params.height + 7) / 8;
@@ -380,7 +377,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                        0, 0, nullptr, 0, nullptr, static_cast<uint32_t>(inputBarriers.size()),
                        inputBarriers.data());
 
-  vkCmdDispatch(computeCommandBuffer.getCommandBuffer(), groupCountX, groupCountY, groupCountZ);
+  computeCommandBuffer.dispatch(groupCountX, groupCountY, groupCountZ);
 
   VkImageMemoryBarrier unitBarrier{};
   unitBarrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -533,10 +530,9 @@ void WorldUnitPlacement::readUnitOutput(VkDevice         device,
   localFence.wait();
   localFence.reset();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), outputSize, 0, &data);
+  void* data = stagingBuffer.map(outputSize);
   memcpy(pOutput, data, outputSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 
@@ -650,10 +646,9 @@ void WorldUnitPlacement::readBiomeOutput(VkDevice         device,
   localFence.wait();
   localFence.reset();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), outputSize, 0, &data);
+  void* data = stagingBuffer.map(outputSize);
   memcpy(pOutput, data, outputSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 
@@ -1306,13 +1301,13 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
 
 void WorldUnitPlacement::createComputePipeline(VkDevice device)
 {
-  computeShaderModule = GameShaderLoader::createShaderModule(device, WorldUnitPlaceComp_data,
+  computeShaderModule = GameVulkanShader::shader(device, WorldUnitPlaceComp_data,
                                                              WorldUnitPlaceComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShaderModule.shaderModule;
+  shaderStageInfo.module = computeShaderModule.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkPushConstantRange pushConstantRange{};
@@ -1394,12 +1389,10 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
       &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
   memset(data, 0, bufferSize);
   std::memcpy(data, unitDataArray.data(), bufferSize);
-
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 
@@ -1486,12 +1479,10 @@ void WorldUnitPlacement::updateBiomeRegistryData(VkDevice                device,
       &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
   memset(data, 0, bufferSize);
   std::memcpy(data, biomeDataArray.data(), bufferSize);
-
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 
@@ -1548,11 +1539,9 @@ void WorldUnitPlacement::updatePlanetBuffer(VkDevice               device,
       &memoryAllocator, sizeof(WorldPlanetData), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), sizeof(WorldPlanetData),
-              0, &data);
+  void* data = stagingBuffer.map(sizeof(WorldPlanetData));
   std::memcpy(data, &planet, sizeof(WorldPlanetData));
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
 

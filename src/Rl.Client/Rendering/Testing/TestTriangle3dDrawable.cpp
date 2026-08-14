@@ -1,5 +1,5 @@
 #include "Rl.Client/Rendering/Testing/TestTriangle3dDrawable.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/MainGame.h"
 #include "Rl.Log/Log.h"
 
@@ -56,21 +56,21 @@ void TestTriangle3dDrawable::setup(GameDeviceInstance& instance)
   memcpy(data, vertices.data(), vertexBuffer.getSize());
   vkUnmapMemory(instance.getDevice(), vertexBuffer.getMemory());
 
-  vertShaderModule = GameShaderLoader::createShaderModule(instance.getDevice(), Triangle3dVert_data,
+  vertShaderModule = GameVulkanShader::shader(instance.getDevice(), Triangle3dVert_data,
                                                           Triangle3dVert_size);
-  fragShaderModule = GameShaderLoader::createShaderModule(instance.getDevice(), Triangle3dFrag_data,
+  fragShaderModule = GameVulkanShader::shader(instance.getDevice(), Triangle3dFrag_data,
                                                           Triangle3dFrag_size);
 
   VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
   vertShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   vertShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
-  vertShaderStageInfo.module = vertShaderModule.shaderModule;
+  vertShaderStageInfo.module = vertShaderModule.getShaderModule();
   vertShaderStageInfo.pName  = "main";
 
   VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
   fragShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   fragShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragShaderStageInfo.module = fragShaderModule.shaderModule;
+  fragShaderStageInfo.module = fragShaderModule.getShaderModule();
   fragShaderStageInfo.pName  = "main";
 
   VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};

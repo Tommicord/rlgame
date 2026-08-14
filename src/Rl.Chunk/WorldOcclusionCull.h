@@ -1,7 +1,7 @@
 #ifndef RL_CHUNK_WORLD_OCCLUSION_CULL_H
 #define RL_CHUNK_WORLD_OCCLUSION_CULL_H
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
@@ -98,7 +98,7 @@ class WorldOcclusionCull : public IGameComputeDispatch
 
     VkDevice         device         = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkQueue          graphicsQueue  = VK_NULL_HANDLE;
+    VkQueue          computeQueue  = VK_NULL_HANDLE;
     VkCommandPool    commandPool    = VK_NULL_HANDLE;
 
     uint32_t            width;
@@ -107,7 +107,7 @@ class WorldOcclusionCull : public IGameComputeDispatch
     uint32_t            airUnitId;
     WorldUnitPlacement& unitPlacement;
 
-    GameShaderModule computeShaderModule;
+    GameVulkanShaderModule computeShaderModule;
 
     VkPipeline            pipeline            = VK_NULL_HANDLE;
     VkPipelineLayout      pipelineLayout      = VK_NULL_HANDLE;

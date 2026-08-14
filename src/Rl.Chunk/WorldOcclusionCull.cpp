@@ -1,6 +1,6 @@
 #include "Rl.Chunk/WorldOcclusionCull.h"
 #include "Rl.Chunk/WorldUnitPlacement.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanCommandPool.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
@@ -21,7 +21,7 @@ WorldOcclusionCull::WorldOcclusionCull(const WorldOcclusionCullData& data,
                                        WorldUnitPlacement&           unitPlacement,
                                        GameDeviceInstance&           instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
-    graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
+    computeQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     width(data.width), height(data.height), depth(data.depth), airUnitId(data.airUnitId),
     unitPlacement(unitPlacement), pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
     descriptorSet(VK_NULL_HANDLE), descriptorSetLayout(VK_NULL_HANDLE),
@@ -113,7 +113,7 @@ void WorldOcclusionCull::createVisibilityOutputImage(VkDevice         device,
   submitInfo.pCommandBuffers    = &cmdBuffer;
 
   GameVulkanFence localFence(device, GameVulkanFenceCreateInfo{0});
-  GameVulkanQueueSubmitter::submit(graphicsQueue, &submitInfo, localFence.getFence());
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo, localFence.getFence());
 
   localFence.wait();
 }
@@ -233,12 +233,12 @@ void WorldOcclusionCull::createDescriptorSets()
 
 void WorldOcclusionCull::createPipeline()
 {
-  computeShaderModule = GameShaderLoader::createShaderModule(device, WorldOcclusionCullComp_data,
+  computeShaderModule = GameVulkanShader::shader(device, WorldOcclusionCullComp_data,
                                                              WorldOcclusionCullComp_size);
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShaderModule.shaderModule;
+  shaderStageInfo.module = computeShaderModule.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkPushConstantRange pushConstantRange{};
@@ -306,14 +306,14 @@ void WorldOcclusionCull::dispatch(void*                      pResource,
   commandBuffer.reset();
   commandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-  vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-  vkCmdPushConstants(commandBuffer.getCommandBuffer(), pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT,
-                     0, sizeof(WorldOcclusionCullPushConstants), params);
+  commandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  commandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                    &descriptorSet, 0, nullptr);
+  commandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                              sizeof(WorldOcclusionCullPushConstants), params);
 
   uint32_t groupCountX = (width * height * depth + 63) / 64;
-  vkCmdDispatch(commandBuffer.getCommandBuffer(), groupCountX, 1, 1);
+  commandBuffer.dispatch(groupCountX, 1, 1);
 
   commandBuffer.end();
 
@@ -349,7 +349,7 @@ void WorldOcclusionCull::dispatch(void*                      pResource,
     submitInfo.pSignalSemaphores    = nullptr;
   }
 
-  GameVulkanQueueSubmitter::submit(graphicsQueue, &submitInfo, completionFence.getFence());
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo, completionFence.getFence());
 }
 
 std::recursive_mutex& WorldOcclusionCull::getGenerateMutex()

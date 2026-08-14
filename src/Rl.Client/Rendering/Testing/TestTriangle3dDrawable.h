@@ -1,7 +1,7 @@
 #include "Rl.Base/GameMatrix.h"
 #include "Rl.Base/IGameDrawable.h"
 #include "Rl.Base/GameDevice.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanAllocator.h"
 
@@ -20,8 +20,8 @@ class TestTriangle3dDrawable : public IGameDrawable
 
     GameVulkanMemoryAllocator memoryAllocator;
     GameVulkanBuffer          vertexBuffer;
-    GameShaderModule          vertShaderModule;
-    GameShaderModule          fragShaderModule;
+    GameVulkanShaderModule          vertShaderModule;
+    GameVulkanShaderModule          fragShaderModule;
     RenderTarget              renderTarget;
 
   public:

@@ -8,7 +8,7 @@
 #include "Rl.Base/GameVulkanFence.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/IGameComputeDispatch.h"
 #include "Rl.Base/GameDevice.h"
 #include "Rl.Base/GameOpaqueImageHandle.h"
@@ -278,7 +278,7 @@ class WorldHeightmap : public ChunkNoiseGenerator,
     VkPipelineLayout      pipelineLayout      = VK_NULL_HANDLE;
     VkPipeline            pipeline            = VK_NULL_HANDLE;
 
-    GameShaderModule        computeShaderModule;
+    GameVulkanShaderModule        computeShaderModule;
     GameVulkanCommandPool   commandPool;
     GameVulkanCommandBuffer commandBuffer;
 

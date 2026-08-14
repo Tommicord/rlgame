@@ -2,7 +2,7 @@
 #define RL_CHUNK_WORLD_CLIMATE_COMPUTE_H
 
 #include "Rl.Base/GameMatrix.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
@@ -174,7 +174,7 @@ class WorldClimateCompute : public IGameComputeDispatch,
     GameVulkanBuffer          planetBuffer;
     GameVulkanSemaphore       completionSemaphore;
     GameVulkanFence           completionFence;
-    GameShaderModule          computeShaderModule;
+    GameVulkanShaderModule          computeShaderModule;
 
     GameVulkanCommandPool   computeCommandPool;
     GameVulkanCommandBuffer computeCommandBuffer;

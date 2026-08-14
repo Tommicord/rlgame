@@ -1,6 +1,6 @@
 #include "Rl.Client/Rendering/CompositorManager.h"
 #include "Rl.Client/Rendering/Compositor.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanAllocator.h"
 #include "Rl.Base/GameError.h"
 #include "Rl.Log/Log.h"
@@ -198,9 +198,9 @@ void CompositorManager::onCompositorConfigurationChanged()
 
 void CompositorManager::createFullscreenQuadPipeline(GameDeviceInstance& device)
 {
-  GameShaderModule vertShaderModule = GameShaderLoader::createShaderModule(
+  GameVulkanShaderModule vertShaderModule = GameVulkanShader::shader(
       device.getDevice(), FullscreenQuadVert_data, FullscreenQuadVert_size);
-  GameShaderModule fragShaderModule = GameShaderLoader::createShaderModule(
+  GameVulkanShaderModule fragShaderModule = GameVulkanShader::shader(
       device.getDevice(), FullscreenQuadFrag_data, FullscreenQuadFrag_size);
 
   struct Vertex
@@ -267,13 +267,13 @@ void CompositorManager::createFullscreenQuadPipeline(GameDeviceInstance& device)
   VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
   vertShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   vertShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
-  vertShaderStageInfo.module = vertShaderModule.shaderModule;
+  vertShaderStageInfo.module = vertShaderModule.getShaderModule();
   vertShaderStageInfo.pName  = "main";
 
   VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
   fragShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   fragShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragShaderStageInfo.module = fragShaderModule.shaderModule;
+  fragShaderStageInfo.module = fragShaderModule.getShaderModule();
   fragShaderStageInfo.pName  = "main";
 
   VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};

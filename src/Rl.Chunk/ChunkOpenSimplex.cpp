@@ -2,7 +2,7 @@
 #include "Rl.Base/GameVulkanFence.h"
 #include "Rl.Base/GameError.h"
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanQueueSubmitter.h"
 #include "Rl.Base/GameVulkanAllocator.h"
@@ -128,25 +128,24 @@ void ChunkOpenSimplex::dispatch(void*                      pResource,
   computeCommandBuffer.reset();
   computeCommandBuffer.begin();
 
-  VkCommandBuffer cmd = computeCommandBuffer.getCommandBuffer();
-
-  vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet,
-                          0, nullptr);
-  vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                     sizeof(ChunkOpenSimplexPushConstants), &params);
+  computeCommandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  computeCommandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                          &descriptorSet, 0, nullptr);
+  computeCommandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                     sizeof(ChunkOpenSimplexPushConstants), &params);
 
   uint32_t groupCountX = (params.width + 7) / 8;
   uint32_t groupCountY = (params.height + 7) / 8;
   uint32_t groupCountZ = (params.depth + 7) / 8;
 
-  vkCmdDispatch(cmd, groupCountX, groupCountY, groupCountZ);
+  computeCommandBuffer.dispatch(groupCountX, groupCountY, groupCountZ);
 
   VkMemoryBarrier memoryBarrier{};
   memoryBarrier.sType         = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
   memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
   memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-  vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  vkCmdPipelineBarrier(computeCommandBuffer.getCommandBuffer(),
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1,
                        &memoryBarrier, 0, nullptr, 0, nullptr);
 
@@ -155,6 +154,7 @@ void ChunkOpenSimplex::dispatch(void*                      pResource,
   VkSubmitInfo submitInfo{};
   submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
+  const VkCommandBuffer cmd = computeCommandBuffer.getCommandBuffer();
   submitInfo.pCommandBuffers    = &cmd;
 
   VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -311,12 +311,12 @@ void ChunkOpenSimplex::createDescriptorSets(VkDevice device)
 void ChunkOpenSimplex::createComputePipeline(VkDevice device)
 {
   computeShaderModule =
-      GameShaderLoader::createShaderModule(device, SimplexComp_data, SimplexComp_size);
+      GameVulkanShader::shader(device, SimplexComp_data, SimplexComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShaderModule.shaderModule;
+  shaderStageInfo.module = computeShaderModule.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkPushConstantRange pushConstantRange{};
@@ -415,10 +415,9 @@ void ChunkOpenSimplex::read(VkDevice            device,
   fence.wait();
   fence.reset();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
   memcpy(output.data(), data, bufferSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 }
 
 ChunkOpenSimplex::~ChunkOpenSimplex()

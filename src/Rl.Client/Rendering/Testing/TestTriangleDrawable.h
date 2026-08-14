@@ -1,6 +1,6 @@
 #include "Rl.Base/IGameDrawable.h"
 #include "Rl.Base/GameDevice.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Client/Rendering/IRenderTarget.h"
 #include "Rl.Client/Rendering/RenderTarget.h"
 #include <memory>
@@ -14,8 +14,8 @@ class TestTriangleDrawable : public IGameDrawable
 {
     VkPipelineLayout pipelineLayout   = VK_NULL_HANDLE;
     VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-    GameShaderModule vertShaderModule;
-    GameShaderModule fragShaderModule;
+    GameVulkanShaderModule vertShaderModule;
+    GameVulkanShaderModule fragShaderModule;
 
     RenderTarget renderTarget;
 

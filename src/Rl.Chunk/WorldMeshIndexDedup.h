@@ -5,7 +5,7 @@
 #include "Rl.Base/GameVulkanCommandBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
 #include "Rl.Base/GameVulkanFence.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/IGameComputeDispatch.h"
 #include "Rl.Base/GameDevice.h"
 
@@ -108,7 +108,7 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
 
     VkDevice         device;
     VkPhysicalDevice physicalDevice;
-    VkQueue          graphicsQueue;
+    VkQueue          computeQueue;
     VkCommandPool    commandPool;
 
     uint32_t maxVertices;
@@ -118,12 +118,12 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
 
     IMeshGen& meshGen;
 
-    GameShaderModule      computeShader;
-    VkPipeline            pipeline;
-    VkPipelineLayout      pipelineLayout;
-    VkDescriptorSet       descriptorSet;
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorPool      descriptorPool;
+    GameVulkanShaderModule computeShader;
+    VkPipeline             pipeline;
+    VkPipelineLayout       pipelineLayout;
+    VkDescriptorSet        descriptorSet;
+    VkDescriptorSetLayout  descriptorSetLayout;
+    VkDescriptorPool       descriptorPool;
 
     GameVulkanMemoryAllocator memoryAllocator;
     GameVulkanBuffer          outputVertexBuffer;

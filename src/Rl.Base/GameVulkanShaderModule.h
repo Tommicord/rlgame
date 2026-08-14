@@ -7,33 +7,33 @@
 namespace rl
 {
 
-struct GameShaderModule
+class GameVulkanShaderModule
 {
-    VkDevice       device       = VK_NULL_HANDLE;
-    VkShaderModule shaderModule = VK_NULL_HANDLE;
+  public:
 
-    GameShaderModule() = default;
-    GameShaderModule(VkDevice device, VkShaderModule module) : device(device), shaderModule(module)
+    GameVulkanShaderModule() = default;
+    GameVulkanShaderModule(VkDevice device, VkShaderModule module) : device(device), shaderModule(module)
     {
     }
 
-    ~GameShaderModule()
+    ~GameVulkanShaderModule()
     {
       if (shaderModule != VK_NULL_HANDLE && device != VK_NULL_HANDLE)
       {
         vkDestroyShaderModule(device, shaderModule, nullptr);
+        shaderModule = VK_NULL_HANDLE;
       }
     }
 
-    GameShaderModule(const GameShaderModule&)            = delete;
-    GameShaderModule& operator=(const GameShaderModule&) = delete;
-    GameShaderModule(GameShaderModule&& other) noexcept :
+    GameVulkanShaderModule(const GameVulkanShaderModule&)            = delete;
+    GameVulkanShaderModule& operator=(const GameVulkanShaderModule&) = delete;
+    GameVulkanShaderModule(GameVulkanShaderModule&& other) noexcept :
         device(other.device), shaderModule(other.shaderModule)
     {
       other.device       = VK_NULL_HANDLE;
       other.shaderModule = VK_NULL_HANDLE;
     }
-    GameShaderModule& operator=(GameShaderModule&& other) noexcept
+    GameVulkanShaderModule& operator=(GameVulkanShaderModule&& other) noexcept
     {
       if (this != &other)
       {
@@ -48,12 +48,20 @@ struct GameShaderModule
       }
       return *this;
     }
+
+    VkShaderModule getShaderModule() const
+    {
+      return shaderModule;
+    }
+  private:
+    VkDevice       device       = VK_NULL_HANDLE;
+    VkShaderModule shaderModule = VK_NULL_HANDLE;
 };
 
-class GameShaderLoader
+class GameVulkanShader
 {
   public:
-    static GameShaderModule createShaderModule(VkDevice device, const uint32_t* code, size_t size);
+    static GameVulkanShaderModule shader(VkDevice device, const uint32_t* pCode, const size_t size);
 };
 
 } // namespace rl

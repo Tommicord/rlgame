@@ -1,7 +1,7 @@
 #include "Rl.Chunk/WorldMeshTess.h"
 #include "Rl.Chunk/WorldUnitPlacement.h"
 #include "Rl.Chunk/WorldOcclusionCull.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanCommandPool.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
@@ -25,7 +25,7 @@ WorldMeshTess::WorldMeshTess(const WorldMeshTessData& data,
                              IUnitPlacement&          unitPlacement,
                              GameDeviceInstance&      instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
-    graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
+    computeQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     width(data.width), height(data.height), depth(data.depth), seed(data.seed),
     airUnitId(data.airUnitId), unitPlacement(unitPlacement), occlusionCull(nullptr),
     pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE), descriptorSet(VK_NULL_HANDLE),
@@ -57,7 +57,7 @@ WorldMeshTess::WorldMeshTess(const WorldMeshTessData& data,
                              WorldOcclusionCull&      occlusionCull,
                              GameDeviceInstance&      instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
-    graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
+    computeQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     width(data.width), height(data.height), depth(data.depth), seed(data.seed),
     airUnitId(data.airUnitId), unitPlacement(unitPlacement), occlusionCull(&occlusionCull),
     pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE), descriptorSet(VK_NULL_HANDLE),
@@ -259,18 +259,18 @@ void WorldMeshTess::createPipeline()
 
   if (occlusionCull)
   {
-    computeShader = GameShaderLoader::createShaderModule(device, WorldMeshTessComp_data,
+    computeShader = GameVulkanShader::shader(device, WorldMeshTessComp_data,
                                                          WorldMeshTessComp_size);
   }
   else
   {
-    computeShader = GameShaderLoader::createShaderModule(device, WorldMeshTessNoOcclusionComp_data,
+    computeShader = GameVulkanShader::shader(device, WorldMeshTessNoOcclusionComp_data,
                                                          WorldMeshTessNoOcclusionComp_size);
   }
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShader.shaderModule;
+  shaderStageInfo.module = computeShader.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkComputePipelineCreateInfo pipelineInfo{};
@@ -293,10 +293,9 @@ void WorldMeshTess::read(VkDevice         device,
                          const size_t     outputSize)
 {
   VkDeviceSize bufferSize = sizeof(PostUnit) * outputSize;
-  void*        data       = nullptr;
-  vkMapMemory(device, outputBuffer.getMemory(), 0, bufferSize, 0, &data);
+  void*        data       = outputBuffer.map(bufferSize);
   memcpy(pOutput, data, bufferSize);
-  vkUnmapMemory(device, outputBuffer.getMemory());
+  outputBuffer.unmap();
 }
 
 std::recursive_mutex& WorldMeshTess::getGenerateMutex()
@@ -362,14 +361,14 @@ void WorldMeshTess::dispatch(void*                      pResource,
   commandBuffer.reset();
   commandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-  vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-  vkCmdPushConstants(commandBuffer.getCommandBuffer(), pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT,
-                     0, sizeof(WorldMeshTessPushConstants), params);
+  commandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  commandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                    &descriptorSet, 0, nullptr);
+  commandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                              sizeof(WorldMeshTessPushConstants), params);
 
   uint32_t groupCountX = (width * height * depth + 63) / 64;
-  vkCmdDispatch(commandBuffer.getCommandBuffer(), groupCountX, 1, 1);
+  commandBuffer.dispatch(groupCountX, 1, 1);
 
   commandBuffer.end();
 
@@ -405,7 +404,7 @@ void WorldMeshTess::dispatch(void*                      pResource,
     submitInfo.pSignalSemaphores    = nullptr;
   }
 
-  GameVulkanQueueSubmitter::submit(graphicsQueue, &submitInfo, completionFence.getFence());
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo, completionFence.getFence());
 }
 
 } // namespace rl

@@ -333,4 +333,25 @@ VkDeviceMemory GameVulkanBuffer::getMemory() const
   return dedicated ? dedicatedMemory : allocation.memory;
 }
 
+void* GameVulkanBuffer::map(VkDeviceSize size, VkDeviceSize offset, VkMemoryMapFlags flags)
+{
+  VkDeviceMemory memory = getMemory();
+  VkDeviceSize actualOffset = getOffset() + offset;
+  void* data;
+  VkResult result = vkMapMemory(allocator->getDevice(), memory, actualOffset, size, flags, &data);
+  if (result != VK_SUCCESS)
+  {
+    GameError::exitWithError("vkMapMemory",
+                             "Failed to map buffer memory (result = " +
+                                 GameError::vulkanResultToString(result) + ")");
+  }
+  return data;
+}
+
+void GameVulkanBuffer::unmap()
+{
+  VkDeviceMemory memory = getMemory();
+  vkUnmapMemory(allocator->getDevice(), memory);
+}
+
 } // namespace rl

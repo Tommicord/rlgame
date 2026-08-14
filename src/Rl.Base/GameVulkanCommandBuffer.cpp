@@ -135,4 +135,35 @@ void GameVulkanCommandBuffer::reset(VkCommandBufferResetFlags flags)
   }
 }
 
+void GameVulkanCommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
+{
+  vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
+}
+
+void GameVulkanCommandBuffer::bindDescriptorSets(VkPipelineBindPoint     pipelineBindPoint,
+                                                  VkPipelineLayout       layout,
+                                                  uint32_t               firstSet,
+                                                  uint32_t               descriptorSetCount,
+                                                  const VkDescriptorSet* pDescriptorSets,
+                                                  uint32_t               dynamicOffsetCount,
+                                                  const uint32_t*        pDynamicOffsets)
+{
+  vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount,
+                          pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
+}
+
+void GameVulkanCommandBuffer::pushConstants(VkPipelineLayout    layout,
+                                             VkShaderStageFlags stageFlags,
+                                             uint32_t           offset,
+                                             uint32_t           size,
+                                             const void*        pValues)
+{
+  vkCmdPushConstants(commandBuffer, layout, stageFlags, offset, size, pValues);
+}
+
+void GameVulkanCommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+{
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+}
+
 } // namespace rl

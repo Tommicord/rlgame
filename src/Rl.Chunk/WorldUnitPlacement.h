@@ -2,7 +2,7 @@
 #define RL_CHUNK_WORLD_UNIT_PLACEMENT_H
 
 #include "Rl.Base/GameMatrix.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
 #include "Rl.Base/GameVulkanSemaphore.h"
@@ -254,7 +254,7 @@ class WorldUnitPlacement : public IGameComputeDispatch,
 
     IHeightmap&      heightmapGenerator;
     IClimateCompute& climateCompute;
-    GameShaderModule computeShaderModule;
+    GameVulkanShaderModule computeShaderModule;
 
     GameVulkanImage     unitOutputImage;
     GameVulkanImageView unitOutputImageView;

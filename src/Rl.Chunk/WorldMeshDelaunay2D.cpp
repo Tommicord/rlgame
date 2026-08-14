@@ -21,7 +21,7 @@ WorldMeshDelaunay2D::WorldMeshDelaunay2D(const WorldMeshDelaunay2DData& data,
                                          IMeshGen&                      meshGen,
                                          GameDeviceInstance&            instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
-    graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
+    computeQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     maxIndices(data.maxIndices), subdivisions(data.subdivisions), faceCount(data.faceCount),
     maxIterations(data.maxIterations), meshGen(meshGen), pipeline(VK_NULL_HANDLE),
     pipelineLayout(VK_NULL_HANDLE), descriptorSet(VK_NULL_HANDLE),
@@ -107,17 +107,9 @@ void WorldMeshDelaunay2D::createFaceStartBuffer()
     faceStartIndices[i] = i * faceVertexCount;
   }
 
-  VkDeviceMemory memory = faceStartBuffer.getMemory();
-  VkDeviceSize   offset = faceStartBuffer.getOffset();
-  void*          data;
-  VkResult result = vkMapMemory(device, memory, offset, sizeof(uint32_t) * faceCount, 0, &data);
-  if (result != VK_SUCCESS)
-  {
-    GameError::exitWithError("vkMapMemory", "Failed to map face start buffer (result = " +
-                                                GameError::vulkanResultToString(result) + ")");
-  }
+  void* data = faceStartBuffer.map(sizeof(uint32_t) * faceCount);
   memcpy(data, faceStartIndices.data(), sizeof(uint32_t) * faceCount);
-  vkUnmapMemory(device, memory);
+  faceStartBuffer.unmap();
 }
 
 void WorldMeshDelaunay2D::createDescriptorSets()
@@ -304,13 +296,14 @@ void WorldMeshDelaunay2D::createPipeline()
                                  GameError::vulkanResultToString(result) + ")");
   }
 
-  computeShader = GameShaderLoader::createShaderModule(device, WorldMeshDelaunay2DComp_data,
-                                                       WorldMeshDelaunay2DComp_size);
+  computeShader = GameVulkanShader::shader(device, 
+                                           WorldMeshDelaunay2DComp_data,
+                                           WorldMeshDelaunay2DComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShader.shaderModule;
+  shaderStageInfo.module = computeShader.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkComputePipelineCreateInfo pipelineInfo{};
@@ -337,43 +330,57 @@ void WorldMeshDelaunay2D::dispatch(void*                      pResource,
   completionFence.wait();
   completionFence.reset();
 
-  uint32_t       zero        = 0;
-  VkDeviceMemory countMemory = countBuffer.getMemory();
-  VkDeviceSize   countOffset = countBuffer.getOffset();
-  void*          countData;
-  VkResult result = vkMapMemory(device, countMemory, countOffset, sizeof(uint32_t), 0, &countData);
-  if (result != VK_SUCCESS)
-  {
-    GameError::exitWithError("vkMapMemory", "Failed to map count buffer (result = " +
-                                                GameError::vulkanResultToString(result) + ")");
-  }
+  uint32_t zero = 0;
+  void*    countData = countBuffer.map(sizeof(uint32_t));
   memcpy(countData, &zero, sizeof(uint32_t));
-  vkUnmapMemory(device, countMemory);
+  countBuffer.unmap();
 
-  VkDeviceMemory edgeFlipMemory = edgeFlipBuffer.getMemory();
-  VkDeviceSize   edgeFlipOffset = edgeFlipBuffer.getOffset();
-  void*          edgeFlipData;
-  result = vkMapMemory(device, edgeFlipMemory, edgeFlipOffset, sizeof(uint32_t), 0, &edgeFlipData);
-  if (result != VK_SUCCESS)
-  {
-    GameError::exitWithError("vkMapMemory", "Failed to map edge flip buffer (result = " +
-                                                GameError::vulkanResultToString(result) + ")");
-  }
+  void* edgeFlipData = edgeFlipBuffer.map(sizeof(uint32_t));
   memcpy(edgeFlipData, &zero, sizeof(uint32_t));
-  vkUnmapMemory(device, edgeFlipMemory);
+  edgeFlipBuffer.unmap();
 
   computeCommandBuffer.begin();
-  VkCommandBuffer cmdBuffer = computeCommandBuffer.getCommandBuffer();
-  vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
-                          &descriptorSet, 0, nullptr);
-  vkCmdPushConstants(cmdBuffer, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                     sizeof(WorldMeshDelaunay2DPushConstants), params);
-  vkCmdDispatch(cmdBuffer, faceCount, 1, 1);
+  computeCommandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  computeCommandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                        &descriptorSet, 0, nullptr);
+  computeCommandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                     sizeof(WorldMeshDelaunay2DPushConstants), params);
+  computeCommandBuffer.dispatch(faceCount, 1, 1);
   computeCommandBuffer.end();
 
-  GameVulkanQueueSubmitter::submit(graphicsQueue, computeCommandBuffer.getCommandBuffer(),
-                                   waitSemaphore, completionSemaphore, completionFence.getFence());
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount   = 1;
+  const VkCommandBuffer cmdBuffer = computeCommandBuffer.getCommandBuffer();
+  submitInfo.pCommandBuffers      = &cmdBuffer;
+
+  VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+  const VkSemaphore    waitSem   = waitSemaphore.getSemaphore();
+  if (waitSem != VK_NULL_HANDLE)
+  {
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores    = &waitSem;
+    submitInfo.pWaitDstStageMask  = &waitStage;
+  }
+  else
+  {
+    submitInfo.waitSemaphoreCount = 0;
+    submitInfo.pWaitSemaphores    = nullptr;
+    submitInfo.pWaitDstStageMask  = nullptr;
+  }
+  const VkSemaphore semaphore = completionSemaphore.getSemaphore();
+  if (semaphore != VK_NULL_HANDLE)
+  {
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores    = &semaphore;
+  }
+  else
+  {
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.pSignalSemaphores    = nullptr;
+  }
+
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo, completionFence.getFence());
 }
 
 std::recursive_mutex& WorldMeshDelaunay2D::getGenerateMutex()
@@ -416,50 +423,33 @@ void WorldMeshDelaunay2D::readIndices(VkDevice         device,
                                       uint32_t*        pOutput,
                                       const size_t     outputSize)
 {
-  VkDeviceMemory memory = indexBuffer.getMemory();
-  VkDeviceSize   offset = indexBuffer.getOffset();
-  void*          data;
-  VkResult       result = vkMapMemory(device, memory, offset, outputSize, 0, &data);
-  if (result != VK_SUCCESS)
-  {
-    GameError::exitWithError("vkMapMemory", "Failed to map index buffer (result = " +
-                                                GameError::vulkanResultToString(result) + ")");
-  }
+  void* data = indexBuffer.map(outputSize);
   memcpy(pOutput, data, outputSize);
-  vkUnmapMemory(device, memory);
+  indexBuffer.unmap();
 }
 
 void WorldMeshDelaunay2D::readCounts(VkDevice         device,
                                      VkPhysicalDevice physicalDevice,
                                      uint32_t&        pIndexCount)
 {
-  VkDeviceMemory memory = countBuffer.getMemory();
-  VkDeviceSize   offset = countBuffer.getOffset();
-  void*          data;
-  VkResult       result = vkMapMemory(device, memory, offset, sizeof(uint32_t), 0, &data);
-  if (result != VK_SUCCESS)
-  {
-    GameError::exitWithError("vkMapMemory", "Failed to map count buffer (result = " +
-                                                GameError::vulkanResultToString(result) + ")");
-  }
+  void* data = countBuffer.map(sizeof(uint32_t));
   memcpy(&pIndexCount, data, sizeof(uint32_t));
-  vkUnmapMemory(device, memory);
+  countBuffer.unmap();
 }
 
-// IMeshDelaunay2D interface implementation
 const GameOpaqueBufferHandle& WorldMeshDelaunay2D::getIndexBuffer() const
 {
-  return indexBufferHandle;
+  return indexBufferHandle.getHandleStruct();
 }
 
 const GameOpaqueBufferHandle& WorldMeshDelaunay2D::getCountBuffer() const
 {
-  return countBufferHandle;
+  return countBufferHandle.getHandleStruct();
 }
 
 const GameOpaqueSyncHandle& WorldMeshDelaunay2D::getCompletionHandle() const
 {
-  return completionHandle;
+  return completionHandle.getHandleStruct();
 }
 
 void WorldMeshDelaunay2D::readIndices(uint32_t* pOutput, const size_t outputSize)

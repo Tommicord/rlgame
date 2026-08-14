@@ -1,10 +1,10 @@
 #include "Rl.Chunk/WorldClimateCompute.h"
 #include "Rl.Base/GameVulkanFence.h"
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanImage.h"
 #include "Rl.Base/GameVulkanImageView.h"
 
-#include "Rl.Base/GameShaderModule.h"
+#include "Rl.Base/GameVulkanShaderModule.h"
 #include "Rl.Base/GameVulkanQueueSubmitter.h"
 #include "Rl.Base/GameVulkanAllocator.h"
 #include "Rl.Base/GameError.h"
@@ -107,24 +107,23 @@ void WorldClimateCompute::dispatch(void*                      pResource,
   computeCommandBuffer.reset();
   computeCommandBuffer.begin();
 
-  VkCommandBuffer cmd = computeCommandBuffer.getCommandBuffer();
-
-  vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet,
-                          0, nullptr);
-  vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                     sizeof(WorldClimateComputePushConstants), &params);
+  computeCommandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  computeCommandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                          &descriptorSet, 0, nullptr);
+  computeCommandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                     sizeof(WorldClimateComputePushConstants), &params);
 
   uint32_t groupCountX = (params.width + 7) / 8;
   uint32_t groupCountY = (params.height + 7) / 8;
 
-  vkCmdDispatch(cmd, groupCountX, groupCountY, 1);
+  computeCommandBuffer.dispatch(groupCountX, groupCountY, 1);
 
   VkMemoryBarrier memoryBarrier{};
   memoryBarrier.sType         = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
   memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
   memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-  vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+  vkCmdPipelineBarrier(computeCommandBuffer.getCommandBuffer(),
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1,
                        &memoryBarrier, 0, nullptr, 0, nullptr);
 
@@ -260,8 +259,7 @@ void WorldClimateCompute::read(VkDevice                       device,
   readFence.wait();
   readFence.reset();
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), stagingBuffer.getOffset(), bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
 
   uint8_t* pixelData = static_cast<uint8_t*>(data);
   for (size_t i = 0; i < output.size(); ++i)
@@ -272,7 +270,7 @@ void WorldClimateCompute::read(VkDevice                       device,
     output[i].moisture    = (pixelData[i * 4 + 3] / 255.0f);
   }
 
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 }
 
 void WorldClimateCompute::createDescriptorSetLayout(VkDevice device)
@@ -367,12 +365,12 @@ void WorldClimateCompute::createDescriptorSets(VkDevice device)
 void WorldClimateCompute::createComputePipeline(VkDevice device)
 {
   computeShaderModule =
-      GameShaderLoader::createShaderModule(device, WorldClimateComp_data, WorldClimateComp_size);
+      GameVulkanShader::shader(device, WorldClimateComp_data, WorldClimateComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShaderModule.shaderModule;
+  shaderStageInfo.module = computeShaderModule.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkPushConstantRange pushConstantRange{};
@@ -473,10 +471,9 @@ void WorldClimateCompute::updatePlanetBuffer(const WorldPlanetData& planet)
       &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-  void* data;
-  vkMapMemory(device, stagingBuffer.getMemory(), 0, bufferSize, 0, &data);
+  void* data = stagingBuffer.map(bufferSize);
   memcpy(data, &planet, bufferSize);
-  vkUnmapMemory(device, stagingBuffer.getMemory());
+  stagingBuffer.unmap();
 
   computeCommandBuffer.reset();
   computeCommandBuffer.begin();

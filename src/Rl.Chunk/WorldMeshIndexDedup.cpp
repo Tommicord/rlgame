@@ -21,7 +21,7 @@ WorldMeshIndexDedup::WorldMeshIndexDedup(const WorldMeshIndexDedupData& data,
                                          IMeshGen&                      meshGen,
                                          GameDeviceInstance&            instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
-    graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
+    computeQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     maxVertices(data.maxVertices), maxIndices(data.maxIndices), hashTableSize(data.hashTableSize),
     subdivisions(data.subdivisions), meshGen(meshGen), pipeline(VK_NULL_HANDLE),
     pipelineLayout(VK_NULL_HANDLE), descriptorSet(VK_NULL_HANDLE),
@@ -283,13 +283,13 @@ void WorldMeshIndexDedup::createPipeline()
                                  GameError::vulkanResultToString(result) + ")");
   }
 
-  computeShader = GameShaderLoader::createShaderModule(device, WorldMeshIndexDedupComp_data,
+  computeShader = GameVulkanShader::shader(device, WorldMeshIndexDedupComp_data,
                                                        WorldMeshIndexDedupComp_size);
 
   VkPipelineShaderStageCreateInfo shaderStageInfo{};
   shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStageInfo.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
-  shaderStageInfo.module = computeShader.shaderModule;
+  shaderStageInfo.module = computeShader.getShaderModule();
   shaderStageInfo.pName  = "main";
 
   VkComputePipelineCreateInfo pipelineInfo{};
@@ -351,7 +351,7 @@ void WorldMeshIndexDedup::dispatch(void*                      pResource,
   const VkCommandBuffer cmdBuff  = readCmd.getCommandBuffer();
   submitInfo1.pCommandBuffers    = &cmdBuff;
 
-  GameVulkanQueueSubmitter::submit(graphicsQueue, &submitInfo1, fence.getFence());
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo1, fence.getFence());
   fence.wait();
   fence.reset();
 
@@ -452,19 +452,17 @@ void WorldMeshIndexDedup::dispatch(void*                      pResource,
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, barrierCount,
                        fillBarriers.data(), 0, nullptr);
 
-  vkCmdBindPipeline(computeCommandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                    pipeline);
-  vkCmdBindDescriptorSets(computeCommandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-  vkCmdPushConstants(computeCommandBuffer.getCommandBuffer(), pipelineLayout,
-                     VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(WorldMeshIndexDedupPushConstants),
-                     params);
+  computeCommandBuffer.bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  computeCommandBuffer.bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1,
+                                          &descriptorSet, 0, nullptr);
+  computeCommandBuffer.pushConstants(pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                     sizeof(WorldMeshIndexDedupPushConstants), params);
 
   uint32_t groupCountX = (actualInputVertexCount + 63) / 64;
   if (groupCountX == 0)
     groupCountX = 1;
 
-  vkCmdDispatch(computeCommandBuffer.getCommandBuffer(), groupCountX, 1, 1);
+  computeCommandBuffer.dispatch(groupCountX, 1, 1);
 
   computeCommandBuffer.end();
 
@@ -500,7 +498,7 @@ void WorldMeshIndexDedup::dispatch(void*                      pResource,
   }
 
   completionFence.reset();
-  GameVulkanQueueSubmitter::submit(graphicsQueue, &submitInfo2, completionFence.getFence());
+  GameVulkanQueueSubmitter::submit(computeQueue, &submitInfo2, completionFence.getFence());
 }
 
 std::recursive_mutex& WorldMeshIndexDedup::getGenerateMutex()
@@ -548,10 +546,9 @@ void WorldMeshIndexDedup::readIndices(VkDevice         device,
                                       uint32_t*        pOutput,
                                       const size_t     outputSize)
 {
-  void* data = nullptr;
-  vkMapMemory(device, indexBuffer.getMemory(), indexBuffer.getOffset(), outputSize, 0, &data);
+  void* data = indexBuffer.map(outputSize);
   memcpy(pOutput, data, outputSize);
-  vkUnmapMemory(device, indexBuffer.getMemory());
+  indexBuffer.unmap();
 }
 
 void WorldMeshIndexDedup::readCounts(VkDevice         device,
@@ -559,13 +556,12 @@ void WorldMeshIndexDedup::readCounts(VkDevice         device,
                                      uint32_t&        pVertexCount,
                                      uint32_t&        pIndexCount)
 {
-  void*    data      = nullptr;
   uint32_t counts[2] = {0, 0};
-  vkMapMemory(device, indexBuffer.getMemory(), indexBuffer.getOffset(), sizeof(counts), 0, &data);
+  void*    data      = indexBuffer.map(sizeof(counts));
   memcpy(counts, data, sizeof(counts));
   pVertexCount = counts[0];
   pIndexCount  = counts[1];
-  vkUnmapMemory(device, indexBuffer.getMemory());
+  indexBuffer.unmap();
 }
 
 } // namespace rl

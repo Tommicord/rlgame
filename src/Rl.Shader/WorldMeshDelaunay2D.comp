@@ -55,7 +55,7 @@ struct Triangle
     uint v2;
     vec2 circumcenter;
     float circumradius2;
-    uint active; // 0 = inactive, 1 = active
+    uint activeFlag; // 0 = inactive, 1 = active
 };
 
 shared Triangle triangles[1024];
@@ -163,10 +163,10 @@ void performEdgeFlip(uint triA, uint triB, uint sharedEdgeV0, uint sharedEdgeV1)
     vec2 p0 = inputVertices[sharedEdgeV0].uv;
     vec2 p1 = inputVertices[vA].uv;
     vec2 p2 = inputVertices[vB].uv;
-    computeCircumcircleSIMD(p0, p1, p2, triangles[triA].circumcenter, triangles[triA].circumradius2);
+    computeCircumcircle(p0, p1, p2, triangles[triA].circumcenter, triangles[triA].circumradius2);
     
     p0 = inputVertices[sharedEdgeV1].uv;
-    computeCircumcircleSIMD(p0, p1, p2, triangles[triB].circumcenter, triangles[triB].circumradius2);
+    computeCircumcircle(p0, p1, p2, triangles[triB].circumcenter, triangles[triB].circumradius2);
 }
 
 // Parallel edge flipping for Delaunay property
@@ -182,7 +182,7 @@ void flipEdges(uint faceStartVertex, uint faceVertexCount)
         uint triIdx = edgeIdx / 3;
         uint edgeNum = edgeIdx % 3;
         
-        if (triIdx >= triangleCount || triangles[triIdx].active == 0)
+        if (triIdx >= triangleCount || triangles[triIdx].activeFlag == 0)
             continue;
         
         Triangle tri = triangles[triIdx];
@@ -198,7 +198,7 @@ void flipEdges(uint faceStartVertex, uint faceVertexCount)
         
         for (uint t = 0; t < triangleCount; ++t)
         {
-            if (t == triIdx || triangles[t].active == 0)
+            if (t == triIdx || triangles[t].activeFlag == 0)
                 continue;
             
             Triangle other = triangles[t];
@@ -301,15 +301,15 @@ void triangulateFace(uint faceIndex, uint faceStartVertex, uint faceVertexCount)
                 triangles[triIdx].v0 = faceStartVertex + v0;
                 triangles[triIdx].v1 = faceStartVertex + v1;
                 triangles[triIdx].v2 = faceStartVertex + v2;
-                triangles[triIdx].active = 1;
-                computeCircumcircleSIMD(sharedUVs[v0], sharedUVs[v1], sharedUVs[v2],
+                triangles[triIdx].activeFlag = 1;
+                computeCircumcircle(sharedUVs[v0], sharedUVs[v1], sharedUVs[v2],
                                       triangles[triIdx].circumcenter, triangles[triIdx].circumradius2);
                 
                 // Triangle 2: v1, v3, v2
                 triangles[triIdx + 1].v0 = faceStartVertex + v1;
                 triangles[triIdx + 1].v1 = faceStartVertex + v3;
                 triangles[triIdx + 1].v2 = faceStartVertex + v2;
-                triangles[triIdx + 1].active = 1;
+                triangles[triIdx + 1].activeFlag = 1;
                 computeCircumcircle(sharedUVs[v1], sharedUVs[v3], sharedUVs[v2],
                                       triangles[triIdx + 1].circumcenter, triangles[triIdx + 1].circumradius2);
             }
@@ -345,10 +345,10 @@ void triangulateFace(uint faceIndex, uint faceStartVertex, uint faceVertexCount)
     
     for (uint i = startTri; i < endTri; ++i)
     {
-        if (triangles[i].active == 1)
+        if (triangles[i].activeFlag == 1)
         {
             uint outputOffset = atomicAdd(indexCount, 3);
-            if (outputOffset + 2 < maxIndices)
+            if (outputOffset + 2 < pc.maxIndices)
             {
                 indices[outputOffset] = triangles[i].v0;
                 indices[outputOffset + 1] = triangles[i].v1;
