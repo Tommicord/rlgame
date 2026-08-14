@@ -54,7 +54,7 @@ IncludeCategories:
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseBlocks: true
-IndentWidth: 8
+IndentWidth: 2
 IndentAccessModifiers: true
 InsertNewlineAtEOF: true
 MacroBlockBegin: ''
@@ -67,7 +67,7 @@ SpacesInAngles: false
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-TabWidth: 8
+TabWidth: 2
 UseTab: Never
-Standard: c++11
+Standard: c++20
 ...

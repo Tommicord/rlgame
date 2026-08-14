@@ -32,25 +32,24 @@ namespace rl
 /** Register containing biome type information */
 class PreBiomeRegister final : public PreRegister
 {
-        public:
-                /** Constructs a PreBiomeRegister with type information
-                 * @param hash The 8-byte hash block for biome identification
-                 * @param typeId The unique type identifier */
-                constexpr PreBiomeRegister(uint64_t hash, uint32_t typeId) :
-                    PreRegister(hash, typeId)
-                {
-                }
+  public:
+    /** Constructs a PreBiomeRegister with type information
+     * @param hash The 8-byte hash block for biome identification
+     * @param typeId The unique type identifier */
+    constexpr PreBiomeRegister(uint64_t hash, uint32_t typeId) : PreRegister(hash, typeId)
+    {
+    }
 };
 
 /** Factory class that generates hash-based PreBiomeRegister */
 class PreBiomeRegisterFactory final
 {
-        public:
-                /** Creates a PreBiomeRegister by generating deterministic hashes from type
-                 * name
-                 * @param typeName The type name from typeid(T).name() or a string literal
-                 * @return PreBiomeRegister with hash-based type information */
-                static PreBiomeRegister create(const char* typeName);
+  public:
+    /** Creates a PreBiomeRegister by generating deterministic hashes from type
+     * name
+     * @param typeName The type name from typeid(T).name() or a string literal
+     * @return PreBiomeRegister with hash-based type information */
+    static PreBiomeRegister create(const char* typeName);
 };
 
 } // namespace rl

@@ -104,152 +104,149 @@ namespace
 /** Deterministic SHA256 hash generator for Unit validation */
 class UnitHashGenerator
 {
-        public:
-                /** Generate deterministic SHA256 hash for a Unit based on its ID
-                 * @param unitId The unique type identifier for the unit
-                 * @return 8-byte hash block (first 8 bytes of SHA256) */
-                static uint64_t generateDeterministicHash(PreUnit::IType unitId)
-                {
-                        PreUnit::HType hashBlock;
+  public:
+    /** Generate deterministic SHA256 hash for a Unit based on its ID
+     * @param unitId The unique type identifier for the unit
+     * @return 8-byte hash block (first 8 bytes of SHA256) */
+    static uint64_t generateDeterministicHash(PreUnit::IType unitId)
+    {
+      PreUnit::HType hashBlock;
 
 #if defined(__SHA__) || defined(_MSC_VER)
-                        // Use SHA256 hardware extensions if available
-                        hashBlock = generateSHA256FromId(unitId);
+      // Use SHA256 hardware extensions if available
+      hashBlock = generateSHA256FromId(unitId);
 #elif defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__)
-                        // Use ARM Crypto extensions
-                        hashBlock = generateARMHashFromId(unitId);
+      // Use ARM Crypto extensions
+      hashBlock = generateARMHashFromId(unitId);
 #else
-                        // Fallback to software-based hash
-                        hashBlock = generateSoftwareHashFromId(unitId);
+      // Fallback to software-based hash
+      hashBlock = generateSoftwareHashFromId(unitId);
 #endif
 
-                        return hashBlock;
-                }
+      return hashBlock;
+    }
 
-                /** Generate full 32-byte SHA256 hash for file validation
-                 * @param unitId The unique type identifier for the unit
-                 * @param output Output buffer for 32-byte SHA256 hash */
-                static void generateFullSHA256(PreUnit::IType unitId, uint8_t output[32])
-                {
+    /** Generate full 32-byte SHA256 hash for file validation
+     * @param unitId The unique type identifier for the unit
+     * @param output Output buffer for 32-byte SHA256 hash */
+    static void generateFullSHA256(PreUnit::IType unitId, uint8_t output[32])
+    {
 #if defined(__SHA__) || defined(_MSC_VER)
-                        generateSHA256FullFromId(unitId, output);
+      generateSHA256FullFromId(unitId, output);
 #elif defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__)
-                        generateARMFullFromId(unitId, output);
+      generateARMFullFromId(unitId, output);
 #else
-                        generateSoftwareFullFromId(unitId, output);
+      generateSoftwareFullFromId(unitId, output);
 #endif
-                }
+    }
 
-        private:
-                /** Generate hash using SHA256 hardware extensions (X86) from Unit ID */
-                static uint64_t generateSHA256FromId(PreUnit::IType unitId)
-                {
-                        alignas(64) uint8_t inputBlock[64];
-                        std::memset(inputBlock, 0, sizeof(inputBlock));
+  private:
+    /** Generate hash using SHA256 hardware extensions (X86) from Unit ID */
+    static uint64_t generateSHA256FromId(PreUnit::IType unitId)
+    {
+      alignas(64) uint8_t inputBlock[64];
+      std::memset(inputBlock, 0, sizeof(inputBlock));
 
-                        // Create deterministic input from Unit ID
-                        PreUnit::IType* input64 = reinterpret_cast<PreUnit::IType*>(inputBlock);
-                        input64[0]              = unitId;
-                        input64[1]              = 0x554e495449445f48ULL; // "UNITID_H" as seed
+      // Create deterministic input from Unit ID
+      PreUnit::IType* input64 = reinterpret_cast<PreUnit::IType*>(inputBlock);
+      input64[0]              = unitId;
+      input64[1]              = 0x554e495449445f48ULL; // "UNITID_H" as seed
 
 #if defined(__SHA__)
-                        // Use SHA256 extensions (GCC/Clang)
-                        __m256i state =
-                            _mm256_set_epi64x(0x510e527fade682d1ull, 0x9b05688c2b3e6c1full,
-                                              0x1f83d9abfb41bd6bull, 0x5be0cd19137e2179ull);
+      // Use SHA256 extensions (GCC/Clang)
+      __m256i state = _mm256_set_epi64x(0x510e527fade682d1ull, 0x9b05688c2b3e6c1full,
+                                        0x1f83d9abfb41bd6bull, 0x5be0cd19137e2179ull);
 
-                        __m128i data =
-                            _mm_loadu_si128(reinterpret_cast<const __m128i*>(inputBlock));
-                        state = _mm256_sha256_epi64(state, data);
+      __m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(inputBlock));
+      state        = _mm256_sha256_epi64(state, data);
 
-                        uint64_t result;
-                        _mm_storeu_si64(&result, _mm256_castsi256_si128(state));
+      uint64_t result;
+      _mm_storeu_si64(&result, _mm256_castsi256_si128(state));
 
-                        return result;
+      return result;
 #else
-                        return generateSoftwareHashFromId(unitId);
+      return generateSoftwareHashFromId(unitId);
 #endif
-                }
+    }
 
-                /** Generate full SHA256 using hardware extensions */
-                static void generateSHA256FullFromId(PreUnit::IType unitId, uint8_t output[32])
-                {
-                        alignas(64) uint8_t inputBlock[64];
-                        std::memset(inputBlock, 0, sizeof(inputBlock));
+    /** Generate full SHA256 using hardware extensions */
+    static void generateSHA256FullFromId(PreUnit::IType unitId, uint8_t output[32])
+    {
+      alignas(64) uint8_t inputBlock[64];
+      std::memset(inputBlock, 0, sizeof(inputBlock));
 
-                        PreUnit::IType* input64 = reinterpret_cast<PreUnit::IType*>(inputBlock);
-                        input64[0]              = static_cast<PreUnit::HType>(unitId);
-                        input64[1]              = 0x554e495449445f48ULL; // "UNITID_H" as seed
+      PreUnit::IType* input64 = reinterpret_cast<PreUnit::IType*>(inputBlock);
+      input64[0]              = static_cast<PreUnit::HType>(unitId);
+      input64[1]              = 0x554e495449445f48ULL; // "UNITID_H" as seed
 
-                        // For MSVC without SHA intrinsics, use software fallback
-                        generateSoftwareFullFromId(unitId, output);
-                }
+      // For MSVC without SHA intrinsics, use software fallback
+      generateSoftwareFullFromId(unitId, output);
+    }
 
-                /** Generate hash using ARM Crypto extensions from Unit ID */
-                static PreUnit::HType generateARMHashFromId(PreUnit::IType unitId)
-                {
+    /** Generate hash using ARM Crypto extensions from Unit ID */
+    static PreUnit::HType generateARMHashFromId(PreUnit::IType unitId)
+    {
 #if defined(__aarch64__) || defined(_M_ARM64)
-                        alignas(16) uint64_t input[2];
-                        input[0] = static_cast<uint64_t>(unitId);
-                        input[1] = 0x554e495449445f48ULL; // "UNITID_H" as seed
+      alignas(16) uint64_t input[2];
+      input[0] = static_cast<uint64_t>(unitId);
+      input[1] = 0x554e495449445f48ULL; // "UNITID_H" as seed
 
-                        uint64x2_t data = vld1q_u64(input);
-                        uint64x2_t hash = vsha256hq_u64(vdupq_n_u64(0x6a09e667f3bcc909ull),
-                                                        vdupq_n_u64(0xbb67ae8584caa73bull), data);
+      uint64x2_t data = vld1q_u64(input);
+      uint64x2_t hash = vsha256hq_u64(vdupq_n_u64(0x6a09e667f3bcc909ull),
+                                      vdupq_n_u64(0xbb67ae8584caa73bull), data);
 
-                        PreUnit::HType result = vgetq_lane_u64(hash, 0);
-                        return result;
+      PreUnit::HType result = vgetq_lane_u64(hash, 0);
+      return result;
 #else
-                        return generateSoftwareHashFromId(unitId);
+      return generateSoftwareHashFromId(unitId);
 #endif
-                }
+    }
 
-                /** Generate full SHA256 using ARM Crypto extensions */
-                static void generateARMFullFromId(PreUnit::IType unitId, uint8_t output[32])
-                {
-                        // For ARM without full crypto support, use software fallback
-                        generateSoftwareFullFromId(unitId, output);
-                }
+    /** Generate full SHA256 using ARM Crypto extensions */
+    static void generateARMFullFromId(PreUnit::IType unitId, uint8_t output[32])
+    {
+      // For ARM without full crypto support, use software fallback
+      generateSoftwareFullFromId(unitId, output);
+    }
 
-                /** Software-based deterministic hash from Unit ID */
-                static PreUnit::HType generateSoftwareHashFromId(PreUnit::IType unitId)
-                {
-                        const uint64_t prime1 = 0x9e3779b185ebca87ull;
-                        const uint64_t prime2 = 0xc2b2ae3d27d4eb4full;
-                        const uint64_t prime3 = 0x165667b19e3779f9ull;
-                        const uint64_t prime4 = 0x85ebca77b2a2ae63ull;
+    /** Software-based deterministic hash from Unit ID */
+    static PreUnit::HType generateSoftwareHashFromId(PreUnit::IType unitId)
+    {
+      const uint64_t prime1 = 0x9e3779b185ebca87ull;
+      const uint64_t prime2 = 0xc2b2ae3d27d4eb4full;
+      const uint64_t prime3 = 0x165667b19e3779f9ull;
+      const uint64_t prime4 = 0x85ebca77b2a2ae63ull;
 
-                        uint64_t hash =
-                            static_cast<uint64_t>(unitId) + 0x554e495449445f48ULL; // "UNITID_H"
-                        hash = ((hash << 31) | (hash >> 33)) * prime1;
-                        hash ^= static_cast<uint64_t>(unitId) * prime2;
-                        hash = ((hash << 27) | (hash >> 37)) * prime1;
-                        hash += prime4;
+      uint64_t hash = static_cast<uint64_t>(unitId) + 0x554e495449445f48ULL; // "UNITID_H"
+      hash          = ((hash << 31) | (hash >> 33)) * prime1;
+      hash ^= static_cast<uint64_t>(unitId) * prime2;
+      hash = ((hash << 27) | (hash >> 37)) * prime1;
+      hash += prime4;
 
-                        hash ^= hash >> 33;
-                        hash *= prime2;
-                        hash ^= hash >> 29;
-                        hash *= prime3;
-                        hash ^= hash >> 32;
+      hash ^= hash >> 33;
+      hash *= prime2;
+      hash ^= hash >> 29;
+      hash *= prime3;
+      hash ^= hash >> 32;
 
-                        return hash;
-                }
+      return hash;
+    }
 
-                /** Software-based full SHA256 from Unit ID (simplified) */
-                static void generateSoftwareFullFromId(PreUnit::IType unitId, uint8_t output[32])
-                {
-                        // Use a simplified but deterministic approach for full hash
-                        PreUnit::HType hash = generateSoftwareHashFromId(unitId);
+    /** Software-based full SHA256 from Unit ID (simplified) */
+    static void generateSoftwareFullFromId(PreUnit::IType unitId, uint8_t output[32])
+    {
+      // Use a simplified but deterministic approach for full hash
+      PreUnit::HType hash = generateSoftwareHashFromId(unitId);
 
-                        // Expand to 32 bytes using deterministic mixing
-                        uint64_t* output64 = reinterpret_cast<uint64_t*>(output);
-                        for (int i = 0; i < 4; ++i)
-                        {
-                                output64[i] = hash;
-                                hash        = ((hash << 17) | (hash >> 47)) * 0x9e3779b97f4a7c15ULL;
-                                hash ^= hash >> 31;
-                        }
-                }
+      // Expand to 32 bytes using deterministic mixing
+      uint64_t* output64 = reinterpret_cast<uint64_t*>(output);
+      for (int i = 0; i < 4; ++i)
+      {
+        output64[i] = hash;
+        hash        = ((hash << 17) | (hash >> 47)) * 0x9e3779b97f4a7c15ULL;
+        hash ^= hash >> 31;
+      }
+    }
 };
 
 } // anonymous namespace

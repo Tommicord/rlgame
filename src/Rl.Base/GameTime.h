@@ -10,23 +10,23 @@ class IMainGame;
 class MainGame;
 class GameTime
 {
-                friend class MainGame;
+    friend class MainGame;
 
-        public:
-                static float    getDeltaTime();
-                static float    getTotalTime();
-                static uint64_t getCurrentTime();
-                static uint64_t getFrameCount();
+  public:
+    static float    getDeltaTime();
+    static float    getTotalTime();
+    static uint64_t getCurrentTime();
+    static uint64_t getFrameCount();
 
-        private:
-                GameTime() = default;
+  private:
+    GameTime() = default;
 
-                void            init();
-                void            updateCallback();
-                static float    deltaTime;
-                static float    totalTime;
-                static uint64_t frameCount;
-                static uint64_t lastFrameTime;
+    void            init();
+    void            updateCallback();
+    static float    deltaTime;
+    static float    totalTime;
+    static uint64_t frameCount;
+    static uint64_t lastFrameTime;
 };
 
 } // namespace rl

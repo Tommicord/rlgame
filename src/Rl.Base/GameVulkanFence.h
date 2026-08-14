@@ -9,30 +9,30 @@ namespace rl
 
 struct GameVulkanFenceCreateInfo
 {
-                VkFenceCreateFlags flags = 0;
+    VkFenceCreateFlags flags = 0;
 };
 
 class GameVulkanFence
 {
-        public:
-                GameVulkanFence() noexcept;
-                GameVulkanFence(VkDevice device, const GameVulkanFenceCreateInfo& createInfo);
-                GameVulkanFence(GameVulkanFence&& other) noexcept;
-                GameVulkanFence(const GameVulkanFence& other)            = delete;
-                GameVulkanFence(const GameVulkanFence&& other)           = delete;
-                GameVulkanFence& operator=(const GameVulkanFence& other) = delete;
-                GameVulkanFence& operator=(GameVulkanFence&& other) noexcept;
-                ~GameVulkanFence();
+  public:
+    GameVulkanFence() noexcept;
+    GameVulkanFence(VkDevice device, const GameVulkanFenceCreateInfo& createInfo);
+    GameVulkanFence(GameVulkanFence&& other) noexcept;
+    GameVulkanFence(const GameVulkanFence& other)            = delete;
+    GameVulkanFence(const GameVulkanFence&& other)           = delete;
+    GameVulkanFence& operator=(const GameVulkanFence& other) = delete;
+    GameVulkanFence& operator=(GameVulkanFence&& other) noexcept;
+    ~GameVulkanFence();
 
-                VkFence  getFence() const;
-                VkDevice getDevice() const;
+    VkFence  getFence() const;
+    VkDevice getDevice() const;
 
-                void wait(uint64_t timeout = UINT64_MAX) const;
-                void reset();
+    void wait(uint64_t timeout = UINT64_MAX) const;
+    void reset();
 
-        private:
-                VkDevice device;
-                VkFence  fence;
+  private:
+    VkDevice device;
+    VkFence  fence;
 };
 
 } // namespace rl

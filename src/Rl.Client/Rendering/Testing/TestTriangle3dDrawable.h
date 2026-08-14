@@ -15,30 +15,30 @@ namespace rl
 
 class TestTriangle3dDrawable : public IGameDrawable
 {
-                VkPipelineLayout pipelineLayout   = VK_NULL_HANDLE;
-                VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout   = VK_NULL_HANDLE;
+    VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
 
-                GameVulkanMemoryAllocator memoryAllocator;
-                GameVulkanBuffer          vertexBuffer;
-                GameShaderModule          vertShaderModule;
-                GameShaderModule          fragShaderModule;
-                RenderTarget              renderTarget;
+    GameVulkanMemoryAllocator memoryAllocator;
+    GameVulkanBuffer          vertexBuffer;
+    GameShaderModule          vertShaderModule;
+    GameShaderModule          fragShaderModule;
+    RenderTarget              renderTarget;
 
-        public:
-                TestTriangle3dDrawable() noexcept;
-                void setup(GameDeviceInstance& device) override;
-                void draw(GameDeviceInstance& device) override;
-                void destroy(GameDeviceInstance& device) override;
+  public:
+    TestTriangle3dDrawable() noexcept;
+    void setup(GameDeviceInstance& device) override;
+    void draw(GameDeviceInstance& device) override;
+    void destroy(GameDeviceInstance& device) override;
 
-                const IRenderTarget& getRenderTarget() const
-                {
-                        return renderTarget;
-                }
+    const IRenderTarget& getRenderTarget() const
+    {
+      return renderTarget;
+    }
 };
 
 template <> struct IGameDrawableID<TestTriangle3dDrawable>
 {
-                inline static TestTriangle3dDrawable instance{};
+    inline static TestTriangle3dDrawable instance{};
 };
 
 } // namespace rl

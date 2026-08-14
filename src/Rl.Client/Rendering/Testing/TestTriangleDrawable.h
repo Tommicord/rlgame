@@ -12,27 +12,27 @@ namespace rl
 
 class TestTriangleDrawable : public IGameDrawable
 {
-                VkPipelineLayout pipelineLayout   = VK_NULL_HANDLE;
-                VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-                GameShaderModule vertShaderModule;
-                GameShaderModule fragShaderModule;
+    VkPipelineLayout pipelineLayout   = VK_NULL_HANDLE;
+    VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+    GameShaderModule vertShaderModule;
+    GameShaderModule fragShaderModule;
 
-                RenderTarget renderTarget;
+    RenderTarget renderTarget;
 
-        public:
-                TestTriangleDrawable() noexcept;
-                void setup(GameDeviceInstance& instance) override;
-                void draw(GameDeviceInstance& instance) override;
-                void destroy(GameDeviceInstance& instance) override;
+  public:
+    TestTriangleDrawable() noexcept;
+    void setup(GameDeviceInstance& instance) override;
+    void draw(GameDeviceInstance& instance) override;
+    void destroy(GameDeviceInstance& instance) override;
 
-                const IRenderTarget& getRenderTarget() const
-                {
-                        return renderTarget;
-                }
+    const IRenderTarget& getRenderTarget() const
+    {
+      return renderTarget;
+    }
 };
 template <> struct IGameDrawableID<TestTriangleDrawable>
 {
-                inline static TestTriangleDrawable instance{};
+    inline static TestTriangleDrawable instance{};
 };
 
 } // namespace rl

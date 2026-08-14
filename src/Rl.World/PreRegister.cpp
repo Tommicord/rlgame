@@ -14,11 +14,11 @@ namespace rl
 
 const char* demangleTypeName(const char* typeName)
 {
-        int                                    status = -1;
-        std::unique_ptr<char, void (*)(void*)> demangled(
-            abi::__cxa_demangle(typeName, nullptr, nullptr, &status), std::free);
-        return (status == 0) ? demangled.get() : typeName;
+  int                                    status = -1;
+  std::unique_ptr<char, void (*)(void*)> demangled(
+      abi::__cxa_demangle(typeName, nullptr, nullptr, &status), std::free);
+  return (status == 0) ? demangled.get() : typeName;
 }
 #endif
 
-}
+} // namespace rl

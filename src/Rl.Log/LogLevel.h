@@ -7,11 +7,11 @@ namespace rl
 /** Enumeration of log severity levels */
 enum class LogLevel
 {
-        Trace, /**< Most verbose logging level */
-        Debug, /**< Debug information */
-        Info, /**< General informational messages */
-        Warning, /**< Warning messages */
-        Error /**< Error messages */
+  Trace, /**< Most verbose logging level */
+  Debug, /**< Debug information */
+  Info, /**< General informational messages */
+  Warning, /**< Warning messages */
+  Error /**< Error messages */
 };
 
 /** Converts a log level to its string representation

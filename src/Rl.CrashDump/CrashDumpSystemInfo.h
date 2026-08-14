@@ -13,27 +13,27 @@ namespace rl
  */
 class CrashDumpSystemInfo
 {
-        public:
-                /** Collects system information for the crash report
-                 * @return String containing formatted system information
-                 */
-                static std::string collectSystemInfo();
+  public:
+    /** Collects system information for the crash report
+     * @return String containing formatted system information
+     */
+    static std::string collectSystemInfo();
 
-        private:
-                /** Collects Windows-specific system information
-                 * @return String containing Windows system information
-                 */
-                static std::string collectWindowsSystemInfo();
+  private:
+    /** Collects Windows-specific system information
+     * @return String containing Windows system information
+     */
+    static std::string collectWindowsSystemInfo();
 
-                /** Collects Linux-specific system information
-                 * @return String containing Linux system information
-                 */
-                static std::string collectLinuxSystemInfo();
+    /** Collects Linux-specific system information
+     * @return String containing Linux system information
+     */
+    static std::string collectLinuxSystemInfo();
 
-                /** Collects macOS-specific system information
-                 * @return String containing macOS system information
-                 */
-                static std::string collectMacOSSystemInfo();
+    /** Collects macOS-specific system information
+     * @return String containing macOS system information
+     */
+    static std::string collectMacOSSystemInfo();
 };
 
 } // namespace rl

@@ -14,14 +14,14 @@ namespace rl
 LogConsole* createConsole(const LogHandle& handle) noexcept
 {
 #ifdef _WIN32
-        static LogConsoleWin32 console(handle);
-        return &console;
+  static LogConsoleWin32 console(handle);
+  return &console;
 #elif defined(__ANDROID__)
-        static LogConsoleAndroid console(handle);
-        return &console;
+  static LogConsoleAndroid console(handle);
+  return &console;
 #else
-        static LogConsolePosix console(handle);
-        return &console;
+  static LogConsolePosix console(handle);
+  return &console;
 #endif
 }
 

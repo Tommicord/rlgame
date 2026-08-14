@@ -11,12 +11,12 @@ namespace rl
 
 class LogStackTraceWin32
 {
-        public:
-                static int  capture(StackFrame* frames, int maxFrames) noexcept;
-                static void demangle(StackFrame* frame) noexcept;
+  public:
+    static int  capture(StackFrame* frames, int maxFrames) noexcept;
+    static void demangle(StackFrame* frame) noexcept;
 
-        private:
-                static bool initialize() noexcept;
+  private:
+    static bool initialize() noexcept;
 };
 
 } // namespace rl

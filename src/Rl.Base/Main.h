@@ -22,51 +22,48 @@ using AnyMainFunc = void (*)(int argc, char** argv);
 #endif
 struct MainProvider
 {
-                MainProvider() noexcept = default;
+    MainProvider() noexcept = default;
 #ifdef __ANDROID__
-                static AndroidMainFunc launch;
+    static AndroidMainFunc launch;
 #elif defined(_WIN32)
-                static Win32MainFunc launch;
+    static Win32MainFunc launch;
 #else
-                static AnyMainFunc launch;
+    static AnyMainFunc launch;
 #endif
 };
 
 struct MainLauncher
 {
 #ifdef __ANDROID__
-                using CallbackType = AndroidMainFunc;
+    using CallbackType = AndroidMainFunc;
 #elif defined(_WIN32)
-                using CallbackType = Win32MainFunc;
+    using CallbackType = Win32MainFunc;
 #else
-                using CallbackType = AnyMainFunc;
+    using CallbackType = AnyMainFunc;
 #endif
-                CallbackType func;
+    CallbackType func;
 
-                MainLauncher(CallbackType callback) : func(callback)
-                {
-                }
+    MainLauncher(CallbackType callback) : func(callback)
+    {
+    }
 #ifdef __ANDROID__
-                int launch(struct android_app* state) const
-                {
-                        func(state);
-                        return 0;
-                }
+    int launch(struct android_app* state) const
+    {
+      func(state);
+      return 0;
+    }
 #elif defined(_WIN32)
-                int launch(HINSTANCE hInstance,
-                           HINSTANCE hPrevInstance,
-                           PWSTR     pCmdLine,
-                           int       nCmdShow) const
-                {
-                        func(hInstance, hPrevInstance, pCmdLine, nCmdShow);
-                        return 0;
-                }
+    int launch(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) const
+    {
+      func(hInstance, hPrevInstance, pCmdLine, nCmdShow);
+      return 0;
+    }
 #else
-                int launch(int argc, char** argv) const
-                {
-                        func(argc, argv);
-                        return 0;
-                }
+    int launch(int argc, char** argv) const
+    {
+      func(argc, argv);
+      return 0;
+    }
 #endif
 };
 } // namespace rl
@@ -74,9 +71,8 @@ struct MainLauncher
 #ifdef __ANDROID__
 extern "C" void android_main(struct android_app* state)
 {
-        rl::MainLauncher launcher([](struct android_app* state)
-                                  { rl::MainProvider::onLaunch(state) });
-        return launcher.onLaunch(state);
+  rl::MainLauncher launcher([](struct android_app* state) { rl::MainProvider::onLaunch(state) });
+  return launcher.onLaunch(state);
 }
 #elif defined(_WIN32)
 
@@ -84,18 +80,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-        rl::MainLauncher launcher(
-            [](HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
-            { rl::MainProvider::launch(hInstance, hPrevInstance, pCmdLine, nCmdShow); });
-        return launcher.launch(hInstance, hPrevInstance, pCmdLine, nCmdShow);
+  rl::MainLauncher launcher(
+      [](HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+      { rl::MainProvider::launch(hInstance, hPrevInstance, pCmdLine, nCmdShow); });
+  return launcher.launch(hInstance, hPrevInstance, pCmdLine, nCmdShow);
 }
 #else
 int main(int argc, char** argv)
 {
 
-        rl::MainLauncher launcher([](int argc, char** argv)
-                                  { rl::MainProvider::onLaunch(argc, argv); });
-        return launcher.onLaunch(argc, argv);
+  rl::MainLauncher launcher([](int argc, char** argv) { rl::MainProvider::onLaunch(argc, argv); });
+  return launcher.onLaunch(argc, argv);
 }
 #endif
 

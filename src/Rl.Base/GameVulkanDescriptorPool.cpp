@@ -13,77 +13,77 @@ GameVulkanDescriptorPool::GameVulkanDescriptorPool(GameVulkanDescriptorPool&& ot
     device(other.device), descriptorPool(other.descriptorPool),
     ownsDescriptorPool(other.ownsDescriptorPool)
 {
-        other.device             = VK_NULL_HANDLE;
-        other.descriptorPool     = VK_NULL_HANDLE;
-        other.ownsDescriptorPool = false;
+  other.device             = VK_NULL_HANDLE;
+  other.descriptorPool     = VK_NULL_HANDLE;
+  other.ownsDescriptorPool = false;
 }
 
 GameVulkanDescriptorPool::GameVulkanDescriptorPool(
     VkDevice device, const GameVulkanDescriptorPoolCreateInfo& createInfo) :
     device(device), descriptorPool(VK_NULL_HANDLE), ownsDescriptorPool(true)
 {
-        VkResult result =
-            vkCreateDescriptorPool(device, createInfo.pCreateInfo, nullptr, &descriptorPool);
-        if (result != VK_SUCCESS)
-        {
-                GameError::exitWithError("vkCreateDescriptorPool",
-                                         "Failed to create descriptor pool (result = " +
-                                             GameError::vulkanResultToString(result) + ")",
-                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
-        }
+  VkResult result =
+      vkCreateDescriptorPool(device, createInfo.pCreateInfo, nullptr, &descriptorPool);
+  if (result != VK_SUCCESS)
+  {
+    GameError::exitWithError("vkCreateDescriptorPool",
+                             "Failed to create descriptor pool (result = " +
+                                 GameError::vulkanResultToString(result) + ")",
+                             device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+  }
 }
 
 GameVulkanDescriptorPool::~GameVulkanDescriptorPool()
 {
-        if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
-        {
-                vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-                descriptorPool = VK_NULL_HANDLE;
-        }
+  if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
+  {
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+    descriptorPool = VK_NULL_HANDLE;
+  }
 }
 
 GameVulkanDescriptorPool&
 GameVulkanDescriptorPool::operator=(GameVulkanDescriptorPool&& other) noexcept
 {
-        if (this != &other)
-        {
-                if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
-                {
-                        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-                }
-                device                   = other.device;
-                descriptorPool           = other.descriptorPool;
-                ownsDescriptorPool       = other.ownsDescriptorPool;
-                other.device             = VK_NULL_HANDLE;
-                other.descriptorPool     = VK_NULL_HANDLE;
-                other.ownsDescriptorPool = false;
-        }
-        return *this;
+  if (this != &other)
+  {
+    if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
+    {
+      vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+    }
+    device                   = other.device;
+    descriptorPool           = other.descriptorPool;
+    ownsDescriptorPool       = other.ownsDescriptorPool;
+    other.device             = VK_NULL_HANDLE;
+    other.descriptorPool     = VK_NULL_HANDLE;
+    other.ownsDescriptorPool = false;
+  }
+  return *this;
 }
 
 VkDescriptorPool GameVulkanDescriptorPool::getDescriptorPool() const
 {
-        return descriptorPool;
+  return descriptorPool;
 }
 
 void GameVulkanDescriptorPool::setDescriptorPool(VkDescriptorPool other)
 {
-        if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
-        {
-                vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-        }
-        descriptorPool     = other;
-        ownsDescriptorPool = true;
+  if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
+  {
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+  }
+  descriptorPool     = other;
+  ownsDescriptorPool = true;
 }
 
 void GameVulkanDescriptorPool::setDescriptorPoolNonOwning(VkDescriptorPool other)
 {
-        if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
-        {
-                vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-        }
-        descriptorPool     = other;
-        ownsDescriptorPool = false;
+  if (descriptorPool != VK_NULL_HANDLE && ownsDescriptorPool)
+  {
+    vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+  }
+  descriptorPool     = other;
+  ownsDescriptorPool = false;
 }
 
 } // namespace rl

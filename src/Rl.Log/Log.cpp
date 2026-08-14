@@ -26,91 +26,91 @@ bool        _initialized = false;
 
 void initializeConsole() noexcept
 {
-        if (_console == nullptr && _initialized)
-        {
-                _console = createConsole(_handle);
-        }
+  if (_console == nullptr && _initialized)
+  {
+    _console = createConsole(_handle);
+  }
 }
 
 bool shouldLog(LogLevel level) noexcept
 {
-        return static_cast<int>(level) >= static_cast<int>(_config.minLevel);
+  return static_cast<int>(level) >= static_cast<int>(_config.minLevel);
 }
 
 } // namespace
 
 void Log::initialize(const LogHandle& handle) noexcept
 {
-        LogLock lock(_mutex);
-        _handle      = handle;
-        _initialized = true;
-        initializeConsole();
+  LogLock lock(_mutex);
+  _handle      = handle;
+  _initialized = true;
+  initializeConsole();
 }
 
 void Log::shutdown() noexcept
 {
-        LogLock lock(_mutex);
-        delete _console;
-        _console     = nullptr;
-        _initialized = false;
+  LogLock lock(_mutex);
+  delete _console;
+  _console     = nullptr;
+  _initialized = false;
 }
 
 void Log::setConfig(const LogConfig& config) noexcept
 {
-        LogLock lock(_mutex);
-        _config = config;
+  LogLock lock(_mutex);
+  _config = config;
 }
 
 const LogConfig& Log::getConfig() noexcept
 {
-        return _config;
+  return _config;
 }
 
 bool Log::shouldLog(LogLevel level) noexcept
 {
-        return static_cast<int>(level) >= static_cast<int>(_config.minLevel);
+  return static_cast<int>(level) >= static_cast<int>(_config.minLevel);
 }
 
 void Log::initializeConsole() noexcept
 {
-        if (_console == nullptr && _initialized)
-        {
-                _console = createConsole(_handle);
-        }
+  if (_console == nullptr && _initialized)
+  {
+    _console = createConsole(_handle);
+  }
 }
 
 const char* Log::logLevelToString(LogLevel level) noexcept
 {
-        switch (level)
-        {
-        case LogLevel::Trace:
-                return "TRACE";
-        case LogLevel::Debug:
-                return "DEBUG";
-        case LogLevel::Info:
-                return "INFO";
-        case LogLevel::Warning:
-                return "WARN";
-        case LogLevel::Error:
-                return "ERROR";
-        default:
-                return "UNKNOWN";
-        }
+  switch (level)
+  {
+  case LogLevel::Trace:
+    return "TRACE";
+  case LogLevel::Debug:
+    return "DEBUG";
+  case LogLevel::Info:
+    return "INFO";
+  case LogLevel::Warning:
+    return "WARN";
+  case LogLevel::Error:
+    return "ERROR";
+  default:
+    return "UNKNOWN";
+  }
 }
 
 LogConfig& Log::getConfigInternal() noexcept
 {
-        return _config;
+  return _config;
 }
 
 LogConsole* Log::getConsole() noexcept
 {
-        return _console;
+  return _console;
 }
 
 LogMutex& Log::getMutex() noexcept
 {
-        return _mutex;
+  return _mutex;
 }
 
 } // namespace rl

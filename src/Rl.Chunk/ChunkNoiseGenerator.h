@@ -19,55 +19,54 @@ namespace rl
  * Provides common Vulkan infrastructure and permutation buffer management */
 class ChunkNoiseGenerator
 {
-        public:
-                static constexpr size_t permBufferSize = 256;
+  public:
+    static constexpr size_t permBufferSize = 256;
 
-                /** @brief Constructs a noise generator base
-                 * @param seed Random seed for permutation generation
-                 * @param instance Vulkan device instance */
-                ChunkNoiseGenerator(uint32_t seed, GameDeviceInstance& instance);
-                virtual ~ChunkNoiseGenerator() = default;
+    /** @brief Constructs a noise generator base
+     * @param seed Random seed for permutation generation
+     * @param instance Vulkan device instance */
+    ChunkNoiseGenerator(uint32_t seed, GameDeviceInstance& instance);
+    virtual ~ChunkNoiseGenerator() = default;
 
-                ChunkNoiseGenerator(const ChunkNoiseGenerator& other)            = delete;
-                ChunkNoiseGenerator& operator=(const ChunkNoiseGenerator& other) = delete;
+    ChunkNoiseGenerator(const ChunkNoiseGenerator& other)            = delete;
+    ChunkNoiseGenerator& operator=(const ChunkNoiseGenerator& other) = delete;
 
-                /** @brief Generates permutation tables for noise
-                 * @param seed Random seed
-                 * @param perm Output permutation array
-                 * @param permGradIndex3d Output gradient index array */
-                static void genPermutations(const uint32_t                       seed,
-                                            std::array<int32_t, permBufferSize>& perm,
-                                            std::array<int32_t, permBufferSize>& permGradIndex3d);
+    /** @brief Generates permutation tables for noise
+     * @param seed Random seed
+     * @param perm Output permutation array
+     * @param permGradIndex3d Output gradient index array */
+    static void genPermutations(const uint32_t                       seed,
+                                std::array<int32_t, permBufferSize>& perm,
+                                std::array<int32_t, permBufferSize>& permGradIndex3d);
 
-                /** @brief Updates permutation buffers on GPU
-                 * @param device Vulkan device
-                 * @param physicalDevice Physical device */
-                void updatePermutationBuffers(VkDevice device, VkPhysicalDevice physicalDevice);
+    /** @brief Updates permutation buffers on GPU
+     * @param device Vulkan device
+     * @param physicalDevice Physical device */
+    void updatePermutationBuffers(VkDevice device, VkPhysicalDevice physicalDevice);
 
-                /** @brief Updates permutation buffers with a new seed
-                 * @param device Vulkan device
-                 * @param physicalDevice Physical device
-                 * @param newSeed New seed value */
-                void updatePermutationBuffers(VkDevice         device,
-                                              VkPhysicalDevice physicalDevice,
-                                              uint32_t         newSeed);
+    /** @brief Updates permutation buffers with a new seed
+     * @param device Vulkan device
+     * @param physicalDevice Physical device
+     * @param newSeed New seed value */
+    void
+    updatePermutationBuffers(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t newSeed);
 
-                VkDevice         device         = VK_NULL_HANDLE;
-                VkQueue          computeQueue   = VK_NULL_HANDLE;
-                VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-                VkInstance       instance       = VK_NULL_HANDLE;
+    VkDevice         device         = VK_NULL_HANDLE;
+    VkQueue          computeQueue   = VK_NULL_HANDLE;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkInstance       instance       = VK_NULL_HANDLE;
 
-                GameVulkanCommandPool   computeCommandPool;
-                GameVulkanCommandBuffer computeCommandBuffer;
-                GameVulkanFence         fence;
+    GameVulkanCommandPool   computeCommandPool;
+    GameVulkanCommandBuffer computeCommandBuffer;
+    GameVulkanFence         fence;
 
-                std::recursive_mutex generateMutex;
+    std::recursive_mutex generateMutex;
 
-                GameVulkanMemoryAllocator memoryAllocator;
-                GameVulkanBuffer          permBuffer;
-                GameVulkanBuffer          permGradBuffer;
+    GameVulkanMemoryAllocator memoryAllocator;
+    GameVulkanBuffer          permBuffer;
+    GameVulkanBuffer          permGradBuffer;
 
-                uint32_t seed;
+    uint32_t seed;
 };
 
 } // namespace rl

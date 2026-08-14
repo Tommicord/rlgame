@@ -18,66 +18,65 @@ namespace rl
 
 struct IMainGame
 {
-                ~IMainGame() noexcept           = default;
-                virtual void onCreateCallback() = 0;
-                virtual void onResizeCallback() = 0;
-                virtual void onLaunch()         = 0;
+    ~IMainGame() noexcept           = default;
+    virtual void onCreateCallback() = 0;
+    virtual void onResizeCallback() = 0;
+    virtual void onLaunch()         = 0;
 };
 struct MainGame;
 #if defined(__ANDROID__)
 struct MainGameAndroidHandle final
 {
-                // Android native app state
-                struct android_app*   app;
-                struct ANativeWindow* window;
-                MainGameAndroidHandle() noexcept : app(nullptr), window(nullptr)
-                {
-                }
+    // Android native app state
+    struct android_app*   app;
+    struct ANativeWindow* window;
+    MainGameAndroidHandle() noexcept : app(nullptr), window(nullptr)
+    {
+    }
 };
 #elif defined(_WIN32)
 struct MainGameWin32Handle final
 {
-                MSG       msg;
-                HWND      hwnd;
-                PWSTR     pCmdLine;
-                HINSTANCE hInstance;
+    MSG       msg;
+    HWND      hwnd;
+    PWSTR     pCmdLine;
+    HINSTANCE hInstance;
 
-                MainGameWin32Handle() noexcept :
-                    msg{}, hwnd(nullptr), pCmdLine(nullptr), hInstance(nullptr)
-                {
-                }
+    MainGameWin32Handle() noexcept : msg{}, hwnd(nullptr), pCmdLine(nullptr), hInstance(nullptr)
+    {
+    }
 };
 #elif defined(__linux__)
 struct MainGameLinuxHandle final
 {
-                // X11 window handle
-                void* display;
-                void* window;
-                MainGameLinuxHandle() noexcept : display(nullptr), window(nullptr)
-                {
-                }
+    // X11 window handle
+    void* display;
+    void* window;
+    MainGameLinuxHandle() noexcept : display(nullptr), window(nullptr)
+    {
+    }
 };
 #endif
 
 struct MainGame final : public IMainGame
 {
 #ifdef __ANDROID__
-                MainGameAndroidHandle handle{};
+    MainGameAndroidHandle handle{};
 #elif defined(_WIN32)
-                MainGameWin32Handle handle{};
+    MainGameWin32Handle handle{};
 #elif defined(__linux__)
-                MainGameLinuxHandle handle{};
+    MainGameLinuxHandle handle{};
 #endif
-                GameDeviceInstance device;
-                GameTime           time;
+    GameDeviceInstance device;
+    GameTime           time;
 
-                MainGame() noexcept : device(handle)
-                {
-                }
-                ~MainGame() = default;
-                void onCreateCallback() override;
-                void onResizeCallback() override;
-                void onLaunch() override;
+    MainGame() noexcept : device(handle)
+    {
+    }
+    ~MainGame() = default;
+    void onCreateCallback() override;
+    void onResizeCallback() override;
+    void onLaunch() override;
 };
 
 } // namespace rl

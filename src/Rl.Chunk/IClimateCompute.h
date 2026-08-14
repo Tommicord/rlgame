@@ -27,42 +27,42 @@ namespace rl
  */
 class IClimateCompute
 {
-        public:
-                virtual ~IClimateCompute() = default;
+  public:
+    virtual ~IClimateCompute() = default;
 
-                /**
-                 * @brief Returns the equator field image
-                 * @return Image handle for equator field data
-                 *
-                 * The equator field image contains climate data (latitude, temperature,
-                 * moisture modifiers) for each texel. Format is implementation-dependent
-                 * (GPU texture vs CPU memory).
-                 */
-                virtual const GameOpaqueImageHandle& getEquatorImage() const = 0;
+    /**
+     * @brief Returns the equator field image
+     * @return Image handle for equator field data
+     *
+     * The equator field image contains climate data (latitude, temperature,
+     * moisture modifiers) for each texel. Format is implementation-dependent
+     * (GPU texture vs CPU memory).
+     */
+    virtual const GameOpaqueImageHandle& getEquatorImage() const = 0;
 
-                /**
-                 * @brief Returns the generate mutex for external synchronization
-                 * @return Reference to the recursive mutex
-                 *
-                 * This mutex should be locked when accessing resources or triggering
-                 * computation to ensure thread safety. The mutex is recursive to allow
-                 * nested locking within the same thread.
-                 */
-                virtual std::recursive_mutex& getGenerateMutex() = 0;
+    /**
+     * @brief Returns the generate mutex for external synchronization
+     * @return Reference to the recursive mutex
+     *
+     * This mutex should be locked when accessing resources or triggering
+     * computation to ensure thread safety. The mutex is recursive to allow
+     * nested locking within the same thread.
+     */
+    virtual std::recursive_mutex& getGenerateMutex() = 0;
 
-                /**
-                 * @brief Returns the completion sync handle for async operations
-                 * @return Reference to the completion sync handle
-                 *
-                 * The sync handle is signaled when climate computation completes.
-                 * Used for GPU implementations; CPU implementations may return
-                 * a dummy handle.
-                 */
-                virtual const GameOpaqueSyncHandle& getCompletionHandle() const = 0;
+    /**
+     * @brief Returns the completion sync handle for async operations
+     * @return Reference to the completion sync handle
+     *
+     * The sync handle is signaled when climate computation completes.
+     * Used for GPU implementations; CPU implementations may return
+     * a dummy handle.
+     */
+    virtual const GameOpaqueSyncHandle& getCompletionHandle() const = 0;
 
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-                /** Vulkan backend: returns opaque pointer to equator image view wrapper */
-                virtual void* getEquatorImageViewPtr() const = 0;
+    /** Vulkan backend: returns opaque pointer to equator image view wrapper */
+    virtual void* getEquatorImageViewPtr() const = 0;
 #endif
 };
 

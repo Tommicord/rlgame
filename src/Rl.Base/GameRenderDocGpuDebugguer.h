@@ -14,36 +14,36 @@ namespace rl
 
 class GameRenderDocGpuDebugguer
 {
-        public:
-                /** Get the singleton instance
-                 * @return Reference to the singleton instance
-                 */
-                static GameRenderDocGpuDebugguer& getInstance();
+  public:
+    /** Get the singleton instance
+     * @return Reference to the singleton instance
+     */
+    static GameRenderDocGpuDebugguer& getInstance();
 
-                // Delete copy constructor and assignment operator
-                GameRenderDocGpuDebugguer(const GameRenderDocGpuDebugguer&)            = delete;
-                GameRenderDocGpuDebugguer& operator=(const GameRenderDocGpuDebugguer&) = delete;
+    // Delete copy constructor and assignment operator
+    GameRenderDocGpuDebugguer(const GameRenderDocGpuDebugguer&)            = delete;
+    GameRenderDocGpuDebugguer& operator=(const GameRenderDocGpuDebugguer&) = delete;
 
-                ~GameRenderDocGpuDebugguer();
+    ~GameRenderDocGpuDebugguer();
 
-                bool isAvailable() const;
-                void startCapture();
-                void endCapture();
-                void triggerCapture();
+    bool isAvailable() const;
+    void startCapture();
+    void endCapture();
+    void triggerCapture();
 
-                /** Get RenderDoc API pointer for advanced operations
-                 * @return Pointer to RenderDoc API or nullptr if not available
-                 */
-                void* getAPI() const;
+    /** Get RenderDoc API pointer for advanced operations
+     * @return Pointer to RenderDoc API or nullptr if not available
+     */
+    void* getAPI() const;
 
-        private:
-                GameRenderDocGpuDebugguer();
+  private:
+    GameRenderDocGpuDebugguer();
 
 #ifdef _RL_RENDERDOC_ENABLE
-                RENDERDOC_API_1_4_1* api;
-                HMODULE              module;
+    RENDERDOC_API_1_4_1* api;
+    HMODULE              module;
 #endif
-                bool available;
+    bool available;
 };
 
 } // namespace rl

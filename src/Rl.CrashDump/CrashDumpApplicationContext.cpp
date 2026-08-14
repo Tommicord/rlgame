@@ -19,138 +19,136 @@ namespace rl
 
 std::string CrashDumpApplicationContext::collectApplicationContext()
 {
-        std::ostringstream oss;
+  std::ostringstream oss;
 
-        oss << getBuildConfiguration();
-        oss << getExecutablePath();
-        oss << getCommandLineArgs();
+  oss << getBuildConfiguration();
+  oss << getExecutablePath();
+  oss << getCommandLineArgs();
 
-        return oss.str();
+  return oss.str();
 }
 
 std::string CrashDumpApplicationContext::getBuildConfiguration()
 {
-        std::ostringstream oss;
+  std::ostringstream oss;
 
 #ifdef _DEBUG
-        oss << "Build Configuration: Debug\n";
+  oss << "Build Configuration: Debug\n";
 #else
-        oss << "Build Configuration: Release\n";
+  oss << "Build Configuration: Release\n";
 #endif
 
 #ifdef NDEBUG
-        oss << "Assertions: Disabled\n";
+  oss << "Assertions: Disabled\n";
 #else
-        oss << "Assertions: Enabled\n";
+  oss << "Assertions: Enabled\n";
 #endif
 
-        return oss.str();
+  return oss.str();
 }
 
 std::string CrashDumpApplicationContext::getExecutablePath()
 {
-        std::ostringstream oss;
+  std::ostringstream oss;
 
 #if defined(_WIN32)
-        char  exePath[MAX_PATH];
-        DWORD result = GetModuleFileName(nullptr, exePath, MAX_PATH);
-        if (result > 0 && result < MAX_PATH)
-        {
-                oss << "Executable: " << exePath << "\n";
-        }
-        else
-        {
-                oss << "Executable: Failed to retrieve path\n";
-        }
+  char  exePath[MAX_PATH];
+  DWORD result = GetModuleFileName(nullptr, exePath, MAX_PATH);
+  if (result > 0 && result < MAX_PATH)
+  {
+    oss << "Executable: " << exePath << "\n";
+  }
+  else
+  {
+    oss << "Executable: Failed to retrieve path\n";
+  }
 #elif defined(__linux__)
-        char    exePath[PATH_MAX];
-        ssize_t count = readlink("/proc/self/exe", exePath, PATH_MAX - 1);
-        if (count != -1)
-        {
-                exePath[count] = '\0';
-                oss << "Executable: " << exePath << "\n";
-        }
-        else
-        {
-                oss << "Executable: Failed to retrieve path\n";
-        }
+  char    exePath[PATH_MAX];
+  ssize_t count = readlink("/proc/self/exe", exePath, PATH_MAX - 1);
+  if (count != -1)
+  {
+    exePath[count] = '\0';
+    oss << "Executable: " << exePath << "\n";
+  }
+  else
+  {
+    oss << "Executable: Failed to retrieve path\n";
+  }
 #elif defined(__APPLE__)
-        char     exePath[PATH_MAX];
-        uint32_t bufsize = PATH_MAX;
-        if (_NSGetExecutablePath(exePath, &bufsize) == 0)
-        {
-                oss << "Executable: " << exePath << "\n";
-        }
-        else
-        {
-                oss << "Executable: Failed to retrieve path (buffer too small)\n";
-        }
+  char     exePath[PATH_MAX];
+  uint32_t bufsize = PATH_MAX;
+  if (_NSGetExecutablePath(exePath, &bufsize) == 0)
+  {
+    oss << "Executable: " << exePath << "\n";
+  }
+  else
+  {
+    oss << "Executable: Failed to retrieve path (buffer too small)\n";
+  }
 #else
-        oss << "Executable: Not implemented for this platform\n";
+  oss << "Executable: Not implemented for this platform\n";
 #endif
 
-        return oss.str();
+  return oss.str();
 }
 
 std::string CrashDumpApplicationContext::getCommandLineArgs()
 {
-        std::ostringstream oss;
+  std::ostringstream oss;
 
 #if defined(_WIN32)
-        int     argc;
-        LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-        if (argv)
-        {
-                oss << "Command Line Arguments (" << argc << "):\n";
-                for (int i = 0; i < argc; i++)
-                {
-                        int size = WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, nullptr, 0, nullptr,
-                                                       nullptr);
-                        if (size > 0)
-                        {
-                                std::string arg(size - 1, 0);
-                                WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, &arg[0], size, nullptr,
-                                                    nullptr);
-                                oss << "  [" << i << "] " << arg << "\n";
-                        }
-                }
-                LocalFree(argv);
-        }
-        else
-        {
-                oss << "Command Line Arguments: Failed to retrieve\n";
-        }
+  int     argc;
+  LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+  if (argv)
+  {
+    oss << "Command Line Arguments (" << argc << "):\n";
+    for (int i = 0; i < argc; i++)
+    {
+      int size = WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, nullptr, 0, nullptr, nullptr);
+      if (size > 0)
+      {
+        std::string arg(size - 1, 0);
+        WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, &arg[0], size, nullptr, nullptr);
+        oss << "  [" << i << "] " << arg << "\n";
+      }
+    }
+    LocalFree(argv);
+  }
+  else
+  {
+    oss << "Command Line Arguments: Failed to retrieve\n";
+  }
 #elif defined(__linux__) || defined(__APPLE__)
-        // On Unix-like systems, we can access /proc/self/cmdline on Linux
-        // On macOS, we'd need to use _NSGetExecutablePath or similar
+  // On Unix-like systems, we can access /proc/self/cmdline on Linux
+  // On macOS, we'd need to use _NSGetExecutablePath or similar
 #if defined(__linux__)
-        std::ifstream cmdline("/proc/self/cmdline");
-        if (cmdline.is_open())
-        {
-                std::string arg;
-                int         count = 0;
-                oss << "Command Line Arguments:\n";
-                while (std::getline(cmdline, arg, '\0'))
-                {
-                        if (!arg.empty())
-                        {
-                                oss << "  [" << count++ << "] " << arg << "\n";
-                        }
-                }
-                cmdline.close();
-        }
-        else
-        {
-                oss << "Command Line Arguments: Failed to retrieve\n";
-        }
+  std::ifstream cmdline("/proc/self/cmdline");
+  if (cmdline.is_open())
+  {
+    std::string arg;
+    int         count = 0;
+    oss << "Command Line Arguments:\n";
+    while (std::getline(cmdline, arg, '\0'))
+    {
+      if (!arg.empty())
+      {
+        oss << "  [" << count++ << "] " << arg << "\n";
+      }
+    }
+    cmdline.close();
+  }
+  else
+  {
+    oss << "Command Line Arguments: Failed to retrieve\n";
+  }
 #else
-        oss << "Command Line Arguments: Not implemented for this platform\n";
+  oss << "Command Line Arguments: Not implemented for this platform\n";
 #endif
 #else
-        oss << "Command Line Arguments: Not implemented for this platform\n";
+  oss << "Command Line Arguments: Not implemented for this platform\n";
 #endif
 
-        return oss.str();
+  return oss.str();
 }
 
 } // namespace rl

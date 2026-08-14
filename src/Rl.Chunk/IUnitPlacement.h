@@ -33,51 +33,51 @@ namespace rl
  */
 class IUnitPlacement
 {
-        public:
-                virtual ~IUnitPlacement() = default;
+  public:
+    virtual ~IUnitPlacement() = default;
 
-                /**
-                 * @brief Returns the unit output image
-                 * @return Image handle for unit placement output
-                 *
-                 * The unit output image contains unit type IDs for each texel.
-                 * Format is implementation-dependent (GPU texture vs CPU memory).
-                 */
-                virtual const GameOpaqueImageHandle& getUnitOutputImage() const = 0;
+    /**
+     * @brief Returns the unit output image
+     * @return Image handle for unit placement output
+     *
+     * The unit output image contains unit type IDs for each texel.
+     * Format is implementation-dependent (GPU texture vs CPU memory).
+     */
+    virtual const GameOpaqueImageHandle& getUnitOutputImage() const = 0;
 
-                /**
-                 * @brief Returns the biome output image
-                 * @return Image handle for biome placement output
-                 *
-                 * The biome output image contains biome type IDs for each texel.
-                 * Format is implementation-dependent.
-                 */
-                virtual const GameOpaqueImageHandle& getBiomeOutputImage() const = 0;
+    /**
+     * @brief Returns the biome output image
+     * @return Image handle for biome placement output
+     *
+     * The biome output image contains biome type IDs for each texel.
+     * Format is implementation-dependent.
+     */
+    virtual const GameOpaqueImageHandle& getBiomeOutputImage() const = 0;
 
-                /**
-                 * @brief Returns the generate mutex for external synchronization
-                 * @return Reference to the recursive mutex
-                 *
-                 * This mutex should be locked when accessing resources or triggering
-                 * placement to ensure thread safety. The mutex is recursive to allow
-                 * nested locking within the same thread.
-                 */
-                virtual std::recursive_mutex& getGenerateMutex() = 0;
+    /**
+     * @brief Returns the generate mutex for external synchronization
+     * @return Reference to the recursive mutex
+     *
+     * This mutex should be locked when accessing resources or triggering
+     * placement to ensure thread safety. The mutex is recursive to allow
+     * nested locking within the same thread.
+     */
+    virtual std::recursive_mutex& getGenerateMutex() = 0;
 
-                /**
-                 * @brief Returns the completion sync handle for async operations
-                 * @return Reference to the completion sync handle
-                 *
-                 * The sync handle is signaled when placement completes.
-                 * Used for GPU implementations; CPU implementations may return
-                 * a dummy handle.
-                 */
-                virtual const GameOpaqueSyncHandle& getCompletionHandle() const = 0;
+    /**
+     * @brief Returns the completion sync handle for async operations
+     * @return Reference to the completion sync handle
+     *
+     * The sync handle is signaled when placement completes.
+     * Used for GPU implementations; CPU implementations may return
+     * a dummy handle.
+     */
+    virtual const GameOpaqueSyncHandle& getCompletionHandle() const = 0;
 
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-                /** Vulkan backend: opaque pointer to unit/biome image view wrappers */
-                virtual void* getUnitOutputImageViewPtr() const  = 0;
-                virtual void* getBiomeOutputImageViewPtr() const = 0;
+    /** Vulkan backend: opaque pointer to unit/biome image view wrappers */
+    virtual void* getUnitOutputImageViewPtr() const  = 0;
+    virtual void* getBiomeOutputImageViewPtr() const = 0;
 #endif
 };
 

@@ -11,24 +11,24 @@ namespace rl
 
 Player& GameResources::getPlayer()
 {
-        return playerResource.getPlayer();
+  return playerResource.getPlayer();
 }
 
 void GameResources::updateCallback()
 {
-        fragmentTimeSystemResource.updateCallback();
-        playerResource.updateCallback();
+  fragmentTimeSystemResource.updateCallback();
+  playerResource.updateCallback();
 }
 
 void PlayerInstance::updateCallback()
 {
-        player.updateState(GameTime::getDeltaTime());
+  player.updateState(GameTime::getDeltaTime());
 }
 
 void FragmentTimeInstance::updateCallback()
 {
-        constexpr uint32_t fragmentsToAdd = 1;
-        fragmentTimeSystem.updateTime(fragmentsToAdd);
+  constexpr uint32_t fragmentsToAdd = 1;
+  fragmentTimeSystem.updateTime(fragmentsToAdd);
 }
 
 } // namespace rl

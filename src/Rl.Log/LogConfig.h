@@ -9,10 +9,10 @@ namespace rl
 /** Configuration structure for logging system */
 struct LogConfig
 {
-                LogLevel minLevel         = LogLevel::Info; /**< Minimum log level to output */
-                bool     enableTimestamp  = true; /**< Whether to include timestamps */
-                bool     enableStackTrace = true; /**< Whether to include stack traces on errors */
-                bool     enableColors     = true; /**< Whether to enable colored output */
+    LogLevel minLevel         = LogLevel::Info; /**< Minimum log level to output */
+    bool     enableTimestamp  = true; /**< Whether to include timestamps */
+    bool     enableStackTrace = true; /**< Whether to include stack traces on errors */
+    bool     enableColors     = true; /**< Whether to enable colored output */
 };
 
 } // namespace rl

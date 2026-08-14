@@ -13,26 +13,26 @@ namespace rl
  */
 class CrashDumpFileSystem
 {
-        public:
-                /** Gets the crash dump folder path for the current platform
-                 * @return Path to the .crashdump folder
-                 */
-                static std::string getCrashDumpFolder();
+  public:
+    /** Gets the crash dump folder path for the current platform
+     * @return Path to the .crashdump folder
+     */
+    static std::string getCrashDumpFolder();
 
-                /** Creates the crash dump folder if it doesn't exist
-                 * @return true if folder exists or was created successfully
-                 */
-                static bool ensureCrashDumpFolderExists();
+    /** Creates the crash dump folder if it doesn't exist
+     * @return true if folder exists or was created successfully
+     */
+    static bool ensureCrashDumpFolderExists();
 
-                /** Generates a UUID string for crash dump filename
-                 * @return UUID string in format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-                 */
-                static std::string generateUUID();
+    /** Generates a UUID string for crash dump filename
+     * @return UUID string in format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     */
+    static std::string generateUUID();
 
-                /** Gets the path separator for the current platform
-                 * @return "\\" on Windows, "/" on other platforms
-                 */
-                static std::string getPathSeparator();
+    /** Gets the path separator for the current platform
+     * @return "\\" on Windows, "/" on other platforms
+     */
+    static std::string getPathSeparator();
 };
 
 } // namespace rl

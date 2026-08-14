@@ -32,25 +32,24 @@ namespace rl
 /** Register containing unit type information */
 class PreUnitRegister final : public PreRegister
 {
-        public:
-                /** Constructs a PreUnitRegister with type information
-                 * @param hash The 8-byte hash block for unit identification
-                 * @param typeId The unique type identifier */
-                constexpr PreUnitRegister(uint64_t hash, uint32_t typeId) :
-                    PreRegister(hash, typeId)
-                {
-                }
+  public:
+    /** Constructs a PreUnitRegister with type information
+     * @param hash The 8-byte hash block for unit identification
+     * @param typeId The unique type identifier */
+    constexpr PreUnitRegister(uint64_t hash, uint32_t typeId) : PreRegister(hash, typeId)
+    {
+    }
 };
 
 /** Factory class that generates hash-based PreUnitRegister */
 class PreUnitRegisterFactory final
 {
-        public:
-                /** Creates a PreUnitRegister by generating deterministic hashes from type
-                 * name
-                 * @param typeName The type name from typeid(T).name() or a string literal
-                 * @return PreUnitRegister with hash-based type information */
-                static PreUnitRegister create(const char* typeName);
+  public:
+    /** Creates a PreUnitRegister by generating deterministic hashes from type
+     * name
+     * @param typeName The type name from typeid(T).name() or a string literal
+     * @return PreUnitRegister with hash-based type information */
+    static PreUnitRegister create(const char* typeName);
 };
 
 } // namespace rl

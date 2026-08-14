@@ -10,9 +10,9 @@ namespace rl
 
 class LogStackTracePosix
 {
-        public:
-                static int  capture(StackFrame* frames, int maxFrames) noexcept;
-                static void demangle(StackFrame* frame) noexcept;
+  public:
+    static int  capture(StackFrame* frames, int maxFrames) noexcept;
+    static void demangle(StackFrame* frame) noexcept;
 };
 
 } // namespace rl

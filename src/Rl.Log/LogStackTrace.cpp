@@ -18,40 +18,40 @@ namespace rl
 
 int LogStackTrace::capture(StackFrame* frames, int maxFrames) noexcept
 {
-        if (frames == nullptr || maxFrames <= 0)
-                return 0;
+  if (frames == nullptr || maxFrames <= 0)
+    return 0;
 
 #ifdef _WIN32
-        return LogStackTraceWin32::capture(frames, maxFrames);
+  return LogStackTraceWin32::capture(frames, maxFrames);
 #elif defined(__ANDROID__)
-        return LogStackTraceAndroid::capture(frames, maxFrames);
+  return LogStackTraceAndroid::capture(frames, maxFrames);
 #else
-        return LogStackTracePosix::capture(frames, maxFrames);
+  return LogStackTracePosix::capture(frames, maxFrames);
 #endif
 }
 
 void LogStackTrace::demangle(StackFrame* frame) noexcept
 {
-        if (frame == nullptr)
-                return;
+  if (frame == nullptr)
+    return;
 
-        LogDemangle::demangleSymbol(frame->symbol, sizeof(frame->symbol), frame->address);
+  LogDemangle::demangleSymbol(frame->symbol, sizeof(frame->symbol), frame->address);
 }
 
 bool LogStackTrace::shouldSkipFrame(const char* symbol) noexcept
 {
-        if (symbol == nullptr)
-                return false;
+  if (symbol == nullptr)
+    return false;
 
-        // Skip logging functions
-        if (strstr(symbol, "Rl::Log::") != nullptr)
-                return true;
+  // Skip logging functions
+  if (strstr(symbol, "Rl::Log::") != nullptr)
+    return true;
 
-        // Skip system libraries
-        if (LogDemangle::isSystemLibrary(symbol))
-                return true;
+  // Skip system libraries
+  if (LogDemangle::isSystemLibrary(symbol))
+    return true;
 
-        return false;
+  return false;
 }
 
 void LogStackTrace::formatStackTrace(char*             buffer,
@@ -59,27 +59,26 @@ void LogStackTrace::formatStackTrace(char*             buffer,
                                      const StackFrame* frames,
                                      int               frameCount) noexcept
 {
-        if (buffer == nullptr || bufferSize == 0 || frames == nullptr)
-                return;
-        size_t pos = 0;
-        for (int i = 0; i < frameCount && pos < bufferSize - 1; i++)
-        {
-                if (shouldSkipFrame(frames[i].symbol))
-                        continue;
+  if (buffer == nullptr || bufferSize == 0 || frames == nullptr)
+    return;
+  size_t pos = 0;
+  for (int i = 0; i < frameCount && pos < bufferSize - 1; i++)
+  {
+    if (shouldSkipFrame(frames[i].symbol))
+      continue;
 
-                int written =
-                    snprintf(buffer + pos, bufferSize - pos, "  #%d: %s\n", i, frames[i].symbol);
-                if (written > 0 && pos + static_cast<size_t>(written) < bufferSize)
-                {
-                        pos += static_cast<size_t>(written);
-                }
-                else
-                {
-                        break;
-                }
-        }
+    int written = snprintf(buffer + pos, bufferSize - pos, "  #%d: %s\n", i, frames[i].symbol);
+    if (written > 0 && pos + static_cast<size_t>(written) < bufferSize)
+    {
+      pos += static_cast<size_t>(written);
+    }
+    else
+    {
+      break;
+    }
+  }
 
-        buffer[pos] = '\0';
+  buffer[pos] = '\0';
 }
 
 } // namespace rl

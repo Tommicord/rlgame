@@ -21,43 +21,43 @@ namespace rl
  */
 class CrashDump
 {
-        public:
-                /** Maximum crash dump file size in bytes (128 KB) */
-                static constexpr size_t MAX_CRASH_DUMP_SIZE = 128 * 1024;
+  public:
+    /** Maximum crash dump file size in bytes (128 KB) */
+    static constexpr size_t MAX_CRASH_DUMP_SIZE = 128 * 1024;
 
-                /** Saves a crash report to disk
-                 * @param title Error title
-                 * @param message Detailed error message
-                 * @param backtrace Call stack backtrace
-                 * @param device Optional Vulkan device handle for GPU crash dump
-                 * @param physicalDevice Optional Vulkan physical device handle for GPU crash dump
-                 * @param instance Optional Vulkan instance handle for GPU crash dump
-                 * @return Path to the saved crash dump file, or empty string on failure
-                 *
-                 * This function creates a .crashdump folder if it doesn't exist,
-                 * generates a UUID for the filename, and writes the crash report
-                 * with timestamp, error details, and backtrace. If Vulkan handles
-                 * are provided, GPU crash dump information will be included.
-                 *
-                 * Thread-safe: Uses atomic temp file + rename pattern.
-                 * Size limit: Truncates output at MAX_CRASH_DUMP_SIZE bytes.
-                 */
-                static std::string saveCrashDump(const std::string& title,
-                                                 const std::string& message,
-                                                 const std::string& backtrace,
-                                                 VkDevice           device         = VK_NULL_HANDLE,
-                                                 VkPhysicalDevice   physicalDevice = VK_NULL_HANDLE,
-                                                 VkInstance         instance = VK_NULL_HANDLE);
+    /** Saves a crash report to disk
+     * @param title Error title
+     * @param message Detailed error message
+     * @param backtrace Call stack backtrace
+     * @param device Optional Vulkan device handle for GPU crash dump
+     * @param physicalDevice Optional Vulkan physical device handle for GPU crash dump
+     * @param instance Optional Vulkan instance handle for GPU crash dump
+     * @return Path to the saved crash dump file, or empty string on failure
+     *
+     * This function creates a .crashdump folder if it doesn't exist,
+     * generates a UUID for the filename, and writes the crash report
+     * with timestamp, error details, and backtrace. If Vulkan handles
+     * are provided, GPU crash dump information will be included.
+     *
+     * Thread-safe: Uses atomic temp file + rename pattern.
+     * Size limit: Truncates output at MAX_CRASH_DUMP_SIZE bytes.
+     */
+    static std::string saveCrashDump(const std::string& title,
+                                     const std::string& message,
+                                     const std::string& backtrace,
+                                     VkDevice           device         = VK_NULL_HANDLE,
+                                     VkPhysicalDevice   physicalDevice = VK_NULL_HANDLE,
+                                     VkInstance         instance       = VK_NULL_HANDLE);
 
-                /** Gets the crash dump folder path
-                 * @return Path to the .crashdump folder
-                 */
-                static std::string getCrashDumpFolder();
-                static bool        ensureCrashDumpFolderExists();
-                static std::string generateUUID();
+    /** Gets the crash dump folder path
+     * @return Path to the .crashdump folder
+     */
+    static std::string getCrashDumpFolder();
+    static bool        ensureCrashDumpFolderExists();
+    static std::string generateUUID();
 
-        private:
-                static std::recursive_mutex dumpMutex;
+  private:
+    static std::recursive_mutex dumpMutex;
 };
 
 } // namespace rl
