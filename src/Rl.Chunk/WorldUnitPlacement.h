@@ -93,7 +93,8 @@ struct WorldUnitPlacementComputePResource
 };
 
 /** @brief GPU-accelerated unit and biome placement using Vulkan compute shaders */
-class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
+class WorldUnitPlacement : public IGameComputeDispatch,
+                           public IUnitPlacement
 {
         public:
                 /** @brief Constructs a unit placement generator
@@ -104,13 +105,13 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                  * @param instance Vulkan device instance
                  * @param heightmapGenerator Heightmap generator instance
                  * @param climateCompute Climate compute instance for equator data*/
-                WorldUnitPlacement(uint32_t                width,
-                                   uint32_t                height,
-                                   uint32_t                depth,
-                                   uint32_t                seed,
+                WorldUnitPlacement(uint32_t            width,
+                                   uint32_t            height,
+                                   uint32_t            depth,
+                                   uint32_t            seed,
                                    GameDeviceInstance& instance,
-                                   IHeightmap&             heightmapGenerator,
-                                   IClimateCompute&        climateCompute);
+                                   IHeightmap&         heightmapGenerator,
+                                   IClimateCompute&    climateCompute);
                 /** @brief Destroys the unit placement generator */
                 ~WorldUnitPlacement();
                 WorldUnitPlacement(const WorldUnitPlacement& other)            = delete;
@@ -123,7 +124,7 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                 /** @brief Returns the biome output image (API-agnostic)
                  * @return Image handle struct for biome output */
                 const GameOpaqueImageHandle& getBiomeOutputImage() const override;
-                
+
                 /** @brief Internal method to read unit output data
                  * @param device Vulkan device
                  * @param physicalDevice Physical device
@@ -157,12 +158,12 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                 /** Get the completion semaphore for this dispatch
                  * @return The semaphore that will be signaled when the dispatch completes */
                 const GameVulkanSemaphore& getCompletionSemaphore() const override;
-                GameVulkanSemaphore& getCompletionSemaphore() override;
+                GameVulkanSemaphore&       getCompletionSemaphore() override;
 
                 /** Get the completion fence for this dispatch
                  * @return The fence that will be signaled when the dispatch completes */
                 const GameVulkanFence& getCompletionFence() const override;
-                GameVulkanFence& getCompletionFence() override;
+                GameVulkanFence&       getCompletionFence() override;
 
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
                 /** Vulkan backend: opaque pointer to unit output image view wrapper */
@@ -244,12 +245,12 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                  * @param device Vulkan device */
                 void createBiomeOutputImageView(VkDevice device);
 
-                GameVulkanMemoryAllocator  memoryAllocator;
-                GameVulkanBuffer           planetBuffer;
-                GameVulkanBuffer           unitRegistryBuffer;
-                GameVulkanBuffer           biomeRegistryBuffer;
-                GameVulkanBuffer           permBuffer;
-                GameVulkanBuffer           permGradIndex3DBuffer;
+                GameVulkanMemoryAllocator memoryAllocator;
+                GameVulkanBuffer          planetBuffer;
+                GameVulkanBuffer          unitRegistryBuffer;
+                GameVulkanBuffer          biomeRegistryBuffer;
+                GameVulkanBuffer          permBuffer;
+                GameVulkanBuffer          permGradIndex3DBuffer;
 
                 IHeightmap&      heightmapGenerator;
                 IClimateCompute& climateCompute;
@@ -260,8 +261,8 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                 GameVulkanImage     biomeOutputImage;
                 GameVulkanImageView biomeOutputImageView;
 
-                GameOpaqueImage<GameVulkanImage> unitOutputImageHandle;
-                GameOpaqueImage<GameVulkanImage> biomeOutputImageHandle;
+                GameOpaqueImage<GameVulkanImage>    unitOutputImageHandle;
+                GameOpaqueImage<GameVulkanImage>    biomeOutputImageHandle;
                 GameOpaqueSync<GameVulkanSemaphore> completionHandle;
 
                 VkDescriptorSetLayout   descriptorSetLayout = VK_NULL_HANDLE;

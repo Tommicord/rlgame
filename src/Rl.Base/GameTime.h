@@ -11,6 +11,7 @@ class MainGame;
 class GameTime
 {
                 friend class MainGame;
+
         public:
                 static float    getDeltaTime();
                 static float    getTotalTime();

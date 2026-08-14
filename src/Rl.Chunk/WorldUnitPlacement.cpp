@@ -29,10 +29,10 @@ namespace rl
 extern const uint32_t WorldUnitPlaceComp_data[];
 extern const uint32_t WorldUnitPlaceComp_size;
 
-WorldUnitPlacement::WorldUnitPlacement(uint32_t                width,
-                                       uint32_t                height,
-                                       uint32_t                depth,
-                                       uint32_t                seed,
+WorldUnitPlacement::WorldUnitPlacement(uint32_t            width,
+                                       uint32_t            height,
+                                       uint32_t            depth,
+                                       uint32_t            seed,
                                        GameDeviceInstance& instance,
                                        IHeightmap&         heightmapGenerator,
                                        IClimateCompute&    climateCompute) :
@@ -55,14 +55,14 @@ WorldUnitPlacement::WorldUnitPlacement(uint32_t                width,
 {
         if (!width || !height || !depth)
         {
-                GameError::exitWithError(
-                    "WorldUnitPlacement", "Width, height, and depth must be greater than 0");
+                GameError::exitWithError("WorldUnitPlacement",
+                                         "Width, height, and depth must be greater than 0");
         }
         createUnitOutputImage(device, instance.getPhysicalDevice());
         createUnitOutputImageView(device);
         createBiomeOutputImage(device, instance.getPhysicalDevice());
         createBiomeOutputImageView(device);
-        
+
         unitOutputImageHandle.setHandle(static_cast<void*>(&unitOutputImage));
         unitOutputImageHandle.setWidth(width);
         unitOutputImageHandle.setHeight(height);
@@ -70,7 +70,7 @@ WorldUnitPlacement::WorldUnitPlacement(uint32_t                width,
         unitOutputImageHandle.setFormat(GameOpaqueImageFormat::R32G32B32A32_SFLOAT);
         unitOutputImageHandle.setType(GameOpaqueImageType::Image3D);
         unitOutputImageHandle.setUsage(GameOpaqueImageUsage::Storage);
-        
+
         biomeOutputImageHandle.setHandle(static_cast<void*>(&biomeOutputImage));
         biomeOutputImageHandle.setWidth(width);
         biomeOutputImageHandle.setHeight(height);
@@ -78,11 +78,11 @@ WorldUnitPlacement::WorldUnitPlacement(uint32_t                width,
         biomeOutputImageHandle.setFormat(GameOpaqueImageFormat::R32G32B32A32_SFLOAT);
         biomeOutputImageHandle.setType(GameOpaqueImageType::Image3D);
         biomeOutputImageHandle.setUsage(GameOpaqueImageUsage::Storage);
-        
+
         completionHandle.setHandle(static_cast<void*>(&completionSemaphore));
         completionHandle.setType(GameOpaqueSyncHandleType::Semaphore);
         completionHandle.setState(GameOpaqueSyncHandleState::Unsignaled);
-        
+
         initPermutationTables(device, instance.getPhysicalDevice());
         createDescriptorSetLayout(device);
         createDescriptorPool(device);
@@ -124,15 +124,15 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
 
         VkDeviceSize permSize = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
-        permBuffer = GameVulkanBuffer(
-            &memoryAllocator, permSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        permBuffer =
+            GameVulkanBuffer(&memoryAllocator, permSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        permGradIndex3DBuffer = GameVulkanBuffer(
-            &memoryAllocator, permSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        permGradIndex3DBuffer =
+            GameVulkanBuffer(&memoryAllocator, permSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         GameVulkanBuffer stagingBuffer(
             &memoryAllocator, permSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -269,7 +269,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h0 = heightmapGenerator.getBasemapElevationImage();
                 if (h0.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h0.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h0.handle);
                         inputBarriers[0].image = img->getImage();
                 }
                 else
@@ -280,7 +280,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h1 = heightmapGenerator.getBasemapTemperatureImage();
                 if (h1.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h1.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h1.handle);
                         inputBarriers[1].image = img->getImage();
                 }
                 else
@@ -291,7 +291,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h2 = heightmapGenerator.getBasemapMoistureImage();
                 if (h2.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h2.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h2.handle);
                         inputBarriers[2].image = img->getImage();
                 }
                 else
@@ -320,7 +320,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h3 = heightmapGenerator.getDeepmapElevationImage();
                 if (h3.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h3.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h3.handle);
                         inputBarriers[3].image = img->getImage();
                 }
                 else
@@ -331,7 +331,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h4 = heightmapGenerator.getDeepmapTemperatureImage();
                 if (h4.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h4.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h4.handle);
                         inputBarriers[4].image = img->getImage();
                 }
                 else
@@ -342,7 +342,7 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 const GameOpaqueImageHandle& h5 = heightmapGenerator.getDeepmapMoistureImage();
                 if (h5.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(h5.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(h5.handle);
                         inputBarriers[5].image = img->getImage();
                 }
                 else
@@ -351,18 +351,18 @@ void WorldUnitPlacement::dispatch(void*                      pResource,
                 }
         }
 
-        inputBarriers[6].sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        inputBarriers[6].oldLayout                       = VK_IMAGE_LAYOUT_GENERAL;
-        inputBarriers[6].newLayout                       = VK_IMAGE_LAYOUT_GENERAL;
-        inputBarriers[6].srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-        inputBarriers[6].dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-        inputBarriers[6].srcAccessMask                   = VK_ACCESS_SHADER_WRITE_BIT;
-        inputBarriers[6].dstAccessMask                   = VK_ACCESS_SHADER_READ_BIT;
+        inputBarriers[6].sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        inputBarriers[6].oldLayout           = VK_IMAGE_LAYOUT_GENERAL;
+        inputBarriers[6].newLayout           = VK_IMAGE_LAYOUT_GENERAL;
+        inputBarriers[6].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        inputBarriers[6].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        inputBarriers[6].srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT;
+        inputBarriers[6].dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
         {
                 const GameOpaqueImageHandle& heq = climateCompute.getEquatorImage();
                 if (heq.handle)
                 {
-                        auto img = static_cast<const GameVulkanImage*>(heq.handle);
+                        auto img               = static_cast<const GameVulkanImage*>(heq.handle);
                         inputBarriers[6].image = img->getImage();
                 }
                 else
@@ -465,8 +465,11 @@ void WorldUnitPlacement::readUnitOutput(VkDevice         device,
 {
         std::scoped_lock lock(generateMutex);
 
+        completionFence.wait();
+        completionFence.reset();
+
         GameVulkanBuffer stagingBuffer(
-            &memoryAllocator, outputSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            &memoryAllocator, outputSize * sizeof(uint32_t), VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         computeCommandBuffer.reset();
@@ -502,10 +505,9 @@ void WorldUnitPlacement::readUnitOutput(VkDevice         device,
         copyRegion.imageOffset                     = {0, 0, 0};
         copyRegion.imageExtent                     = {width, height, depth};
 
-        vkCmdCopyImageToBuffer(computeCommandBuffer.getCommandBuffer(), 
-                               unitOutputImageHandle->getImage(),
-                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer.getBuffer(), 1,
-                               &copyRegion);
+        vkCmdCopyImageToBuffer(
+            computeCommandBuffer.getCommandBuffer(), unitOutputImageHandle->getImage(),
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer.getBuffer(), 1, &copyRegion);
 
         VkBufferMemoryBarrier bufferBarrier{};
         bufferBarrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -577,8 +579,11 @@ void WorldUnitPlacement::readBiomeOutput(VkDevice         device,
 {
         std::scoped_lock lock(generateMutex);
 
+        completionFence.wait();
+        completionFence.reset();
+
         GameVulkanBuffer stagingBuffer(
-            &memoryAllocator, outputSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            &memoryAllocator, outputSize * sizeof(uint32_t), VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         computeCommandBuffer.reset();
@@ -619,10 +624,9 @@ void WorldUnitPlacement::readBiomeOutput(VkDevice         device,
         copyRegion.imageOffset                     = {0, 0, 0};
         copyRegion.imageExtent                     = {width, height, depth};
 
-        vkCmdCopyImageToBuffer(computeCommandBuffer.getCommandBuffer(), 
-                               biomeOutputImageHandle->getImage(),
-                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer.getBuffer(), 1,
-                               &copyRegion);
+        vkCmdCopyImageToBuffer(
+            computeCommandBuffer.getCommandBuffer(), biomeOutputImageHandle->getImage(),
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer.getBuffer(), 1, &copyRegion);
 
         VkBufferMemoryBarrier bufferBarrier{};
         bufferBarrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -711,98 +715,111 @@ void WorldUnitPlacement::updateDescriptorSets()
         VkDescriptorImageInfo basemapElevationImageInfo{};
         basemapElevationImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        basemapElevationImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapElevationImageViewPtr())->getImageView();
+        basemapElevationImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapElevationImageViewPtr())
+                ->getImageView();
         basemapElevationImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo basemapTemperatureImageInfo{};
         basemapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        basemapTemperatureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapTemperatureImageViewPtr())->getImageView();
+        basemapTemperatureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapTemperatureImageViewPtr())
+                ->getImageView();
         basemapTemperatureImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo basemapMoistureImageInfo{};
         basemapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        basemapMoistureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapMoistureImageViewPtr())->getImageView();
+        basemapMoistureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapMoistureImageViewPtr())
+                ->getImageView();
         basemapMoistureImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapElevationImageInfo{};
         deepmapElevationImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapElevationImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapElevationImageViewPtr())->getImageView();
+        deepmapElevationImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapElevationImageViewPtr())
+                ->getImageView();
         deepmapElevationImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapTemperatureImageInfo{};
         deepmapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapTemperatureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapTemperatureImageViewPtr())->getImageView();
+        deepmapTemperatureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapTemperatureImageViewPtr())
+                ->getImageView();
         deepmapTemperatureImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapMoistureImageInfo{};
         deepmapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapMoistureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapMoistureImageViewPtr())->getImageView();
+        deepmapMoistureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapMoistureImageViewPtr())
+                ->getImageView();
         deepmapMoistureImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo equatorImageInfo{};
         equatorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        equatorImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            climateCompute.getEquatorImageViewPtr())->getImageView();
+        equatorImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(climateCompute.getEquatorImageViewPtr())
+                ->getImageView();
         equatorImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo unitOutputImageInfo{};
         unitOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        unitOutputImageInfo.imageView = unitOutputImageView.getImageView();
-        unitOutputImageInfo.sampler = VK_NULL_HANDLE;
+        unitOutputImageInfo.imageView   = unitOutputImageView.getImageView();
+        unitOutputImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo biomeOutputImageInfo{};
         biomeOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        biomeOutputImageInfo.imageView = biomeOutputImageView.getImageView();
-        biomeOutputImageInfo.sampler = VK_NULL_HANDLE;
+        biomeOutputImageInfo.imageView   = biomeOutputImageView.getImageView();
+        biomeOutputImageInfo.sampler     = VK_NULL_HANDLE;
 #else
         basemapElevationImageInfo.imageView = VK_NULL_HANDLE;
-        basemapElevationImageInfo.sampler = VK_NULL_HANDLE;
+        basemapElevationImageInfo.sampler   = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo basemapTemperatureImageInfo{};
         basemapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        basemapTemperatureImageInfo.imageView = VK_NULL_HANDLE;
-        basemapTemperatureImageInfo.sampler = VK_NULL_HANDLE;
+        basemapTemperatureImageInfo.imageView   = VK_NULL_HANDLE;
+        basemapTemperatureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo basemapMoistureImageInfo{};
         basemapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        basemapMoistureImageInfo.imageView = VK_NULL_HANDLE;
-        basemapMoistureImageInfo.sampler = VK_NULL_HANDLE;
+        basemapMoistureImageInfo.imageView   = VK_NULL_HANDLE;
+        basemapMoistureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapElevationImageInfo{};
         deepmapElevationImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapElevationImageInfo.imageView = VK_NULL_HANDLE;
-        deepmapElevationImageInfo.sampler = VK_NULL_HANDLE;
+        deepmapElevationImageInfo.imageView   = VK_NULL_HANDLE;
+        deepmapElevationImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapTemperatureImageInfo{};
         deepmapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapTemperatureImageInfo.imageView = VK_NULL_HANDLE;
-        deepmapTemperatureImageInfo.sampler = VK_NULL_HANDLE;
+        deepmapTemperatureImageInfo.imageView   = VK_NULL_HANDLE;
+        deepmapTemperatureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapMoistureImageInfo{};
         deepmapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapMoistureImageInfo.imageView = VK_NULL_HANDLE;
-        deepmapMoistureImageInfo.sampler = VK_NULL_HANDLE;
+        deepmapMoistureImageInfo.imageView   = VK_NULL_HANDLE;
+        deepmapMoistureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo equatorImageInfo{};
         equatorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        equatorImageInfo.imageView = VK_NULL_HANDLE;
-        equatorImageInfo.sampler = VK_NULL_HANDLE;
+        equatorImageInfo.imageView   = VK_NULL_HANDLE;
+        equatorImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo unitOutputImageInfo{};
         unitOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        unitOutputImageInfo.imageView = VK_NULL_HANDLE;
-        unitOutputImageInfo.sampler = VK_NULL_HANDLE;
+        unitOutputImageInfo.imageView   = VK_NULL_HANDLE;
+        unitOutputImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo biomeOutputImageInfo{};
         biomeOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        biomeOutputImageInfo.imageView = VK_NULL_HANDLE;
-        biomeOutputImageInfo.sampler = VK_NULL_HANDLE;
+        biomeOutputImageInfo.imageView   = VK_NULL_HANDLE;
+        biomeOutputImageInfo.sampler     = VK_NULL_HANDLE;
 #endif
 
         VkDescriptorBufferInfo permBufferInfo{};
@@ -950,16 +967,16 @@ void WorldUnitPlacement::updateDescriptorSets()
 void WorldUnitPlacement::initRegistryBuffers(VkDevice device, VkPhysicalDevice physicalDevice)
 {
         VkDeviceSize unitBufferSize = sizeof(WorldUnitData);
-        unitRegistryBuffer = GameVulkanBuffer(
-            &memoryAllocator, unitBufferSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        unitRegistryBuffer =
+            GameVulkanBuffer(&memoryAllocator, unitBufferSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         VkDeviceSize biomeBufferSize = sizeof(WorldBiomeData);
-        biomeRegistryBuffer = GameVulkanBuffer(
-            &memoryAllocator, biomeBufferSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        biomeRegistryBuffer =
+            GameVulkanBuffer(&memoryAllocator, biomeBufferSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void WorldUnitPlacement::createDescriptorSetLayout(VkDevice device)
@@ -1045,12 +1062,11 @@ void WorldUnitPlacement::createDescriptorSetLayout(VkDevice device)
             vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorSetLayout",
-                    "Failed to create descriptor set layout "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorSetLayout",
+                                         "Failed to create descriptor set layout "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -1074,12 +1090,11 @@ void WorldUnitPlacement::createDescriptorPool(VkDevice device)
         VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -1094,12 +1109,11 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
         VkResult result = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateDescriptorSets",
-                    "Failed to allocate descriptor sets "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkAllocateDescriptorSets",
+                                         "Failed to allocate descriptor sets "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkDescriptorBufferInfo planetBufferInfo{};
@@ -1113,7 +1127,7 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
 
         VkDescriptorImageInfo basemapTemperatureImageInfo{};
         basemapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        basemapTemperatureImageInfo.sampler   = VK_NULL_HANDLE;
+        basemapTemperatureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo basemapMoistureImageInfo{};
         basemapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1125,7 +1139,7 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
 
         VkDescriptorImageInfo deepmapTemperatureImageInfo{};
         deepmapTemperatureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        deepmapTemperatureImageInfo.sampler   = VK_NULL_HANDLE;
+        deepmapTemperatureImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo deepmapMoistureImageInfo{};
         deepmapMoistureImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1133,36 +1147,49 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
 
         // Select image view handles depending on backend
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        basemapElevationImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapElevationImageViewPtr())->getImageView();
-        basemapTemperatureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapTemperatureImageViewPtr())->getImageView();
-        basemapMoistureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getBasemapMoistureImageViewPtr())->getImageView();
-        deepmapElevationImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapElevationImageViewPtr())->getImageView();
-        deepmapTemperatureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapTemperatureImageViewPtr())->getImageView();
-        deepmapMoistureImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            heightmapGenerator.getDeepmapMoistureImageViewPtr())->getImageView();
+        basemapElevationImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapElevationImageViewPtr())
+                ->getImageView();
+        basemapTemperatureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapTemperatureImageViewPtr())
+                ->getImageView();
+        basemapMoistureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getBasemapMoistureImageViewPtr())
+                ->getImageView();
+        deepmapElevationImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapElevationImageViewPtr())
+                ->getImageView();
+        deepmapTemperatureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapTemperatureImageViewPtr())
+                ->getImageView();
+        deepmapMoistureImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(
+                heightmapGenerator.getDeepmapMoistureImageViewPtr())
+                ->getImageView();
 
         VkDescriptorImageInfo equatorImageInfo{};
         equatorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        equatorImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-            climateCompute.getEquatorImageViewPtr())->getImageView();
+        equatorImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(climateCompute.getEquatorImageViewPtr())
+                ->getImageView();
         equatorImageInfo.sampler = VK_NULL_HANDLE;
 #else
-        basemapElevationImageInfo.imageView = VK_NULL_HANDLE;
+        basemapElevationImageInfo.imageView   = VK_NULL_HANDLE;
         basemapTemperatureImageInfo.imageView = VK_NULL_HANDLE;
-        basemapMoistureImageInfo.imageView = VK_NULL_HANDLE;
-        deepmapElevationImageInfo.imageView = VK_NULL_HANDLE;
+        basemapMoistureImageInfo.imageView    = VK_NULL_HANDLE;
+        deepmapElevationImageInfo.imageView   = VK_NULL_HANDLE;
         deepmapTemperatureImageInfo.imageView = VK_NULL_HANDLE;
-        deepmapMoistureImageInfo.imageView = VK_NULL_HANDLE;
+        deepmapMoistureImageInfo.imageView    = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo equatorImageInfo{};
         equatorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        equatorImageInfo.imageView = VK_NULL_HANDLE;
-        equatorImageInfo.sampler = VK_NULL_HANDLE;
+        equatorImageInfo.imageView   = VK_NULL_HANDLE;
+        equatorImageInfo.sampler     = VK_NULL_HANDLE;
 #endif
 
         VkDescriptorImageInfo unitOutputImageInfo{};
@@ -1295,7 +1322,8 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
         descriptorWrites[11].descriptorCount = 1;
         descriptorWrites[11].pBufferInfo     = &permGradIndex3DBufferInfo;
 
-        vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+        vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0,
+                               nullptr);
 }
 
 void WorldUnitPlacement::createComputePipeline(VkDevice device)
@@ -1325,12 +1353,11 @@ void WorldUnitPlacement::createComputePipeline(VkDevice device)
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result1 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create compute pipeline layout "
-                    "(result = " +
-                        GameError::vulkanResultToString(result1) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create compute pipeline layout "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result1) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkComputePipelineCreateInfo pipelineInfo{};
@@ -1342,12 +1369,11 @@ void WorldUnitPlacement::createComputePipeline(VkDevice device)
             vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         if (result2 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateComputePipelines",
-                    "Failed to create compute pipeline "
-                    "(result = " +
-                        GameError::vulkanResultToString(result2) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateComputePipelines",
+                                         "Failed to create compute pipeline "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result2) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -1357,7 +1383,7 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
 {
         std::scoped_lock lock(generateMutex);
 
-        auto units = unitRegistry.getItems();
+        auto                       units = unitRegistry.getItems();
         std::vector<WorldUnitData> unitDataArray;
         unitDataArray.reserve(units.size());
 
@@ -1382,10 +1408,10 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
 
         VkDeviceSize bufferSize = unitDataArray.size() * sizeof(WorldUnitData);
 
-        unitRegistryBuffer = GameVulkanBuffer(
-            &memoryAllocator, bufferSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        unitRegistryBuffer =
+            GameVulkanBuffer(&memoryAllocator, bufferSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         GameVulkanBuffer stagingBuffer(
             &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -1475,10 +1501,10 @@ void WorldUnitPlacement::updateBiomeRegistryData(VkDevice                device,
 
         VkDeviceSize bufferSize = biomeDataArray.size() * sizeof(WorldBiomeData);
 
-        biomeRegistryBuffer = GameVulkanBuffer(
-            &memoryAllocator, bufferSize,
-            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        biomeRegistryBuffer =
+            GameVulkanBuffer(&memoryAllocator, bufferSize,
+                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         GameVulkanBuffer stagingBuffer(
             &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,

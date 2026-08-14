@@ -26,11 +26,8 @@ namespace rl
 extern const uint32_t WorldHeightmapComp_data[];
 extern const uint32_t WorldHeightmapComp_size;
 
-WorldHeightmap::WorldHeightmap(uint32_t                width,
-                               uint32_t                height,
-                               uint32_t                depth,
-                               uint32_t                seed,
-                               GameDeviceInstance& instance) :
+WorldHeightmap::WorldHeightmap(
+    uint32_t width, uint32_t height, uint32_t depth, uint32_t seed, GameDeviceInstance& instance) :
     ChunkNoiseGenerator(seed, instance), instance(instance.getInstance()),
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
     completionSemaphore(instance.getDevice(),
@@ -241,12 +238,11 @@ void WorldHeightmap::createDescriptorSetLayout(VkDevice device)
             vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorSetLayout",
-                    "Failed to create descriptor set layout "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorSetLayout",
+                                         "Failed to create descriptor set layout "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -267,12 +263,11 @@ void WorldHeightmap::createDescriptorPool(VkDevice device)
         VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -287,12 +282,11 @@ void WorldHeightmap::createDescriptorSets(VkDevice device)
         VkResult result = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateDescriptorSets",
-                    "Failed to allocate descriptor sets "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkAllocateDescriptorSets",
+                                         "Failed to allocate descriptor sets "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkDescriptorBufferInfo permBufferInfo{};
@@ -434,12 +428,11 @@ void WorldHeightmap::createComputePipeline(VkDevice device)
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result1 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create compute pipeline layout"
-                    "(result = " +
-                        GameError::vulkanResultToString(result1) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create compute pipeline layout"
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result1) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkComputePipelineCreateInfo pipelineInfo{};
@@ -451,12 +444,11 @@ void WorldHeightmap::createComputePipeline(VkDevice device)
             vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         if (result2 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateComputePipelines",
-                    "Failed to create compute pipeline "
-                    "(result = " +
-                        GameError::vulkanResultToString(result2) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateComputePipelines",
+                                         "Failed to create compute pipeline "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result2) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 

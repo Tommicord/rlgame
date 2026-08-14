@@ -175,8 +175,7 @@ struct GameOpaqueImageHandle
  * image references without exposing graphics API details in the interface.
  * Contains useful metadata about the image for validation and debugging.
  */
-template <class T>
-class GameOpaqueImage
+template <class T> class GameOpaqueImage
 {
         public:
                 GameOpaqueImage()  = default;
@@ -456,7 +455,7 @@ class GameOpaqueImage
                 /**
                  * @brief Gets the underlying handle struct
                  * @return Reference to the underlying GameOpaqueImageHandle struct
-                 * 
+                 *
                  * This allows returning the API-agnostic struct from interfaces
                  * while using the template class in concrete implementations.
                  */

@@ -42,11 +42,10 @@ GameVulkanSampler::GameVulkanSampler(VkDevice                           device,
         VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateSampler",
-                    "Failed to create sampler (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateSampler",
+                                         "Failed to create sampler (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

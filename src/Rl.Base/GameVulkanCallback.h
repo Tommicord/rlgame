@@ -30,7 +30,7 @@ class GameVulkanCallback
                  * @param instance The Vulkan instance
                  * @param debugMessenger The debug messenger handle to destroy
                  */
-                static void destroyDebugCallback(VkInstance instance,
+                static void destroyDebugCallback(VkInstance               instance,
                                                  VkDebugUtilsMessengerEXT debugMessenger);
 
                 /**
@@ -42,10 +42,10 @@ class GameVulkanCallback
                  * @return VK_FALSE to not abort the call
                  */
                 static VKAPI_ATTR VkBool32 VKAPI_CALL
-                debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                             VkDebugUtilsMessageTypeFlagsEXT        messageType,
-                             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                             void* pUserData);
+                debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                              VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                              void*                                       pUserData);
 };
 
 } // namespace rl

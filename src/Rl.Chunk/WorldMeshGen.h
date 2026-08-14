@@ -68,7 +68,8 @@ struct WorldMeshGenPResource
 class WorldMeshTess;
 
 /** @brief GPU-accelerated mesh generation using Vulkan compute shaders */
-class WorldMeshGen : public IGameComputeDispatch, public IMeshGen
+class WorldMeshGen : public IGameComputeDispatch,
+                     public IMeshGen
 {
         public:
                 /** @brief Constructs a mesh generator that reads from IMeshTess GPU output
@@ -77,7 +78,7 @@ class WorldMeshGen : public IGameComputeDispatch, public IMeshGen
                  * @param instance Vulkan device instance */
                 WorldMeshGen(const WorldMeshGenData& data,
                              IMeshTess&              meshTess,
-                             GameDeviceInstance& instance);
+                             GameDeviceInstance&     instance);
                 /** @brief Destroys the mesh generator */
                 ~WorldMeshGen();
                 WorldMeshGen(const WorldMeshGen& other)            = delete;
@@ -86,7 +87,7 @@ class WorldMeshGen : public IGameComputeDispatch, public IMeshGen
                 /** @brief Reads the vertex data
                  * @param device Vulkan device
                  * @param physicalDevice Physical device
-                 * @param pOutput Output pointer for vertex data 
+                 * @param pOutput Output pointer for vertex data
                  * @param outputSize Output size of vertex data */
                 void readVertices(VkDevice         device,
                                   VkPhysicalDevice physicalDevice,
@@ -116,12 +117,12 @@ class WorldMeshGen : public IGameComputeDispatch, public IMeshGen
                 /** Get the completion semaphore for this dispatch
                  * @return The semaphore that will be signaled when the dispatch completes */
                 const GameVulkanSemaphore& getCompletionSemaphore() const override;
-                GameVulkanSemaphore& getCompletionSemaphore() override;
+                GameVulkanSemaphore&       getCompletionSemaphore() override;
 
                 /** Get the completion fence for this dispatch
                  * @return The fence that will be signaled when the dispatch completes */
                 const GameVulkanFence& getCompletionFence() const override;
-                GameVulkanFence& getCompletionFence() override;
+                GameVulkanFence&       getCompletionFence() override;
 
                 /** @brief Returns the vertex buffer handle (API-agnostic)
                  * @return Reference to the vertex buffer handle struct */
@@ -183,9 +184,9 @@ class WorldMeshGen : public IGameComputeDispatch, public IMeshGen
                 GameVulkanBuffer          indexBuffer;
                 GameVulkanBuffer          countBuffer;
 
-                GameOpaqueBuffer<GameVulkanBuffer> vertexBufferHandle;
-                GameOpaqueBuffer<GameVulkanBuffer> indexBufferHandle;
-                GameOpaqueBuffer<GameVulkanBuffer> countBufferHandle;
+                GameOpaqueBuffer<GameVulkanBuffer>  vertexBufferHandle;
+                GameOpaqueBuffer<GameVulkanBuffer>  indexBufferHandle;
+                GameOpaqueBuffer<GameVulkanBuffer>  countBufferHandle;
                 GameOpaqueSync<GameVulkanSemaphore> completionHandle;
 
                 GameVulkanCommandBuffer commandBuffer;

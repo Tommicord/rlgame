@@ -53,8 +53,9 @@ class GameResources final
 {
                 friend class MainGame;
                 friend class GameDeviceInstance;
+
         private:
-                PlayerInstance             playerResource;
+                PlayerInstance       playerResource;
                 FragmentTimeInstance fragmentTimeSystemResource;
 
         public:

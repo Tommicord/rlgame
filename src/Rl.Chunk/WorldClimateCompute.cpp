@@ -20,8 +20,8 @@ namespace rl
 extern const uint32_t WorldClimateComp_data[];
 extern const uint32_t WorldClimateComp_size;
 
-WorldClimateCompute::WorldClimateCompute(uint32_t                width,
-                                         uint32_t                height,
+WorldClimateCompute::WorldClimateCompute(uint32_t            width,
+                                         uint32_t            height,
                                          GameDeviceInstance& instance) :
     instance(instance.getInstance()), device(instance.getDevice()),
     physicalDevice(instance.getPhysicalDevice()),
@@ -45,7 +45,7 @@ WorldClimateCompute::WorldClimateCompute(uint32_t                width,
         }
         createEquatorImage(device, instance.getPhysicalDevice());
         createEquatorImageView(device);
-        
+
         equatorImageHandle.setHandle(static_cast<void*>(&equatorImage));
         equatorImageHandle.setWidth(width);
         equatorImageHandle.setHeight(height);
@@ -53,11 +53,11 @@ WorldClimateCompute::WorldClimateCompute(uint32_t                width,
         equatorImageHandle.setFormat(GameOpaqueImageFormat::R32G32B32A32_SFLOAT);
         equatorImageHandle.setType(GameOpaqueImageType::Image2D);
         equatorImageHandle.setUsage(GameOpaqueImageUsage::Storage);
-        
+
         completionHandle.setHandle(static_cast<void*>(&completionSemaphore));
         completionHandle.setType(GameOpaqueSyncHandleType::Semaphore);
         completionHandle.setState(GameOpaqueSyncHandleState::Unsignaled);
-        
+
         createDescriptorSetLayout(device);
         createDescriptorPool(device);
         createDescriptorSets(device);

@@ -116,8 +116,7 @@ struct GameOpaqueBufferHandle
  * buffer references without exposing graphics API details in the interface.
  * Contains useful metadata about the buffer for validation and debugging.
  */
-template<class T>
-class GameOpaqueBuffer
+template <class T> class GameOpaqueBuffer
 {
         public:
                 GameOpaqueBuffer()  = default;
@@ -280,7 +279,7 @@ class GameOpaqueBuffer
                 /**
                  * @brief Gets the underlying handle struct
                  * @return Reference to the underlying GameOpaqueBufferHandle struct
-                 * 
+                 *
                  * This allows returning the API-agnostic struct from interfaces
                  * while using the template class in concrete implementations.
                  */

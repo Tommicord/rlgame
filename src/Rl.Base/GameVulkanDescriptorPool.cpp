@@ -26,11 +26,10 @@ GameVulkanDescriptorPool::GameVulkanDescriptorPool(
             vkCreateDescriptorPool(device, createInfo.pCreateInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

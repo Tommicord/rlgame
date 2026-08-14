@@ -37,11 +37,10 @@ GameVulkanPipeline::GameVulkanPipeline(VkDevice                            devic
 
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelines",
-                    "Failed to create pipeline (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreatePipelines",
+                                         "Failed to create pipeline (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

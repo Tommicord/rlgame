@@ -138,7 +138,8 @@ void GameDeviceInstance::cleanup()
         }
         if (_enableValidationLayers)
         {
-                GameVulkanCallback::destroyDebugCallback(gameDevice.instance, gameDevice.debugMessenger);
+                GameVulkanCallback::destroyDebugCallback(gameDevice.instance,
+                                                         gameDevice.debugMessenger);
         }
 
         vkDestroyDevice(gameDevice.device, nullptr);
@@ -234,11 +235,10 @@ void GameDeviceInstance::tryCreateInstance(VkInstanceCreateInfo createInfo)
         VkResult result = vkCreateInstance(&createInfo, nullptr, &gameDevice.instance);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateInstance", "Failed to create Vulkan instance "
-                                        "(result = " +
-                                            GameError::vulkanResultToString(result) +
-                                            ")");
+                GameError::exitWithError("vkCreateInstance",
+                                         "Failed to create Vulkan instance "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -392,7 +392,8 @@ void GameDeviceInstance::createInstance()
         }
         if (_enableValidationLayers)
         {
-                gameDevice.debugMessenger = GameVulkanCallback::setupDebugCallback(gameDevice.instance);
+                gameDevice.debugMessenger =
+                    GameVulkanCallback::setupDebugCallback(gameDevice.instance);
         }
 }
 
@@ -462,39 +463,36 @@ void GameDeviceInstance::createRenderPass()
             vkCreateRenderPass(gameDevice.device, &renderPassInfo, nullptr, &gameDevice.renderPass);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateRenderPass", "Failed to create Vulkan Render Pass "
-                                          "(result = " +
-                                              GameError::vulkanResultToString(result) +
-                                              ")");
+                GameError::exitWithError("vkCreateRenderPass",
+                                         "Failed to create Vulkan Render Pass "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
 void GameDeviceInstance::tryCreateFramebuffer(VkFramebufferCreateInfo createInfo,
-                                                  VkFramebuffer*          framebuffer)
+                                              VkFramebuffer*          framebuffer)
 {
         VkResult result = vkCreateFramebuffer(gameDevice.device, &createInfo, nullptr, framebuffer);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateFramebuffer", "Failed to create Vulkan Framebuffer "
-                                           "(result = " +
-                                               GameError::vulkanResultToString(result) +
-                                               ")");
+                GameError::exitWithError("vkCreateFramebuffer",
+                                         "Failed to create Vulkan Framebuffer "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
 void GameDeviceInstance::tryCreateCommandBuffer(VkCommandBufferAllocateInfo allocInfo,
-                                                    VkCommandBuffer*            commandBuffer)
+                                                VkCommandBuffer*            commandBuffer)
 {
         VkResult result = vkAllocateCommandBuffers(gameDevice.device, &allocInfo, commandBuffer);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateCommandBuffers",
-                    "Failed to allocate Vulkan command buffer "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkAllocateCommandBuffers",
+                                         "Failed to allocate Vulkan command buffer "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -524,8 +522,8 @@ void GameDeviceInstance::tryAcquireNextFrame(uint32_t& imageIndex)
                         }
                 default:
                         {
-                                GameError::exitWithError(
-                                    "vkAcquireNextImageKHR", "Failed to acquire next frame");
+                                GameError::exitWithError("vkAcquireNextImageKHR",
+                                                         "Failed to acquire next frame");
                         }
                 }
         }
@@ -596,11 +594,10 @@ void GameDeviceInstance::tryCreateCommandPool(VkCommandPoolCreateInfo createInfo
             vkCreateCommandPool(gameDevice.device, &createInfo, nullptr, &gameDevice.commandPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateCommandPool", "Failed to create Vulkan Command Pool "
-                                           "(result = " +
-                                               GameError::vulkanResultToString(result) +
-                                               ")");
+                GameError::exitWithError("vkCreateCommandPool",
+                                         "Failed to create Vulkan Command Pool "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -635,8 +632,8 @@ void GameDeviceInstance::createSyncObjects()
                 if (vkCreateSemaphore(gameDevice.device, &semaphoreInfo, nullptr,
                                       &gameDevice.imageAvailableSemaphores[i]) != VK_SUCCESS)
                 {
-                        GameError::exitWithError(
-                            "vkCreateSemaphore", "Failed to create Vulkan Semaphores");
+                        GameError::exitWithError("vkCreateSemaphore",
+                                                 "Failed to create Vulkan Semaphores");
                 }
         }
         for (size_t i = 0; i < gameDevice.swapChainImages.size(); ++i)
@@ -644,8 +641,8 @@ void GameDeviceInstance::createSyncObjects()
                 if (vkCreateSemaphore(gameDevice.device, &semaphoreInfo, nullptr,
                                       &gameDevice.renderFinishedSemaphores[i]) != VK_SUCCESS)
                 {
-                        GameError::exitWithError(
-                            "vkCreateSemaphore", "Failed to create Vulkan Semaphores");
+                        GameError::exitWithError("vkCreateSemaphore",
+                                                 "Failed to create Vulkan Semaphores");
                 }
         }
         for (size_t i = 0; i < maxFramesInFlight; ++i)
@@ -653,8 +650,7 @@ void GameDeviceInstance::createSyncObjects()
                 if (vkCreateFence(gameDevice.device, &fenceInfo, nullptr,
                                   &gameDevice.inFlightFences[i]) != VK_SUCCESS)
                 {
-                        GameError::exitWithError("vkCreateFence",
-                                                                "Failed to create Vulkan Fences");
+                        GameError::exitWithError("vkCreateFence", "Failed to create Vulkan Fences");
                 }
         }
 }
@@ -688,8 +684,8 @@ void GameDeviceInstance::recordCommandBuffer(VkCommandBuffer commandBuffer, uint
 
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkBeginCommandBuffer", "Failed to begin recording Vulkan Command Buffer");
+                GameError::exitWithError("vkBeginCommandBuffer",
+                                         "Failed to begin recording Vulkan Command Buffer");
         }
 
         VkImageMemoryBarrier preBarrier{};
@@ -748,7 +744,7 @@ void GameDeviceInstance::recordCommandBuffer(VkCommandBuffer commandBuffer, uint
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
         {
                 GameError::exitWithError("vkEndCommandBuffer",
-                                                        "Failed to record Vulkan Command Buffer");
+                                         "Failed to record Vulkan Command Buffer");
         }
 }
 
@@ -885,12 +881,12 @@ void GameDeviceInstance::tryCreateLogicalDevice(VkDeviceCreateInfo createInfo)
             vkCreateDevice(gameDevice.physicalDevice, &createInfo, nullptr, &gameDevice.device);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDevice",
-                    "Failed to create Vulkan Logical Device "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    VK_NULL_HANDLE, gameDevice.physicalDevice, gameDevice.instance);
+                GameError::exitWithError("vkCreateDevice",
+                                         "Failed to create Vulkan Logical Device "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         VK_NULL_HANDLE, gameDevice.physicalDevice,
+                                         gameDevice.instance);
         }
 }
 
@@ -969,11 +965,10 @@ void GameDeviceInstance::tryCreateSurface(VkWin32SurfaceCreateInfoKHR createInfo
             vkCreateWin32SurfaceKHR(gameDevice.instance, &createInfo, nullptr, &gameDevice.surface);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateWin32SurfaceKHR",
-                    "Failed to create Vulkan Win32 Surface "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateWin32SurfaceKHR",
+                                         "Failed to create Vulkan Win32 Surface "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -990,8 +985,8 @@ void GameDeviceInstance::createSurface()
 // TODO: Implement surface creation for other platforms (Linux, Android, etc.)
 #endif
 
-VkSurfaceFormatKHR GameDeviceInstance::chooseSwapSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR
+GameDeviceInstance::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
         for (const auto& availableFormat : availableFormats)
         {
@@ -1069,11 +1064,10 @@ void GameDeviceInstance::tryCreateSwapChain(VkSwapchainCreateInfoKHR createInfo)
             vkCreateSwapchainKHR(gameDevice.device, &createInfo, nullptr, &gameDevice.swapChain);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateSwapchainKHR",
-                    "Failed to create Vulkan Swap Chain "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateSwapchainKHR",
+                                         "Failed to create Vulkan Swap Chain "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -1132,16 +1126,15 @@ void GameDeviceInstance::createSwapChain()
 }
 
 void GameDeviceInstance::tryCreateImageView(VkImageViewCreateInfo createInfo,
-                                                VkImageView*          imageView)
+                                            VkImageView*          imageView)
 {
         VkResult result = vkCreateImageView(gameDevice.device, &createInfo, nullptr, imageView);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateImageView", "Failed to create Vulkan Image View "
+                GameError::exitWithError("vkCreateImageView",
+                                         "Failed to create Vulkan Image View "
                                          "(result = " +
-                                             GameError::vulkanResultToString(result) +
-                                             ")");
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 

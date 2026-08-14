@@ -1,4 +1,5 @@
-// Shared WorldMeshTess logic for both with and without occlusion culling
+#ifndef RL_SHADER_WORLD_MESH_TESS_GLSLH
+#define RL_SHADER_WORLD_MESH_TESS_GLSLH
 
 struct MappedUnitShapeCurve
 {
@@ -277,3 +278,5 @@ void completeUnitTessellation(uint unitId, uint airUnitId, uint seed,
     
     unit.shape.packedDimensions = finalSize | (finalSize << 10) | (finalSize << 20);
 }
+
+#endif

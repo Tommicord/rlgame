@@ -79,8 +79,8 @@ void GameComputeDispatch::dispatchChained(void*                pComputeDispatche
                 IGameComputeDispatch* dispatch = pComputeHeapBase[i];
                 if (dispatch == nullptr)
                 {
-                        GameError::exitWithError(
-                            "computeDispatch at index " + std::to_string(i) + " cannot be null");
+                        GameError::exitWithError("computeDispatch at index " + std::to_string(i) +
+                                                 " cannot be null");
                 }
                 computeDispatches.emplace_back(dispatch);
         }
@@ -142,18 +142,19 @@ void GameComputeDispatch::dispatchChained(void*                pComputeDispatche
 
                 // Wait on the completion semaphore to ensure it's unsignaled before next use
                 // Binary semaphores must be waited on before they can be signaled again
-                VkSemaphore completionSem = pComputeDispatch->getCompletionSemaphore().getSemaphore();
+                VkSemaphore completionSem =
+                    pComputeDispatch->getCompletionSemaphore().getSemaphore();
                 if (completionSem != VK_NULL_HANDLE)
                 {
                         VkSubmitInfo waitSubmit{};
-                        waitSubmit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                        waitSubmit.waitSemaphoreCount = 1;
-                        waitSubmit.pWaitSemaphores = &completionSem;
-                        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                        waitSubmit.pWaitDstStageMask = &waitStage;
-                        waitSubmit.commandBufferCount = 0;
+                        waitSubmit.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                        waitSubmit.waitSemaphoreCount   = 1;
+                        waitSubmit.pWaitSemaphores      = &completionSem;
+                        VkPipelineStageFlags waitStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                        waitSubmit.pWaitDstStageMask    = &waitStage;
+                        waitSubmit.commandBufferCount   = 0;
                         waitSubmit.signalSemaphoreCount = 0;
-                        
+
                         GameVulkanFence tempFence(device, GameVulkanFenceCreateInfo{0});
                         GameVulkanQueueSubmitter::submit(queue, &waitSubmit, tempFence.getFence());
                         tempFence.wait();

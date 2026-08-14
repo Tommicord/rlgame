@@ -53,7 +53,8 @@ struct WorldMeshTessPResource
 class WorldOcclusionCull;
 
 /** @brief GPU-accelerated unit tessellation using Vulkan compute shaders */
-class WorldMeshTess : public IGameComputeDispatch, public IMeshTess
+class WorldMeshTess : public IGameComputeDispatch,
+                      public IMeshTess
 {
         public:
                 /** @brief Constructs a unit tessellation generator that reads from
@@ -63,7 +64,7 @@ class WorldMeshTess : public IGameComputeDispatch, public IMeshTess
                  * @param instance Vulkan device instance */
                 WorldMeshTess(const WorldMeshTessData& data,
                               IUnitPlacement&          unitPlacement,
-                              GameDeviceInstance&  instance);
+                              GameDeviceInstance&      instance);
                 /** @brief Constructs a unit tessellation generator with occlusion culling
                  * @param data Configuration parameters
                  * @param unitPlacement Reference to IUnitPlacement to read unit data from GPU
@@ -72,7 +73,7 @@ class WorldMeshTess : public IGameComputeDispatch, public IMeshTess
                 WorldMeshTess(const WorldMeshTessData& data,
                               IUnitPlacement&          unitPlacement,
                               WorldOcclusionCull&      occlusionCull,
-                              GameDeviceInstance&  instance);
+                              GameDeviceInstance&      instance);
                 /** @brief Destroys the unit tessellation generator */
                 ~WorldMeshTess();
                 WorldMeshTess(const WorldMeshTess& other)            = delete;
@@ -98,12 +99,12 @@ class WorldMeshTess : public IGameComputeDispatch, public IMeshTess
                 /** Get the completion semaphore for this dispatch
                  * @return The semaphore that will be signaled when the dispatch completes */
                 const GameVulkanSemaphore& getCompletionSemaphore() const override;
-                GameVulkanSemaphore& getCompletionSemaphore() override;
+                GameVulkanSemaphore&       getCompletionSemaphore() override;
 
                 /** Get the completion fence for this dispatch
                  * @return The fence that will be signaled when the dispatch completes */
                 const GameVulkanFence& getCompletionFence() const override;
-                GameVulkanFence& getCompletionFence() override;
+                GameVulkanFence&       getCompletionFence() override;
 
                 /** @brief Returns the output buffer containing PostUnit data (API-agnostic)
                  * @return Reference to the output buffer handle */
@@ -148,7 +149,7 @@ class WorldMeshTess : public IGameComputeDispatch, public IMeshTess
                 GameVulkanBuffer          outputBuffer;
                 GameVulkanCommandBuffer   commandBuffer;
 
-                GameOpaqueBuffer<GameVulkanBuffer> outputBufferHandle;
+                GameOpaqueBuffer<GameVulkanBuffer>  outputBufferHandle;
                 GameOpaqueSync<GameVulkanSemaphore> completionHandle;
 
                 GameVulkanSemaphore completionSemaphore;

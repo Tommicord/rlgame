@@ -20,11 +20,8 @@ namespace rl
 extern const uint32_t SimplexComp_data[];
 extern const uint32_t SimplexComp_size;
 
-ChunkOpenSimplex::ChunkOpenSimplex(uint32_t                width,
-                                   uint32_t                height,
-                                   uint32_t                depth,
-                                   uint32_t                seed,
-                                   GameDeviceInstance& instance) :
+ChunkOpenSimplex::ChunkOpenSimplex(
+    uint32_t width, uint32_t height, uint32_t depth, uint32_t seed, GameDeviceInstance& instance) :
     ChunkNoiseGenerator(seed, instance), instance(instance.getInstance()),
     completionSemaphore(instance.getDevice(),
                         GameVulkanSemaphoreCreateInfo{VK_SEMAPHORE_TYPE_BINARY}),
@@ -218,12 +215,11 @@ void ChunkOpenSimplex::createDescriptorSetLayout(VkDevice device)
             vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorSetLayout",
-                    "Failed to create descriptor set layout"
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorSetLayout",
+                                         "Failed to create descriptor set layout"
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -242,12 +238,11 @@ void ChunkOpenSimplex::createDescriptorPool(VkDevice device)
         VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool "
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 
@@ -262,12 +257,11 @@ void ChunkOpenSimplex::createDescriptorSets(VkDevice device)
         VkResult result = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateDescriptorSets",
-                    "Failed to allocate descriptor sets"
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkAllocateDescriptorSets",
+                                         "Failed to allocate descriptor sets"
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkDescriptorBufferInfo permBufferInfo{};
@@ -343,12 +337,11 @@ void ChunkOpenSimplex::createComputePipeline(VkDevice device)
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create pipeline layout"
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create pipeline layout"
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkComputePipelineCreateInfo pipelineInfo{};
@@ -360,12 +353,11 @@ void ChunkOpenSimplex::createComputePipeline(VkDevice device)
             vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateComputePipelines",
-                    "Failed to create compute pipeline"
-                    "(result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreateComputePipelines",
+                                         "Failed to create compute pipeline"
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, physicalDevice, instance);
         }
 }
 

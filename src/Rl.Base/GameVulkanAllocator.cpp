@@ -210,8 +210,7 @@ void GameVulkanMemoryBlock::createBuffer()
         }
         catch (std::runtime_error& e)
         {
-                GameError::exitWithError("Vulkan Buffer Memory Allocation Error",
-                                                        e.what());
+                GameError::exitWithError("Vulkan Buffer Memory Allocation Error", e.what());
         }
         vkBindBufferMemory(device, buffer, memory, 0);
 }
@@ -361,18 +360,20 @@ VkPhysicalDevice GameVulkanMemoryAllocator::getPhysicalDevice() const
 VkDeviceSize GameVulkanMemoryAllocator::getAdjustedAlignment(VkDeviceSize       requestedAlignment,
                                                              VkBufferUsageFlags usage) const
 {
-        VkDeviceSize deviceAlignment = requestedAlignment;
+        VkDeviceSize               deviceAlignment = requestedAlignment;
         VkPhysicalDeviceProperties deviceProperties;
         vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
         VkPhysicalDeviceLimits limits = deviceProperties.limits;
 
         if (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         {
-                deviceAlignment = (std::max)(deviceAlignment, limits.minUniformBufferOffsetAlignment);
+                deviceAlignment =
+                    (std::max)(deviceAlignment, limits.minUniformBufferOffsetAlignment);
         }
         if (usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
         {
-                deviceAlignment = (std::max)(deviceAlignment, limits.minStorageBufferOffsetAlignment);
+                deviceAlignment =
+                    (std::max)(deviceAlignment, limits.minStorageBufferOffsetAlignment);
         }
 
         return deviceAlignment;

@@ -261,7 +261,7 @@ void CompositorManager::createFullscreenQuadPipeline(GameDeviceInstance& device)
                                         &descriptorSetLayout) != VK_SUCCESS)
         {
                 GameError::exitWithError("vkCreateDescriptorSetLayout",
-                                                        "Failed to create descriptor set layout");
+                                         "Failed to create descriptor set layout");
         }
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -383,8 +383,8 @@ void CompositorManager::createFullscreenQuadPipeline(GameDeviceInstance& device)
         if (vkCreateGraphicsPipelines(device.getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                                       &graphicsPipeline) != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateGraphicsPipeline", "Failed to create Vulkan Graphics Pipeline");
+                GameError::exitWithError("vkCreateGraphicsPipeline",
+                                         "Failed to create Vulkan Graphics Pipeline");
         }
 }
 
@@ -467,8 +467,8 @@ void CompositorManager::updateDescriptorSets()
         }
 }
 
-void CompositorManager::renderFullscreenQuad(GameDeviceInstance& device,
-                                             GameVulkanImageView&    textureView)
+void CompositorManager::renderFullscreenQuad(GameDeviceInstance&  device,
+                                             GameVulkanImageView& textureView)
 {
         VkCommandBuffer commandBuffer = device.getCommandBuffer();
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);

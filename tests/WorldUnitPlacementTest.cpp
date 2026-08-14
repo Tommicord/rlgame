@@ -393,8 +393,7 @@ TEST_F(WorldUnitPlacementTest, ReadUnitOutputAfterDispatch)
         GameRenderDocGpuDebugguer::getInstance().endCapture();
 
         std::vector<uint32_t> output;
-        size_t                outputSize = width * height * depth * sizeof(uint32_t);
-        output.resize(outputSize);
+        output.resize(width * height * depth);
 
         EXPECT_NO_THROW(unitPlacement->readUnitOutput(instance->getDevice(), instance->getPhysicalDevice(),
                                                       output.data(), output.size()));
@@ -418,8 +417,7 @@ TEST_F(WorldUnitPlacementTest, ReadBiomeOutputAfterDispatch)
         GameRenderDocGpuDebugguer::getInstance().endCapture();
 
         std::vector<uint32_t> output;
-        size_t                outputSize = width * height * depth * sizeof(uint32_t);
-        output.resize(outputSize);
+        output.resize(width * height * depth);
 
         EXPECT_NO_THROW(unitPlacement->readBiomeOutput(
             instance->getDevice(), instance->getPhysicalDevice(), output.data(), output.size()));

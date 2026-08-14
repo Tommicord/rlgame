@@ -12,17 +12,13 @@ namespace rl
 {
 
 template <typename IdType>
-IdType
-ChunkBuffer<IdType>::Heap::fetchXYZ(size_t x, size_t y, size_t z) const noexcept
+IdType ChunkBuffer<IdType>::Heap::fetchXYZ(size_t x, size_t y, size_t z) const noexcept
 {
         return pHeapBase[x + (y * wSize) + (z * wSize * hSize)];
 }
 
 template <typename IdType>
-void ChunkBuffer<IdType>::Heap::setXYZ(size_t x,
-                                       size_t y,
-                                       size_t z,
-                                       IdType      value) noexcept
+void ChunkBuffer<IdType>::Heap::setXYZ(size_t x, size_t y, size_t z, IdType value) noexcept
 {
         pHeapBase[x + (y * wSize) + (z * wSize * hSize)] = value;
 }
@@ -38,8 +34,7 @@ std::optional<IdType> ChunkBuffer<IdType>::Heap::fetchIndex(size_t index) const 
 }
 
 template <typename IdType>
-std::vector<IdType> ChunkBuffer<IdType>::Heap::fetchBlock(size_t index,
-                                                          size_t count) noexcept
+std::vector<IdType> ChunkBuffer<IdType>::Heap::fetchBlock(size_t index, size_t count) noexcept
 {
         std::vector<IdType> result;
         if (!isValidIndex(index))
@@ -60,15 +55,12 @@ std::vector<IdType> ChunkBuffer<IdType>::Heap::fetchBlock(size_t index,
 }
 
 template <typename IdType>
-bool ChunkBuffer<IdType>::Heap::isValidXYZ(size_t x,
-                                           size_t y,
-                                           size_t z) const noexcept
+bool ChunkBuffer<IdType>::Heap::isValidXYZ(size_t x, size_t y, size_t z) const noexcept
 {
         return (x < wSize && y < hSize && z < dSize);
 }
 
-template <typename IdType>
-bool ChunkBuffer<IdType>::Heap::isValidIndex(size_t index) const noexcept
+template <typename IdType> bool ChunkBuffer<IdType>::Heap::isValidIndex(size_t index) const noexcept
 {
         return (index < getElementCount());
 }
@@ -84,8 +76,7 @@ template <typename IdType> size_t ChunkBuffer<IdType>::Heap::getElementCount() c
 }
 
 template <typename IdType>
-std::tuple<size_t, size_t, size_t>
-ChunkBuffer<IdType>::Heap::getDimensions() const noexcept
+std::tuple<size_t, size_t, size_t> ChunkBuffer<IdType>::Heap::getDimensions() const noexcept
 {
         return std::make_tuple(wSize, hSize, dSize);
 }

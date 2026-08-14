@@ -27,10 +27,10 @@ void GameVulkanQueueSubmitter::submit(VkQueue             queue,
 
         if (result != VK_SUCCESS && config.throwOnFailure)
         {
-                GameError::exitWithError(
-                    "vkQueueSubmit", "Failed to submit Vulkan queue "
-                                     "(result = " +
-                                         GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkQueueSubmit",
+                                         "Failed to submit Vulkan queue "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 

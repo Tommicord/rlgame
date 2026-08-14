@@ -1,3 +1,6 @@
+#ifndef RL_SHADER_SIMPLEX_NOISE_GLSLH
+#define RL_SHADER_SIMPLEX_NOISE_GLSLH
+
 const int GRADIENTS_2D[16] = int[](
     5, 2,
     2, 5,
@@ -324,3 +327,5 @@ float fBM2D_5O(float x, float y, float p) {
     total += noise2D(x*16.0, y*16.0) * p4;
     return total / (1.0 + p + p2 + p3 + p4);
 }
+
+#endif

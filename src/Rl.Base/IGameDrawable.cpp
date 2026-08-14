@@ -167,7 +167,7 @@ template <size_t N> void GameDrawableArena<N>::pushDrawableAddress(IGameDrawable
 }
 
 template <size_t N>
-void GameDrawableArena<N>::executeDrawCallback(GameDeviceInstance&            device,
+void GameDrawableArena<N>::executeDrawCallback(GameDeviceInstance&                device,
                                                GameDrawableArena<N>::CallbackType cb)
 {
         for (GameDrawableArenaRegion* r = begin; r != nullptr; r = r->next)
@@ -277,8 +277,7 @@ template <size_t N> GameDrawableArenaTrack<N>::GameDrawableArenaTrack() noexcept
         }
 }
 
-template <size_t N>
-bool GameDrawableArenaTrack<N>::containsDrawable(uintptr_t ptr) const noexcept
+template <size_t N> bool GameDrawableArenaTrack<N>::containsDrawable(uintptr_t ptr) const noexcept
 {
         size_t index = this->findSlot(ptr);
         return index < N && this->table[index].occupied && this->table[index].key == ptr;

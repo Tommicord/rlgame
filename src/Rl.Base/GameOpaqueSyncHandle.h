@@ -56,8 +56,7 @@ struct GameOpaqueSyncHandle
  * synchronization primitives without exposing graphics API details in the interface.
  * Contains useful metadata about the sync object for validation and debugging.
  */
-template<class T>
-class GameOpaqueSync
+template <class T> class GameOpaqueSync
 {
         public:
                 GameOpaqueSync()  = default;
@@ -206,13 +205,13 @@ class GameOpaqueSync
                 void reset()
                 {
                         syncHandle.signaled = false;
-                        syncHandle.state     = GameOpaqueSyncHandleState::Unsignaled;
+                        syncHandle.state    = GameOpaqueSyncHandleState::Unsignaled;
                 }
 
                 /**
                  * @brief Gets the underlying handle struct
                  * @return Reference to the underlying GameOpaqueSyncHandle struct
-                 * 
+                 *
                  * This allows returning the API-agnostic struct from interfaces
                  * while using the template class in concrete implementations.
                  */

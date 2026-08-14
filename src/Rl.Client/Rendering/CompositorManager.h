@@ -128,8 +128,8 @@ class CompositorManager : public IGameDrawable,
                 void createFullscreenQuadPipeline(GameDeviceInstance& device);
                 void createDescriptorSets(GameDeviceInstance& device);
                 void updateDescriptorSets();
-                void renderFullscreenQuad(GameDeviceInstance& device,
-                                          GameVulkanImageView&    textureView);
+                void renderFullscreenQuad(GameDeviceInstance&  device,
+                                          GameVulkanImageView& textureView);
 
                 static std::atomic<bool> initializedFlag;
 

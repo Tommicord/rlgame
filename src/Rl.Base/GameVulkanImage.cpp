@@ -46,11 +46,10 @@ GameVulkanImage::GameVulkanImage(VkDevice                         device,
         VkResult result = vkCreateImage(device, &imageInfo, nullptr, &image);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateImage",
-                    "Failed to create image (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateImage",
+                                         "Failed to create image (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 
         VkMemoryRequirements memRequirements;
@@ -80,21 +79,19 @@ GameVulkanImage::GameVulkanImage(VkDevice                         device,
         if (!found)
         {
                 vkDestroyImage(device, image, nullptr);
-                GameError::exitWithError(
-                    "vkGetPhysicalDeviceMemoryProperties",
-                    "Failed to find suitable memory type for image", device, VK_NULL_HANDLE,
-                    VK_NULL_HANDLE);
+                GameError::exitWithError("vkGetPhysicalDeviceMemoryProperties",
+                                         "Failed to find suitable memory type for image", device,
+                                         VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 
         result = vkAllocateMemory(device, &allocInfo, nullptr, &deviceMemory);
         if (result != VK_SUCCESS)
         {
                 vkDestroyImage(device, image, nullptr);
-                GameError::exitWithError(
-                    "vkAllocateMemory",
-                    "Failed to allocate image memory (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkAllocateMemory",
+                                         "Failed to allocate image memory (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 
         result = vkBindImageMemory(device, image, deviceMemory, 0);
@@ -102,11 +99,10 @@ GameVulkanImage::GameVulkanImage(VkDevice                         device,
         {
                 vkFreeMemory(device, deviceMemory, nullptr);
                 vkDestroyImage(device, image, nullptr);
-                GameError::exitWithError(
-                    "vkBindImageMemory",
-                    "Failed to bind image memory (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkBindImageMemory",
+                                         "Failed to bind image memory (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

@@ -11,10 +11,10 @@ namespace rl
 
 const char* gameName = "Real Game";
 
-int         gameInitialWindowWidth  = 900;
-int         gameInitialWindowHeight = 600;
-int         gameMinWindowWidth      = 512;
-int         gameMinWindowHeight     = 384;
+int gameInitialWindowWidth  = 900;
+int gameInitialWindowHeight = 600;
+int gameMinWindowWidth      = 512;
+int gameMinWindowHeight     = 384;
 
 #if defined(__ANDROID__)
 
@@ -98,7 +98,8 @@ MainLauncher::CallbackType MainProvider::launch =
         int posY   = workArea.top + (height - gameInitialWindowHeight) / 2;
 
         HWND hwnd = CreateWindowEx(0, CLASS_NAME, gameName, WS_OVERLAPPEDWINDOW, posX, posY,
-                                   gameInitialWindowWidth, gameInitialWindowHeight, NULL, NULL, hInstance, nullptr);
+                                   gameInitialWindowWidth, gameInitialWindowHeight, NULL, NULL,
+                                   hInstance, nullptr);
         if (hwnd == NULL)
         {
                 GameError::exitWithError("Failed to create window", "HWND is NULL");

@@ -26,11 +26,10 @@ GameVulkanPipelineLayout::GameVulkanPipelineLayout(
             vkCreatePipelineLayout(device, createInfo.pCreateInfo, nullptr, &pipelineLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create pipeline layout (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create pipeline layout (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

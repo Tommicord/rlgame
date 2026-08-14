@@ -36,9 +36,8 @@ class GameError
                  * error dialog before terminating the application.
                  */
                 template <typename... Args>
-                static void exitWithError(const std::string& title,
-                                             const std::string& message,
-                                             Args... args);
+                static void
+                exitWithError(const std::string& title, const std::string& message, Args... args);
 
                 /** Handles a fatal error with a message only
                  * @param message Detailed error message
@@ -65,10 +64,10 @@ class GameError
                  * @param instance Vulkan instance handle
                  */
                 static void exitWithError(const std::string& title,
-                                             const std::string& message,
-                                             VkDevice           device,
-                                             VkPhysicalDevice   physicalDevice,
-                                             VkInstance         instance);
+                                          const std::string& message,
+                                          VkDevice           device,
+                                          VkPhysicalDevice   physicalDevice,
+                                          VkInstance         instance);
 
                 /** Handles a fatal error with a message only (non-template overload)
                  * @param message Detailed error message
@@ -92,9 +91,7 @@ class GameError
 };
 
 template <typename... Args>
-void GameError::exitWithError(const std::string& title,
-                                             const std::string& message,
-                                             Args... args)
+void GameError::exitWithError(const std::string& title, const std::string& message, Args... args)
 {
         std::string backtrace = captureBacktrace();
         char        formattedMessage[4096];
@@ -102,8 +99,7 @@ void GameError::exitWithError(const std::string& title,
 
         std::string crashDumpPath = CrashDump::saveCrashDump(title, formattedMessage, backtrace);
         char        buffer[4096];
-        snprintf(buffer, sizeof(buffer), "%s\n\n%s", formattedMessage,
-                 backtrace.c_str());
+        snprintf(buffer, sizeof(buffer), "%s\n\n%s", formattedMessage, backtrace.c_str());
         Log::error(buffer);
         if (!crashDumpPath.empty())
         {
@@ -143,8 +139,7 @@ void GameError::exitWithError(const std::string& title,
 #endif
 }
 
-template <typename... Args>
-void GameError::exitWithError(const std::string& message, Args... args)
+template <typename... Args> void GameError::exitWithError(const std::string& message, Args... args)
 {
         char formattedMessage[4096];
         snprintf(formattedMessage, sizeof(formattedMessage), message.c_str(), args...);

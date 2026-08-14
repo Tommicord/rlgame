@@ -297,6 +297,8 @@ class WorldMeshGenTest : public ::testing::Test
 
                 void TearDown() override
                 {
+                        vkDeviceWaitIdle(instance->getDevice());
+                        
                         testHeightmap.reset();
                         testClimate.reset();
                         testUnitPlacement.reset();

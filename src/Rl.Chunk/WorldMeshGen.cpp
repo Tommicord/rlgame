@@ -19,8 +19,8 @@ extern const uint32_t WorldMeshGenComp_data[];
 extern const uint32_t WorldMeshGenComp_size;
 
 WorldMeshGen::WorldMeshGen(const WorldMeshGenData& data,
-                           IMeshTess&          meshTess,
-                           GameDeviceInstance& instance) :
+                           IMeshTess&              meshTess,
+                           GameDeviceInstance&     instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
     graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     width(data.width), height(data.height), depth(data.depth), maxVertices(data.maxVertices),
@@ -62,8 +62,8 @@ WorldMeshGen::WorldMeshGen(const WorldMeshGenData& data,
         countBufferHandle.setSize(countBuffer.getSize());
         countBufferHandle.setOffset(countBuffer.getOffset());
         countBufferHandle.setUsage(GameOpaqueBufferUsage::StorageBuffer);
-        countBufferHandle.setMemoryProperty(GameOpaqueBufferMemoryProperty::HostVisible | 
-                                           GameOpaqueBufferMemoryProperty::HostCoherent);
+        countBufferHandle.setMemoryProperty(GameOpaqueBufferMemoryProperty::HostVisible |
+                                            GameOpaqueBufferMemoryProperty::HostCoherent);
 
         completionHandle.setHandle(static_cast<void*>(&completionSemaphore));
         completionHandle.setType(GameOpaqueSyncHandleType::Semaphore);
@@ -112,10 +112,9 @@ void WorldMeshGen::createDescriptorSets()
         VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
@@ -147,10 +146,9 @@ void WorldMeshGen::createDescriptorSets()
         result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorSetLayout",
-                    "Failed to create descriptor set layout (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateDescriptorSetLayout",
+                                         "Failed to create descriptor set layout (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -162,15 +160,15 @@ void WorldMeshGen::createDescriptorSets()
         result = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateDescriptorSets",
-                    "Failed to allocate descriptor sets (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkAllocateDescriptorSets",
+                                         "Failed to allocate descriptor sets (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         VkDescriptorBufferInfo tessBufferInfo{};
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        tessBufferInfo.buffer = reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getBuffer();
+        tessBufferInfo.buffer =
+            reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getBuffer();
         tessBufferInfo.offset = 0;
         tessBufferInfo.range  = VK_WHOLE_SIZE;
 #else
@@ -235,9 +233,8 @@ void WorldMeshGen::createDescriptorSets()
 void WorldMeshGen::initializeCountBuffer()
 {
         VkDeviceSize bufferSize = sizeof(uint32_t);
-        void* data = nullptr;
-        vkMapMemory(device, countBuffer.getMemory(), 0, bufferSize, 0,
-                    &data);
+        void*        data       = nullptr;
+        vkMapMemory(device, countBuffer.getMemory(), 0, bufferSize, 0, &data);
         memset(data, 0, bufferSize);
         vkUnmapMemory(device, countBuffer.getMemory());
 }
@@ -260,10 +257,9 @@ void WorldMeshGen::createPipeline()
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create pipeline layout (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create pipeline layout (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         computeShader = GameShaderLoader::createShaderModule(device, WorldMeshGenComp_data,
@@ -284,10 +280,9 @@ void WorldMeshGen::createPipeline()
             vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateComputePipelines",
-                    "Failed to create compute pipeline (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateComputePipelines",
+                                         "Failed to create compute pipeline (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 }
 
@@ -321,7 +316,7 @@ void WorldMeshGen::readIndices(VkDevice         device,
 void WorldMeshGen::readVertexCount(uint32_t& vertexCount)
 {
         VkDeviceSize size = sizeof(uint32_t);
-        void* data = nullptr;
+        void*        data = nullptr;
 
         vkMapMemory(device, countBuffer.getMemory(), countBuffer.getOffset(), size, 0, &data);
         memcpy(&vertexCount, data, size);
@@ -431,9 +426,11 @@ void WorldMeshGen::dispatch(void*                      pResource,
 
         VkDescriptorBufferInfo tessBufferInfo{};
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        tessBufferInfo.buffer = reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getBuffer();
+        tessBufferInfo.buffer =
+            reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getBuffer();
         tessBufferInfo.offset = 0;
-        tessBufferInfo.range  = reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getSize();
+        tessBufferInfo.range =
+            reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getSize();
 #else
         tessBufferInfo.buffer = VK_NULL_HANDLE;
         tessBufferInfo.offset = 0;

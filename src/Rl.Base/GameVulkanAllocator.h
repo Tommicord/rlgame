@@ -94,9 +94,9 @@ class GameVulkanMemoryAllocator
 
                 VkDevice         getDevice() const;
                 VkPhysicalDevice getPhysicalDevice() const;
-                static uint32_t findMemoryType(VkPhysicalDevice            physicalDevice,
-                                               const VkMemoryRequirements& memRequirements,
-                                               VkMemoryPropertyFlags       properties);
+                static uint32_t  findMemoryType(VkPhysicalDevice            physicalDevice,
+                                                const VkMemoryRequirements& memRequirements,
+                                                VkMemoryPropertyFlags       properties);
 
         private:
                 VkDevice                            device;

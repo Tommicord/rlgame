@@ -19,8 +19,7 @@ template <size_t N> float GameInput<N>::lastMouseY       = 0.0f;
 template <size_t N> bool  GameInput<N>::mouseInitialized = false;
 #endif
 
-template <size_t N>
-typename GameInput<N>::InputReceiverPool* GameInput<N>::getReceiverPool()
+template <size_t N> typename GameInput<N>::InputReceiverPool* GameInput<N>::getReceiverPool()
 {
         static InputReceiverPool pool;
         return &pool;
@@ -304,8 +303,8 @@ void GameInput<N>::handleWin32Message(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
                         bool wasPressed          = keyStates[wParam & 0xFF];
                         keyStates[wParam & 0xFF] = true;
 
-                        event.type =
-                            wasPressed ? GameInputEvent::Type::KeyRepeat : GameInputEvent::Type::KeyPress;
+                        event.type    = wasPressed ? GameInputEvent::Type::KeyRepeat
+                                                   : GameInputEvent::Type::KeyPress;
                         event.keyCode = win32KeyCodeToKeyCode(wParam);
 
                         if (wParam == VK_CONTROL)

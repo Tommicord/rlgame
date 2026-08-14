@@ -69,16 +69,15 @@ struct WorldClimateComputePResource
 };
 
 /** @brief GPU-accelerated equator field generator using Vulkan compute shaders */
-class WorldClimateCompute : public IGameComputeDispatch, public IClimateCompute
+class WorldClimateCompute : public IGameComputeDispatch,
+                            public IClimateCompute
 {
         public:
                 /** @brief Constructs an equator field generator
                  * @param width Output width
                  * @param height Output height
                  * @param instance Vulkan device instance */
-                WorldClimateCompute(uint32_t                width,
-                                    uint32_t                height,
-                                    GameDeviceInstance& instance);
+                WorldClimateCompute(uint32_t width, uint32_t height, GameDeviceInstance& instance);
                 /** @brief Destroys the equator field generator */
                 ~WorldClimateCompute();
                 WorldClimateCompute(const WorldClimateCompute& other)            = delete;
@@ -109,12 +108,12 @@ class WorldClimateCompute : public IGameComputeDispatch, public IClimateCompute
                 /** Get the completion semaphore for this dispatch
                  * @return The semaphore that will be signaled when the dispatch completes */
                 const GameVulkanSemaphore& getCompletionSemaphore() const override;
-                GameVulkanSemaphore& getCompletionSemaphore() override;
+                GameVulkanSemaphore&       getCompletionSemaphore() override;
 
                 /** Get the completion fence for this dispatch
                  * @return The fence that will be signaled when the dispatch completes */
                 const GameVulkanFence& getCompletionFence() const override;
-                GameVulkanFence& getCompletionFence() override;
+                GameVulkanFence&       getCompletionFence() override;
 
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
                 /** Vulkan backend: opaque pointer to equator image view wrapper */

@@ -19,7 +19,7 @@ extern const uint32_t WorldOcclusionCullComp_size;
 
 WorldOcclusionCull::WorldOcclusionCull(const WorldOcclusionCullData& data,
                                        WorldUnitPlacement&           unitPlacement,
-                                       GameDeviceInstance&       instance) :
+                                       GameDeviceInstance&           instance) :
     device(instance.getDevice()), physicalDevice(instance.getPhysicalDevice()),
     graphicsQueue(instance.getGraphicsQueue()), commandPool(instance.getCommandPool()),
     width(data.width), height(data.height), depth(data.depth), airUnitId(data.airUnitId),
@@ -150,10 +150,9 @@ void WorldOcclusionCull::createDescriptorSets()
         VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorPool",
-                    "Failed to create descriptor pool (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateDescriptorPool",
+                                         "Failed to create descriptor pool (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         std::array<VkDescriptorSetLayoutBinding, 2> bindings{};
@@ -175,10 +174,9 @@ void WorldOcclusionCull::createDescriptorSets()
         result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateDescriptorSetLayout",
-                    "Failed to create descriptor set layout (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkCreateDescriptorSetLayout",
+                                         "Failed to create descriptor set layout (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -190,10 +188,9 @@ void WorldOcclusionCull::createDescriptorSets()
         result = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkAllocateDescriptorSets",
-                    "Failed to allocate descriptor sets (result = " +
-                        GameError::vulkanResultToString(result) + ")");
+                GameError::exitWithError("vkAllocateDescriptorSets",
+                                         "Failed to allocate descriptor sets (result = " +
+                                             GameError::vulkanResultToString(result) + ")");
         }
 
         // Initialize descriptor set with the unit output image view and visibility output image
@@ -201,13 +198,13 @@ void WorldOcclusionCull::createDescriptorSets()
         VkDescriptorImageInfo unitImageInfo{};
         unitImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        unitImageInfo.imageView = reinterpret_cast<GameVulkanImageView*>(
-                                      unitPlacement.getUnitOutputImageViewPtr())
-                                      ->getImageView();
+        unitImageInfo.imageView =
+            reinterpret_cast<GameVulkanImageView*>(unitPlacement.getUnitOutputImageViewPtr())
+                ->getImageView();
 #else
-        unitImageInfo.imageView   = VK_NULL_HANDLE;
+        unitImageInfo.imageView = VK_NULL_HANDLE;
 #endif
-        unitImageInfo.sampler     = VK_NULL_HANDLE;
+        unitImageInfo.sampler = VK_NULL_HANDLE;
 
         VkDescriptorImageInfo visibilityImageInfo{};
         visibilityImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -260,22 +257,20 @@ void WorldOcclusionCull::createPipeline()
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result1 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create compute pipeline layout "
-                    "(result = " +
-                        GameError::vulkanResultToString(result1) + ")",
-                    device, physicalDevice, instance);
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create compute pipeline layout "
+                                         "(result = " +
+                                             GameError::vulkanResultToString(result1) + ")",
+                                         device, physicalDevice, instance);
         }
 
         VkResult result2 =
             vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
         if (result2 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreatePipelineLayout",
-                    "Failed to create pipeline layout (result = " +
-                        GameError::vulkanResultToString(result2) + ")");
+                GameError::exitWithError("vkCreatePipelineLayout",
+                                         "Failed to create pipeline layout (result = " +
+                                             GameError::vulkanResultToString(result2) + ")");
         }
 
         VkComputePipelineCreateInfo pipelineInfo{};
@@ -287,10 +282,9 @@ void WorldOcclusionCull::createPipeline()
             vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
         if (result3 != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateComputePipelines",
-                    "Failed to create compute pipeline (result = " +
-                        GameError::vulkanResultToString(result3) + ")");
+                GameError::exitWithError("vkCreateComputePipelines",
+                                         "Failed to create compute pipeline (result = " +
+                                             GameError::vulkanResultToString(result3) + ")");
         }
 }
 

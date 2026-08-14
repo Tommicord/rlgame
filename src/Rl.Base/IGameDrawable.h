@@ -13,7 +13,7 @@ class GameDeviceInstance;
 class IGameDrawable
 {
         public:
-                virtual ~IGameDrawable()                             = default;
+                virtual ~IGameDrawable()                         = default;
                 virtual void setup(GameDeviceInstance& device)   = 0;
                 virtual void draw(GameDeviceInstance& device)    = 0;
                 virtual void destroy(GameDeviceInstance& device) = 0;

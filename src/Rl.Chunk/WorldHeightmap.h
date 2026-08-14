@@ -102,7 +102,7 @@ class WorldHeightmap : public ChunkNoiseGenerator,
                 /** Returns the generate mutex for external synchronization
                  * @return Reference to the generate mutex */
                 std::recursive_mutex& getGenerateMutex() override;
-                
+
                 /**
                  * @brief Get the completion sync handle for this dispatch (API-agnostic)
                  * @return The sync handle that will be signaled when the dispatch completes
@@ -112,12 +112,12 @@ class WorldHeightmap : public ChunkNoiseGenerator,
                 /** Get the completion semaphore for this dispatch
                  * @return The semaphore that will be signaled when the dispatch completes */
                 const GameVulkanSemaphore& getCompletionSemaphore() const override;
-                GameVulkanSemaphore& getCompletionSemaphore() override;
+                GameVulkanSemaphore&       getCompletionSemaphore() override;
 
                 /** Get the completion fence for this dispatch
                  * @return The fence that will be signaled when the dispatch completes */
                 const GameVulkanFence& getCompletionFence() const override;
-                GameVulkanFence& getCompletionFence() override;
+                GameVulkanFence&       getCompletionFence() override;
 
                 /** Get the basemap elevation image view
                  * @return Vulkan image view for basemap elevation */
@@ -265,13 +265,13 @@ class WorldHeightmap : public ChunkNoiseGenerator,
                 GameVulkanImage     deepmapMoistureImage;
                 GameVulkanImageView deepmapMoistureImageView;
 
-                GameOpaqueImage<GameVulkanImage>     basemapElevationImageHandle;
-                GameOpaqueImage<GameVulkanImage>     basemapTemperatureImageHandle;
-                GameOpaqueImage<GameVulkanImage>     basemapMoistureImageHandle;
-                GameOpaqueImage<GameVulkanImage>     deepmapElevationImageHandle;
-                GameOpaqueImage<GameVulkanImage>     deepmapTemperatureImageHandle;
-                GameOpaqueImage<GameVulkanImage>     deepmapMoistureImageHandle;
-                GameOpaqueSync<GameVulkanSemaphore>  completionHandle;
+                GameOpaqueImage<GameVulkanImage>    basemapElevationImageHandle;
+                GameOpaqueImage<GameVulkanImage>    basemapTemperatureImageHandle;
+                GameOpaqueImage<GameVulkanImage>    basemapMoistureImageHandle;
+                GameOpaqueImage<GameVulkanImage>    deepmapElevationImageHandle;
+                GameOpaqueImage<GameVulkanImage>    deepmapTemperatureImageHandle;
+                GameOpaqueImage<GameVulkanImage>    deepmapMoistureImageHandle;
+                GameOpaqueSync<GameVulkanSemaphore> completionHandle;
 
                 VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
                 VkDescriptorSet       descriptorSet       = VK_NULL_HANDLE;

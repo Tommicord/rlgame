@@ -29,9 +29,9 @@ void MainGame::onLaunch()
         {
                 bool isRunning = true;
 #if defined(_WIN32)
-                MainGameWin32Handle& handle     = game->handle;
-                GameDeviceInstance&  device     = game->device;
-                GameResources&       resources  = device.getGameResources();
+                MainGameWin32Handle& handle    = game->handle;
+                GameDeviceInstance&  device    = game->device;
+                GameResources&       resources = device.getGameResources();
                 while (isRunning)
                 {
                         MSG* msg = &handle.msg;

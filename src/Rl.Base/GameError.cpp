@@ -90,9 +90,9 @@ std::string captureBacktraceWindows()
 #elif defined(__linux__) || defined(__APPLE__)
 std::string captureBacktraceUnix()
 {
-        void*       stack[64];
+        void*  stack[64];
         size_t start  = 3;
-        int         frames = backtrace(stack, 64);
+        int    frames = backtrace(stack, 64);
 
         std::ostringstream oss;
         oss << "Backtrace (" << frames - start << " frames):\n";
@@ -227,10 +227,10 @@ void GameError::exitWithError(const std::string& title, const std::string& messa
 }
 
 void GameError::exitWithError(const std::string& title,
-                                             const std::string& message,
-                                             VkDevice           device,
-                                             VkPhysicalDevice   physicalDevice,
-                                             VkInstance         instance)
+                              const std::string& message,
+                              VkDevice           device,
+                              VkPhysicalDevice   physicalDevice,
+                              VkInstance         instance)
 {
         std::string backtrace = captureBacktrace();
         std::string crashDumpPath =

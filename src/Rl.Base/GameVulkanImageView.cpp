@@ -33,11 +33,10 @@ GameVulkanImageView::GameVulkanImageView(VkDevice                             de
         VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateImageView",
-                    "Failed to create image view (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateImageView",
+                                         "Failed to create image view (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

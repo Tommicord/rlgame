@@ -27,16 +27,15 @@ template <typename IdType> class ChunkBuffer
 
         private:
                 Heap heap;
+
         public:
                 /** Constructs a ChunkBuffer with specified dimensions
                  * @tparam W Width of the chunk (x-axis)
                  * @tparam H Height of the chunk (y-axis)
                  * @tparam D Depth of the chunk (z-axis)
                  */
-                template <size_t W, size_t H, size_t D> 
-                ChunkBuffer() : heap(W, H, D)
+                template <size_t W, size_t H, size_t D> ChunkBuffer() : heap(W, H, D)
                 {
-                        
                 }
 
                 /** Default destructor */
@@ -229,11 +228,11 @@ template <typename IdType> class ChunkBuffer
  */
 template <typename IdType> struct ChunkBuffer<IdType>::Heap
 {
-                IdType*     pHeapBase; /**< Pointer to the start of the buffer */
-                IdType*     pHeapEnd; /**< Pointer to the end of the buffer */
-                size_t wSize; /**< Aligned width (x-axis dimension) */
-                size_t hSize; /**< Aligned height (y-axis dimension) */
-                size_t dSize; /**< Aligned depth (z-axis dimension) */
+                IdType* pHeapBase; /**< Pointer to the start of the buffer */
+                IdType* pHeapEnd; /**< Pointer to the end of the buffer */
+                size_t  wSize; /**< Aligned width (x-axis dimension) */
+                size_t  hSize; /**< Aligned height (y-axis dimension) */
+                size_t  dSize; /**< Aligned depth (z-axis dimension) */
 
                 /** Constructs a heap with specified dimensions (aligned to 16-byte
                  * boundaries)
@@ -252,15 +251,16 @@ template <typename IdType> struct ChunkBuffer<IdType>::Heap
                 }
 
                 /** Default constructor for empty heap */
-                Heap() noexcept : pHeapBase(nullptr), pHeapEnd(nullptr), wSize(0), hSize(0), dSize(0)
+                Heap() noexcept :
+                    pHeapBase(nullptr), pHeapEnd(nullptr), wSize(0), hSize(0), dSize(0)
                 {
                 }
 
                 /** Move constructor
                  * @param other The heap to move from */
                 Heap(Heap&& other) noexcept :
-                    pHeapBase(other.pHeapBase), pHeapEnd(other.pHeapEnd), wSize(other.wSize), hSize(other.hSize),
-                    dSize(other.dSize)
+                    pHeapBase(other.pHeapBase), pHeapEnd(other.pHeapEnd), wSize(other.wSize),
+                    hSize(other.hSize), dSize(other.dSize)
                 {
                         other.pHeapBase = nullptr;
                         other.pHeapEnd  = nullptr;
@@ -277,9 +277,9 @@ template <typename IdType> struct ChunkBuffer<IdType>::Heap
                                 delete[] pHeapBase;
                                 pHeapBase       = other.pHeapBase;
                                 pHeapEnd        = other.pHeapEnd;
-                                wSize               = other.wSize;
-                                hSize               = other.hSize;
-                                dSize               = other.dSize;
+                                wSize           = other.wSize;
+                                hSize           = other.hSize;
+                                dSize           = other.dSize;
                                 other.pHeapBase = nullptr;
                                 other.pHeapEnd  = nullptr;
                                 other.wSize = other.hSize = other.dSize = 0;

@@ -125,13 +125,16 @@ class IGameInputReceiver
 {
         public:
                 virtual ~IGameInputReceiver() = default;
-                virtual void onKeyPress(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
+                virtual void
+                onKeyPress(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
                 {
                 }
-                virtual void onKeyRelease(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
+                virtual void
+                onKeyRelease(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
                 {
                 }
-                virtual void onKeyRepeat(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
+                virtual void
+                onKeyRepeat(GameInputEvent::KeyCode key, bool ctrl, bool shift, bool alt)
                 {
                 }
                 virtual void onMouseMove(float x, float y)
@@ -148,8 +151,7 @@ class IGameInputReceiver
                 }
 };
 
-template <size_t N> 
-class GameInput
+template <size_t N> class GameInput
 {
         public:
                 friend class MainGame;
@@ -163,15 +165,15 @@ class GameInput
 #endif
 
         private:
-                GameInput()                                      = default;
-                ~GameInput()                                     = default;
+                GameInput()                                  = default;
+                ~GameInput()                                 = default;
                 GameInput(const GameInput& other)            = delete;
                 GameInput& operator=(const GameInput& other) = delete;
 
                 struct InputReceiverPool
                 {
                                 std::array<IGameInputReceiver*, N> receivers{};
-                                size_t                         count = 0;
+                                size_t                             count = 0;
 
                                 InputReceiverPool()                                    = default;
                                 InputReceiverPool(const InputReceiverPool&)            = delete;

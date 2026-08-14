@@ -20,11 +20,10 @@ GameVulkanFence::GameVulkanFence(VkDevice device, const GameVulkanFenceCreateInf
         VkResult result = vkCreateFence(device, &fenceInfo, nullptr, &fence);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateFence",
-                    "Failed to create fence (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateFence",
+                                         "Failed to create fence (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 
@@ -63,10 +62,9 @@ void GameVulkanFence::wait(uint64_t timeout) const
         }
         else if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "Failed to wait for fence (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("Failed to wait for fence (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 
@@ -75,10 +73,9 @@ void GameVulkanFence::reset()
         VkResult result = vkResetFences(device, 1, &fence);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "Failed to reset fence (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("Failed to reset fence (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

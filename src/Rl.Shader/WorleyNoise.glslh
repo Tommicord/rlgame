@@ -1,3 +1,5 @@
+#ifndef RL_SHADER_WORLEY_NOISE_GLSLH
+#define RL_SHADER_WORLEY_NOISE_GLSLH
 
 vec2 worleyHash(vec2 p) {
     p = vec2(dot(p, vec2(127.1, 311.7)),
@@ -175,3 +177,5 @@ float worleyNoiseSmooth3D(vec3 uv) {
     
     return sum / weightSum;
 }
+
+#endif

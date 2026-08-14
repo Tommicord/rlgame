@@ -24,11 +24,10 @@ GameVulkanRenderPass::GameVulkanRenderPass(VkDevice                             
         VkResult result = vkCreateRenderPass(device, createInfo.pCreateInfo, nullptr, &renderPass);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateRenderPass",
-                    "Failed to create render pass (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateRenderPass",
+                                         "Failed to create render pass (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

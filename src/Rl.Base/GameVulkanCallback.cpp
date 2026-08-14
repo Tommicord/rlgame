@@ -19,7 +19,7 @@ VkDebugUtilsMessengerEXT GameVulkanCallback::setupDebugCallback(VkInstance insta
         }
 
         VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                                      VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
                                      VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -28,7 +28,7 @@ VkDebugUtilsMessengerEXT GameVulkanCallback::setupDebugCallback(VkInstance insta
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
-        createInfo.pUserData = nullptr;
+        createInfo.pUserData       = nullptr;
 
         auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
             vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
@@ -40,7 +40,7 @@ VkDebugUtilsMessengerEXT GameVulkanCallback::setupDebugCallback(VkInstance insta
         }
 
         VkDebugUtilsMessengerEXT debugMessenger;
-        VkResult result = func(instance, &createInfo, nullptr, &debugMessenger);
+        VkResult                 result = func(instance, &createInfo, nullptr, &debugMessenger);
 
         if (result != VK_SUCCESS)
         {
@@ -66,11 +66,11 @@ void GameVulkanCallback::destroyDebugCallback(VkInstance               instance,
         }
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL GameVulkanCallback::debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void*                                       pUserData)
+VKAPI_ATTR VkBool32 VKAPI_CALL
+GameVulkanCallback::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+                                  VkDebugUtilsMessageTypeFlagsEXT             messageType,
+                                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                  void*                                       pUserData)
 {
         (void)pUserData;
         (void)messageType;
@@ -78,7 +78,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL GameVulkanCallback::debugCallback(
         if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
         {
                 Log::error("Vulkan Validation Error: %s", pCallbackData->pMessage);
-                
+
                 std::vector<StackFrame> frames(logMaxStackFrames);
                 int frameCount = LogStackTrace::capture(frames.data(), logMaxStackFrames);
 
@@ -96,16 +96,16 @@ VKAPI_ATTR VkBool32 VKAPI_CALL GameVulkanCallback::debugCallback(
                                 Log::error("Stack trace:\n%s", stackBuffer.data());
                         }
                 }
-                
+
                 if (pCallbackData->objectCount > 0)
                 {
                         for (uint32_t i = 0; i < pCallbackData->objectCount; ++i)
                         {
-                                const VkDebugUtilsObjectNameInfoEXT& obj = pCallbackData->pObjects[i];
+                                const VkDebugUtilsObjectNameInfoEXT& obj =
+                                    pCallbackData->pObjects[i];
                                 Log::trace("  Object[%u]: Type=%u, Handle=0x%llx, Name='%s'", i,
-                                          obj.objectType,
-                                          obj.objectHandle,
-                                          obj.pObjectName ? obj.pObjectName : "(null)");
+                                           obj.objectType, obj.objectHandle,
+                                           obj.pObjectName ? obj.pObjectName : "(null)");
                         }
                 }
         }

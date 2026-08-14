@@ -136,6 +136,8 @@ class WorldMeshIndexDedupTest : public ::testing::Test
 
                 void TearDown() override
                 {
+                        vkDeviceWaitIdle(instance->getDevice());
+
                         indexDedup.reset();
                         mockMeshGen.reset();
                         if (device != VK_NULL_HANDLE)

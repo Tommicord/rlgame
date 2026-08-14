@@ -22,11 +22,10 @@ GameVulkanCommandPool::GameVulkanCommandPool(VkDevice device, uint32_t queueFami
         VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateCommandPool",
-                    "Failed to create command pool (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateCommandPool",
+                                         "Failed to create command pool (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

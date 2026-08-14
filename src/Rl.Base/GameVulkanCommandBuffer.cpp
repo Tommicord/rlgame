@@ -30,8 +30,7 @@ GameVulkanCommandBuffer::GameVulkanCommandBuffer(VkDevice device, VkCommandPool 
         }
         catch (std::runtime_error& e)
         {
-                GameError::exitWithError("Vulkan Command Buffer Allocation Error",
-                                                        e.what());
+                GameError::exitWithError("Vulkan Command Buffer Allocation Error", e.what());
         }
 }
 
@@ -102,8 +101,7 @@ void GameVulkanCommandBuffer::begin(VkCommandBufferUsageFlags flags)
         }
         catch (std::runtime_error& e)
         {
-                GameError::exitWithError("Vulkan Command Buffer Begin Error",
-                                                        e.what());
+                GameError::exitWithError("Vulkan Command Buffer Begin Error", e.what());
         }
 }
 
@@ -118,8 +116,7 @@ void GameVulkanCommandBuffer::end()
         }
         catch (std::runtime_error& e)
         {
-                GameError::exitWithError("Vulkan Command Buffer End Error",
-                                                        e.what());
+                GameError::exitWithError("Vulkan Command Buffer End Error", e.what());
         }
 }
 
@@ -134,8 +131,7 @@ void GameVulkanCommandBuffer::reset(VkCommandBufferResetFlags flags)
         }
         catch (std::runtime_error& e)
         {
-                GameError::exitWithError("Vulkan Command Buffer Reset Error",
-                                                        e.what());
+                GameError::exitWithError("Vulkan Command Buffer Reset Error", e.what());
         }
 }
 

@@ -51,10 +51,10 @@ class ChunkOpenSimplex : public ChunkNoiseGenerator,
                  * @param depth Output depth
                  * @param seed Random seed
                  * @param instance Vulkan device instance */
-                ChunkOpenSimplex(uint32_t                width,
-                                 uint32_t                height,
-                                 uint32_t                depth,
-                                 uint32_t                seed,
+                ChunkOpenSimplex(uint32_t            width,
+                                 uint32_t            height,
+                                 uint32_t            depth,
+                                 uint32_t            seed,
                                  GameDeviceInstance& instance);
                 /** Destroys the noise generator */
                 ~ChunkOpenSimplex();

@@ -62,8 +62,8 @@ GameVulkanFence& CompositorSynchronizationHandler::getFence(uint32_t frameIndex)
         std::scoped_lock lock(mutex);
         if (frameIndex >= inFlightFences.size())
         {
-                GameError::exitWithError(
-                    "CompositorSynchronizationHandler::getFence", "Frame index out of bounds");
+                GameError::exitWithError("CompositorSynchronizationHandler::getFence",
+                                         "Frame index out of bounds");
         }
         return inFlightFences[frameIndex];
 }
@@ -99,8 +99,8 @@ void CompositorSynchronizationHandler::waitForFence(uint32_t frameIndex, uint64_
         std::scoped_lock lock(mutex);
         if (frameIndex >= inFlightFences.size())
         {
-                GameError::exitWithError(
-                    "CompositorSynchronizationHandler::waitForFence", "Frame index out of bounds");
+                GameError::exitWithError("CompositorSynchronizationHandler::waitForFence",
+                                         "Frame index out of bounds");
         }
 
         GameVulkanFence& inFlightFence = inFlightFences[frameIndex];
@@ -112,8 +112,8 @@ void CompositorSynchronizationHandler::resetFence(uint32_t frameIndex)
         std::scoped_lock lock(mutex);
         if (frameIndex >= inFlightFences.size())
         {
-                GameError::exitWithError(
-                    "CompositorSynchronizationHandler::resetFence", "Frame index out of bounds");
+                GameError::exitWithError("CompositorSynchronizationHandler::resetFence",
+                                         "Frame index out of bounds");
         }
 
         GameVulkanFence& inFlightFence = inFlightFences[frameIndex];

@@ -55,7 +55,7 @@ class WorldOcclusionCull : public IGameComputeDispatch
                  * @param instance Vulkan device instance */
                 WorldOcclusionCull(const WorldOcclusionCullData& data,
                                    WorldUnitPlacement&           unitPlacement,
-                                   GameDeviceInstance&       instance);
+                                   GameDeviceInstance&           instance);
                 /** @brief Destroys the occlusion culling generator */
                 ~WorldOcclusionCull();
                 WorldOcclusionCull(const WorldOcclusionCull& other)            = delete;

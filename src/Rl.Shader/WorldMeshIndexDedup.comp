@@ -133,13 +133,13 @@ void main()
     
     uint vertsPerEdge = pc.subdivisions + 1;
     uint faceVertexCount = vertsPerEdge * vertsPerEdge;
-    uint totalVertices = faceVertexCount * 6;  // 6 faces
-    uint totalFaceQuads = totalVertices - (vertsPerEdge * 6);
+    uint quadsPerFace = (vertsPerEdge - 1) * (vertsPerEdge - 1);
+    uint totalFaceQuads = quadsPerFace * 6;  // 6 faces
 
     if (globalId < totalFaceQuads)
     {
-        uint faceIndex = globalId / (faceVertexCount - vertsPerEdge - 1);
-        uint faceLocalIdx = globalId % (faceVertexCount - vertsPerEdge - 1);
+        uint faceIndex = globalId / quadsPerFace;
+        uint faceLocalIdx = globalId % quadsPerFace;
         
         uint y = faceLocalIdx / (vertsPerEdge - 1);
         uint x = faceLocalIdx % (vertsPerEdge - 1);

@@ -1,5 +1,5 @@
-#ifndef RL_CHUNK_WORLD_MESH_INDEX_DEDUP_H
-#define RL_CHUNK_WORLD_MESH_INDEX_DEDUP_H
+#ifndef RL_CHUNK_WORLD_MESH_DELAUNAY_2D_H
+#define RL_CHUNK_WORLD_MESH_DELAUNAY_2D_H
 
 #include "Rl.Base/GameVulkanBuffer.h"
 #include "Rl.Base/GameVulkanCommandBuffer.h"
@@ -8,8 +8,11 @@
 #include "Rl.Base/GameShaderModule.h"
 #include "Rl.Base/IGameComputeDispatch.h"
 #include "Rl.Base/GameDevice.h"
+#include "Rl.Base/GameOpaqueBufferHandle.h"
+#include "Rl.Base/GameOpaqueSyncHandle.h"
 
 #include "Rl.Chunk/IMeshGen.h"
+#include "Rl.Chunk/IMeshDelaunay2D.h"
 
 #include <cstdint>
 #include <mutex>
@@ -18,47 +21,47 @@
 namespace rl
 {
 
-/** @brief Configuration parameters for WorldMeshIndexDedup */
-struct WorldMeshIndexDedupData
+/** @brief Configuration parameters for WorldMeshDelaunay2D */
+struct WorldMeshDelaunay2DData
 {
-                uint32_t maxVertices; /**< Maximum vertices in output */
                 uint32_t maxIndices; /**< Maximum indices in output */
-                uint32_t hashTableSize; /**< Size of hash table (should be power of 2) */
                 uint32_t subdivisions; /**< Subdivision level for triangulation */
+                uint32_t faceCount; /**< Number of faces to triangulate */
+                uint32_t maxIterations; /**< Maximum edge flip iterations */
 };
 
-/** @brief Push constants for index deduplication compute shader */
-struct WorldMeshIndexDedupPushConstants
+/** @brief Push constants for 2D Delaunay triangulation compute shader */
+struct WorldMeshDelaunay2DPushConstants
 {
                 uint32_t inputVertexCount;
-                uint32_t maxVertices;
                 uint32_t maxIndices;
-                uint32_t hashTableSize;
                 uint32_t subdivisions;
+                uint32_t faceCount;
+                uint32_t maxIterations;
                 uint32_t _padding[3];
 };
 
-/** @brief Resource pointer when dispatching WorldMeshIndexDedup */
-struct WorldMeshIndexDedupPResource
+/** @brief Resource pointer when dispatching WorldMeshDelaunay2D */
+struct WorldMeshDelaunay2DPResource
 {
-                WorldMeshIndexDedupPushConstants* pParams;
+                WorldMeshDelaunay2DPushConstants* pParams;
 };
 
-/** @brief GPU-accelerated vertex deduplication and index generation using Vulkan compute shaders */
-class WorldMeshIndexDedup : public IGameComputeDispatch
+/** @brief GPU-accelerated 2D Delaunay triangulation using Vulkan compute shaders */
+class WorldMeshDelaunay2D : public IGameComputeDispatch, public IMeshDelaunay2D
 {
         public:
-                /** @brief Constructs an index deduplication processor
+                /** @brief Constructs a 2D Delaunay triangulation processor
                  * @param data Configuration parameters
-                 * @param meshGen Reference to IMeshGen for vertex buffer and count
+                 * @param meshGen Reference to IMeshGen for vertex buffer
                  * @param instance Vulkan device instance */
-                WorldMeshIndexDedup(const WorldMeshIndexDedupData& data,
+                WorldMeshDelaunay2D(const WorldMeshDelaunay2DData& data,
                                     IMeshGen&                      meshGen,
                                     GameDeviceInstance&            instance);
-                /** @brief Destroys the deduplication processor */
-                ~WorldMeshIndexDedup();
-                WorldMeshIndexDedup(const WorldMeshIndexDedup& other)            = delete;
-                WorldMeshIndexDedup& operator=(const WorldMeshIndexDedup& other) = delete;
+                /** @brief Destroys the triangulation processor */
+                ~WorldMeshDelaunay2D();
+                WorldMeshDelaunay2D(const WorldMeshDelaunay2D& other)            = delete;
+                WorldMeshDelaunay2D& operator=(const WorldMeshDelaunay2D& other) = delete;
 
                 /** @brief Returns the generate mutex for external synchronization
                  * @return Reference to the generate mutex */
@@ -74,9 +77,19 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
                 const GameVulkanFence& getCompletionFence() const;
                 GameVulkanFence&       getCompletionFence();
 
-                GameVulkanBuffer& getOutputVertexBuffer();
                 GameVulkanBuffer& getIndexBuffer();
                 GameVulkanBuffer& getCountBuffer();
+
+                const GameOpaqueBufferHandle& getIndexBuffer() const override;
+                const GameOpaqueBufferHandle& getCountBuffer() const override;
+                const GameOpaqueSyncHandle& getCompletionHandle() const override;
+                void readIndices(uint32_t* pOutput, const size_t outputSize) override;
+                void readCounts(uint32_t& pIndexCount) override;
+
+#if defined(_RL_CHUNK_VULKAN_BACKEND)
+                void* getIndexBufferPtr() const override;
+                void* getCountBufferPtr() const override;
+#endif
 
                 /** @brief Reads the index buffer data from GPU
                  * @param device Vulkan device
@@ -90,12 +103,9 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
                 /** @brief Reads the count buffer data from GPU
                  * @param device Vulkan device
                  * @param physicalDevice Physical device
-                 * @param pVertexCount Output pointer for vertex count
                  * @param pIndexCount Output pointer for index count */
-                void readCounts(VkDevice         device,
-                                VkPhysicalDevice physicalDevice,
-                                uint32_t&        pVertexCount,
-                                uint32_t&        pIndexCount);
+                void
+                readCounts(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t& pIndexCount);
 
         protected:
                 void dispatch(void*                      pResource,
@@ -105,16 +115,17 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
         private:
                 void createDescriptorSets();
                 void createPipeline();
+                void createFaceStartBuffer();
 
                 VkDevice         device;
                 VkPhysicalDevice physicalDevice;
                 VkQueue          graphicsQueue;
                 VkCommandPool    commandPool;
 
-                uint32_t maxVertices;
                 uint32_t maxIndices;
-                uint32_t hashTableSize;
                 uint32_t subdivisions;
+                uint32_t faceCount;
+                uint32_t maxIterations;
 
                 IMeshGen& meshGen;
 
@@ -126,20 +137,23 @@ class WorldMeshIndexDedup : public IGameComputeDispatch
                 VkDescriptorPool      descriptorPool;
 
                 GameVulkanMemoryAllocator memoryAllocator;
-                GameVulkanBuffer          outputVertexBuffer;
                 GameVulkanBuffer          indexBuffer;
                 GameVulkanBuffer          countBuffer;
-                GameVulkanBuffer          hashTableBuffer;
-                GameVulkanBuffer          indexMappingBuffer;
+                GameVulkanBuffer          faceStartBuffer;
+                GameVulkanBuffer          edgeFlipBuffer;
 
                 GameVulkanCommandBuffer computeCommandBuffer;
 
                 GameVulkanSemaphore completionSemaphore;
                 GameVulkanFence     completionFence;
 
+                GameOpaqueBufferHandle indexBufferHandle;
+                GameOpaqueBufferHandle countBufferHandle;
+                GameOpaqueSyncHandle   completionHandle;
+
                 std::recursive_mutex generateMutex;
 };
 
 } // namespace rl
 
-#endif // RL_CHUNK_WORLD_MESH_INDEX_DEDUP_H
+#endif // RL_CHUNK_WORLD_MESH_DELAUNAY_2D_H

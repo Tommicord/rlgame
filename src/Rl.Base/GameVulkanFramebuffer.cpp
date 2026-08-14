@@ -25,11 +25,10 @@ GameVulkanFramebuffer::GameVulkanFramebuffer(VkDevice                           
             vkCreateFramebuffer(device, createInfo.pCreateInfo, nullptr, &framebuffer);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateFramebuffer",
-                    "Failed to create framebuffer (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateFramebuffer",
+                                         "Failed to create framebuffer (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 

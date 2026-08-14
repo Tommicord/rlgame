@@ -193,6 +193,7 @@ set(SHADERS
   src/Rl.Shader/WorldMeshGen.frag
   src/Rl.Shader/WorldMeshTess.comp
   src/Rl.Shader/WorldMeshIndexDedup.comp
+  src/Rl.Shader/WorldMeshDelaunay2D.comp
   src/Rl.Shader/WorldMeshTessNoOcclusion.comp
   src/Rl.Shader/WorldOcclusionCull.comp
   src/Rl.Shader/FullscreenQuad.vert

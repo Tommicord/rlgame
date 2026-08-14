@@ -134,16 +134,16 @@ class GameDeviceInstance final
 
                 static void                        registerDrawable(IGameDrawable* ptr);
                 static MainGameDeviceArenaHandler& getGameArena();
-                GameResources&                 getGameResources();
+                GameResources&                     getGameResources();
 
                 void init();
                 void setHeadlessMode(bool headless);
                 bool isHeadlessMode() const;
 
         private:
-                GameDevice gameDevice;
-                GameResources  gameResources;
-                bool           isHeadlessInstance;
+                GameDevice    gameDevice;
+                GameResources gameResources;
+                bool          isHeadlessInstance;
 
                 void       setupDrawables();
                 void       setupCompositor();

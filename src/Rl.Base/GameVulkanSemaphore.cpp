@@ -38,11 +38,10 @@ GameVulkanSemaphore::GameVulkanSemaphore(VkDevice                             de
         VkResult result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore);
         if (result != VK_SUCCESS)
         {
-                GameError::exitWithError(
-                    "vkCreateSemaphore",
-                    "Failed to create semaphore (result = " +
-                        GameError::vulkanResultToString(result) + ")",
-                    device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+                GameError::exitWithError("vkCreateSemaphore",
+                                         "Failed to create semaphore (result = " +
+                                             GameError::vulkanResultToString(result) + ")",
+                                         device, VK_NULL_HANDLE, VK_NULL_HANDLE);
         }
 }
 
