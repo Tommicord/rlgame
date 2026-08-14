@@ -42,12 +42,12 @@ int LogStackTraceWin32::capture(StackFrame* frames, int maxFrames) noexcept
                 return 0;
 
         HANDLE process = GetCurrentProcess();
-        void*  stack[LOG_MAX_STACK_FRAMES];
+        void*  stack[logMaxStackFrames];
 
         USHORT captured = CaptureStackBackTrace(
             0,
-            static_cast<USHORT>(maxFrames < LOG_MAX_STACK_FRAMES ? maxFrames
-                                                                 : LOG_MAX_STACK_FRAMES),
+            static_cast<USHORT>(maxFrames < logMaxStackFrames ? maxFrames
+                                                                 : logMaxStackFrames),
             stack, nullptr);
 
         int frameCount = 0;

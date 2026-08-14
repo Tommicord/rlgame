@@ -1,6 +1,6 @@
 #include "Rl.Base/Main.h"
-#include "Rl.Base/GameError.h"
 #include "Rl.Base/MainGame.h"
+#include "Rl.Base/GameError.h"
 #include "Rl.Base/GameInput.h"
 #include "Rl.Log/Log.h"
 
@@ -9,11 +9,12 @@
 namespace rl
 {
 
-static constexpr const char* _name            = "The Real Game";
-static constexpr int         _windowWidth     = 900;
-static constexpr int         _windowHeight    = 600;
-static constexpr int         _minWindowWidth  = 500;
-static constexpr int         _minWindowHeight = 400;
+const char* gameName = "Real Game";
+
+int         gameInitialWindowWidth  = 900;
+int         gameInitialWindowHeight = 600;
+int         gameMinWindowWidth      = 512;
+int         gameMinWindowHeight     = 384;
 
 #if defined(__ANDROID__)
 
@@ -38,8 +39,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_GETMINMAXINFO:
                 {
                         MINMAXINFO* info       = reinterpret_cast<MINMAXINFO*>(lParam);
-                        info->ptMinTrackSize.x = _minWindowWidth;
-                        info->ptMinTrackSize.y = _minWindowHeight;
+                        info->ptMinTrackSize.x = gameMinWindowWidth;
+                        info->ptMinTrackSize.y = gameMinWindowHeight;
                         return 0;
                 }
         case WM_SIZE:
@@ -93,11 +94,11 @@ MainLauncher::CallbackType MainProvider::launch =
 
         int width  = workArea.right - workArea.left;
         int height = workArea.bottom - workArea.top;
-        int posX   = workArea.left + (width - _windowWidth) / 2;
-        int posY   = workArea.top + (height - _windowHeight) / 2;
+        int posX   = workArea.left + (width - gameInitialWindowWidth) / 2;
+        int posY   = workArea.top + (height - gameInitialWindowHeight) / 2;
 
-        HWND hwnd = CreateWindowEx(0, CLASS_NAME, _name, WS_OVERLAPPEDWINDOW, posX, posY,
-                                   _windowWidth, _windowHeight, NULL, NULL, hInstance, nullptr);
+        HWND hwnd = CreateWindowEx(0, CLASS_NAME, gameName, WS_OVERLAPPEDWINDOW, posX, posY,
+                                   gameInitialWindowWidth, gameInitialWindowHeight, NULL, NULL, hInstance, nullptr);
         if (hwnd == NULL)
         {
                 GameError::exitWithError("Failed to create window", "HWND is NULL");
@@ -108,7 +109,7 @@ MainLauncher::CallbackType MainProvider::launch =
         game.handle.msg       = {};
         game.handle.hInstance = hInstance;
         game.handle.pCmdLine  = pCmdLine;
-#ifndef NDEBUG
+
         LogHandle logHandle;
         logHandle.hwnd      = hwnd;
         logHandle.hInstance = hInstance;
@@ -121,9 +122,8 @@ MainLauncher::CallbackType MainProvider::launch =
         logConfig.enableColors     = true;
         Log::setConfig(logConfig);
 
-        // At this point, the game has been booted successfully, and we can log this information
         Log::info("Game booted successfully");
-#endif
+
         game.onCreateCallback();
         SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&game));
 
@@ -149,7 +149,7 @@ MainLauncher::CallbackType MainProvider::launch =
 
 MainLauncher::CallbackType MainProvider::onLaunch = [](int argc, char** argv)
 {
-        // TODO: Implement the main loop for Linux using X11
+        // TODO: Implement the main loop for Linux using Wayland
         MainGame game;
         game.onLaunch();
 }

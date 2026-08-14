@@ -66,24 +66,23 @@ WorldClimateCompute::WorldClimateCompute(uint32_t                width,
 
 WorldClimateCompute::~WorldClimateCompute()
 {
-        if (device != VK_NULL_HANDLE)
+        completionFence.wait();
+
+        if (pipeline != VK_NULL_HANDLE)
         {
-                if (pipeline != VK_NULL_HANDLE)
-                {
-                        vkDestroyPipeline(device, pipeline, nullptr);
-                }
-                if (pipelineLayout != VK_NULL_HANDLE)
-                {
-                        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-                }
-                if (descriptorPool != VK_NULL_HANDLE)
-                {
-                        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-                }
-                if (descriptorSetLayout != VK_NULL_HANDLE)
-                {
-                        vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-                }
+                vkDestroyPipeline(device, pipeline, nullptr);
+        }
+        if (pipelineLayout != VK_NULL_HANDLE)
+        {
+                vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+        }
+        if (descriptorPool != VK_NULL_HANDLE)
+        {
+                vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        }
+        if (descriptorSetLayout != VK_NULL_HANDLE)
+        {
+                vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
         }
 }
 

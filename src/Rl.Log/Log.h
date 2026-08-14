@@ -100,7 +100,7 @@ class Log
                 template <typename... Args>
                 static void log(LogLevel level, const char* format, Args&&... args) noexcept
                 {
-                        loginternal(level, format, std::forward<Args>(args)...);
+                        logInternal(level, format, std::forward<Args>(args)...);
                 }
 
         private:
@@ -110,7 +110,7 @@ class Log
                  * @param args Arguments for format string */
                 template <typename... Args>
                 static void
-                loginternal(LogLevel level, const char* format, Args&&... args) noexcept;
+                logInternal(LogLevel level, const char* format, Args&&... args) noexcept;
 
                 /** Logs a message with stack trace
                  * @param level The log level
@@ -132,7 +132,7 @@ class Log
                 static const char* logLevelToString(LogLevel level) noexcept;
                 /** Returns internal configuration reference
                  * @return Reference to internal configuration */
-                static LogConfig& getConfiginternal() noexcept;
+                static LogConfig& getConfigInternal() noexcept;
                 /** Returns the console instance
                  * @return Pointer to console */
                 static LogConsole* getConsole() noexcept;
@@ -142,7 +142,7 @@ class Log
 };
 
 template <typename... Args>
-void Log::loginternal(LogLevel level, const char* format, Args&&... args) noexcept
+void Log::logInternal(LogLevel level, const char* format, Args&&... args) noexcept
 {
         if (!getConsole())
                 return;
@@ -155,7 +155,7 @@ void Log::loginternal(LogLevel level, const char* format, Args&&... args) noexce
         char   buffer[LOG_BUFFER_SIZE]{};
         size_t pos = 0;
 
-        LogConfig& config = getConfiginternal();
+        LogConfig& config = getConfigInternal();
         if (config.enableTimestamp)
         {
                 // TODO: Implement timestamp formatting
@@ -197,13 +197,13 @@ void Log::loginternal(LogLevel level, const char* format, Args&&... args) noexce
 template <typename... Args>
 void Log::logWithStackTrace(LogLevel level, const char* format, Args&&... args) noexcept
 {
-        loginternal(level, format, std::forward<Args>(args)...);
+        logInternal(level, format, std::forward<Args>(args)...);
 
-        LogConfig& config = getConfiginternal();
+        LogConfig& config = getConfigInternal();
         if (config.enableStackTrace)
         {
-                std::vector<StackFrame> frames(LOG_MAX_STACK_FRAMES);
-                int frameCount = LogStackTrace::capture(frames.data(), LOG_MAX_STACK_FRAMES);
+                std::vector<StackFrame> frames(logMaxStackFrames);
+                int frameCount = LogStackTrace::capture(frames.data(), logMaxStackFrames);
 
                 if (frameCount > 0)
                 {

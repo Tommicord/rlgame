@@ -94,24 +94,23 @@ WorldUnitPlacement::WorldUnitPlacement(uint32_t                width,
 
 WorldUnitPlacement::~WorldUnitPlacement()
 {
-        if (device != VK_NULL_HANDLE)
+        completionFence.wait();
+
+        if (pipeline != VK_NULL_HANDLE)
         {
-                if (pipeline != VK_NULL_HANDLE)
-                {
-                        vkDestroyPipeline(device, pipeline, nullptr);
-                }
-                if (pipelineLayout != VK_NULL_HANDLE)
-                {
-                        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-                }
-                if (descriptorPool != VK_NULL_HANDLE)
-                {
-                        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-                }
-                if (descriptorSetLayout != VK_NULL_HANDLE)
-                {
-                        vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-                }
+                vkDestroyPipeline(device, pipeline, nullptr);
+        }
+        if (pipelineLayout != VK_NULL_HANDLE)
+        {
+                vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+        }
+        if (descriptorPool != VK_NULL_HANDLE)
+        {
+                vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        }
+        if (descriptorSetLayout != VK_NULL_HANDLE)
+        {
+                vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
         }
 }
 
@@ -125,12 +124,12 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
 
         VkDeviceSize permSize = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
-        permBuffer = std::make_unique<GameVulkanBuffer>(
+        permBuffer = GameVulkanBuffer(
             &memoryAllocator, permSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        permGradIndex3DBuffer = std::make_unique<GameVulkanBuffer>(
+        permGradIndex3DBuffer = GameVulkanBuffer(
             &memoryAllocator, permSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -150,16 +149,16 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = permBuffer->getOffset();
+        copyRegion.dstOffset = permBuffer.getOffset();
         copyRegion.size      = permSize;
         vkCmdCopyBuffer(computeCommandBuffer.getCommandBuffer(), stagingBuffer.getBuffer(),
-                        permBuffer->getBuffer(), 1, &copyRegion);
+                        permBuffer.getBuffer(), 1, &copyRegion);
 
         copyRegion.srcOffset = permSize;
-        copyRegion.dstOffset = permGradIndex3DBuffer->getOffset();
+        copyRegion.dstOffset = permGradIndex3DBuffer.getOffset();
         copyRegion.size      = permSize;
         vkCmdCopyBuffer(computeCommandBuffer.getCommandBuffer(), stagingBuffer.getBuffer(),
-                        permGradIndex3DBuffer->getBuffer(), 1, &copyRegion);
+                        permGradIndex3DBuffer.getBuffer(), 1, &copyRegion);
 
         VkBufferMemoryBarrier permBarrier{};
         permBarrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -167,8 +166,8 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
         permBarrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
         permBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         permBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        permBarrier.buffer              = permBuffer->getBuffer();
-        permBarrier.offset              = permBuffer->getOffset();
+        permBarrier.buffer              = permBuffer.getBuffer();
+        permBarrier.offset              = permBuffer.getOffset();
         permBarrier.size                = permSize;
 
         VkBufferMemoryBarrier permGradBarrier{};
@@ -177,8 +176,8 @@ void WorldUnitPlacement::initPermutationTables(VkDevice device, VkPhysicalDevice
         permGradBarrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
         permGradBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         permGradBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        permGradBarrier.buffer              = permGradIndex3DBuffer->getBuffer();
-        permGradBarrier.offset              = permGradIndex3DBuffer->getOffset();
+        permGradBarrier.buffer              = permGradIndex3DBuffer.getBuffer();
+        permGradBarrier.offset              = permGradIndex3DBuffer.getOffset();
         permGradBarrier.size                = permSize;
 
         std::array<VkBufferMemoryBarrier, 2> permBarriers = {permBarrier, permGradBarrier};
@@ -695,16 +694,14 @@ void WorldUnitPlacement::updateDescriptorSets()
             deviceProperties.limits.minStorageBufferOffsetAlignment;
 
         VkDescriptorBufferInfo unitRegistryBufferInfo{};
-        unitRegistryBufferInfo.buffer =
-            unitRegistryBuffer ? unitRegistryBuffer->getBuffer() : VK_NULL_HANDLE;
-        unitRegistryBufferInfo.offset = unitRegistryBuffer ? unitRegistryBuffer->getOffset() : 0;
-        unitRegistryBufferInfo.range  = unitRegistryBuffer ? unitRegistryBuffer->getSize() : 0;
+        unitRegistryBufferInfo.buffer = unitRegistryBuffer.getBuffer();
+        unitRegistryBufferInfo.offset = unitRegistryBuffer.getOffset();
+        unitRegistryBufferInfo.range  = unitRegistryBuffer.getSize();
 
         VkDescriptorBufferInfo biomeRegistryBufferInfo{};
-        biomeRegistryBufferInfo.buffer =
-            biomeRegistryBuffer ? biomeRegistryBuffer->getBuffer() : VK_NULL_HANDLE;
-        biomeRegistryBufferInfo.offset = biomeRegistryBuffer ? biomeRegistryBuffer->getOffset() : 0;
-        biomeRegistryBufferInfo.range  = biomeRegistryBuffer ? biomeRegistryBuffer->getSize() : 0;
+        biomeRegistryBufferInfo.buffer = biomeRegistryBuffer.getBuffer();
+        biomeRegistryBufferInfo.offset = biomeRegistryBuffer.getOffset();
+        biomeRegistryBufferInfo.range  = biomeRegistryBuffer.getSize();
 
         VkDescriptorBufferInfo planetBufferInfo{};
         planetBufferInfo.buffer = planetBuffer.getBuffer();
@@ -809,13 +806,13 @@ void WorldUnitPlacement::updateDescriptorSets()
 #endif
 
         VkDescriptorBufferInfo permBufferInfo{};
-        permBufferInfo.buffer = permBuffer->getBuffer();
-        permBufferInfo.offset = permBuffer->getOffset();
+        permBufferInfo.buffer = permBuffer.getBuffer();
+        permBufferInfo.offset = permBuffer.getOffset();
         permBufferInfo.range  = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
         VkDescriptorBufferInfo permGradIndex3DBufferInfo{};
-        permGradIndex3DBufferInfo.buffer = permGradIndex3DBuffer->getBuffer();
-        permGradIndex3DBufferInfo.offset = permGradIndex3DBuffer->getOffset();
+        permGradIndex3DBufferInfo.buffer = permGradIndex3DBuffer.getBuffer();
+        permGradIndex3DBufferInfo.offset = permGradIndex3DBuffer.getOffset();
         permGradIndex3DBufferInfo.range  = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
         std::array<VkWriteDescriptorSet, 14> descriptorWrites{};
@@ -953,16 +950,16 @@ void WorldUnitPlacement::updateDescriptorSets()
 void WorldUnitPlacement::initRegistryBuffers(VkDevice device, VkPhysicalDevice physicalDevice)
 {
         VkDeviceSize unitBufferSize = sizeof(WorldUnitData);
-        unitRegistryBuffer.reset(new GameVulkanBuffer(
+        unitRegistryBuffer = GameVulkanBuffer(
             &memoryAllocator, unitBufferSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         VkDeviceSize biomeBufferSize = sizeof(WorldBiomeData);
-        biomeRegistryBuffer.reset(new GameVulkanBuffer(
+        biomeRegistryBuffer = GameVulkanBuffer(
             &memoryAllocator, biomeBufferSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void WorldUnitPlacement::createDescriptorSetLayout(VkDevice device)
@@ -1179,13 +1176,13 @@ void WorldUnitPlacement::createDescriptorSets(VkDevice device)
         biomeOutputImageInfo.sampler     = VK_NULL_HANDLE;
 
         VkDescriptorBufferInfo permBufferInfo{};
-        permBufferInfo.buffer = permBuffer->getBuffer();
-        permBufferInfo.offset = permBuffer->getOffset();
+        permBufferInfo.buffer = permBuffer.getBuffer();
+        permBufferInfo.offset = permBuffer.getOffset();
         permBufferInfo.range  = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
         VkDescriptorBufferInfo permGradIndex3DBufferInfo{};
-        permGradIndex3DBufferInfo.buffer = permGradIndex3DBuffer->getBuffer();
-        permGradIndex3DBufferInfo.offset = permGradIndex3DBuffer->getOffset();
+        permGradIndex3DBufferInfo.buffer = permGradIndex3DBuffer.getBuffer();
+        permGradIndex3DBufferInfo.offset = permGradIndex3DBuffer.getOffset();
         permGradIndex3DBufferInfo.range  = ChunkNoiseGenerator::permBufferSize * sizeof(int32_t);
 
         std::array<VkWriteDescriptorSet, 12> descriptorWrites{};
@@ -1360,7 +1357,7 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
 {
         std::scoped_lock lock(generateMutex);
 
-        std::vector<PreUnit*>      units = unitRegistry.getItems();
+        auto units = unitRegistry.getItems();
         std::vector<WorldUnitData> unitDataArray;
         unitDataArray.reserve(units.size());
 
@@ -1385,10 +1382,10 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
 
         VkDeviceSize bufferSize = unitDataArray.size() * sizeof(WorldUnitData);
 
-        unitRegistryBuffer.reset(new GameVulkanBuffer(
+        unitRegistryBuffer = GameVulkanBuffer(
             &memoryAllocator, bufferSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         GameVulkanBuffer stagingBuffer(
             &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -1412,11 +1409,11 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = unitRegistryBuffer->getOffset();
+        copyRegion.dstOffset = unitRegistryBuffer.getOffset();
         copyRegion.size      = bufferSize;
 
         vkCmdCopyBuffer(computeCommandBuffer.getCommandBuffer(), stagingBuffer.getBuffer(),
-                        unitRegistryBuffer->getBuffer(), 1, &copyRegion);
+                        unitRegistryBuffer.getBuffer(), 1, &copyRegion);
 
         VkBufferMemoryBarrier barrier{};
         barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -1424,8 +1421,8 @@ void WorldUnitPlacement::updateUnitRegistryData(VkDevice               device,
         barrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer              = unitRegistryBuffer->getBuffer();
-        barrier.offset              = unitRegistryBuffer->getOffset();
+        barrier.buffer              = unitRegistryBuffer.getBuffer();
+        barrier.offset              = unitRegistryBuffer.getOffset();
         barrier.size                = bufferSize;
         vkCmdPipelineBarrier(computeCommandBuffer.getCommandBuffer(),
                              VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -1478,10 +1475,10 @@ void WorldUnitPlacement::updateBiomeRegistryData(VkDevice                device,
 
         VkDeviceSize bufferSize = biomeDataArray.size() * sizeof(WorldBiomeData);
 
-        biomeRegistryBuffer.reset(new GameVulkanBuffer(
+        biomeRegistryBuffer = GameVulkanBuffer(
             &memoryAllocator, bufferSize,
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         GameVulkanBuffer stagingBuffer(
             &memoryAllocator, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -1505,11 +1502,11 @@ void WorldUnitPlacement::updateBiomeRegistryData(VkDevice                device,
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = biomeRegistryBuffer->getOffset();
+        copyRegion.dstOffset = biomeRegistryBuffer.getOffset();
         copyRegion.size      = bufferSize;
 
         vkCmdCopyBuffer(computeCommandBuffer.getCommandBuffer(), stagingBuffer.getBuffer(),
-                        biomeRegistryBuffer->getBuffer(), 1, &copyRegion);
+                        biomeRegistryBuffer.getBuffer(), 1, &copyRegion);
 
         VkBufferMemoryBarrier barrier{};
         barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -1517,8 +1514,8 @@ void WorldUnitPlacement::updateBiomeRegistryData(VkDevice                device,
         barrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer              = biomeRegistryBuffer->getBuffer();
-        barrier.offset              = biomeRegistryBuffer->getOffset();
+        barrier.buffer              = biomeRegistryBuffer.getBuffer();
+        barrier.offset              = biomeRegistryBuffer.getOffset();
         barrier.size                = bufferSize;
         vkCmdPipelineBarrier(computeCommandBuffer.getCommandBuffer(),
                              VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -1794,5 +1791,17 @@ void WorldUnitPlacement::createBiomeOutputImageView(VkDevice device)
 
         biomeOutputImageView = GameVulkanImageView(device, viewInfo);
 }
+
+#if defined(_RL_CHUNK_VULKAN_BACKEND)
+void* WorldUnitPlacement::getUnitOutputImageViewPtr() const
+{
+        return const_cast<GameVulkanImageView*>(&unitOutputImageView);
+}
+
+void* WorldUnitPlacement::getBiomeOutputImageViewPtr() const
+{
+        return const_cast<GameVulkanImageView*>(&biomeOutputImageView);
+}
+#endif
 
 } // namespace rl

@@ -6,6 +6,8 @@
 #include "Rl.Base/GameDevice.h"
 #include "Rl.Base/GameOpaqueBufferHandle.h"
 #include "Rl.Base/GameOpaqueSyncHandle.h"
+#include "Rl.Base/GameVulkanBuffer.h"
+#include "Rl.Base/GameVulkanAllocator.h"
 
 #include <memory>
 #include <vector>
@@ -18,6 +20,30 @@ class MockMeshGen : public IMeshGen
         public:
                 MockMeshGen() = default;
                 ~MockMeshGen() override = default;
+
+                void initialize(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t maxVertices, uint32_t maxIndices)
+                {
+                        memoryAllocator = std::make_unique<GameVulkanMemoryAllocator>(device, physicalDevice);
+                        vertexBufferImpl = std::make_unique<GameVulkanBuffer>(
+                                memoryAllocator.get(),
+                                sizeof(MeshVertex) * maxVertices,
+                                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                        indexBufferImpl = std::make_unique<GameVulkanBuffer>(
+                                memoryAllocator.get(),
+                                sizeof(uint32_t) * maxIndices,
+                                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                        countBufferImpl = std::make_unique<GameVulkanBuffer>(
+                                memoryAllocator.get(),
+                                sizeof(uint32_t) * 2,
+                                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+                        vertexBuffer.handle = vertexBufferImpl.get();
+                        indexBuffer.handle = indexBufferImpl.get();
+                        countBuffer.handle = countBufferImpl.get();
+                }
 
                 GameOpaqueBufferHandle& getVertexBuffer() override
                 {
@@ -59,6 +85,23 @@ class MockMeshGen : public IMeshGen
                         return completionHandle;
                 }
 
+#if defined(_RL_CHUNK_VULKAN_BACKEND)
+                void* getVertexBufferPtr() override
+                {
+                        return vertexBuffer.handle;
+                }
+
+                void* getIndexBufferPtr() override
+                {
+                        return indexBuffer.handle;
+                }
+
+                void* getCountBufferPtr() override
+                {
+                        return countBuffer.handle;
+                }
+#endif
+
         private:
                 GameOpaqueBufferHandle vertexBuffer;
                 GameOpaqueBufferHandle indexBuffer;
@@ -66,6 +109,10 @@ class MockMeshGen : public IMeshGen
                 uint32_t              subdivisions = 0;
                 GameOpaqueSyncHandle  completionHandle;
                 std::recursive_mutex generateMutex;
+                std::unique_ptr<GameVulkanMemoryAllocator> memoryAllocator;
+                std::unique_ptr<GameVulkanBuffer> vertexBufferImpl;
+                std::unique_ptr<GameVulkanBuffer> indexBufferImpl;
+                std::unique_ptr<GameVulkanBuffer> countBufferImpl;
 };
 
 class WorldMeshIndexDedupTest : public ::testing::Test
@@ -108,6 +155,7 @@ class WorldMeshIndexDedupTest : public ::testing::Test
                         dedupData.subdivisions  = subdivisions;
 
                         mockMeshGen->setSubdivisions(subdivisions);
+                        mockMeshGen->initialize(device, physicalDevice, maxVertices, maxIndices);
                         indexDedup = std::make_unique<WorldMeshIndexDedup>(dedupData, *mockMeshGen, *instance);
                 }
 };
@@ -323,7 +371,7 @@ TEST(WorldMeshIndexDedupConfigTest, HashTableSizeRelativeToVertices)
 // Test push constants padding
 TEST(WorldMeshIndexDedupConfigTest, PushConstantsPadding)
 {
-        WorldMeshIndexDedupPushConstants params;
+        WorldMeshIndexDedupPushConstants params{};
         
         // Padding should be initialized to zero
         EXPECT_EQ(params._padding[0], 0);

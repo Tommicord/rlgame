@@ -86,6 +86,8 @@ WorldMeshTess::WorldMeshTess(const WorldMeshTessData& data,
 
 WorldMeshTess::~WorldMeshTess()
 {
+        completionFence.wait();
+
         if (pipeline != VK_NULL_HANDLE)
         {
                 vkDestroyPipeline(device, pipeline, nullptr);

@@ -76,6 +76,8 @@ WorldMeshGen::WorldMeshGen(const WorldMeshGenData& data,
 
 WorldMeshGen::~WorldMeshGen()
 {
+        completionFence.wait();
+
         if (pipeline != VK_NULL_HANDLE)
         {
                 vkDestroyPipeline(device, pipeline, nullptr);
@@ -427,55 +429,6 @@ void WorldMeshGen::dispatch(void*                      pResource,
         completionFence.wait();
         completionFence.reset();
 
-        commandBuffer.reset();
-        commandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), countBuffer.getBuffer(), 0,
-                        sizeof(uint32_t), 0);
-
-        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), vertexBuffer.getBuffer(),
-                        vertexBuffer.getOffset(), vertexBuffer.getSize(), 0);
-
-        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), indexBuffer.getBuffer(),
-                        indexBuffer.getOffset(), indexBuffer.getSize(), 0);
-
-        std::array<VkBufferMemoryBarrier, 3> fillBarriers{};
-
-        // Count buffer barrier
-        fillBarriers[0].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        fillBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        fillBarriers[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        fillBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[0].buffer              = countBuffer.getBuffer();
-        fillBarriers[0].offset              = 0;
-        fillBarriers[0].size                = sizeof(uint32_t);
-
-        // Vertex buffer barrier
-        fillBarriers[1].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        fillBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        fillBarriers[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        fillBarriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[1].buffer              = vertexBuffer.getBuffer();
-        fillBarriers[1].offset              = vertexBuffer.getOffset();
-        fillBarriers[1].size                = vertexBuffer.getSize();
-
-        // Index buffer barrier
-        fillBarriers[2].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        fillBarriers[2].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        fillBarriers[2].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        fillBarriers[2].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[2].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        fillBarriers[2].buffer              = indexBuffer.getBuffer();
-        fillBarriers[2].offset              = indexBuffer.getOffset();
-        fillBarriers[2].size                = indexBuffer.getSize();
-
-        vkCmdPipelineBarrier(commandBuffer.getCommandBuffer(), VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr,
-                             static_cast<uint32_t>(fillBarriers.size()), fillBarriers.data(), 0,
-                             nullptr);
-
         VkDescriptorBufferInfo tessBufferInfo{};
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
         tessBufferInfo.buffer = reinterpret_cast<GameVulkanBuffer*>(meshTess.getOutputBufferPtr())->getBuffer();
@@ -531,11 +484,60 @@ void WorldMeshGen::dispatch(void*                      pResource,
         writes[3].dstSet          = descriptorSet;
         writes[3].dstBinding      = 3;
         writes[3].dstArrayElement = 0;
-        writes[3].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         writes[3].descriptorCount = 1;
+        writes[3].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         writes[3].pBufferInfo     = &countBufferInfo;
 
         vkUpdateDescriptorSets(device, writes.size(), writes.data(), 0, nullptr);
+
+        commandBuffer.reset();
+        commandBuffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), countBuffer.getBuffer(), 0,
+                        sizeof(uint32_t), 0);
+
+        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), vertexBuffer.getBuffer(),
+                        vertexBuffer.getOffset(), vertexBuffer.getSize(), 0);
+
+        vkCmdFillBuffer(commandBuffer.getCommandBuffer(), indexBuffer.getBuffer(),
+                        indexBuffer.getOffset(), indexBuffer.getSize(), 0);
+
+        std::array<VkBufferMemoryBarrier, 3> fillBarriers{};
+
+        // Count buffer barrier
+        fillBarriers[0].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        fillBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        fillBarriers[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        fillBarriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[0].buffer              = countBuffer.getBuffer();
+        fillBarriers[0].offset              = 0;
+        fillBarriers[0].size                = sizeof(uint32_t);
+
+        // Vertex buffer barrier
+        fillBarriers[1].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        fillBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        fillBarriers[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        fillBarriers[1].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[1].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[1].buffer              = vertexBuffer.getBuffer();
+        fillBarriers[1].offset              = vertexBuffer.getOffset();
+        fillBarriers[1].size                = vertexBuffer.getSize();
+
+        // Index buffer barrier
+        fillBarriers[2].sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        fillBarriers[2].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        fillBarriers[2].dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        fillBarriers[2].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[2].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        fillBarriers[2].buffer              = indexBuffer.getBuffer();
+        fillBarriers[2].offset              = indexBuffer.getOffset();
+        fillBarriers[2].size                = indexBuffer.getSize();
+
+        vkCmdPipelineBarrier(commandBuffer.getCommandBuffer(), VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr,
+                             static_cast<uint32_t>(fillBarriers.size()), fillBarriers.data(), 0,
+                             nullptr);
 
         vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipeline);

@@ -14,9 +14,9 @@ int LogStackTracePosix::capture(StackFrame* frames, int maxFrames) noexcept
         if (frames == nullptr || maxFrames <= 0)
                 return 0;
 
-        void* buffer[LOG_MAX_STACK_FRAMES];
+        void* buffer[logMaxStackFrames];
         int   captured =
-            backtrace(buffer, maxFrames < LOG_MAX_STACK_FRAMES ? maxFrames : LOG_MAX_STACK_FRAMES);
+            backtrace(buffer, maxFrames < logMaxStackFrames ? maxFrames : logMaxStackFrames);
 
         // Skip first 2 frames (backtrace and this function)
         int frameCount = 0;

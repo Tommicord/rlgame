@@ -59,6 +59,8 @@ WorldMeshIndexDedup::WorldMeshIndexDedup(const WorldMeshIndexDedupData& data,
 
 WorldMeshIndexDedup::~WorldMeshIndexDedup()
 {
+        completionFence.wait();
+
         if (pipeline != VK_NULL_HANDLE)
         {
                 vkDestroyPipeline(device, pipeline, nullptr);
@@ -161,13 +163,22 @@ void WorldMeshIndexDedup::createDescriptorSets()
 
         VkDescriptorBufferInfo inputVertexBufferInfo{};
 #if defined(_RL_CHUNK_VULKAN_BACKEND)
-        const GameVulkanBuffer& vertexBuffer = *reinterpret_cast<GameVulkanBuffer*>(meshGen.getVertexBuffer().handle);
+        const GameVulkanBuffer* vertexBufferPtr = reinterpret_cast<GameVulkanBuffer*>(meshGen.getVertexBuffer().handle);
+        if (vertexBufferPtr == nullptr)
+        {
+                GameError::exitWithError("WorldMeshIndexDedup", "Opaque handle is null");
+        }
+        const GameVulkanBuffer& vertexBuffer = *vertexBufferPtr;
 #else
         // CPU backend: meshGen may provide CPU-side buffers; fall back to using
         // the opaque handle metadata or throw if not supported.
         const GameOpaqueBufferHandle& vbHandle = meshGen.getVertexBuffer();
         const GameVulkanBuffer* vertexBufferPtr = reinterpret_cast<const GameVulkanBuffer*>(vbHandle.handle);
-        const GameVulkanBuffer& vertexBuffer = vertexBufferPtr ? *vertexBufferPtr : *reinterpret_cast<const GameVulkanBuffer*>(nullptr);
+        if (vertexBufferPtr == nullptr)
+        {
+                GameError::exitWithError("WorldMeshIndexDedup", "Opaque handle is null");
+        }
+        const GameVulkanBuffer& vertexBuffer = *vertexBufferPtr;
 #endif
         inputVertexBufferInfo.buffer = vertexBuffer.getBuffer();
         inputVertexBufferInfo.offset = 0;

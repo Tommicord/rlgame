@@ -43,9 +43,9 @@ int LogStackTraceAndroid::capture(StackFrame* frames, int maxFrames) noexcept
         if (frames == nullptr || maxFrames <= 0)
                 return 0;
 
-        void* buffer[LOG_MAX_STACK_FRAMES];
+        void* buffer[logMaxStackFrames];
 
-        BacktraceState state = {buffer, buffer + LOG_MAX_STACK_FRAMES};
+        BacktraceState state = {buffer, buffer + logMaxStackFrames};
         _Unwind_Backtrace(unwindCallback, &state);
 
         int captured = static_cast<int>(state.current - buffer);

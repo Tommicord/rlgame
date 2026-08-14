@@ -14,6 +14,8 @@ elseif (UNIX)
   add_compile_definitions(VK_USE_PLATFORM_XCB_KHR)
 endif ()
 
+add_compile_definitions(_RL_CHUNK_VULKAN_BACKEND)
+
 if (MSVC)
   add_compile_definitions(_RL_COMPILER_MSVC)
   message(STATUS "Compiler: MSVC detected")
@@ -218,7 +220,7 @@ target_include_directories(
 target_link_libraries(
   rlgame_test
   PRIVATE
-  GTest::gtest_main
+  GTest::gtest
   rlgame_lib
 )
 target_add_renderdoc(rlgame_test)

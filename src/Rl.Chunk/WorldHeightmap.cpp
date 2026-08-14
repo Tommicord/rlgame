@@ -1045,6 +1045,8 @@ void WorldHeightmap::generateCompressedGrayscale(VkDevice              device,
 
 WorldHeightmap::~WorldHeightmap()
 {
+        completionFence.wait();
+
         if (descriptorSetLayout != VK_NULL_HANDLE)
         {
                 vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);

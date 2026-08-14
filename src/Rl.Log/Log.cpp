@@ -98,7 +98,7 @@ const char* Log::logLevelToString(LogLevel level) noexcept
         }
 }
 
-LogConfig& Log::getConfiginternal() noexcept
+LogConfig& Log::getConfigInternal() noexcept
 {
         return _config;
 }

@@ -22,7 +22,7 @@ class WorldClimateComputeTest : public ::testing::Test
                         instance->init();
                         ASSERT_NE(instance->getDevice(), VK_NULL_HANDLE);
                         ASSERT_NE(instance->getPhysicalDevice(), VK_NULL_HANDLE);
-                        GameRenderDocGpuDebugguer::getInstance();
+                        // GameRenderDocGpuDebugguer::getInstance();
                 }
 
                 void TearDown() override

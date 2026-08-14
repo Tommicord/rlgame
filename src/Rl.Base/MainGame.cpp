@@ -29,9 +29,9 @@ void MainGame::onLaunch()
         {
                 bool isRunning = true;
 #if defined(_WIN32)
-                MainGameWin32Handle&    handle    = game->handle;
-                GameDeviceInstance& device    = game->device;
-                GameResources&      resources = game->device.getGameResources();
+                MainGameWin32Handle& handle     = game->handle;
+                GameDeviceInstance&  device     = game->device;
+                GameResources&       resources  = device.getGameResources();
                 while (isRunning)
                 {
                         MSG* msg = &handle.msg;
@@ -51,7 +51,6 @@ void MainGame::onLaunch()
 #else
                 // TODO: Implement the main loop for other platforms (Linux, Android, etc.)
 #endif
-                // Wait until all operations finish
                 vkDeviceWaitIdle(device.gameDevice.device);
         }(this);
 }

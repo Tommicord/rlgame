@@ -164,6 +164,13 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                 const GameVulkanFence& getCompletionFence() const override;
                 GameVulkanFence& getCompletionFence() override;
 
+#if defined(_RL_CHUNK_VULKAN_BACKEND)
+                /** Vulkan backend: opaque pointer to unit output image view wrapper */
+                void* getUnitOutputImageViewPtr() const;
+                /** Vulkan backend: opaque pointer to biome output image view wrapper */
+                void* getBiomeOutputImageViewPtr() const;
+#endif
+
         protected:
                 /** internal dispatch method called by GameComputeDispatch
                  * @param pResource The pointer to the resource when dispatching, must be a instance
@@ -237,12 +244,12 @@ class WorldUnitPlacement : public IGameComputeDispatch, public IUnitPlacement
                  * @param device Vulkan device */
                 void createBiomeOutputImageView(VkDevice device);
 
-                GameVulkanMemoryAllocator         memoryAllocator;
-                GameVulkanBuffer                  planetBuffer;
-                std::unique_ptr<GameVulkanBuffer> unitRegistryBuffer;
-                std::unique_ptr<GameVulkanBuffer> biomeRegistryBuffer;
-                std::unique_ptr<GameVulkanBuffer> permBuffer;
-                std::unique_ptr<GameVulkanBuffer> permGradIndex3DBuffer;
+                GameVulkanMemoryAllocator  memoryAllocator;
+                GameVulkanBuffer           planetBuffer;
+                GameVulkanBuffer           unitRegistryBuffer;
+                GameVulkanBuffer           biomeRegistryBuffer;
+                GameVulkanBuffer           permBuffer;
+                GameVulkanBuffer           permGradIndex3DBuffer;
 
                 IHeightmap&      heightmapGenerator;
                 IClimateCompute& climateCompute;

@@ -1,9 +1,12 @@
 #include "Rl.Base/GameVulkanCallback.h"
+
 #include "Rl.Log/Log.h"
+#include "Rl.Log/LogStackTrace.h"
 
 #include <cstring>
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
+#include <vector>
 
 namespace rl
 {
@@ -76,12 +79,30 @@ VKAPI_ATTR VkBool32 VKAPI_CALL GameVulkanCallback::debugCallback(
         {
                 Log::error("Vulkan Validation Error: %s", pCallbackData->pMessage);
                 
+                std::vector<StackFrame> frames(logMaxStackFrames);
+                int frameCount = LogStackTrace::capture(frames.data(), logMaxStackFrames);
+
+                if (frameCount > 0)
+                {
+                        for (int i = 0; i < frameCount; i++)
+                        {
+                                LogStackTrace::demangle(&frames[i]);
+                        }
+                        std::vector<char> stackBuffer(LOG_BUFFER_SIZE);
+                        LogStackTrace::formatStackTrace(stackBuffer.data(), sizeof(stackBuffer),
+                                                        frames.data(), frameCount);
+                        if (stackBuffer[0] != '\0')
+                        {
+                                Log::error("Stack trace:\n%s", stackBuffer.data());
+                        }
+                }
+                
                 if (pCallbackData->objectCount > 0)
                 {
                         for (uint32_t i = 0; i < pCallbackData->objectCount; ++i)
                         {
                                 const VkDebugUtilsObjectNameInfoEXT& obj = pCallbackData->pObjects[i];
-                                Log::error("  Object[%u]: Type=%u, Handle=0x%llx, Name='%s'", i,
+                                Log::trace("  Object[%u]: Type=%u, Handle=0x%llx, Name='%s'", i,
                                           obj.objectType,
                                           obj.objectHandle,
                                           obj.pObjectName ? obj.pObjectName : "(null)");

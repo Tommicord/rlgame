@@ -10,7 +10,7 @@ namespace rl
 /** Size of the log message buffer */
 constexpr size_t LOG_BUFFER_SIZE = 4096;
 /** Maximum number of stack frames to capture */
-constexpr size_t LOG_MAX_STACK_FRAMES = 64;
+constexpr size_t logMaxStackFrames = 64;
 
 } // namespace rl
 
