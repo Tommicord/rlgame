@@ -1,0 +1,127 @@
+#version 450
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
+
+shared int cachedPerm[256];
+shared int cachedPermGradIndex3D[256];
+
+layout(std430, binding = 0) buffer PermutationBuffer {
+    int perm[256];
+};
+
+layout(std430, binding = 1) buffer PermGradIndex3DBuffer {
+    int permGradIndex3D[256];
+};
+
+layout(r8, binding = 2) uniform image2D basemapElevationImage;
+layout(r8, binding = 3) uniform image2D basemapTemperatureImage;
+layout(r8, binding = 4) uniform image2D basemapMoistureImage;
+
+layout(r8, binding = 5) uniform image3D deepmapElevationImage;
+layout(r8, binding = 6) uniform image3D deepmapTemperatureImage;
+layout(r8, binding = 7) uniform image3D deepmapMoistureImage;
+
+#include "SimplexNoise.glsl"
+
+layout(std430, push_constant) uniform PushConstants {
+    uint width;
+    uint height;
+    uint depth;
+    float scale;
+    float heightScale;
+    float seaLevel;
+    uint seed;
+    uint octaves;
+    float persistence;
+    float groundLevel;
+} pc;
+
+void main() {
+    uint localId = gl_LocalInvocationIndex;
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+    uint z = gl_GlobalInvocationID.z;
+
+    if (localId < 256) {
+        cachedPerm[localId] = perm[localId];
+        cachedPermGradIndex3D[localId] = permGradIndex3D[localId];
+    }
+    barrier();
+
+    if (x >= pc.width || y >= pc.height || z >= pc.depth) {
+        return;
+    }
+
+    float worldX = (float(x) / float(pc.width)) * pc.scale;
+    float worldY = (float(y) / float(pc.height)) * pc.scale;
+    float worldZ = (float(z) / float(pc.depth)) * pc.scale;
+
+    float seedOffset = float(pc.seed) * 0.016;
+
+    float normalizedDepth = float(z) / float(pc.depth);
+
+    float baseElevation2D;
+    baseElevation2D = pc.octaves == 1 ? fBM2D_1O(worldX + seedOffset, worldY + seedOffset, pc.persistence) : 0;
+    baseElevation2D = pc.octaves == 2 ? fBM2D_2O(worldX + seedOffset, worldY + seedOffset, pc.persistence) : baseElevation2D;
+    baseElevation2D = pc.octaves == 3 ? fBM2D_3O(worldX + seedOffset, worldY + seedOffset, pc.persistence) : baseElevation2D;
+    baseElevation2D = pc.octaves == 4 ? fBM2D_4O(worldX + seedOffset, worldY + seedOffset, pc.persistence) : baseElevation2D;
+    baseElevation2D = pc.octaves == 5 ? fBM2D_5O(worldX + seedOffset, worldY + seedOffset, pc.persistence) : baseElevation2D;
+
+    float elevation2D = baseElevation2D * pc.heightScale;
+    elevation2D = (elevation2D + 1.0) * 0.5;
+    elevation2D = clamp(elevation2D, 0.0, 1.0);
+
+    float baseElevation3D;
+    baseElevation3D = pc.octaves == 1 ? fBM3D_1O(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, pc.persistence) : 0;
+    baseElevation3D = pc.octaves == 2 ? fBM3D_2O(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, pc.persistence) : baseElevation3D;
+    baseElevation3D = pc.octaves == 3 ? fBM3D_3O(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, pc.persistence) : baseElevation3D;
+    baseElevation3D = pc.octaves == 4 ? fBM3D_4O(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, pc.persistence) : baseElevation3D;
+    baseElevation3D = pc.octaves == 5 ? fBM3D_5O(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset, pc.persistence) : baseElevation3D;
+
+    float elevation3D = baseElevation3D * pc.heightScale;
+    elevation3D = (elevation3D + 1.0) * 0.5;
+    elevation3D = clamp(elevation3D, 0.0, 1.0);
+
+    float elevation = (normalizedDepth < pc.groundLevel) ? mix(elevation2D, elevation3D, 0.65) : elevation3D;
+
+    float depthFactor = normalizedDepth;
+    float temperature = 0.6 - (elevation * 0.487) + (depthFactor * 0.344);
+    float moisture = 0.755 - (elevation * 0.455) + (depthFactor * 0.1666);
+    float tempNoise = noise3D(worldX + seedOffset, worldY + seedOffset, worldZ + seedOffset) * 0.6;
+    float moistNoise = noise3D((worldX + seedOffset) * 2.0 + 128.0, (worldY + seedOffset) * 2.0 + 128.0, (worldZ + seedOffset) * 2.0) * 0.25;
+
+    temperature = clamp(temperature + tempNoise, 0.0, 1.0);
+    moisture = clamp(moisture + moistNoise, 0.0, 1.0);
+
+    float basemapElevation = elevation2D;
+    float basemapTemperature = temperature;
+    float basemapMoisture = moisture;
+    if (basemapElevation < pc.seaLevel) {
+        basemapElevation = pc.seaLevel * 0.5;
+        basemapTemperature = 0.5;
+        basemapMoisture = 1.0;
+    }
+
+    float deepmapElevation = elevation3D;
+    float deepmapTemperature = temperature;
+    float deepmapMoisture = moisture;
+    if (deepmapElevation < pc.seaLevel) {
+        deepmapElevation = pc.seaLevel * 0.5;
+        deepmapTemperature = 0.5;
+        deepmapMoisture = 1.0;
+    }
+
+    uint r = uint((1.0 - elevation) * 255.0);
+    uint g = uint(temperature * 255.0);
+    uint b = uint(moisture * 255.0);
+
+    if (z == 0) {
+        imageStore(basemapElevationImage, ivec2(int(x), int(y)), vec4(1.0 - basemapElevation, 0.0, 0.0, 0.0));
+        imageStore(basemapTemperatureImage, ivec2(int(x), int(y)), vec4(basemapTemperature, 0.0, 0.0, 0.0));
+        imageStore(basemapMoistureImage, ivec2(int(x), int(y)), vec4(basemapMoisture, 0.0, 0.0, 0.0));
+    }
+
+    imageStore(deepmapElevationImage, ivec3(int(x), int(y), int(z)), vec4(1.0 - deepmapElevation, 0.0, 0.0, 0.0));
+    imageStore(deepmapTemperatureImage, ivec3(int(x), int(y), int(z)), vec4(deepmapTemperature, 0.0, 0.0, 0.0));
+    imageStore(deepmapMoistureImage, ivec3(int(x), int(y), int(z)), vec4(deepmapMoisture, 0.0, 0.0, 0.0));
+}

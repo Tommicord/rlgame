@@ -1,0 +1,331 @@
+#ifndef RL_SHADER_SIMPLEX_NOISE_GLSL
+#define RL_SHADER_SIMPLEX_NOISE_GLSL
+
+const int GRADIENTS_2D[16] = int[](
+        5, 2,
+        2, 5,
+        -5, 2,
+        -2, 5,
+        5, -2,
+        2, -5,
+        -5, -2,
+        -2, -5
+);
+
+const vec3 GRADIENTS_3D[24] = vec3[](
+        normalize(vec3(-11, 4, 4)),
+        normalize(vec3(-4, 11, 4)),
+        normalize(vec3(-4, 4, 11)),
+        normalize(vec3(11, 4, 4)),
+        normalize(vec3(4, 11, 4)),
+        normalize(vec3(4, 4, 11)),
+        normalize(vec3(-11, -4, 4)),
+        normalize(vec3(-4, -11, 4)),
+        normalize(vec3(-4, -4, 11)),
+        normalize(vec3(11, -4, 4)),
+        normalize(vec3(4, -11, 4)),
+        normalize(vec3(4, -4, 11)),
+        normalize(vec3(-11, 4, -4)),
+        normalize(vec3(-4, 11, -4)),
+        normalize(vec3(-4, 4, -11)),
+        normalize(vec3(11, 4, -4)),
+        normalize(vec3(4, 11, -4)),
+        normalize(vec3(4, 4, -11)),
+        normalize(vec3(-11, -4, -4)),
+        normalize(vec3(-4, -11, -4)),
+        normalize(vec3(-4, -4, -11)),
+        normalize(vec3(11, -4, -4)),
+        normalize(vec3(4, -11, -4)),
+        normalize(vec3(4, -4, -11))
+);
+
+const float STRETCH_2D = -0.211324865405187;
+const float SQUISH_2D = 0.366025403784439;
+const float STRETCH_3D = -1.0 / 6.0;
+const float SQUISH_3D = 1.0 / 3.0;
+const float NORM_2D = 47.0;
+const float NORM_3D = 103.0;
+
+int getPerm(int index) {
+    return cachedPerm[index & 255];
+}
+
+int getPermGradIndex3D(int index) {
+    return cachedPermGradIndex3D[index & 255];
+}
+
+float extrapolate2d(int xsb, int ysb, float dx, float dy) {
+    int permIndex = getPerm(xsb + getPerm(ysb));
+    int gradIndex = permIndex & 7;
+    int gi = gradIndex * 2;
+    float gradX = float(GRADIENTS_2D[gi]);
+    float gradY = float(GRADIENTS_2D[gi + 1]);
+    return gradX * dx + gradY * dy;
+}
+
+float extrapolate3d(int xsb, int ysb, int zsb, float dx, float dy, float dz) {
+    int permIndex = getPerm(xsb + getPerm(ysb + getPerm(zsb)));
+    int gradIndex = getPermGradIndex3D(permIndex);
+    vec3 grad = GRADIENTS_3D[gradIndex];
+    return grad.x * dx + grad.y * dy + grad.z * dz;
+}
+
+float noise2D(float x, float y) {
+    float F2 = 0.5 * (sqrt(3.0) - 1.0);
+    float s = (x + y) * F2;
+    int i = int(floor(x + s));
+    int j = int(floor(y + s));
+
+    float G2 = (3.0 - sqrt(3.0)) / 6.0;
+    float t = float(i + j) * G2;
+    float X0 = float(i) - t;
+    float Y0 = float(j) - t;
+    float x0 = x - X0;
+    float y0 = y - Y0;
+
+    int i1, j1;
+    if (x0 > y0) {
+        i1 = 1; j1 = 0;
+    } else {
+        i1 = 0; j1 = 1;
+    }
+
+    float x1 = x0 - float(i1) + G2;
+    float y1 = y0 - float(j1) + G2;
+    float x2 = x0 - 1.0 + 2.0 * G2;
+    float y2 = y0 - 1.0 + 2.0 * G2;
+
+    vec3 t0 = vec3(0.5 - x0 * x0 - y0 * y0);
+    vec3 t1 = vec3(0.5 - x1 * x1 - y1 * y1);
+    vec3 t2 = vec3(0.5 - x2 * x2 - y2 * y2);
+
+    t0 = max(t0, vec3(0.0));
+    t1 = max(t1, vec3(0.0));
+    t2 = max(t2, vec3(0.0));
+
+    t0 *= t0;
+    t1 *= t1;
+    t2 *= t2;
+
+    t0 *= t0;
+    t1 *= t1;
+    t2 *= t2;
+
+    int ii = i & 255;
+    int jj = j & 255;
+    int gi0 = getPerm(ii + getPerm(jj)) & 7;
+    int gi1 = getPerm(ii + i1 + getPerm(jj + j1)) & 7;
+    int gi2 = getPerm(ii + 1 + getPerm(jj + 1)) & 7;
+
+    vec2 g0 = vec2(float(GRADIENTS_2D[gi0 * 2]), float(GRADIENTS_2D[gi0 * 2 + 1]));
+    vec2 g1 = vec2(float(GRADIENTS_2D[gi1 * 2]), float(GRADIENTS_2D[gi1 * 2 + 1]));
+    vec2 g2 = vec2(float(GRADIENTS_2D[gi2 * 2]), float(GRADIENTS_2D[gi2 * 2 + 1]));
+
+    float n0 = t0.x * dot(g0, vec2(x0, y0));
+    float n1 = t1.x * dot(g1, vec2(x1, y1));
+    float n2 = t2.x * dot(g2, vec2(x2, y2));
+
+    return 70.0 * (n0 + n1 + n2);
+}
+
+float noise3D(float x, float y, float z) {
+    float F3 = 1.0 / 3.0;
+    float s = (x + y + z) * F3;
+    int i = int(floor(x + s));
+    int j = int(floor(y + s));
+    int k = int(floor(z + s));
+
+    float G3 = 1.0 / 6.0;
+    float t = float(i + j + k) * G3;
+    float X0 = float(i) - t;
+    float Y0 = float(j) - t;
+    float Z0 = float(k) - t;
+    float x0 = x - X0;
+    float y0 = y - Y0;
+    float z0 = z - Z0;
+
+    int i1, j1, k1;
+    int i2, j2, k2;
+
+    if (x0 >= y0) {
+        if (y0 >= z0) {
+            i1 = 1; j1 = 0; k1 = 0;
+            i2 = 1; j2 = 1; k2 = 0;
+        } else if (x0 >= z0) {
+            i1 = 1; j1 = 0; k1 = 0;
+            i2 = 1; j2 = 0; k2 = 1;
+        } else {
+            i1 = 0; j1 = 0; k1 = 1;
+            i2 = 1; j2 = 0; k2 = 1;
+        }
+    } else {
+        if (y0 < z0) {
+            i1 = 0; j1 = 0; k1 = 1;
+            i2 = 0; j2 = 1; k2 = 1;
+        } else if (x0 < z0) {
+            i1 = 0; j1 = 1; k1 = 0;
+            i2 = 0; j2 = 1; k2 = 1;
+        } else {
+            i1 = 0; j1 = 1; k1 = 0;
+            i2 = 1; j2 = 1; k2 = 0;
+        }
+    }
+
+    float x1 = x0 - float(i1) + G3;
+    float y1 = y0 - float(j1) + G3;
+    float z1 = z0 - float(k1) + G3;
+
+    float x2 = x0 - float(i2) + 2.0 * G3;
+    float y2 = y0 - float(j2) + 2.0 * G3;
+    float z2 = z0 - float(k2) + 2.0 * G3;
+
+    float x3 = x0 - 1.0 + 3.0 * G3;
+    float y3 = y0 - 1.0 + 3.0 * G3;
+    float z3 = z0 - 1.0 + 3.0 * G3;
+
+    vec4 t0 = vec4(0.6 - x0 * x0 - y0 * y0 - z0 * z0,
+            0.6 - x1 * x1 - y1 * y1 - z1 * z1,
+            0.6 - x2 * x2 - y2 * y2 - z2 * z2,
+            0.6 - x3 * x3 - y3 * y3 - z3 * z3);
+
+    t0 = max(t0, vec4(0.0));
+    vec4 t2 = t0 * t0;
+    vec4 t4 = t2 * t2;
+
+    int ii = i & 255;
+    int jj = j & 255;
+    int kk = k & 255;
+
+    int gi0 = getPermGradIndex3D(getPerm(ii + getPerm(jj + getPerm(kk))));
+    int gi1 = getPermGradIndex3D(getPerm(ii + i1 + getPerm(jj + j1 + getPerm(kk + k1))));
+    int gi2 = getPermGradIndex3D(getPerm(ii + i2 + getPerm(jj + j2 + getPerm(kk + k2))));
+    int gi3 = getPermGradIndex3D(getPerm(ii + 1 + getPerm(jj + 1 + getPerm(kk + 1))));
+
+    vec3 g0 = GRADIENTS_3D[gi0];
+    vec3 g1 = GRADIENTS_3D[gi1];
+    vec3 g2 = GRADIENTS_3D[gi2];
+    vec3 g3 = GRADIENTS_3D[gi3];
+
+    float n0 = t4.x * dot(g0, vec3(x0, y0, z0));
+    float n1 = t4.y * dot(g1, vec3(x1, y1, z1));
+    float n2 = t4.z * dot(g2, vec3(x2, y2, z2));
+    float n3 = t4.w * dot(g3, vec3(x3, y3, z3));
+
+    return 32.0 * (n0 + n1 + n2 + n3);
+}
+
+float fBM2D(float x, float y, int octaves, float persistence) {
+    float total = 0.0;
+    float frequency = 1.0;
+    float amplitude = 1.0;
+    float maxValue = 0.0;
+
+    for (int i = 0; i < octaves; ++i) {
+        total += noise2D(x * frequency, y * frequency) * amplitude;
+        maxValue += amplitude;
+        amplitude *= persistence;
+        frequency *= 2.0;
+    }
+
+    return total / maxValue;
+}
+
+float fBM3D(float x, float y, float z, int octaves, float persistence) {
+    float total = 0.0;
+    float frequency = 1.0;
+    float amplitude = 1.0;
+    float maxValue = 0.0;
+
+    for (int i = 0; i < octaves; ++i) {
+        total += noise3D(x * frequency, y * frequency, z * frequency) * amplitude;
+        maxValue += amplitude;
+        amplitude *= persistence;
+        frequency *= 2.0;
+    }
+
+    return total / maxValue;
+}
+
+float fBM3D_1O(float x, float y, float z, float p) {
+    float total = noise3D(x, y, z) * 1.0;
+    return total / 1.0;
+}
+
+float fBM3D_2O(float x, float y, float z, float p) {
+    float total = noise3D(x, y, z) * 1.0;
+    total += noise3D(x * 2.0, y * 2.0, z * 2.0) * p;
+    return total / (1.0 + p);
+}
+
+float fBM3D_3O(float x, float y, float z, float p) {
+    float p2 = p * p;
+    float total = noise3D(x, y, z) * 1.0;
+    total += noise3D(x * 2.0, y * 2.0, z * 2.0) * p;
+    total += noise3D(x * 4.0, y * 4.0, z * 4.0) * p2;
+    return total / (1.0 + p + p2);
+}
+
+float fBM3D_4O(float x, float y, float z, float p) {
+    float p2 = p * p;
+    float p3 = p2 * p;
+    float total = noise3D(x, y, z) * 1.0;
+    total += noise3D(x * 2.0, y * 2.0, z * 2.0) * p;
+    total += noise3D(x * 4.0, y * 4.0, z * 4.0) * p2;
+    total += noise3D(x * 8.0, y * 8.0, z * 8.0) * p3;
+    return total / (1.0 + p + p2 + p3);
+}
+
+float fBM3D_5O(float x, float y, float z, float p) {
+    float p2 = p * p;
+    float p3 = p2 * p;
+    float p4 = p3 * p;
+    float total = noise3D(x, y, z) * 1.0;
+    total += noise3D(x * 2.0, y * 2.0, z * 2.0) * p;
+    total += noise3D(x * 4.0, y * 4.0, z * 4.0) * p2;
+    total += noise3D(x * 8.0, y * 8.0, z * 8.0) * p3;
+    total += noise3D(x * 16.0, y * 16.0, z * 16.0) * p4;
+    return total / (1.0 + p + p2 + p3 + p4);
+}
+
+float fBM2D_1O(float x, float y, float p) {
+    float total = noise2D(x, y) * 1.0;
+    return total / 1.0;
+}
+
+float fBM2D_2O(float x, float y, float p) {
+    float total = noise2D(x, y) * 1.0;
+    total += noise2D(x * 2.0, y * 2.0) * p;
+    return total / (1.0 + p);
+}
+
+float fBM2D_3O(float x, float y, float p) {
+    float p2 = p * p;
+    float total = noise2D(x, y) * 1.0;
+    total += noise2D(x * 2.0, y * 2.0) * p;
+    total += noise2D(x * 4.0, y * 4.0) * p2;
+    return total / (1.0 + p + p2);
+}
+
+float fBM2D_4O(float x, float y, float p) {
+    float p2 = p * p;
+    float p3 = p2 * p;
+    float total = noise2D(x, y) * 1.0;
+    total += noise2D(x * 2.0, y * 2.0) * p;
+    total += noise2D(x * 4.0, y * 4.0) * p2;
+    total += noise2D(x * 8.0, y * 8.0) * p3;
+    return total / (1.0 + p + p2 + p3);
+}
+
+float fBM2D_5O(float x, float y, float p) {
+    float p2 = p * p;
+    float p3 = p2 * p;
+    float p4 = p3 * p;
+    float total = noise2D(x, y) * 1.0;
+    total += noise2D(x * 2.0, y * 2.0) * p;
+    total += noise2D(x * 4.0, y * 4.0) * p2;
+    total += noise2D(x * 8.0, y * 8.0) * p3;
+    total += noise2D(x * 16.0, y * 16.0) * p4;
+    return total / (1.0 + p + p2 + p3 + p4);
+}
+
+#endif

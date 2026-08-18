@@ -1,0 +1,181 @@
+#ifndef RL_SHADER_WORLEY_NOISE_GLSL
+#define RL_SHADER_WORLEY_NOISE_GLSL
+
+vec2 worleyHash(vec2 p) {
+    p = vec2(dot(p, vec2(127.1, 311.7)),
+            dot(p, vec2(269.5, 183.3)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
+vec3 worleyHash(vec3 p) {
+    p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+            dot(p, vec3(269.5, 183.3, 246.1)),
+            dot(p, vec3(113.5, 271.9, 124.6)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
+float worleyNoise2D(vec2 uv) {
+    vec2 i_st = floor(uv);
+    vec2 f_st = fract(uv);
+
+    float minDist = 1.0;
+
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 neighbor = vec2(float(x), float(y));
+            vec2 point = worleyHash(i_st + neighbor);
+            point = 0.5 + 0.5 * sin(6.2831 * point); // Map to [0,1]
+            vec2 diff = neighbor + point - f_st;
+            float dist = length(diff);
+            minDist = min(minDist, dist);
+        }
+    }
+
+    return minDist;
+}
+
+float worleyNoise3D(vec3 uv) {
+    vec3 i_st = floor(uv);
+    vec3 f_st = fract(uv);
+
+    float minDist = 1.0;
+
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                vec3 neighbor = vec3(float(x), float(y), float(z));
+                vec3 point = worleyHash(i_st + neighbor);
+                point = 0.5 + 0.5 * sin(6.2831 * point); // Map to [0,1]
+                vec3 diff = neighbor + point - f_st;
+                float dist = length(diff);
+                minDist = min(minDist, dist);
+            }
+        }
+    }
+
+    return minDist;
+}
+
+vec3 worleyNoiseF1F2F3_2D(vec2 uv) {
+    vec2 i_st = floor(uv);
+    vec2 f_st = fract(uv);
+
+    float d1 = 1.0, d2 = 1.0, d3 = 1.0;
+
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 neighbor = vec2(float(x), float(y));
+            vec2 point = worleyHash(i_st + neighbor);
+            point = 0.5 + 0.5 * sin(6.2831 * point);
+            vec2 diff = neighbor + point - f_st;
+            float dist = length(diff);
+
+            if (dist < d1) {
+                d3 = d2;
+                d2 = d1;
+                d1 = dist;
+            } else if (dist < d2) {
+                d3 = d2;
+                d2 = dist;
+            } else if (dist < d3) {
+                d3 = dist;
+            }
+        }
+    }
+
+    return vec3(d1, d2, d3);
+}
+
+vec3 worleyNoiseF1F2F3_3D(vec3 uv) {
+    vec3 i_st = floor(uv);
+    vec3 f_st = fract(uv);
+
+    float d1 = 1.0, d2 = 1.0, d3 = 1.0;
+
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                vec3 neighbor = vec3(float(x), float(y), float(z));
+                vec3 point = worleyHash(i_st + neighbor);
+                point = 0.5 + 0.5 * sin(6.2831 * point);
+                vec3 diff = neighbor + point - f_st;
+                float dist = length(diff);
+
+                if (dist < d1) {
+                    d3 = d2;
+                    d2 = d1;
+                    d1 = dist;
+                } else if (dist < d2) {
+                    d3 = d2;
+                    d2 = dist;
+                } else if (dist < d3) {
+                    d3 = dist;
+                }
+            }
+        }
+    }
+
+    return vec3(d1, d2, d3);
+}
+
+float worleyNoiseF2MinusF1_2D(vec2 uv) {
+    vec3 distances = worleyNoiseF1F2F3_2D(uv);
+    return distances.y - distances.x;
+}
+
+float worleyNoiseF2MinusF1_3D(vec3 uv) {
+    vec3 distances = worleyNoiseF1F2F3_3D(uv);
+    return distances.y - distances.x;
+}
+
+float worleyNoiseSmooth2D(vec2 uv) {
+    vec2 i_st = floor(uv);
+    vec2 f_st = fract(uv);
+
+    float sum = 0.0;
+    float weightSum = 0.0;
+
+    for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+            vec2 neighbor = vec2(float(x), float(y));
+            vec2 point = worleyHash(i_st + neighbor);
+            point = 0.5 + 0.5 * sin(6.2831 * point);
+            vec2 diff = neighbor + point - f_st;
+            float dist = length(diff);
+
+            float weight = 1.0 / (dist * dist + 0.01);
+            sum += weight;
+            weightSum += weight;
+        }
+    }
+
+    return sum / weightSum;
+}
+
+float worleyNoiseSmooth3D(vec3 uv) {
+    vec3 i_st = floor(uv);
+    vec3 f_st = fract(uv);
+
+    float sum = 0.0;
+    float weightSum = 0.0;
+
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                vec3 neighbor = vec3(float(x), float(y), float(z));
+                vec3 point = worleyHash(i_st + neighbor);
+                point = 0.5 + 0.5 * sin(6.2831 * point);
+                vec3 diff = neighbor + point - f_st;
+                float dist = length(diff);
+
+                float weight = 1.0 / (dist * dist + 0.01);
+                sum += weight;
+                weightSum += weight;
+            }
+        }
+    }
+
+    return sum / weightSum;
+}
+
+#endif

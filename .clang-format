@@ -1,5 +1,5 @@
 Language: Cpp
-BasedOnStyle: LLVM
+BasedOnStyle: GNU
 AccessModifierOffset: -4
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
@@ -9,16 +9,11 @@ AlignOperands: true
 AlignTrailingComments: false
 AlignConsecutiveBitFields: true
 AlignConsecutiveMacros: true
-AllowShortBlocksOnASingleLine: Never
-AllowBreakBeforeNoexceptSpecifier: Always
-AlwaysBreakTemplateDeclarations: Yes
-BreakInheritanceList: AfterComma
-BreakTemplateDeclarations: MultiLine
+AllowShortBlocksOnASingleLine: Always
 Cpp11BracedListStyle: true
 BinPackArguments: true
 BinPackParameters: false
 SortIncludes: Never
-IncludeBlocks: Preserve
 PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyExcessCharacter: 1000
 PackConstructorInitializers: BinPack
@@ -43,7 +38,7 @@ BraceWrapping:
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: AfterColon
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 100
+ColumnLimit: 110
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 IncludeCategories:
   - Regex: '^<.*'
@@ -54,7 +49,7 @@ IncludeCategories:
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseBlocks: true
-IndentWidth: 2
+IndentWidth: 8
 IndentAccessModifiers: true
 InsertNewlineAtEOF: true
 MacroBlockBegin: ''
@@ -67,7 +62,5 @@ SpacesInAngles: false
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-TabWidth: 2
+TabWidth: 8
 UseTab: Never
-Standard: c++20
-...

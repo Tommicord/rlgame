@@ -1,0 +1,401 @@
+#version 450
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_atomic_int64 : require
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
+
+// Input vertex for triangulation
+struct MeshVertex
+{
+    vec3 position;
+    vec3 normal;
+    vec2 uv;
+};
+
+layout(std430, binding = 0) readonly buffer InputVertexBuffer
+{
+    MeshVertex inputVertices[];
+};
+
+layout(std430, binding = 1) buffer OutputIndexBuffer
+{
+    uint indices[];
+};
+
+layout(std430, binding = 2) buffer CountBuffer
+{
+    uint indexCount;
+};
+
+layout(std430, binding = 3) buffer FaceStartBuffer
+{
+    uint faceStartIndices[];
+};
+
+layout(std430, binding = 4) buffer EdgeFlipBuffer
+{
+    uint edgeFlipCount;
+};
+
+layout(push_constant) uniform DelaunayPushConstants
+{
+    uint inputVertexCount;
+    uint maxIndices;
+    uint subdivisions;
+    uint width;
+    uint height;
+    uint depth;
+    uint maxIterations;
+    uint _padding[1];
+} pc;
+
+struct Triangle
+{
+    uint v0;
+    uint v1;
+    uint v2;
+    vec2 circumcenter;
+    float circumradius2;
+    uint activeFlag; // 0 = inactive, 1 = active
+};
+
+shared Triangle triangles[1024];
+shared uint triangleCount;
+shared vec2 sharedUVs[256]; // Cache UV coordinates
+shared uint badTriangleMask[16]; // Bitmask for bad triangles (256 bits)
+shared uint newTriangleCount;
+
+void computeCircumcircle(vec2 p0, vec2 p1, vec2 p2,
+        out vec2 circumcenter, out float circumradius2)
+{
+    vec2 a = p0;
+    vec2 b = p1;
+    vec2 c = p2;
+
+    vec2 ab = b - a;
+    vec2 ac = c - a;
+
+    float d = 2.0 * (ab.x * ac.y - ab.y * ac.x);
+
+    float invD = mix(0.0, 1.0 / d, abs(d) > 1e-6);
+
+    vec2 midAB = a + b * 0.5;
+    vec2 midAC = a + c * 0.5;
+
+    vec2 dirAB = vec2(-ab.y, ab.x);
+    vec2 dirAC = vec2(-ac.y, ac.x);
+
+    float t = dot(midAC - midAB, dirAC) / dot(dirAB, dirAC) * invD;
+
+    circumcenter = midAB + dirAB * t;
+    circumradius2 = dot(circumcenter - a, circumcenter - a);
+}
+
+float isPointInCircumcircle(vec2 point, vec2 circumcenter, float circumradius2)
+{
+    vec2 diff = point - circumcenter;
+    float dist2 = dot(diff, diff);
+    return step(dist2, circumradius2); // Returns 1.0 if inside, 0.0 if outside
+}
+
+// Check if edge is locally Delaunay using in-circle test
+bool isEdgeLocallyDelaunay(uint v0, uint v1, uint vOpposite, uint vTest, uint faceStartVertex)
+{
+    uint idx0 = faceStartVertex + v0;
+    uint idx1 = faceStartVertex + v1;
+    uint idxOpp = faceStartVertex + vOpposite;
+    uint idxTest = faceStartVertex + vTest;
+
+    if (idx0 >= pc.inputVertexCount || idx1 >= pc.inputVertexCount ||
+        idxOpp >= pc.inputVertexCount || idxTest >= pc.inputVertexCount)
+    return true;
+
+    vec2 p0 = inputVertices[idx0].uv;
+    vec2 p1 = inputVertices[idx1].uv;
+    vec2 pOpp = inputVertices[idxOpp].uv;
+    vec2 pTest = inputVertices[idxTest].uv;
+
+    // Compute circumcircle of triangle (v0, v1, vOpposite)
+    vec2 circumcenter;
+    float circumradius2;
+    computeCircumcircle(p0, p1, pOpp, circumcenter, circumradius2);
+
+    // Check if test point is outside circumcircle (Delaunay condition)
+    float inCircle = isPointInCircumcircle(pTest, circumcenter, circumradius2);
+    return inCircle < 0.5; // True if outside (Delaunay)
+}
+
+// Perform edge flip between two adjacent triangles
+void performEdgeFlip(uint triA, uint triB, uint sharedEdgeV0, uint sharedEdgeV1)
+{
+    // Original triangles share edge (sharedEdgeV0, sharedEdgeV1)
+    // Triangle A: (sharedEdgeV0, sharedEdgeV1, vA)
+    // Triangle B: (sharedEdgeV0, sharedEdgeV1, vB)
+    // After flip: (sharedEdgeV0, vA, vB) and (sharedEdgeV1, vA, vB)
+
+    uint vA = triangles[triA].v2; // Opposite vertex in triangle A
+    uint vB = triangles[triB].v2; // Opposite vertex in triangle B
+
+    // Find which vertices are opposite the shared edge
+    if (triangles[triA].v0 == sharedEdgeV0 || triangles[triA].v0 == sharedEdgeV1)
+    {
+        if (triangles[triA].v1 == sharedEdgeV0 || triangles[triA].v1 == sharedEdgeV1)
+        vA = triangles[triA].v2;
+        else
+        vA = triangles[triA].v1;
+    }
+    else
+    {
+        vA = triangles[triA].v0;
+    }
+
+    if (triangles[triB].v0 == sharedEdgeV0 || triangles[triB].v0 == sharedEdgeV1)
+    {
+        if (triangles[triB].v1 == sharedEdgeV0 || triangles[triB].v1 == sharedEdgeV1)
+        vB = triangles[triB].v2;
+        else
+        vB = triangles[triB].v1;
+    }
+    else
+    {
+        vB = triangles[triB].v0;
+    }
+
+    // Perform the flip
+    triangles[triA].v0 = sharedEdgeV0;
+    triangles[triA].v1 = vA;
+    triangles[triA].v2 = vB;
+
+    triangles[triB].v0 = sharedEdgeV1;
+    triangles[triB].v1 = vA;
+    triangles[triB].v2 = vB;
+
+    vec2 p0 = (sharedEdgeV0 < pc.inputVertexCount) ? inputVertices[sharedEdgeV0].uv : vec2(0.0);
+    vec2 p1 = (vA < pc.inputVertexCount) ? inputVertices[vA].uv : vec2(0.0);
+    vec2 p2 = (vB < pc.inputVertexCount) ? inputVertices[vB].uv : vec2(0.0);
+    computeCircumcircle(p0, p1, p2, triangles[triA].circumcenter, triangles[triA].circumradius2);
+
+    p0 = (sharedEdgeV1 < pc.inputVertexCount) ? inputVertices[sharedEdgeV1].uv : vec2(0.0);
+    computeCircumcircle(p0, p1, p2, triangles[triB].circumcenter, triangles[triB].circumradius2);
+}
+
+// Parallel edge flipping for Delaunay property
+void flipEdges(uint faceStartVertex, uint faceVertexCount)
+{
+    uint localId = gl_LocalInvocationID.x;
+    uint workgroupSize = gl_WorkGroupSize.x;
+
+    // Each thread checks one edge for Delaunay property
+    // We check edges between adjacent triangles
+    for (uint edgeIdx = localId; edgeIdx < triangleCount * 3; edgeIdx += workgroupSize)
+    {
+        uint triIdx = edgeIdx / 3;
+        uint edgeNum = edgeIdx % 3;
+
+        if (triIdx >= triangleCount || triangles[triIdx].activeFlag == 0)
+        continue;
+
+        Triangle tri = triangles[triIdx];
+
+        uint ev0, ev1, vOpp;
+        if (edgeNum == 0) { ev0 = tri.v0; ev1 = tri.v1; vOpp = tri.v2; }
+        else if (edgeNum == 1) { ev0 = tri.v1; ev1 = tri.v2; vOpp = tri.v0; }
+        else { ev0 = tri.v2; ev1 = tri.v0; vOpp = tri.v1; }
+
+        int adjTriIdx = -1;
+        uint adjVOpp = 0;
+
+        uint searchStart = (triIdx > 0) ? triIdx - 1 : 0;
+        uint searchEnd = min(triIdx + 2, triangleCount);
+
+        for (uint t = searchStart; t < searchEnd; ++t)
+        {
+            if (t == triIdx || triangles[t].activeFlag == 0)
+            continue;
+
+            Triangle other = triangles[t];
+            bool sharesEdge = false;
+            uint otherVOpp = 0;
+
+            if ((other.v0 == ev0 && other.v1 == ev1) || (other.v1 == ev0 && other.v0 == ev1))
+            {
+                sharesEdge = true;
+                otherVOpp = other.v2;
+            }
+            else if ((other.v1 == ev0 && other.v2 == ev1) || (other.v2 == ev0 && other.v1 == ev1))
+            {
+                sharesEdge = true;
+                otherVOpp = other.v0;
+            }
+            else if ((other.v2 == ev0 && other.v0 == ev1) || (other.v0 == ev0 && other.v2 == ev1))
+            {
+                sharesEdge = true;
+                otherVOpp = other.v1;
+            }
+
+            if (sharesEdge)
+            {
+                adjTriIdx = int(t);
+                adjVOpp = otherVOpp;
+                break;
+            }
+        }
+
+        // If we found an adjacent triangle, check if edge is Delaunay
+        if (adjTriIdx >= 0)
+        {
+            // Check if opposite vertex of adjacent triangle is inside circumcircle
+            vec2 pOpp = (vOpp < pc.inputVertexCount) ? inputVertices[vOpp].uv : vec2(0.0);
+            vec2 pAdjOpp = (adjVOpp < pc.inputVertexCount) ? inputVertices[adjVOpp].uv : vec2(0.0);
+            vec2 pEv0 = (ev0 < pc.inputVertexCount) ? inputVertices[ev0].uv : vec2(0.0);
+            vec2 pEv1 = (ev1 < pc.inputVertexCount) ? inputVertices[ev1].uv : vec2(0.0);
+
+            vec2 circumcenter;
+            float circumradius2;
+            computeCircumcircle(pEv0, pEv1, pOpp,
+                    circumcenter, circumradius2);
+
+            float inCircle = isPointInCircumcircle(pAdjOpp, circumcenter, circumradius2);
+
+            // If point is inside circumcircle, edge is not Delaunay
+            if (inCircle > 0.5)
+            {
+                // Perform edge flip (only if triIdx < adjTriIdx to avoid double flips)
+                if (triIdx < uint(adjTriIdx))
+                {
+                    performEdgeFlip(triIdx, uint(adjTriIdx), ev0, ev1);
+                    atomicAdd(edgeFlipCount, 1);
+                }
+            }
+        }
+    }
+}
+
+void triangulateFace(uint faceIndex, uint faceStartVertex, uint faceVertexCount)
+{
+    uint localId = gl_LocalInvocationID.x;
+    uint workgroupSize = gl_WorkGroupSize.x;
+
+    for (uint i = localId; i < min(faceVertexCount, 256u); i += workgroupSize)
+    {
+        uint vertexIdx = faceStartVertex + i;
+        if (vertexIdx < pc.inputVertexCount)
+        sharedUVs[i] = inputVertices[vertexIdx].uv;
+    }
+    barrier();
+
+    if (localId == 0)
+    {
+        triangleCount = 0;
+        newTriangleCount = 0;
+    }
+    barrier();
+
+    uint vertsPerEdge = pc.subdivisions + 1;
+    uint quadsPerEdge = pc.subdivisions;
+
+    for (uint quadIdx = localId; quadIdx < quadsPerEdge * quadsPerEdge; quadIdx += workgroupSize)
+    {
+        uint qx = quadIdx % quadsPerEdge;
+        uint qy = quadIdx / quadsPerEdge;
+
+        uint v0 = qy * vertsPerEdge + qx;
+        uint v1 = v0 + 1;
+        uint v2 = (qy + 1) * vertsPerEdge + qx;
+        uint v3 = v2 + 1;
+
+        if (v3 < faceVertexCount)
+        {
+            // Create two triangles from quad
+            uint triIdx = atomicAdd(triangleCount, 2);
+
+            if (triIdx < 1024)
+            {
+                // Triangle 1: v0, v1, v2
+                triangles[triIdx].v0 = faceStartVertex + v0;
+                triangles[triIdx].v1 = faceStartVertex + v1;
+                triangles[triIdx].v2 = faceStartVertex + v2;
+                triangles[triIdx].activeFlag = 1;
+                computeCircumcircle(sharedUVs[v0], sharedUVs[v1], sharedUVs[v2],
+                        triangles[triIdx].circumcenter, triangles[triIdx].circumradius2);
+
+                // Triangle 2: v1, v3, v2
+                triangles[triIdx + 1].v0 = faceStartVertex + v1;
+                triangles[triIdx + 1].v1 = faceStartVertex + v3;
+                triangles[triIdx + 1].v2 = faceStartVertex + v2;
+                triangles[triIdx + 1].activeFlag = 1;
+                computeCircumcircle(sharedUVs[v1], sharedUVs[v3], sharedUVs[v2],
+                        triangles[triIdx + 1].circumcenter, triangles[triIdx + 1].circumradius2);
+            }
+        }
+    }
+    barrier();
+
+    // Iterative edge flipping to achieve Delaunay property
+    for (uint iter = 0; iter < pc.maxIterations; ++iter)
+    {
+        if (localId == 0)
+        {
+            edgeFlipCount = 0;
+        }
+        barrier();
+
+        flipEdges(faceStartVertex, faceVertexCount);
+        barrier();
+
+        // Early termination if no flips needed
+        if (edgeFlipCount == 0)
+        break;
+
+        // Perform edge flips
+        // This is a placeholder for the actual edge flipping logic
+        barrier();
+    }
+
+    uint localTriCount = (triangleCount + workgroupSize - 1) / workgroupSize;
+    uint startTri = localId * localTriCount;
+    uint endTri = min(startTri + localTriCount, triangleCount);
+
+    for (uint i = startTri; i < endTri; ++i)
+    {
+        if (triangles[i].activeFlag == 1)
+        {
+            uint outputOffset = atomicAdd(indexCount, 3);
+            if (outputOffset + 2 < pc.maxIndices)
+            {
+                indices[outputOffset] = triangles[i].v0;
+                // Clamp indices to valid range to prevent out-of-bounds access
+                indices[outputOffset + 1] = min(triangles[i].v1, pc.inputVertexCount - 1);
+                indices[outputOffset + 2] = min(triangles[i].v2, pc.inputVertexCount - 1);
+            }
+        }
+    }
+}
+
+void main()
+{
+    uint unitX = gl_GlobalInvocationID.x;
+    uint unitY = gl_GlobalInvocationID.y;
+    uint unitZ = gl_GlobalInvocationID.z;
+
+    if (unitX >= pc.width || unitY >= pc.height || unitZ >= pc.depth)
+    return;
+
+    uint unitIndex = unitZ * (pc.height * pc.width) + unitY * pc.width + unitX;
+
+    uint vertsPerEdge = pc.subdivisions + 1;
+    uint faceVertexCount = vertsPerEdge * vertsPerEdge;
+
+    // Process all 6 faces of this unit
+    for (uint faceIdx = 0; faceIdx < 6; ++faceIdx)
+    {
+        uint globalFaceId = unitIndex * 6 + faceIdx;
+        uint faceStartVertex = globalFaceId * faceVertexCount;
+
+        if (faceStartVertex >= pc.inputVertexCount)
+        continue;
+
+        triangulateFace(globalFaceId, faceStartVertex, faceVertexCount);
+    }
+}

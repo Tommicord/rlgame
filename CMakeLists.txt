@@ -1,10 +1,22 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(rlgame LANGUAGES CXX)
+project(rlgame LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_OUTPUT)
+if(IPO_SUPPORTED)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  message(STATUS "Link Time Optimization (LTO) enabled")
+else()
+  message(WARNING "IPO/LTO is not supported: ${IPO_OUTPUT}")
+endif()
 
 if (WIN32)
   add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
@@ -14,16 +26,21 @@ elseif (UNIX)
   add_compile_definitions(VK_USE_PLATFORM_XCB_KHR)
 endif ()
 
-add_compile_definitions(_RL_CHUNK_VULKAN_BACKEND)
+add_compile_definitions(_R_CHUNK_VULKAN_BACKEND)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_definitions(_R_DEVMODE)
+  message(STATUS "Development mode enabled")
+endif ()
 
 if (MSVC)
-  add_compile_definitions(_RL_COMPILER_MSVC)
+  add_compile_definitions(_R_COMPILER_MSVC)
   message(STATUS "Compiler: MSVC detected")
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  add_compile_definitions(_RL_COMPILER_GCC)
+elseif (CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_definitions(_R_COMPILER_GCC)
   message(STATUS "Compiler: GCC detected")
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_definitions(_RL_COMPILER_CLANG)
+elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
+  add_compile_definitions(_R_COMPILER_CLANG)
   message(STATUS "Compiler: Clang detected")
 else ()
   message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -35,9 +52,8 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
 elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
   message(STATUS "Target architecture x86/x86-64")
   
-  # Check for AVX2 support
-  include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("
+  include(CheckCSourceCompiles)
+  check_c_source_compiles("
     #include <immintrin.h>
     int main() {
       __m256i test = _mm256_set1_epi32(0);
@@ -47,7 +63,7 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
   
   if (HAS_AVX2)
     message(STATUS "AVX2 SIMD enabled")
-    add_compile_definitions(_RL_SIMD_AVX2)
+    add_compile_definitions(_R_SIMD_AVX2)
     if(MSVC)
       add_compile_options(/arch:AVX2)
     else()
@@ -55,7 +71,7 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
     endif()
   else()
     # Check for SSE support
-    check_cxx_source_compiles("
+    check_c_source_compiles("
       #include <immintrin.h>
       int main() {
         __m128i test = _mm_set1_epi32(0);
@@ -65,7 +81,7 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
     
     if (HAS_SSE)
       message(STATUS "SSE SIMD enabled")
-      add_compile_definitions(_RL_SIMD_SSE)
+      add_compile_definitions(_R_SIMD_SSE)
       if(MSVC)
         add_compile_options(/arch:SSE2)
       else()
@@ -75,16 +91,14 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
       message(WARNING "No SIMD support detected for x86 architecture")
     endif()
   endif()
-  
-  # Always set x86 SIMD flag for generic x86 code
-  add_compile_definitions(_RL_SIMD_X86)
+
+  add_compile_definitions(_R_SIMD_X86)
 else ()
   message(WARNING "Unknown target architecture ${CMAKE_SYSTEM_PROCESSOR}; SIMD optimizations disabled")
 endif ()
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
 
-# Check for RenderDoc in PATH for debugging integration
 find_program(RENDERDOC_EXE renderdoccmd DOC "RenderDoc command line tool")
 if(RENDERDOC_EXE)
   message(STATUS "RenderDoc found: ${RENDERDOC_EXE}")
@@ -96,7 +110,7 @@ endif()
 
 function(target_add_renderdoc TARGET)
   if(RENDERDOC_FOUND AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(${TARGET} PRIVATE _RL_RENDERDOC_ENABLE)
+    target_compile_definitions(${TARGET} PRIVATE _R_RENDERDOC_ENABLE)
     
     get_filename_component(RENDERDOC_DIR "${RENDERDOC_EXE}" ABSOLUTE PATH)
     get_filename_component(RENDERDOC_DIR "${RENDERDOC_DIR}" ABSOLUTE PATH)
@@ -115,23 +129,51 @@ function(target_add_renderdoc TARGET)
   endif()
 endfunction()
 
+include(FetchContent)
+
+FetchContent_Declare(
+  googlebenchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG        v1.9.2
+)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_USE_BUNDLED_GTEST OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googlebenchmark)
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 add_subdirectory(deps/gtest)
 include(GoogleTest)
 
-file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/**/*.cpp)
+file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/**/*.c)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS src/**/*.h)
 
-list(FILTER ALL_SOURCES EXCLUDE REGEX ".*Main\\.cpp$")
-add_library(rlgame_lib STATIC ${ALL_SOURCES} ${HEADERS})
+list(FILTER ALL_SOURCES EXCLUDE REGEX ".*main\\.c$")
+add_library(rlgame_lib SHARED ${ALL_SOURCES} ${HEADERS})
+
+set_target_properties(
+  rlgame_lib 
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+)
+
+target_compile_definitions(rlgame_lib PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+target_compile_definitions(rlgame_lib PRIVATE R_CSTL_BUILDING_DLL)
+
+get_directory_property(DIR_DEFS COMPILE_DEFINITIONS)
 
 target_include_directories(
   rlgame_lib
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/deps/stb
   ${CMAKE_CURRENT_BINARY_DIR}/.shader
 )
 target_link_libraries(
@@ -139,9 +181,15 @@ target_link_libraries(
   PUBLIC
   Vulkan::Vulkan
 )
-target_add_renderdoc(rlgame_lib)
 
-set(MAIN_SOURCE src/Rl.Base/Main.cpp)
+if (WIN32)
+  target_link_libraries(rlgame_lib PUBLIC dbghelp)
+elseif (UNIX AND NOT APPLE)
+  target_link_options(rlgame_lib PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
+endif()
+# target_add_renderdoc(rlgame_lib)
+
+set(MAIN_SOURCE src/rlgame.base/main.c)
 if(NOT WIN32)
   add_executable(rlgame ${MAIN_SOURCE})
 else()
@@ -180,24 +228,23 @@ elseif (WIN32)
 endif ()
 
 set(SHADERS
-  src/Rl.Shader/Triangle.frag
-  src/Rl.Shader/Triangle.vert
-  src/Rl.Shader/Triangle3d.frag
-  src/Rl.Shader/Triangle3d.vert
-  src/Rl.Shader/Simplex.comp
-  src/Rl.Shader/WorldHeightmap.comp
-  src/Rl.Shader/WorldClimate.comp
-  src/Rl.Shader/WorldUnitPlace.comp
-  src/Rl.Shader/WorldMeshGen.comp
-  src/Rl.Shader/WorldMeshGen.vert
-  src/Rl.Shader/WorldMeshGen.frag
-  src/Rl.Shader/WorldMeshTess.comp
-  src/Rl.Shader/WorldMeshIndexDedup.comp
-  src/Rl.Shader/WorldMeshDelaunay2D.comp
-  src/Rl.Shader/WorldMeshTessNoOcclusion.comp
-  src/Rl.Shader/WorldOcclusionCull.comp
-  src/Rl.Shader/FullscreenQuad.vert
-  src/Rl.Shader/FullscreenQuad.frag
+  src/rlgame.shader/Triangle.frag
+  src/rlgame.shader/Triangle.vert
+  src/rlgame.shader/Triangle3d.frag
+  src/rlgame.shader/Triangle3d.vert
+  src/rlgame.shader/Simplex.comp
+  src/rlgame.shader/WorldHeightmap.comp
+  src/rlgame.shader/WorldClimate.comp
+  src/rlgame.shader/WorldUnitPlace.comp
+  src/rlgame.shader/WorldMeshGen.comp
+  src/rlgame.shader/WorldMeshGen.vert
+  src/rlgame.shader/WorldMeshGen.frag
+  src/rlgame.shader/WorldMeshGenGeom.comp
+  src/rlgame.shader/WorldMeshDelaunay2D.comp
+  src/rlgame.shader/WorldMeshGenGeomNoOcclusion.comp
+  src/rlgame.shader/WorldOcclusionCull.comp
+  src/rlgame.shader/ClientFullscreenQuad.vert
+  src/rlgame.shader/ClientFullscreenQuad.frag
 )
 
 enable_testing()
@@ -221,10 +268,12 @@ target_include_directories(
 target_link_libraries(
   rlgame_test
   PRIVATE
-  GTest::gtest
+  GTest::gtest_main
   rlgame_lib
 )
-target_add_renderdoc(rlgame_test)
+# Debug macros and ASan for test target
+target_compile_definitions(rlgame_test PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+# target_add_renderdoc(rlgame_test)
 
 # Platform-specific libraries for test target
 if (UNIX AND NOT APPLE)
@@ -246,15 +295,40 @@ endif ()
 set_target_properties(
   rlgame_test 
   PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
   RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
 )
 
 gtest_discover_tests(rlgame_test)
 
-set(
-  EXTERN_IMPL
-  STB_IMAGE_IMPLEMENTATION
+file(
+  GLOB_RECURSE
+    BENCH_SOURCES
+  CONFIGURE_DEPENDS
+    benchmarks/*.cpp
+)
+
+add_executable(rlgame_bench ${BENCH_SOURCES})
+
+target_include_directories(
+  rlgame_bench
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(
+  rlgame_bench
+  PRIVATE
+  benchmark::benchmark
+  benchmark::benchmark_main
+  rlgame_lib
+)
+
+set_target_properties(
+  rlgame_bench
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
 )
 
 target_compile_definitions(
@@ -262,6 +336,13 @@ target_compile_definitions(
   PRIVATE
   ${EXTERN_IMPL}
 )
+
+# Apply debug macro and ASan flags to executable and test target as well
+target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+if (NOT MSVC)
+  target_compile_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address;-fno-omit-frame-pointer>)
+  target_link_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+endif()
 
 function(target_add_resource TARGET)
   set(options)
@@ -316,7 +397,7 @@ endfunction()
 
 set(SPV_OUTPUTS "")
 set(EMBEDDED_HEADERS "")
-set(EMBEDDED_CPPS "")
+set(EMBEDDED_CFILES "")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(GLSLC_DEBUG_FLAGS -g)
@@ -344,17 +425,18 @@ foreach (SHADER IN LISTS SHADERS)
     EXT)
   string(REPLACE "." "_" SHADER_VAR_NAME "${SHADER_NAME}")
 
-  string(RANDOM LENGTH 16 RANDOM_NAME)
+  string(RANDOM LENGTH 32 RANDOM_NAME)
   string(
     UUID EMBEDDED_UUID
     NAMESPACE ${UUID_NAMESPACE} 
     NAME ${RANDOM_NAME} 
-    TYPE MD5
+    TYPE SHA1
+    UPPER
   )
   
   set(SPV "${CMAKE_CURRENT_BINARY_DIR}/.shader/spv/${SHADER_NAME}.spv")
   set(EMBEDDED_HEADER "${CMAKE_CURRENT_BINARY_DIR}/.shader/${RANDOM_NAME}.h")
-  set(EMBEDDED_CPP "${CMAKE_CURRENT_BINARY_DIR}/.shader/${RANDOM_NAME}.cpp")
+  set(EMBEDDED_CFILE "${CMAKE_CURRENT_BINARY_DIR}/.shader/${RANDOM_NAME}.cpp")
   
   add_custom_command(
     OUTPUT "${SPV}"
@@ -366,9 +448,9 @@ foreach (SHADER IN LISTS SHADERS)
   )
   
   add_custom_command(
-    OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CPP}"
+    OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CFILE}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.shader/"
-    COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${SPV} -DOUTPUT_H=${EMBEDDED_HEADER} -DOUTPUT_CPP=${EMBEDDED_CPP} -DVARIABLE_NAME=${SHADER_VAR_NAME} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedBinary.cmake"
+    COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${SPV} -DOUTPUT_H=${EMBEDDED_HEADER} -DOUTPUT_C=${EMBEDDED_CFILE} -DVARIABLE_NAME=${SHADER_VAR_NAME} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedBinary.cmake"
     DEPENDS "${SPV}"
     COMMENT "Embedding ${SHADER_NAME}"
     VERBATIM
@@ -376,8 +458,8 @@ foreach (SHADER IN LISTS SHADERS)
   
   list(APPEND SPV_OUTPUTS "${SPV}")
   list(APPEND EMBEDDED_HEADERS "${EMBEDDED_HEADER}")
-  list(APPEND EMBEDDED_CPPS "${EMBEDDED_CPP}")
+  list(APPEND EMBEDDED_CPPS "${EMBEDDED_CFILE}")
 endforeach ()
 
 target_sources(rlgame_lib PRIVATE ${EMBEDDED_HEADERS})
-target_sources(rlgame_lib PRIVATE ${EMBEDDED_CPPS})
+target_sources(rlgame_lib PRIVATE ${EMBEDDED_CFILES})

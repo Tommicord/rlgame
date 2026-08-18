@@ -1,6 +1,0 @@
-[submodule "Deps/stb"]
-	path = Deps/stb
-	url = https://github.com/nothings/stb.git
-[submodule "Deps/gtest"]
-	path = Deps/gtest
-	url = https://github.com/google/googletest.git
