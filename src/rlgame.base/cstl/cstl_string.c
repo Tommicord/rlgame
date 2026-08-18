@@ -10,15 +10,15 @@
 #include <stdarg.h>
 
 #if defined(_R_SIMD_AVX2)
-        #include <immintrin.h>
+#include <immintrin.h>
 #elif defined(_R_SIMD_SSE)
-        #include <immintrin.h>
+#include <immintrin.h>
 #elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
-        #include <arm_neon.h>
+#include <arm_neon.h>
 #endif
 
 #if defined(_MSC_VER)
-        #include <intrin.h>
+#include <intrin.h>
 
 R_CSTL_API_ATTR static unsigned int
 R_CSTL_CountTrailingZeros (unsigned int value)
@@ -36,11 +36,11 @@ R_CSTL_CountTrailingZeros64 (unsigned long long value)
                 return (unsigned int)index;
         return 64;
 }
-        #define R_CSTL_CTZ(v)   R_CSTL_CountTrailingZeros (v)
-        #define R_CSTL_CTZLL(v) R_CSTL_CountTrailingZeros64 (v)
+#define R_CSTL_CTZ(v)   R_CSTL_CountTrailingZeros (v)
+#define R_CSTL_CTZLL(v) R_CSTL_CountTrailingZeros64 (v)
 #else
-        #define R_CSTL_CTZ(v)   __builtin_ctz (v)
-        #define R_CSTL_CTZLL(v) __builtin_ctzll (v)
+#define R_CSTL_CTZ(v)   __builtin_ctz (v)
+#define R_CSTL_CTZLL(v) __builtin_ctzll (v)
 #endif
 #define R_CSTL_STRING_SBO_SIZE 24
 
@@ -135,7 +135,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
         if (sizeBytes >= 32)
         {
                 __m256i vec = _mm256_set1_epi8 (value);
-                size_t  i   = 0;
+                size_t  i = 0;
                 for (; i + 32 <= sizeBytes; i += 32)
                 {
                         _mm256_storeu_si256 ((__m256i*)(pDst + i), vec);
@@ -148,7 +148,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
         if (sizeBytes >= 16)
         {
                 __m128i vec = _mm_set1_epi8 (value);
-                size_t  i   = 0;
+                size_t  i = 0;
                 for (; i + 16 <= sizeBytes; i += 16)
                 {
                         _mm_storeu_si128 ((__m128i*)(pDst + i), vec);
@@ -161,7 +161,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
         if (sizeBytes >= 16)
         {
                 uint8x16_t vec = vdupq_n_u8 ((uint8_t)value);
-                size_t     i   = 0;
+                size_t     i = 0;
                 for (; i + 16 <= sizeBytes; i += 16)
                 {
                         vst1q_u8 ((uint8_t*)(pDst + i), vec);
@@ -203,11 +203,11 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
         if (length >= 32)
         {
                 __m256i target = _mm256_set1_epi8 (ch);
-                size_t  i      = 0;
+                size_t  i = 0;
                 for (; i + 32 <= length; i += 32)
                 {
                         __m256i data = _mm256_loadu_si256 ((const __m256i*)(pData + i));
-                        __m256i cmp  = _mm256_cmpeq_epi8 (data, target);
+                        __m256i cmp = _mm256_cmpeq_epi8 (data, target);
                         int     mask = _mm256_movemask_epi8 (cmp);
                         if (mask != 0)
                         {
@@ -225,11 +225,11 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
         if (length >= 16)
         {
                 __m128i target = _mm_set1_epi8 (ch);
-                size_t  i      = 0;
+                size_t  i = 0;
                 for (; i + 16 <= length; i += 16)
                 {
                         __m128i data = _mm_loadu_si128 ((const __m128i*)(pData + i));
-                        __m128i cmp  = _mm_cmpeq_epi8 (data, target);
+                        __m128i cmp = _mm_cmpeq_epi8 (data, target);
                         int     mask = _mm_movemask_epi8 (cmp);
                         if (mask != 0)
                         {
@@ -247,11 +247,11 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
         if (length >= 16)
         {
                 uint8x16_t target = vdupq_n_u8 ((uint8_t)ch);
-                size_t     i      = 0;
+                size_t     i = 0;
                 for (; i + 16 <= length; i += 16)
                 {
                         uint8x16_t data = vld1q_u8 ((const uint8_t*)(pData + i));
-                        uint8x16_t cmp  = vceqq_u8 (data, target);
+                        uint8x16_t cmp = vceqq_u8 (data, target);
                         uint64_t   mask = vget_lane_u64 (vreinterpretq_u64_u8 (cmp), 0);
                         if (mask != 0)
                         {
@@ -304,8 +304,8 @@ R_CSTL_StringReverseBytes (char* pData, size_t length)
         while (i < j)
         {
                 char temp = pData[i];
-                pData[i]  = pData[j];
-                pData[j]  = temp;
+                pData[i] = pData[j];
+                pData[j] = temp;
                 ++i;
                 --j;
         }
@@ -313,11 +313,15 @@ R_CSTL_StringReverseBytes (char* pData, size_t length)
 
 R_CSTL_API_ATTR static char
 R_CSTL_ToLowerChar (char c)
-{ return (c >= 'A' && c <= 'Z') ? (c + 32) : c; }
+{
+        return (c >= 'A' && c <= 'Z') ? (c + 32) : c;
+}
 
 R_CSTL_API_ATTR static char
 R_CSTL_ToUpperChar (char c)
-{ return (c >= 'a' && c <= 'z') ? (c - 32) : c; }
+{
+        return (c >= 'a' && c <= 'z') ? (c - 32) : c;
+}
 
 #define R_CSTL_STRING_HEAP_ALLOC_INITIAL_CAPACITY 128
 R_CSTL_API_ATTR static size_t
@@ -344,7 +348,7 @@ R_CSTL_StringEnsureCapacityInternal (struct R_CSTL_String* pString, const size_t
                 return 0;
 
         size_t newCap = R_CSTL_StringNextCapacity (R_CSTL_GET_CAPACITY (pString->capacity), required);
-        char*  pOld   = R_CSTL_IS_STORAGE_HEAP (pString->capacity) ? pString->pData : NULL;
+        char*  pOld = R_CSTL_IS_STORAGE_HEAP (pString->capacity) ? pString->pData : NULL;
 
         if (pOld)
         {
@@ -355,13 +359,15 @@ R_CSTL_StringEnsureCapacityInternal (struct R_CSTL_String* pString, const size_t
                 if (pNew != pOld)
                 {
                         uint64_t h = R_CSTL_HeapRegisterAllocation (
-                            pString, pNew, newCap + 1,
+                            pString,
+                            pNew,
+                            newCap + 1,
                             R_CSTL_HEAP_NAME (R_CSTL_StringEnsureCapacityInternal));
                         if (h == 0)
                                 goto cstl_fail_register;
                 }
 #endif
-                pString->pData    = pNew;
+                pString->pData = pNew;
                 pString->capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
                 return 0;
         }
@@ -372,14 +378,17 @@ R_CSTL_StringEnsureCapacityInternal (struct R_CSTL_String* pString, const size_t
                         return -1;
 #if defined(R_CSTL_HEAP_DEBUG)
                 uint64_t h = R_CSTL_HeapRegisterAllocation (
-                    pString, pNew, newCap + 1, R_CSTL_HEAP_NAME (R_CSTL_StringEnsureCapacityInternal));
+                    pString,
+                    pNew,
+                    newCap + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_StringEnsureCapacityInternal));
                 if (h == 0)
                         goto cstl_fail_register;
 #endif
                 R_CSTL_StringCopyBytes (pNew, pString->sbo, pString->length);
                 pNew[pString->length] = '\0';
-                pString->pData        = pNew;
-                pString->capacity     = R_CSTL_SET_STORAGE_HEAP (newCap);
+                pString->pData = pNew;
+                pString->capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
                 return 0;
         }
 
@@ -412,9 +421,9 @@ R_CSTL_StringReleaseBuffer (struct R_CSTL_String* pString)
 
         if (R_CSTL_IS_STORAGE_HEAP (pString->capacity))
                 R_CSTL_HeapFree (pString->pData);
-        pString->pData    = NULL;
+        pString->pData = NULL;
         pString->capacity = 0;
-        pString->length   = 0;
+        pString->length = 0;
         return;
 cstl_fail:
         return;
@@ -426,15 +435,17 @@ R_CSTL_StringCreateShell (void)
         struct R_CSTL_String* pString = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (R_CSTL_String));
         if (!pString)
                 return NULL;
-        pString->length   = 0;
+        pString->length = 0;
         pString->capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
-        pString->sbo[0]   = '\0';
+        pString->sbo[0] = '\0';
         return pString;
 }
 
 R_CSTL_API_ATTR struct R_CSTL_String*
 R_CSTL_NewString (void)
-{ return R_CSTL_StringCreateShell (); }
+{
+        return R_CSTL_StringCreateShell ();
+}
 
 #define R_CSTL_STRING_STRLEN(s)                                                                              \
         const char* pDataString = (const char*)pData;                                                        \
@@ -457,8 +468,8 @@ R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
         {
                 R_CSTL_StringCopyBytes (pString->sbo, pData, length);
                 pString->sbo[length] = '\0';
-                pString->length      = length;
-                pString->capacity    = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
+                pString->length = length;
+                pString->capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
                 return pString;
         }
 
@@ -470,8 +481,11 @@ R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
                 return NULL;
         }
 #if defined(R_CSTL_HEAP_DEBUG)
-        uint64_t h = R_CSTL_HeapRegisterAllocation (pString, mem, cap + 1,
-                                                    R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
+        uint64_t h = R_CSTL_HeapRegisterAllocation (
+            pString,
+            mem,
+            cap + 1,
+            R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
         if (h == 0)
         {
                 R_CSTL_HeapFree (mem);
@@ -480,9 +494,9 @@ R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
         }
 #endif
         R_CSTL_StringCopyBytes (mem, pData, length);
-        mem[length]       = '\0';
-        pString->pData    = mem;
-        pString->length   = length;
+        mem[length] = '\0';
+        pString->pData = mem;
+        pString->length = length;
         pString->capacity = R_CSTL_SET_STORAGE_HEAP (cap);
         return pString;
 cstl_fail:
@@ -492,7 +506,8 @@ cstl_fail:
 struct R_CSTL_String*
 R_CSTL_NewStringWithCapacity (const size_t cap)
 {
-        struct R_CSTL_String* pString = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (R_CSTL_String) + cap);
+        struct R_CSTL_String* pString
+            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (R_CSTL_String) + cap);
         if (!pString)
                 return NULL;
         char* mem = (char*)R_CSTL_HeapAlloc (cap + 1);
@@ -502,8 +517,11 @@ R_CSTL_NewStringWithCapacity (const size_t cap)
                 return NULL;
         }
 #if defined(R_CSTL_HEAP_DEBUG)
-        uint64_t h = R_CSTL_HeapRegisterAllocation (pString, mem, cap + 1,
-                                                    R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
+        uint64_t h = R_CSTL_HeapRegisterAllocation (
+            pString,
+            mem,
+            cap + 1,
+            R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
         if (h == 0)
         {
                 R_CSTL_HeapFree (mem);
@@ -511,10 +529,10 @@ R_CSTL_NewStringWithCapacity (const size_t cap)
                 return NULL;
         }
 #endif
-        mem[0]            = '\0';
-        pString->length   = 0;
+        mem[0] = '\0';
+        pString->length = 0;
         pString->capacity = R_CSTL_SET_STORAGE_HEAP (cap);
-        pString->pData    = mem;
+        pString->pData = mem;
         return pString;
 }
 
@@ -642,7 +660,7 @@ R_CSTL_StringCompare (const struct R_CSTL_String* pLeft, const struct R_CSTL_Str
                 return -1;
         if (!pRight)
                 return 1;
-        size_t n   = pLeft->length < pRight->length ? pLeft->length : pRight->length;
+        size_t n = pLeft->length < pRight->length ? pLeft->length : pRight->length;
         int    cmp = memcmp (R_CSTL_StringData (pLeft), R_CSTL_StringData (pRight), n);
         if (cmp != 0)
                 return cmp;
@@ -672,18 +690,18 @@ R_CSTL_StringConcat (const struct R_CSTL_String* pLeft, const struct R_CSTL_Stri
         }
         if (!R_CSTL_StringBufferIsLive (pLeft) || !R_CSTL_StringBufferIsLive (pRight))
                 return NULL;
-        size_t         total   = pLeft->length + pRight->length;
+        size_t                total = pLeft->length + pRight->length;
         struct R_CSTL_String* pString = R_CSTL_StringCreateShell ();
         if (!pString)
                 return NULL;
-        const char* pLeftData  = R_CSTL_StringData (pLeft);
+        const char* pLeftData = R_CSTL_StringData (pLeft);
         const char* pRightData = R_CSTL_StringData (pRight);
         if (total <= R_CSTL_STRING_SBO_SIZE)
         {
                 R_CSTL_StringCopyBytes (pString->sbo, pLeftData, pLeft->length);
                 R_CSTL_StringCopyBytes (pString->sbo + pLeft->length, pRightData, pRight->length);
                 pString->sbo[total] = '\0';
-                pString->length     = total;
+                pString->length = total;
                 return pString;
         }
         size_t cap = R_CSTL_StringNextCapacity (R_CSTL_STRING_SBO_SIZE, total);
@@ -705,9 +723,9 @@ R_CSTL_StringConcat (const struct R_CSTL_String* pLeft, const struct R_CSTL_Stri
 #endif
         R_CSTL_StringCopyBytes (mem, pLeftData, pLeft->length);
         R_CSTL_StringCopyBytes (mem + pLeft->length, pRightData, pRight->length);
-        mem[total]        = '\0';
-        pString->pData    = mem;
-        pString->length   = total;
+        mem[total] = '\0';
+        pString->pData = mem;
+        pString->length = total;
         pString->capacity = R_CSTL_SET_STORAGE_HEAP (cap);
         return pString;
 }
@@ -723,7 +741,7 @@ R_CSTL_StringSubstring (const struct R_CSTL_String* pString, size_t begin, size_
                 return R_CSTL_NewString ();
         if (end > pString->length)
                 end = pString->length;
-        size_t      len   = end - begin;
+        size_t      len = end - begin;
         const char* pData = R_CSTL_StringData (pString);
         return R_CSTL_NewStringWithDataSized (pData + begin, len);
 }
@@ -764,8 +782,8 @@ R_CSTL_StringIndexOf (const struct R_CSTL_String* pString, const char* pNeedle)
         if (nlen > pString->length)
                 return (size_t)-1;
 
-        const char* pHay    = R_CSTL_StringData (pString);
-        size_t      haylen  = pString->length;
+        const char* pHay = R_CSTL_StringData (pString);
+        size_t      haylen = pString->length;
         const char  needle0 = pNeedle[0];
         for (size_t i = 0; i + nlen <= haylen; ++i)
         {
@@ -790,7 +808,7 @@ R_CSTL_StringLastIndexOf (const struct R_CSTL_String* pString, const char* pNeed
         if (nlen > pString->length)
                 return (size_t)-1;
 
-        const char* pHay   = R_CSTL_StringData (pString);
+        const char* pHay = R_CSTL_StringData (pString);
         size_t      haylen = pString->length;
         for (size_t i = haylen - nlen + 1; i > 0; --i)
         {
@@ -830,7 +848,9 @@ cstl_fail:
 
 R_CSTL_API_ATTR int
 R_CSTL_StringContains (const struct R_CSTL_String* pString, const char* pNeedle)
-{ return R_CSTL_StringIndexOf (pString, pNeedle) != (size_t)-1; }
+{
+        return R_CSTL_StringIndexOf (pString, pNeedle) != (size_t)-1;
+}
 
 R_CSTL_API_ATTR int
 R_CSTL_StringIsEmpty (const struct R_CSTL_String* pString)
@@ -855,8 +875,8 @@ R_CSTL_StringToLowerCase (const struct R_CSTL_String* pString)
         if (!R_CSTL_StringBufferIsLive (pString))
                 goto cstl_fail;
 #endif
-        const char*    pData   = R_CSTL_StringData (pString);
-        size_t         len     = pString->length;
+        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString->length;
         struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
         if (!pResult)
                 return NULL;
@@ -873,8 +893,8 @@ R_CSTL_StringToUpperCase (const struct R_CSTL_String* pString)
 {
         if (!pString)
                 return R_CSTL_NewString ();
-        const char*    pData   = R_CSTL_StringData (pString);
-        size_t         len     = pString->length;
+        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString->length;
         struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
         if (!pResult)
                 return NULL;
@@ -892,7 +912,7 @@ R_CSTL_StringTrim (const struct R_CSTL_String* pString)
         if (!R_CSTL_StringBufferIsLive (pString))
                 goto cstl_fail;
         const char* pData = R_CSTL_StringData (pString);
-        size_t      len   = pString->length;
+        size_t      len = pString->length;
         size_t      start = 0;
         while (
             start < len
@@ -929,17 +949,17 @@ R_CSTL_StringReplace (const struct R_CSTL_String* pString, const char* pTarget, 
                 return NULL;
 
         const char* pData = R_CSTL_StringData (pString);
-        size_t      len   = pString->length;
-        size_t      pos   = 0;
+        size_t      len = pString->length;
+        size_t      pos = 0;
         size_t      found = R_CSTL_StringIndexOf (pString, pTarget);
 
         while (found != (size_t)-1)
         {
                 R_CSTL_StringBuilderAppendData (pBuilder, pData + pos, found - pos);
                 R_CSTL_StringBuilderEmplace (pBuilder, pReplacement);
-                pos                        = found + tlen;
+                pos = found + tlen;
                 struct R_CSTL_String* pStringTemp = R_CSTL_StringSubstring (pString, pos, len);
-                found                      = R_CSTL_StringIndexOf (pStringTemp, pTarget);
+                found = R_CSTL_StringIndexOf (pStringTemp, pTarget);
                 R_CSTL_StringDelete (pStringTemp);
         }
         R_CSTL_StringBuilderAppendData (pBuilder, pData + pos, len - pos);
@@ -956,8 +976,8 @@ R_CSTL_StringReplaceChar (const struct R_CSTL_String* pString, char oldChar, cha
                 return R_CSTL_NewString ();
         if (!R_CSTL_StringBufferIsLive (pString))
                 goto cstl_fail;
-        const char*    pData   = R_CSTL_StringData (pString);
-        size_t         len     = pString->length;
+        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString->length;
         struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
         if (!pResult)
                 return NULL;
@@ -999,7 +1019,7 @@ R_CSTL_StringRepeat (struct R_CSTL_String* pString, size_t count)
                 for (size_t i = 0; i < count; ++i)
                         R_CSTL_StringCopyBytes (pResult->sbo + (i * len), R_CSTL_StringData (pString), len);
                 pResult->sbo[total] = '\0';
-                pResult->length     = total;
+                pResult->length = total;
                 return pResult;
         }
 
@@ -1022,18 +1042,19 @@ R_CSTL_StringRepeat (struct R_CSTL_String* pString, size_t count)
 #endif
         for (size_t i = 0; i < count; ++i)
                 R_CSTL_StringCopyBytes (mem + (i * len), R_CSTL_StringData (pString), len);
-        mem[total]        = '\0';
-        pResult->pData    = mem;
-        pResult->length   = total;
+        mem[total] = '\0';
+        pResult->pData = mem;
+        pResult->length = total;
         pResult->capacity = R_CSTL_SET_STORAGE_HEAP (cap);
         return pResult;
 }
 
 static int
-R_CSTL_StringCompareIgnoreCaseInternal (const char* pLeft,
-                                        size_t      leftLen,
-                                        const char* pRight,
-                                        size_t      rightLen)
+R_CSTL_StringCompareIgnoreCaseInternal (
+    const char* pLeft,
+    size_t      leftLen,
+    const char* pRight,
+    size_t      rightLen)
 {
         size_t n = leftLen < rightLen ? leftLen : rightLen;
         for (size_t i = 0; i < n; ++i)
@@ -1061,8 +1082,11 @@ R_CSTL_StringEqualsIgnoreCase (const struct R_CSTL_String* pLeft, const struct R
                 return 0;
         if (pLeft->length != pRight->length)
                 return 0;
-        int res = R_CSTL_StringCompareIgnoreCaseInternal (R_CSTL_StringData (pLeft), pLeft->length,
-                                                          R_CSTL_StringData (pRight), pRight->length);
+        int res = R_CSTL_StringCompareIgnoreCaseInternal (
+            R_CSTL_StringData (pLeft),
+            pLeft->length,
+            R_CSTL_StringData (pRight),
+            pRight->length);
         return res == 0;
 }
 
@@ -1075,8 +1099,11 @@ R_CSTL_StringCompareIgnoreCase (const struct R_CSTL_String* pLeft, const struct 
                 return -1;
         if (!pRight)
                 return 1;
-        return R_CSTL_StringCompareIgnoreCaseInternal (R_CSTL_StringData (pLeft), pLeft->length,
-                                                       R_CSTL_StringData (pRight), pRight->length);
+        return R_CSTL_StringCompareIgnoreCaseInternal (
+            R_CSTL_StringData (pLeft),
+            pLeft->length,
+            R_CSTL_StringData (pRight),
+            pRight->length);
 }
 
 size_t
@@ -1085,8 +1112,8 @@ R_CSTL_StringHashCode (const struct R_CSTL_String* pString)
         if (!pString)
                 return 0;
         const char* pData = R_CSTL_StringData (pString);
-        size_t      len   = pString->length;
-        size_t      hash  = 5381;
+        size_t      len = pString->length;
+        size_t      hash = 5381;
         for (size_t i = 0; i < len; ++i)
                 hash = ((hash << 5) + hash) + (unsigned char)pData[i];
         return hash;
@@ -1141,9 +1168,10 @@ R_CSTL_StringValueOfDouble (double value)
 }
 
 struct R_CSTL_String*
-R_CSTL_StringJoin (const struct R_CSTL_String* pStringDelimiter,
-                   const struct R_CSTL_String* pStringElements[],
-                   size_t               count)
+R_CSTL_StringJoin (
+    const struct R_CSTL_String* pStringDelimiter,
+    const struct R_CSTL_String* pStringElements[],
+    size_t                      count)
 {
         if (count == 0)
                 return R_CSTL_NewString ();
@@ -1163,7 +1191,9 @@ R_CSTL_StringJoin (const struct R_CSTL_String* pStringDelimiter,
 }
 
 int
-R_CSTL_StringCopy (struct R_CSTL_String* R_CSTL_RESTRICT pDst, const struct R_CSTL_String* R_CSTL_RESTRICT pSrc)
+R_CSTL_StringCopy (
+    struct R_CSTL_String* R_CSTL_RESTRICT       pDst,
+    const struct R_CSTL_String* R_CSTL_RESTRICT pSrc)
 {
         if (!pDst || !pSrc)
                 goto cstl_fail;
@@ -1180,7 +1210,7 @@ R_CSTL_StringCopy (struct R_CSTL_String* R_CSTL_RESTRICT pDst, const struct R_CS
 
         R_CSTL_StringCopyBytes (pDstData, pSrcData, pSrc->length);
         pDstData[pSrc->length] = '\0';
-        pDst->length           = pSrc->length;
+        pDst->length = pSrc->length;
         return 0;
 
 cstl_fail:
@@ -1194,10 +1224,10 @@ R_CSTL_NewStringBuilder (void)
             = (R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (R_CSTL_StringBuilder));
         if (!pBuilder)
                 return NULL;
-        pBuilder->length   = 0;
+        pBuilder->length = 0;
         pBuilder->capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
-        pBuilder->pData    = pBuilder->sbo;
-        pBuilder->sbo[0]   = '\0';
+        pBuilder->pData = pBuilder->sbo;
+        pBuilder->sbo[0] = '\0';
         return pBuilder;
 }
 
@@ -1226,7 +1256,7 @@ R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
         if (capacity <= R_CSTL_STRING_SBO_SIZE)
         {
                 pBuilder->capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
-                pBuilder->pData    = pBuilder->sbo;
+                pBuilder->pData = pBuilder->sbo;
         }
         else
         {
@@ -1238,7 +1268,10 @@ R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
                 }
 #if defined(R_CSTL_HEAP_DEBUG)
                 uint64_t h = R_CSTL_HeapRegisterAllocation (
-                    pBuilder, mem, capacity + 1, R_CSTL_HEAP_NAME (R_CSTL_NewStringBuilderWithCapacity));
+                    pBuilder,
+                    mem,
+                    capacity + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_NewStringBuilderWithCapacity));
                 if (h == 0)
                 {
                         R_CSTL_HeapFree (mem);
@@ -1246,7 +1279,7 @@ R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
                         return NULL;
                 }
 #endif
-                pBuilder->pData    = mem;
+                pBuilder->pData = mem;
                 pBuilder->capacity = R_CSTL_SET_STORAGE_HEAP (capacity);
         }
         pBuilder->sbo[0] = '\0';
@@ -1310,7 +1343,7 @@ R_CSTL_StringBuilderEnsureCapacity (R_CSTL_StringBuilder* pBuilder, size_t requi
         if (R_CSTL_GET_CAPACITY (pBuilder->capacity) >= requiredCapacity)
                 return 0;
         size_t newCap = R_CSTL_StringNextCapacity (pBuilder->capacity, requiredCapacity);
-        char*  old    = R_CSTL_IS_STORAGE_HEAP (pBuilder->capacity) ? pBuilder->pData : NULL;
+        char*  old = R_CSTL_IS_STORAGE_HEAP (pBuilder->capacity) ? pBuilder->pData : NULL;
         if (old)
         {
                 char* pNew = (char*)R_CSTL_HeapRealloc (old, newCap + 1);
@@ -1320,13 +1353,15 @@ R_CSTL_StringBuilderEnsureCapacity (R_CSTL_StringBuilder* pBuilder, size_t requi
                 if (pNew != old)
                 {
                         uint64_t h = R_CSTL_HeapRegisterAllocation (
-                            pBuilder, pNew, newCap + 1,
+                            pBuilder,
+                            pNew,
+                            newCap + 1,
                             R_CSTL_HEAP_NAME (R_CSTL_StringBuilderEnsureCapacity));
                         if (h == 0)
                                 goto cstl_fail_register;
                 }
 #endif
-                pBuilder->pData    = pNew;
+                pBuilder->pData = pNew;
                 pBuilder->capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
                 return 0;
         }
@@ -1337,14 +1372,17 @@ R_CSTL_StringBuilderEnsureCapacity (R_CSTL_StringBuilder* pBuilder, size_t requi
                         return -1;
 #if defined(R_CSTL_HEAP_DEBUG)
                 uint64_t h = R_CSTL_HeapRegisterAllocation (
-                    pBuilder, pNew, newCap + 1, R_CSTL_HEAP_NAME (R_CSTL_StringBuilderEnsureCapacity));
+                    pBuilder,
+                    pNew,
+                    newCap + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_StringBuilderEnsureCapacity));
                 if (h == 0)
                         goto cstl_fail_register;
 #endif
                 R_CSTL_StringCopyBytes (pNew, pBuilder->sbo, pBuilder->length);
                 pNew[pBuilder->length] = '\0';
-                pBuilder->pData        = pNew;
-                pBuilder->capacity     = R_CSTL_SET_STORAGE_HEAP (newCap);
+                pBuilder->pData = pNew;
+                pBuilder->capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
                 return 0;
         }
 
@@ -1378,7 +1416,7 @@ cstl_fail:
 #define R_CSTL_EmplaceString(Builder, String)                                                                \
         if (!Builder)                                                                                        \
                 goto cstl_fail;                                                                              \
-        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)Builder))                                      \
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)Builder))                               \
                 goto cstl_fail;                                                                              \
         if (!(String))                                                                                       \
                 goto cstl_fail;                                                                              \
@@ -1442,7 +1480,7 @@ R_CSTL_StringBuilderAppendData (R_CSTL_StringBuilder* pBuilder, const char* pDat
                         return -1;
         }
         R_CSTL_StringCopyBytes (pBuilder->pData + pBuilder->length, pData, length);
-        pBuilder->length                  = required;
+        pBuilder->length = required;
         pBuilder->pData[pBuilder->length] = '\0';
         return 0;
 }
@@ -1461,7 +1499,7 @@ R_CSTL_StringBuilderAppendChar (R_CSTL_StringBuilder* pBuilder, char value)
                         goto cstl_fail;
         }
         pBuilder->pData[pBuilder->length++] = value;
-        pBuilder->pData[pBuilder->length]   = '\0';
+        pBuilder->pData[pBuilder->length] = '\0';
         return 0;
 cstl_fail:
         return -1;
@@ -1520,7 +1558,7 @@ R_CSTL_StringBuilderAppendBool (R_CSTL_StringBuilder* pBuilder, bool value)
                 goto cstl_fail;
 #endif
         const char* boolStr = R_CSTL_STRING_BOOL_STR (value);
-        size_t      len     = strlen (boolStr);
+        size_t      len = strlen (boolStr);
         return R_CSTL_StringBuilderAppend (pBuilder, R_CSTL_NewStringWithDataSized (boolStr, len));
 cstl_fail:
         return -1;
@@ -1565,7 +1603,10 @@ R_CSTL_StringBuilderClear (R_CSTL_StringBuilder* pBuilder)
 }
 
 int
-R_CSTL_StringBuilderInsert (R_CSTL_StringBuilder* pBuilder, size_t offset, const struct R_CSTL_String* pString)
+R_CSTL_StringBuilderInsert (
+    R_CSTL_StringBuilder*       pBuilder,
+    size_t                      offset,
+    const struct R_CSTL_String* pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)
@@ -1596,8 +1637,10 @@ R_CSTL_StringBuilderEmplaceInsert (R_CSTL_StringBuilder* pBuilder, size_t offset
                         return -1;
         }
 
-        R_CSTL_StringCopyBytes (pBuilder->pData + offset + len, pBuilder->pData + offset,
-                                pBuilder->length - offset);
+        R_CSTL_StringCopyBytes (
+            pBuilder->pData + offset + len,
+            pBuilder->pData + offset,
+            pBuilder->length - offset);
         R_CSTL_StringCopyBytes (pBuilder->pData + offset, pCString, len);
         pBuilder->length += len;
         pBuilder->pData[pBuilder->length] = '\0';
@@ -1621,8 +1664,10 @@ R_CSTL_StringBuilderInsertChar (R_CSTL_StringBuilder* pBuilder, size_t offset, c
                         return -1;
         }
 
-        R_CSTL_StringCopyBytes (pBuilder->pData + offset + 1, pBuilder->pData + offset,
-                                pBuilder->length - offset);
+        R_CSTL_StringCopyBytes (
+            pBuilder->pData + offset + 1,
+            pBuilder->pData + offset,
+            pBuilder->length - offset);
         pBuilder->pData[offset] = value;
         pBuilder->length++;
         pBuilder->pData[pBuilder->length] = '\0';
@@ -1664,10 +1709,11 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderReplace (R_CSTL_StringBuilder* pBuilder,
-                             size_t                start,
-                             size_t                end,
-                             const struct R_CSTL_String*  pString)
+R_CSTL_StringBuilderReplace (
+    R_CSTL_StringBuilder*       pBuilder,
+    size_t                      start,
+    size_t                      end,
+    const struct R_CSTL_String* pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)
@@ -1677,10 +1723,11 @@ R_CSTL_StringBuilderReplace (R_CSTL_StringBuilder* pBuilder,
 }
 
 int
-R_CSTL_StringBuilderEmplaceReplace (R_CSTL_StringBuilder* pBuilder,
-                                    size_t                start,
-                                    size_t                end,
-                                    const char*           pString)
+R_CSTL_StringBuilderEmplaceReplace (
+    R_CSTL_StringBuilder* pBuilder,
+    size_t                start,
+    size_t                end,
+    const char*           pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)
@@ -1697,25 +1744,29 @@ R_CSTL_StringBuilderEmplaceReplace (R_CSTL_StringBuilder* pBuilder,
 
         if (newLen > oldLen)
         {
-                size_t delta    = newLen - oldLen;
+                size_t delta = newLen - oldLen;
                 size_t required = pBuilder->length + delta;
                 if (required > R_CSTL_GET_CAPACITY (pBuilder->capacity))
                 {
                         if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0)
                                 return -1;
                 }
-                R_CSTL_StringCopyBytes (pBuilder->pData + end + delta, pBuilder->pData + end,
-                                        pBuilder->length - end);
+                R_CSTL_StringCopyBytes (
+                    pBuilder->pData + end + delta,
+                    pBuilder->pData + end,
+                    pBuilder->length - end);
         }
         else if (newLen < oldLen)
         {
                 size_t delta = oldLen - newLen;
-                R_CSTL_StringCopyBytes (pBuilder->pData + end - delta, pBuilder->pData + end,
-                                        pBuilder->length - end);
+                R_CSTL_StringCopyBytes (
+                    pBuilder->pData + end - delta,
+                    pBuilder->pData + end,
+                    pBuilder->length - end);
         }
 
         R_CSTL_StringCopyBytes (pBuilder->pData + start, pString, newLen);
-        pBuilder->length                  = pBuilder->length - oldLen + newLen;
+        pBuilder->length = pBuilder->length - oldLen + newLen;
         pBuilder->pData[pBuilder->length] = '\0';
         return 0;
 }
@@ -1749,13 +1800,15 @@ R_CSTL_StringBuilderSetLength (R_CSTL_StringBuilder* pBuilder, size_t newLength)
         }
         if (newLength < pBuilder->length)
         {
-                pBuilder->length                  = newLength;
+                pBuilder->length = newLength;
                 pBuilder->pData[pBuilder->length] = '\0';
         }
         else if (newLength > pBuilder->length)
         {
-                R_CSTL_StringSetBytes (pBuilder->pData + pBuilder->length, '\0',
-                                       newLength - pBuilder->length);
+                R_CSTL_StringSetBytes (
+                    pBuilder->pData + pBuilder->length,
+                    '\0',
+                    newLength - pBuilder->length);
                 pBuilder->length = newLength;
         }
         return 0;

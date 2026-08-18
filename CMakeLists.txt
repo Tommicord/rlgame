@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 project(rlgame LANGUAGES C CXX)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
@@ -148,14 +148,23 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(deps/gtest)
 include(GoogleTest)
 
-file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/**/*.c)
-file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS src/**/*.h)
+file(GLOB_RECURSE CSTL_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
+file(GLOB_RECURSE CSTL_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
+file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
+file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
 
-list(FILTER ALL_SOURCES EXCLUDE REGEX ".*main\\.c$")
-add_library(rlgame_lib SHARED ${ALL_SOURCES} ${HEADERS})
+add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
+
+if (WIN32)
+  target_link_libraries(rlgame.base.cstl PUBLIC dbghelp)
+endif()
+
+target_compile_definitions(rlgame.base.cstl PRIVATE R_CSTL_BUILDING_DLL)
+
+add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS})
 
 set_target_properties(
-  rlgame_lib 
+  rlgame.base.cvulkan
   PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
   RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
@@ -165,29 +174,33 @@ set_target_properties(
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
 )
 
-target_compile_definitions(rlgame_lib PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
-target_compile_definitions(rlgame_lib PRIVATE R_CSTL_BUILDING_DLL)
+target_compile_definitions(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+target_compile_definitions(rlgame.base.cvulkan PRIVATE R_CVULKAN_BUILDING_DLL)
 
-get_directory_property(DIR_DEFS COMPILE_DEFINITIONS)
 
 target_include_directories(
-  rlgame_lib
+  rlgame.base.cstl
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   ${CMAKE_CURRENT_BINARY_DIR}/.shader
 )
-target_link_libraries(
-  rlgame_lib
+target_include_directories(
+  rlgame.base.cvulkan
   PUBLIC
-  Vulkan::Vulkan
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_BINARY_DIR}/.shader
 )
 
-if (WIN32)
-  target_link_libraries(rlgame_lib PUBLIC dbghelp)
-elseif (UNIX AND NOT APPLE)
-  target_link_options(rlgame_lib PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
+target_link_libraries(
+  rlgame.base.cvulkan
+  PUBLIC
+  Vulkan::Vulkan
+  rlgame.base.cstl
+)
+if (UNIX AND NOT APPLE)
+  target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
 endif()
-# target_add_renderdoc(rlgame_lib)
+# target_add_renderdoc(rlgame.base.cvulkan)
 
 set(MAIN_SOURCE src/rlgame.base/main.c)
 if(NOT WIN32)
@@ -198,16 +211,16 @@ endif()
 
 if(MSVC)
   # MSVC: Use /WHOLEARCHIVE to force inclusion of all object files
-  target_link_libraries(rlgame PRIVATE rlgame_lib)
-  target_link_options(rlgame PRIVATE "/WHOLEARCHIVE:rlgame_lib")
+  target_link_libraries(rlgame PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
+  target_link_options(rlgame PRIVATE "/WHOLEARCHIVE:rlgame.base.cstl" "/WHOLEARCHIVE:rlgame.base.cvulkan")
 elseif(APPLE)
   # macOS: Use -force_load
-  target_link_libraries(rlgame PRIVATE -force_load $<TARGET_FILE:rlgame_lib>)
+  target_link_libraries(rlgame PRIVATE -force_load $<TARGET_FILE:rlgame.base.cstl> -force_load $<TARGET_FILE:rlgame.base.cvulkan>)
 elseif(UNIX)
   # Linux/Unix: Use -Wl,--whole-archive -Wl,--no-whole-archive
-  target_link_libraries(rlgame PRIVATE -Wl,--whole-archive rlgame_lib -Wl,--no-whole-archive)
+  target_link_libraries(rlgame PRIVATE -Wl,--whole-archive rlgame.base.cstl rlgame.base.cvulkan -Wl,--no-whole-archive)
 else()
-  target_link_libraries(rlgame PRIVATE rlgame_lib)
+  target_link_libraries(rlgame PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -223,15 +236,13 @@ elseif (ANDROID)
   target_link_libraries(rlgame PRIVATE android log)
 elseif (IOS)
   target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
-elseif (WIN32)
-  target_link_libraries(rlgame PRIVATE dbghelp)
 endif ()
 
 set(SHADERS
-  src/rlgame.shader/Triangle.frag
-  src/rlgame.shader/Triangle.vert
-  src/rlgame.shader/Triangle3d.frag
-  src/rlgame.shader/Triangle3d.vert
+  src/rlgame.shader/TestTriangle.frag
+  src/rlgame.shader/TestTriangle.vert
+  src/rlgame.shader/TestTriangle3d.frag
+  src/rlgame.shader/TestTriangle3d.vert
   src/rlgame.shader/Simplex.comp
   src/rlgame.shader/WorldHeightmap.comp
   src/rlgame.shader/WorldClimate.comp
@@ -243,8 +254,6 @@ set(SHADERS
   src/rlgame.shader/WorldMeshDelaunay2D.comp
   src/rlgame.shader/WorldMeshGenGeomNoOcclusion.comp
   src/rlgame.shader/WorldOcclusionCull.comp
-  src/rlgame.shader/ClientFullscreenQuad.vert
-  src/rlgame.shader/ClientFullscreenQuad.frag
 )
 
 enable_testing()
@@ -269,7 +278,8 @@ target_link_libraries(
   rlgame_test
   PRIVATE
   GTest::gtest_main
-  rlgame_lib
+  rlgame.base.cstl
+  rlgame.base.cvulkan
 )
 # Debug macros and ASan for test target
 target_compile_definitions(rlgame_test PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
@@ -322,7 +332,8 @@ target_link_libraries(
   PRIVATE
   benchmark::benchmark
   benchmark::benchmark_main
-  rlgame_lib
+  rlgame.base.cstl
+  rlgame.base.cvulkan
 )
 
 set_target_properties(
@@ -461,5 +472,5 @@ foreach (SHADER IN LISTS SHADERS)
   list(APPEND EMBEDDED_CPPS "${EMBEDDED_CFILE}")
 endforeach ()
 
-target_sources(rlgame_lib PRIVATE ${EMBEDDED_HEADERS})
-target_sources(rlgame_lib PRIVATE ${EMBEDDED_CFILES})
+target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_HEADERS})
+target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CFILES})

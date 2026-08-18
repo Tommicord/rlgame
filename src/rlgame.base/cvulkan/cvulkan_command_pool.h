@@ -1,0 +1,85 @@
+#pragma once
+
+#include <vulkan/vulkan.h>
+#include <stdint.h>
+#include <inttypes.h>
+
+#include "rlgame.base/cvulkan/cvulkan_common.h"
+#include "rlgame.base/cvulkan/cvulkan_platform.h"
+
+struct R_CVulkan_Device;
+
+/**
+ * @brief Safe wrapper for VkCommandPool
+ */
+struct R_CVulkan_CommandPool
+{
+                VkCommandPool handle; /**< Raw Vulkan command pool handle */
+                VkDevice      device; /**< Associated device */
+                uint32_t      queueFamilyIndex; /**< Queue family index */
+                R_CVULKAN_DEBUG_FIELD
+} R_CVulkan_CommandPool;
+
+/**
+ * @brief Initialize a command pool
+ * @param commandPool Pointer to command pool to initialize
+ * @param device R_CVulkan device wrapper
+ * @param queueFamilyIndex Queue family index
+ * @param flags Command pool creation flags
+ * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandPool (
+    struct R_CVulkan_CommandPool*   pCommandPool,
+    const struct R_CVulkan_Device*  pDevice,
+    uint32_t                        queueFamilyIndex,
+    R_CVulkanCommandPoolCreateFlags flags);
+
+/**
+ * @brief Deletes a command pool and destroy the Vulkan object
+ * @param commandPool Pointer to command pool to delete
+ */
+R_CVULKAN_API void R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool);
+
+/**
+ * @brief Reset a command pool
+ * @param commandPool Pointer to command pool
+ * @param flags Reset flags
+ * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, R_CVulkanCommandPoolResetFlags flags);
+
+/**
+ * @brief Trim a command pool
+ * @param commandPool Pointer to command pool
+ * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool);
+
+/**
+ * @brief Get the raw Vulkan command pool handle
+ * @param commandPool Pointer to command pool
+ * @return Vulkan command pool handle, or VK_NULL_HANDLE if not initialized
+ */
+R_CVULKAN_API VkCommandPool R_CVulkan_CommandPoolGetHandle (const struct R_CVulkan_CommandPool* pCommandPool);
+
+/**
+ * @brief Get the associated device
+ * @param commandPool Pointer to command pool
+ * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
+ */
+R_CVULKAN_API VkDevice R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_CommandPool* pCommandPool);
+
+/**
+ * @brief Get the queue family index
+ * @param commandPool Pointer to command pool
+ * @return Queue family index, or 0 if not initialized
+ */
+R_CVULKAN_API uint32_t R_CVulkan_CommandPoolGetQueueFamilyIndex (const struct R_CVulkan_CommandPool* pCommandPool);
+
+/**
+ * @brief Check if the command pool is initialized
+ * @param commandPool Pointer to command pool
+ * @return 1 if initialized, 0 otherwise
+ */
+R_CVULKAN_API int R_CVulkan_CommandPoolIsInitialized (const struct R_CVulkan_CommandPool* pCommandPool);

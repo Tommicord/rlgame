@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 #if defined(_MSC_VER)
-        #include <intrin.h>
+#include <intrin.h>
 #endif
 void
 R_GameLoop_SetState (R_MainProvider* pProvider, uint8_t flags)
@@ -64,15 +64,21 @@ R_GameLoop_HasState (const R_MainProvider* pProvider, uint8_t flags)
 
 bool
 R_GameLoop_IsRunning (const R_MainProvider* pProvider)
-{ return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_RUNNING); }
+{
+        return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_RUNNING);
+}
 
 bool
 R_GameLoop_IsPaused (const R_MainProvider* pProvider)
-{ return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_PAUSED); }
+{
+        return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_PAUSED);
+}
 
 bool
 R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
-{ return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_DESTROYED); }
+{
+        return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_DESTROYED);
+}
 
 #define R_APP_INITIAL_HEAP_SIZE (1024 * 1024 * 512) // 512 MB
 #define R_APP_INIT()                                                                                         \
@@ -105,43 +111,54 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
 #define R_APP_LOG_HEAP_STATS()                                                                               \
         do                                                                                                   \
         {                                                                                                    \
-                size_t totalSize       = R_CSTL_Heap_GetTotalSize ();                                        \
-                size_t usedSize        = R_CSTL_Heap_GetUsedSize ();                                         \
+                size_t totalSize = R_CSTL_Heap_GetTotalSize ();                                              \
+                size_t usedSize = R_CSTL_Heap_GetUsedSize ();                                                \
                 size_t registeredCount = R_CSTL_HeapGetRegisteredCount ();                                   \
-                R_CSTL_LOG_INFO ("Heap Stats: TotalSize=%zu UsedSize=%zu RegisteredCount=%zu", totalSize,    \
-                                 usedSize, registeredCount);                                                 \
+                R_CSTL_LOG_INFO (                                                                            \
+                    "Heap Stats: TotalSize=%zu UsedSize=%zu RegisteredCount=%zu",                            \
+                    totalSize,                                                                               \
+                    usedSize,                                                                                \
+                    registeredCount);                                                                        \
         } while (0)
 
+#define R_APP_GB_BINARY (1024.0 * 1024.0 * 1024.0)
 #define R_APP_LOG_INFO(Info)                                                                                 \
         do                                                                                                   \
         {                                                                                                    \
-                R_CSTL_LOG_INFO ("App: %s pid=%u args=%d", (Info).pApplicationName, (Info).pid,              \
-                                 (Info).args.argc);                                                          \
+                R_CSTL_LOG_INFO (                                                                            \
+                    "App: %s pid=%u args=%d",                                                                \
+                    (Info).pApplicationName,                                                                 \
+                    (Info).pid,                                                                              \
+                    (Info).args.argc);                                                                       \
                 if ((info).args.pCmdLine)                                                                    \
                         R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
-                R_CSTL_LOG_INFO ("Memory: total=%llu avail=%llu used=%llu heap=%zu",                         \
-                                 (unsigned long long)(Info).memory.totalPhysicalBytes,                       \
-                                 (unsigned long long)(Info).memory.availablePhysicalBytes,                   \
-                                 (unsigned long long)(Info).memory.usedBytes,                                \
-                                 (size_t)(Info).memory.heapAllocatedBytes);                                  \
+                R_CSTL_LOG_INFO (                                                                            \
+                    "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB heap=%zu",                             \
+                    (double)(Info).memory.totalPhysicalBytes / R_APP_GB_BINARY,                              \
+                    (double)(Info).memory.availablePhysicalBytes / R_APP_GB_BINARY,                          \
+                    (double)(Info).memory.usedBytes / R_APP_GB_BINARY,                                       \
+                    (size_t)(Info).memory.heapAllocatedBytes);                                               \
                 if ((Info).pExistingProcesses && (Info).existingProcessCount > 0)                            \
                 {                                                                                            \
                         R_CSTL_LOG_INFO (                                                                    \
-                            "Process[0]: pid=%u name=%s mem=%llu", (Info).pExistingProcesses[0].pid,         \
+                            "Process[0]: pid=%u name=%s mem=%.2f GB",                                        \
+                            (Info).pExistingProcesses[0].pid,                                                \
                             (Info).pExistingProcesses[0].pName ? (Info).pExistingProcesses[0].pName          \
                                                                : "(null)",                                   \
-                            (unsigned long long)(Info).pExistingProcesses[0].memoryBytes);                   \
+                            (double)(Info).pExistingProcesses[0].memoryBytes / R_APP_GB_BINARY);             \
                 }                                                                                            \
         } while (0)
+#undef R_APP_GB_BINARY
+
 #define R_APP_LAUNCH(RunCallback, Info)                                                                      \
         const void* pUserData = &Info;                                                                       \
         R_LaunchMainProvider (RunCallback, pUserData);
 
 #if defined(_WIN32)
-        #define WIN32_LEAN_AND_MEAN
-        #include <windows.h>
-        #include <psapi.h>
-        #pragma comment(lib, "psapi.lib")
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
 
 static struct R_CSTL_String*
 R_CopyCStringToHeap (const char* src)
@@ -165,10 +182,6 @@ R_AssignProcessName (R_ProcessInfo* proc, char* exePath, int argc, char** argv)
                 }
                 proc->pName = pExeName;
         }
-        else if (argc && argv && argv[0])
-        {
-                proc->pName = R_CopyCStringToHeap (argv[0]);
-        }
         else
         {
                 proc->pName = R_CopyCStringToHeap ("rlgame");
@@ -177,7 +190,9 @@ R_AssignProcessName (R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 
 static uint32_t
 R_GetCurrentPid ()
-{ return (uint32_t)GetCurrentProcessId (); }
+{
+        return (uint32_t)GetCurrentProcessId ();
+}
 
 void
 R_FillMemoryInfo (R_MemoryInfo* out)
@@ -189,10 +204,10 @@ R_FillMemoryInfo (R_MemoryInfo* out)
         st.dwLength = sizeof (st);
         if (GlobalMemoryStatusEx (&st))
         {
-                out->totalPhysicalBytes     = st.ullTotalPhys;
+                out->totalPhysicalBytes = st.ullTotalPhys;
                 out->availablePhysicalBytes = st.ullAvailPhys;
-                out->totalVirtualBytes      = st.ullTotalVirtual;
-                out->usedBytes              = st.ullTotalPhys - st.ullAvailPhys;
+                out->totalVirtualBytes = st.ullTotalVirtual;
+                out->usedBytes = st.ullTotalPhys - st.ullAvailPhys;
         }
         PROCESS_MEMORY_COUNTERS pmc = {0};
         if (GetProcessMemoryInfo (GetCurrentProcess (), &pmc, sizeof (pmc)))
@@ -226,7 +241,7 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
                 return NULL;
 
         *outCount = 1;
-        arr       = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
+        arr = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
         if (!arr)
         {
                 *outCount = 0;
@@ -234,8 +249,8 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         }
         memset (arr, 0, sizeof (R_ProcessInfo));
 
-        arr[0].pid         = R_GetCurrentPid ();
-        arr[0].pUser       = NULL;
+        arr[0].pid = R_GetCurrentPid ();
+        arr[0].pUser = NULL;
         arr[0].startTimeMs = 0;
         arr[0].memoryBytes = 0;
 
@@ -269,21 +284,21 @@ R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         {
                 pAppName = R_CSTL_NewStringWithData ("Real Game (rlgame)");
         }
-        info->pApplicationName        = pAppName;
+        info->pApplicationName = pAppName;
         info->applicationVersionMajor = 0;
         info->applicationVersionMinor = 1;
         info->applicationVersionPatch = 0;
-        info->pid                     = R_GetCurrentPid ();
-        info->args.argc               = argc;
-        info->args.argv               = (const char* const*)argv;
+        info->pid = R_GetCurrentPid ();
+        info->args.argc = argc;
+        info->args.argv = (const char* const*)argv;
 }
 
 void
 R_BuildCommandLine (R_ApplicationInfo* info, int argc, char** argv)
 {
-        R_CSTL_StringBuilder* pBuilder   = NULL;
-        struct R_CSTL_String*        pCmdString = NULL;
-        char*                 cmd        = NULL;
+        R_CSTL_StringBuilder* pBuilder = NULL;
+        struct R_CSTL_String* pCmdString = NULL;
+        char*                 cmd = NULL;
 
         if (!info || argc <= 0 || !argv)
                 return;
@@ -304,14 +319,14 @@ R_BuildCommandLine (R_ApplicationInfo* info, int argc, char** argv)
                 goto r_cleanup;
 
         size_t len = R_CSTL_StringLength (pCmdString);
-        cmd        = (char*)R_CSTL_HeapAlloc (len + 1);
+        cmd = (char*)R_CSTL_HeapAlloc (len + 1);
         if (!cmd)
                 goto r_cleanup;
 
         memcpy (cmd, R_CSTL_StringData (pCmdString), len);
-        cmd[len]            = '\0';
+        cmd[len] = '\0';
         info->args.pCmdLine = cmd;
-        cmd                 = NULL;
+        cmd = NULL;
 
 r_cleanup:
         if (pCmdString)
@@ -332,9 +347,9 @@ R_PopulateApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         R_BuildCommandLine (info, argc, argv);
         R_FillMemoryInfo (&info->memory);
 
-        size_t         count       = 0;
-        R_ProcessInfo* procs       = R_CollectProcesses (&count, argc, argv);
-        info->pExistingProcesses   = procs;
+        size_t         count = 0;
+        R_ProcessInfo* procs = R_CollectProcesses (&count, argc, argv);
+        info->pExistingProcesses = procs;
         info->existingProcessCount = count;
 }
 
@@ -344,8 +359,8 @@ R_LaunchMainProvider (R_GameLoopCallback pExecCallback, const void* pUserData)
         const R_ApplicationInfo* pAppInfo = (const R_ApplicationInfo*)pUserData;
         R_MainProvider           provider = {
                       .pExecCallback = pExecCallback,
-                      .pAppInfo      = pAppInfo,
-                      .stateFlags    = R_GAMELOOP_STATE_NONE,
+                      .pAppInfo = pAppInfo,
+                      .stateFlags = R_GAMELOOP_STATE_NONE,
         };
         R_MainProvider_Run (&provider);
 }
@@ -357,13 +372,9 @@ R_MainProvider_Run (R_MainProvider* pProvider)
 {
         if (!pProvider)
         {
-                R_CSTL_LOG_ERROR ("GameLoop: Provider is NULL, cannot run");
                 return;
         }
-
         R_GameLoop_SetState (pProvider, R_GAMELOOP_STATE_RUNNING);
-        R_CSTL_LOG_INFO ("GameLoop: Started with state flags=0x%02X", pProvider->stateFlags);
-
         LARGE_INTEGER frequency;
         LARGE_INTEGER lastTime;
         if (!QueryPerformanceFrequency (&frequency))
@@ -380,9 +391,9 @@ R_MainProvider_Run (R_MainProvider* pProvider)
                 R_GameLoop_SetState (pProvider, R_GAMELOOP_STATE_DESTROYED);
                 return;
         }
-        R_CSTL_LOG_INFO ("GameLoop: Timer initialized, frequency=%llu Hz",
-                         (unsigned long long)frequency.QuadPart);
-
+        R_CSTL_LOG_INFO (
+            "GameLoop: Timer initialized, frequency=%llu Hz",
+            (unsigned long long)frequency.QuadPart);
         MSG      msg;
         uint64_t frameCount = 0;
         while (R_GameLoop_IsRunning (pProvider) && !R_GameLoop_IsDestroyed (pProvider))
@@ -400,9 +411,10 @@ R_MainProvider_Run (R_MainProvider* pProvider)
                 }
                 if (!R_GameLoop_IsRunning (pProvider) || R_GameLoop_IsDestroyed (pProvider))
                 {
-                        R_CSTL_LOG_INFO ("GameLoop: State changed, exiting loop (running=%d, destroyed=%d)",
-                                         R_GameLoop_IsRunning (pProvider),
-                                         R_GameLoop_IsDestroyed (pProvider));
+                        R_CSTL_LOG_INFO (
+                            "GameLoop: State changed, exiting loop (running=%d, destroyed=%d)",
+                            R_GameLoop_IsRunning (pProvider),
+                            R_GameLoop_IsDestroyed (pProvider));
                         break;
                 }
 
@@ -424,7 +436,7 @@ R_MainProvider_Run (R_MainProvider* pProvider)
                         continue;
                 }
 
-                const float deltaTime
+                const float delta
                     = (float)((currentTime.QuadPart - lastTime.QuadPart) * 1000.0 / frequency.QuadPart)
                       / 1000.0f;
                 lastTime = currentTime;
@@ -484,16 +496,25 @@ static int
 R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, int nCmdShow)
 {
         const wchar_t CLASS_NAME[] = L"GameWindowClass";
-        WNDCLASSW     wc           = {0};
-        wc.lpfnWndProc             = WindowProc;
-        wc.hInstance               = hInstance;
-        wc.lpszClassName           = CLASS_NAME;
+        WNDCLASSW     wc = {0};
+        wc.lpfnWndProc = WindowProc;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = CLASS_NAME;
         if (!RegisterClassW (&wc))
                 return 0;
-        HWND hwnd = CreateWindowExW (0, CLASS_NAME, 
-                                     R_CSTL_StringData(pApplicationInfo->pApplicationName), 
-                                     WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-                                     800, 600, NULL, NULL, hInstance, NULL);
+        HWND hwnd = CreateWindowExW (
+            0,
+            CLASS_NAME,
+            R_CSTL_StringData (pApplicationInfo->pApplicationName),
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            800,
+            600,
+            NULL,
+            NULL,
+            hInstance,
+            NULL);
         if (!hwnd)
                 return 0;
         ShowWindow (hwnd, nCmdShow);
@@ -528,17 +549,17 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
 
 #elif defined(__linux__)
 
-        #include <unistd.h>
-        #include <sys/types.h>
-        #include <sys/sysinfo.h>
-        #include <dirent.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <dirent.h>
 
 static char*
 R_CopyStringToHeap (const char* src)
 {
         if (!src)
                 return NULL;
-        size_t len  = strlen (src);
+        size_t len = strlen (src);
         char*  copy = (char*)R_CSTL_HeapAlloc (len + 1);
         if (copy)
         {
@@ -569,7 +590,9 @@ R_AssignProcessName (R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 
 static uint32_t
 R_GetCurrentPid ()
-{ return (uint32_t)getpid (); }
+{
+        return (uint32_t)getpid ();
+}
 void
 R_FillMemoryInfo (R_MemoryInfo* out)
 {
@@ -579,9 +602,9 @@ R_FillMemoryInfo (R_MemoryInfo* out)
         struct sysinfo si;
         if (sysinfo (&si) == 0)
         {
-                out->totalPhysicalBytes     = (uint64_t)si.totalram * (uint64_t)si.mem_unit;
+                out->totalPhysicalBytes = (uint64_t)si.totalram * (uint64_t)si.mem_unit;
                 out->availablePhysicalBytes = (uint64_t)si.freeram * (uint64_t)si.mem_unit;
-                out->usedBytes              = out->totalPhysicalBytes - out->availablePhysicalBytes;
+                out->usedBytes = out->totalPhysicalBytes - out->availablePhysicalBytes;
                 out->totalVirtualBytes
                     = (uint64_t)si.totalswap * (uint64_t)si.mem_unit + out->totalPhysicalBytes;
         }
@@ -591,7 +614,7 @@ R_FillMemoryInfo (R_MemoryInfo* out)
                 unsigned long size = 0, rss = 0;
                 if (fscanf (f, "%lu %lu", &size, &rss) >= 2)
                 {
-                        long page               = sysconf (_SC_PAGESIZE);
+                        long page = sysconf (_SC_PAGESIZE);
                         out->heapAllocatedBytes = (size_t)(rss * page);
                 }
                 fclose (f);
@@ -605,9 +628,9 @@ R_GetExecutablePath ()
         ssize_t len = readlink ("/proc/self/exe", buf, sizeof (buf) - 1);
         if (len <= 0)
                 return NULL;
-        buf[len]        = 0x00;
+        buf[len] = 0x00;
         size_t allocLen = len + 1;
-        char*  copy     = (char*)R_CSTL_HeapAlloc (allocLen);
+        char*  copy = (char*)R_CSTL_HeapAlloc (allocLen);
         if (copy)
         {
                 memcpy (copy, buf, allocLen);
@@ -621,13 +644,13 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
 {
         R_ProcessInfo* arr = NULL;
         char*          exe = NULL;
-        FILE*          f   = NULL;
+        FILE*          f = NULL;
 
         if (!outCount)
                 return NULL;
 
         *outCount = 1;
-        arr       = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
+        arr = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
         if (!arr)
         {
                 *outCount = 0;
@@ -635,8 +658,8 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         }
         memset (arr, 0, sizeof (R_ProcessInfo));
 
-        arr[0].pid         = R_GetCurrentPid ();
-        arr[0].pUser       = NULL;
+        arr[0].pid = R_GetCurrentPid ();
+        arr[0].pUser = NULL;
         arr[0].startTimeMs = 0;
         arr[0].memoryBytes = 0;
 

@@ -7,31 +7,31 @@
 #include <string.h>
 
 #if defined(_R_SIMD_AVX2)
-        #include <immintrin.h>
+#include <immintrin.h>
 #elif defined(_R_SIMD_SSE)
-        #include <immintrin.h>
+#include <immintrin.h>
 #elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
-        #include <arm_neon.h>
+#include <arm_neon.h>
 #endif
 
 #if defined(_MSC_VER) || defined(_WIN32)
-        #include <malloc.h>
-        #define R_CSTL_STACK_ALLOC(sz) _alloca (sz)
+#include <malloc.h>
+#define R_CSTL_STACK_ALLOC(sz) _alloca (sz)
 #else
-        #include <alloca.h>
-        #define R_CSTL_STACK_ALLOC(sz) alloca (sz)
+#include <alloca.h>
+#define R_CSTL_STACK_ALLOC(sz) alloca (sz)
 #endif
 
 #ifndef R_CSTL_ARRAY_MIN_CAPACITY
-        #define R_CSTL_ARRAY_MIN_CAPACITY 16u
+#define R_CSTL_ARRAY_MIN_CAPACITY 16u
 #endif
 
 #ifndef R_CSTL_ARRAY_SIMD_THRESHOLD
-        #define R_CSTL_ARRAY_SIMD_THRESHOLD 64u
+#define R_CSTL_ARRAY_SIMD_THRESHOLD 64u
 #endif
 
 #ifndef R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD
-        #define R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD 24u
+#define R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD 24u
 #endif
 
 struct R_CSTL_Array
@@ -142,7 +142,7 @@ R_CSTL_ArrayReleaseBuffer (struct R_CSTL_Array* pArray)
 #endif
 
         R_CSTL_HeapFree (pArray->pData);
-        pArray->pData    = NULL;
+        pArray->pData = NULL;
         pArray->capacity = 0;
 
 #if defined(R_CSTL_HEAP_DEBUG)
@@ -175,7 +175,10 @@ R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
                 if (pNew != pOldData)
                 {
                         uint64_t success = R_CSTL_HeapRegisterAllocation (
-                            pArray, pNew, newCapacity, R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
+                            pArray,
+                            pNew,
+                            newCapacity,
+                            R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
                         if (success == 0)
                                 goto cstl_fail_register;
                 }
@@ -188,14 +191,17 @@ R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
                         return -1;
 
 #if defined(R_CSTL_HEAP_DEBUG)
-                uint64_t success = R_CSTL_HeapRegisterAllocation (pArray, pNew, newCapacity,
-                                                                  R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
+                uint64_t success = R_CSTL_HeapRegisterAllocation (
+                    pArray,
+                    pNew,
+                    newCapacity,
+                    R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
                 if (success == 0)
                         goto cstl_fail_register;
 #endif
         }
 
-        pArray->pData    = pNew;
+        pArray->pData = pNew;
         pArray->capacity = newCapacity;
         return 0;
 
@@ -232,15 +238,17 @@ R_CSTL_ArrayCreateShell (void)
         struct R_CSTL_Array* pArray = (struct R_CSTL_Array*)R_CSTL_HeapAlloc (sizeof (R_CSTL_Array));
         if (!pArray)
                 return NULL;
-        pArray->pData    = NULL;
-        pArray->length   = 0;
+        pArray->pData = NULL;
+        pArray->length = 0;
         pArray->capacity = 0;
         return pArray;
 }
 
 R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArray (void)
-{ return R_CSTL_ArrayCreateShell (); }
+{
+        return R_CSTL_ArrayCreateShell ();
+}
 
 R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArrayWithCapacity (size_t capacityBytes)
@@ -430,8 +438,8 @@ R_CSTL_ArraySlice (const struct R_CSTL_Array* pArray, size_t start, size_t end)
                 goto cstl_fail;
 #endif
 
-        size_t        sliceLength = end - start;
-        struct R_CSTL_Array* pSlice      = R_CSTL_NewArrayWithCapacity (sliceLength);
+        size_t               sliceLength = end - start;
+        struct R_CSTL_Array* pSlice = R_CSTL_NewArrayWithCapacity (sliceLength);
         if (!pSlice)
                 goto cstl_fail;
 
@@ -495,7 +503,7 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayCompareU8 (const void* pLeft, const uint8_t* pRight, void* pData)
 {
         (void)pData;
-        const uint8_t left  = *(const uint8_t*)pLeft;
+        const uint8_t left = *(const uint8_t*)pLeft;
         const uint8_t right = *(const uint8_t*)pRight;
         return R_CSTL_COMPARE (left, right);
 }
@@ -504,7 +512,7 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayCompareU16 (const void* pLeft, const void* pRight, void* pData)
 {
         (void)pData;
-        const uint16_t left  = *(const uint16_t*)pLeft;
+        const uint16_t left = *(const uint16_t*)pLeft;
         const uint16_t right = *(const uint16_t*)pRight;
         return R_CSTL_COMPARE (left, right);
 }
@@ -513,7 +521,7 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayCompareU32 (const void* pLeft, const void* pRight, void* pData)
 {
         (void)pData;
-        const uint32_t left  = *(const uint32_t*)pLeft;
+        const uint32_t left = *(const uint32_t*)pLeft;
         const uint32_t right = *(const uint32_t*)pRight;
         return R_CSTL_COMPARE (left, right);
 }
@@ -522,7 +530,7 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayCompareU64 (const void* pLeft, const void* pRight, void* pData)
 {
         (void)pData;
-        const uint64_t left  = *(const uint64_t*)pLeft;
+        const uint64_t left = *(const uint64_t*)pLeft;
         const uint64_t right = *(const uint64_t*)pRight;
         return R_CSTL_COMPARE (left, right);
 }
@@ -557,7 +565,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
 #define R_CSTL_ARRAY_SORT_TYPED(Suffix, Type)                                                                \
         R_CSTL_API_ATTR static int R_CSTL_ArrayCmp##Suffix##Inline (const Type* pLeft, const Type* pRight)   \
         {                                                                                                    \
-                const Type left  = *pLeft;                                                                   \
+                const Type left = *pLeft;                                                                    \
                 const Type right = *pRight;                                                                  \
                 return (left > right) - (left < right);                                                      \
         }                                                                                                    \
@@ -565,8 +573,8 @@ R_CSTL_ArrayFloorLog2 (size_t n)
         R_CSTL_API_ATTR static void R_CSTL_ArraySwap##Suffix (Type* pLeft, Type* pRight)                     \
         {                                                                                                    \
                 const Type tmp = *pLeft;                                                                     \
-                *pLeft         = *pRight;                                                                    \
-                *pRight        = tmp;                                                                        \
+                *pLeft = *pRight;                                                                            \
+                *pRight = tmp;                                                                               \
         }                                                                                                    \
                                                                                                              \
         static void R_CSTL_ArrayInsertionSort##Suffix (Type* pBase, long left, long right)                   \
@@ -574,7 +582,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 for (long i = left + 1; i <= right; ++i)                                                     \
                 {                                                                                            \
                         const Type key = pBase[i];                                                           \
-                        long       j   = i - 1;                                                              \
+                        long       j = i - 1;                                                                \
                         while (j >= left && R_CSTL_ArrayCmp##Suffix##Inline (pBase + j, &key) > 0)           \
                         {                                                                                    \
                                 pBase[j + 1] = pBase[j];                                                     \
@@ -585,14 +593,18 @@ R_CSTL_ArrayFloorLog2 (size_t n)
         }                                                                                                    \
                                                                                                              \
         static void R_CSTL_ArrayInsertionSort##Suffix##Cb (                                                  \
-            Type* pBase, long left, long right, const R_CSTL_ArraySortComparator pCmp, void* pData)          \
+            Type*                            pBase,                                                          \
+            long                             left,                                                           \
+            long                             right,                                                          \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
-                R_CSTL_ArraySortComparator cmp  = pCmp;                                                      \
+                R_CSTL_ArraySortComparator cmp = pCmp;                                                       \
                 void*                      data = pData;                                                     \
                 for (long i = left + 1; i <= right; ++i)                                                     \
                 {                                                                                            \
                         const Type key = pBase[i];                                                           \
-                        long       j   = i - 1;                                                              \
+                        long       j = i - 1;                                                                \
                         while (j >= left && cmp (pBase + j, &key, data) > 0)                                 \
                         {                                                                                    \
                                 pBase[j + 1] = pBase[j];                                                     \
@@ -618,10 +630,14 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 }                                                                                            \
         }                                                                                                    \
                                                                                                              \
-        static void R_CSTL_ArraySiftDown##Suffix##Cb (Type* pBase, long start, long end,                     \
-                                                      const R_CSTL_ArraySortComparator pCmp, void* pData)    \
+        static void R_CSTL_ArraySiftDown##Suffix##Cb (                                                       \
+            Type*                            pBase,                                                          \
+            long                             start,                                                          \
+            long                             end,                                                            \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
-                R_CSTL_ArraySortComparator cmp  = pCmp;                                                      \
+                R_CSTL_ArraySortComparator cmp = pCmp;                                                       \
                 void*                      data = pData;                                                     \
                 long                       root = start;                                                     \
                 while ((root << 1) + 1 <= end)                                                               \
@@ -647,8 +663,12 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 }                                                                                            \
         }                                                                                                    \
                                                                                                              \
-        static void R_CSTL_ArrayHeapsort##Suffix##Cb (Type* pBase, long left, long right,                    \
-                                                      const R_CSTL_ArraySortComparator pCmp, void* pData)    \
+        static void R_CSTL_ArrayHeapsort##Suffix##Cb (                                                       \
+            Type*                            pBase,                                                          \
+            long                             left,                                                           \
+            long                             right,                                                          \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
                 for (long start = (left + right) >> 1; start >= left; --start)                               \
                         R_CSTL_ArraySiftDown##Suffix##Cb (pBase, start, right, pCmp, pData);                 \
@@ -671,8 +691,8 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 R_CSTL_ArraySwap##Suffix (pBase + mid, pBase + right - 1);                                   \
                                                                                                              \
                 const Type pivot = pBase[right - 1];                                                         \
-                long       i     = left;                                                                     \
-                long       j     = right - 2;                                                                \
+                long       i = left;                                                                         \
+                long       j = right - 2;                                                                    \
                 for (;;)                                                                                     \
                 {                                                                                            \
                         while (R_CSTL_COMPARE (pBase[i], pivot) < 0)                                         \
@@ -689,12 +709,16 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 return i;                                                                                    \
         }                                                                                                    \
                                                                                                              \
-        static long R_CSTL_ArrayPartition##Suffix##Cb (Type* pBase, long left, long right,                   \
-                                                       const R_CSTL_ArraySortComparator pCmp, void* pData)   \
+        static long R_CSTL_ArrayPartition##Suffix##Cb (                                                      \
+            Type*                            pBase,                                                          \
+            long                             left,                                                           \
+            long                             right,                                                          \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
-                R_CSTL_ArraySortComparator cmp  = pCmp;                                                      \
+                R_CSTL_ArraySortComparator cmp = pCmp;                                                       \
                 void*                      data = pData;                                                     \
-                long                       mid  = (left + right) >> 1;                                       \
+                long                       mid = (left + right) >> 1;                                        \
                 if (cmp (pBase + mid, pBase + left, data) < 0)                                               \
                         R_CSTL_ArraySwap##Suffix (pBase + mid, pBase + left);                                \
                 if (cmp (pBase + right, pBase + left, data) < 0)                                             \
@@ -704,8 +728,8 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 R_CSTL_ArraySwap##Suffix (pBase + mid, pBase + right - 1);                                   \
                                                                                                              \
                 const void* pPivot = pBase + right - 1;                                                      \
-                long        i      = left;                                                                   \
-                long        j      = right - 2;                                                              \
+                long        i = left;                                                                        \
+                long        j = right - 2;                                                                   \
                 for (;;)                                                                                     \
                 {                                                                                            \
                         while (cmp (pBase + i, pPivot, data) < 0)                                            \
@@ -752,8 +776,13 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 }                                                                                            \
         }                                                                                                    \
                                                                                                              \
-        static void R_CSTL_ArrayIntrosort##Suffix##Cb (Type* pBase, long left, long right, int depthLimit,   \
-                                                       const R_CSTL_ArraySortComparator pCmp, void* pData)   \
+        static void R_CSTL_ArrayIntrosort##Suffix##Cb (                                                      \
+            Type*                            pBase,                                                          \
+            long                             left,                                                           \
+            long                             right,                                                          \
+            int                              depthLimit,                                                     \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
                 while (left < right)                                                                         \
                 {                                                                                            \
@@ -773,14 +802,24 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                         --depthLimit;                                                                        \
                         if (pivot - left < right - pivot)                                                    \
                         {                                                                                    \
-                                R_CSTL_ArrayIntrosort##Suffix##Cb (pBase, left, pivot - 1, depthLimit, pCmp, \
-                                                                   pData);                                   \
+                                R_CSTL_ArrayIntrosort##Suffix##Cb (                                          \
+                                    pBase,                                                                   \
+                                    left,                                                                    \
+                                    pivot - 1,                                                               \
+                                    depthLimit,                                                              \
+                                    pCmp,                                                                    \
+                                    pData);                                                                  \
                                 left = pivot + 1;                                                            \
                         }                                                                                    \
                         else                                                                                 \
                         {                                                                                    \
-                                R_CSTL_ArrayIntrosort##Suffix##Cb (pBase, pivot + 1, right, depthLimit,      \
-                                                                   pCmp, pData);                             \
+                                R_CSTL_ArrayIntrosort##Suffix##Cb (                                          \
+                                    pBase,                                                                   \
+                                    pivot + 1,                                                               \
+                                    right,                                                                   \
+                                    depthLimit,                                                              \
+                                    pCmp,                                                                    \
+                                    pData);                                                                  \
                                 right = pivot - 1;                                                           \
                         }                                                                                    \
                 }                                                                                            \
@@ -794,8 +833,11 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 R_CSTL_ArrayIntrosort##Suffix (pBase, 0, (long)nelem - 1, depthLimit);                       \
         }                                                                                                    \
                                                                                                              \
-        static void R_CSTL_ArraySort##Suffix##Callback (Type* pBase, size_t nelem,                           \
-                                                        const R_CSTL_ArraySortComparator pCmp, void* pData)  \
+        static void R_CSTL_ArraySort##Suffix##Callback (                                                     \
+            Type*                            pBase,                                                          \
+            size_t                           nelem,                                                          \
+            const R_CSTL_ArraySortComparator pCmp,                                                           \
+            void*                            pData)                                                          \
         {                                                                                                    \
                 if (nelem <= 1)                                                                              \
                         return;                                                                              \
@@ -816,13 +858,16 @@ typedef struct
 } R_CSTL_ArrayStackFrame;
 
 #define R_CSTL_ARRAY_INTROSORT_SIMD(Suffix, PartitionFn)                                                     \
-        static void R_CSTL_ArrayIntrosortU32##Suffix (uint32_t* pBase, long left, long right,                \
-                                                      int depthLimit)                                        \
+        static void R_CSTL_ArrayIntrosortU32##Suffix (                                                       \
+            uint32_t* pBase,                                                                                 \
+            long      left,                                                                                  \
+            long      right,                                                                                 \
+            int       depthLimit)                                                                            \
         {                                                                                                    \
                 R_CSTL_ArrayStackFrame stack[64] = {0}; /* Sufficient for log2(2^64) depth */                \
-                int                    stackTop  = 0;                                                        \
+                int                    stackTop = 0;                                                         \
                                                                                                              \
-                stack[stackTop].left  = left;                                                                \
+                stack[stackTop].left = left;                                                                 \
                 stack[stackTop].right = right;                                                               \
                 stack[stackTop].depth = depthLimit;                                                          \
                 stackTop++;                                                                                  \
@@ -831,9 +876,9 @@ typedef struct
                 {                                                                                            \
                         stackTop--;                                                                          \
                         R_CSTL_ArrayStackFrame* stackFrame = &stack[stackTop];                               \
-                        left                               = stackFrame->left;                               \
-                        right                              = stackFrame->right;                              \
-                        depthLimit                         = stackFrame->depth;                              \
+                        left = stackFrame->left;                                                             \
+                        right = stackFrame->right;                                                           \
+                        depthLimit = stackFrame->depth;                                                      \
                                                                                                              \
                         while (left < right)                                                                 \
                         {                                                                                    \
@@ -862,7 +907,7 @@ typedef struct
                                         /* Right partition is larger, push to stack */                       \
                                         if (stackTop < 64)                                                   \
                                         {                                                                    \
-                                                stackFrame->left  = pivot + 1;                               \
+                                                stackFrame->left = pivot + 1;                                \
                                                 stackFrame->right = right;                                   \
                                                 stackFrame->depth = depthLimit;                              \
                                                 stackTop++;                                                  \
@@ -874,7 +919,7 @@ typedef struct
                                         /* Left partition is larger, push to stack */                        \
                                         if (stackTop < 64)                                                   \
                                         {                                                                    \
-                                                stackFrame->left  = left;                                    \
+                                                stackFrame->left = left;                                     \
                                                 stackFrame->right = pivot - 1;                               \
                                                 stackFrame->depth = depthLimit;                              \
                                                 stackTop++;                                                  \
@@ -931,19 +976,19 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pBase + i));
-                        __m256i cmpVec  = _mm256_cmpgt_epi32 (dataVec, pivotVec);
-                        int     mask    = _mm256_movemask_epi8 (cmpVec);
+                        __m256i cmpVec = _mm256_cmpgt_epi32 (dataVec, pivotVec);
+                        int     mask = _mm256_movemask_epi8 (cmpVec);
                         if (R_CSTL_LIKELY (mask == 0))
                                 i += 8;
                         else
                         {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
-        #else
+#else
                                 int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                 i += tz;
                                 break;
                         }
@@ -959,19 +1004,19 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pBase + j - 7));
-                        __m256i cmpVec  = _mm256_cmpgt_epi32 (pivotVec, dataVec);
-                        int     mask    = _mm256_movemask_epi8 (cmpVec);
+                        __m256i cmpVec = _mm256_cmpgt_epi32 (pivotVec, dataVec);
+                        int     mask = _mm256_movemask_epi8 (cmpVec);
                         if (R_CSTL_LIKELY (mask == 0))
                                 j -= 8;
                         else
                         {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
-        #else
+#else
                                 int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                 j -= tz;
                                 break;
                         }
@@ -1011,8 +1056,8 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                 R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + mid, pBase + right - 1);
         const uint32_t pivot = pBase[right - 1];
-        long           i     = left;
-        long           j     = right - 2;
+        long           i = left;
+        long           j = right - 2;
 
         __m128i pivotVec = _mm_set1_epi32 ((int)pivot);
         for (;;)
@@ -1028,19 +1073,19 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         __m128i dataVec = _mm_loadu_si128 ((__m128i*)(pBase + i));
-                        __m128i cmpVec  = _mm_cmpgt_epi32 (dataVec, pivotVec);
-                        int     mask    = _mm_movemask_epi8 (cmpVec);
+                        __m128i cmpVec = _mm_cmpgt_epi32 (dataVec, pivotVec);
+                        int     mask = _mm_movemask_epi8 (cmpVec);
                         if (R_CSTL_LIKELY (mask == 0))
                                 i += 4;
                         else
                         {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
-        #else
+#else
                                 int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                 i += tz;
                                 break;
                         }
@@ -1056,19 +1101,19 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         __m128i dataVec = _mm_loadu_si128 ((__m128i*)(pBase + j - 3));
-                        __m128i cmpVec  = _mm_cmpgt_epi32 (pivotVec, dataVec);
-                        int     mask    = _mm_movemask_epi8 (cmpVec);
+                        __m128i cmpVec = _mm_cmpgt_epi32 (pivotVec, dataVec);
+                        int     mask = _mm_movemask_epi8 (cmpVec);
                         if (R_CSTL_LIKELY (mask == 0))
                                 j -= 4;
                         else
                         {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
-        #else
+#else
                                 int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                 j -= tz;
                                 break;
                         }
@@ -1093,7 +1138,7 @@ static inline int
 R_CSTL_NEON_MASK (uint32x4_t cmpVec)
 {
         uint64x2_t mask64 = vreinterpretq_u64_u32 (cmpVec);
-        uint64_t   mask   = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
+        uint64_t   mask = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
         return (int)mask;
 }
 
@@ -1117,8 +1162,8 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                 R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + mid, pBase + right - 1);
         const uint32_t pivot = pBase[right - 1];
-        long           i     = left;
-        long           j     = right - 2;
+        long           i = left;
+        long           j = right - 2;
 
         uint32x4_t pivotVec = vdupq_n_u32 (pivot);
         for (;;)
@@ -1134,9 +1179,9 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         uint32x4_t dataVec = vld1q_u32 (pBase + i);
-                        uint32x4_t cmpVec  = vcgtq_u32 (dataVec, pivotVec);
-                        uint64x2_t mask64  = vreinterpretq_u64_u32 (cmpVec);
-                        uint64_t   mask    = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
+                        uint32x4_t cmpVec = vcgtq_u32 (dataVec, pivotVec);
+                        uint64x2_t mask64 = vreinterpretq_u64_u32 (cmpVec);
+                        uint64_t   mask = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
                         if (mask == 0)
                                 i += 4;
                         else
@@ -1157,9 +1202,9 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                                 break;
                         }
                         uint32x4_t dataVec = vld1q_u32 (pBase + j - 3);
-                        uint32x4_t cmpVec  = vcgtq_u32 (pivotVec, dataVec);
-                        uint64x2_t mask64  = vreinterpretq_u64_u32 (cmpVec);
-                        uint64_t   mask    = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
+                        uint32x4_t cmpVec = vcgtq_u32 (pivotVec, dataVec);
+                        uint64x2_t mask64 = vreinterpretq_u64_u32 (cmpVec);
+                        uint64_t   mask = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
                         if (mask == 0)
                                 j -= 4;
                         else
@@ -1184,18 +1229,20 @@ R_CSTL_ARRAY_INTROSORT_SIMD (NEON, R_CSTL_ArrayPartitionU32NEON)
 R_CSTL_ARRAY_SORT_SIMD (NEON, R_CSTL_ArrayIntrosortU32NEON)
 #endif
 
-typedef struct R_CSTL_ArraySortCtx
+struct R_CSTL_ArraySortCtx
 {
                 uint8_t*                   pBase;
                 size_t                     elemSize;
                 R_CSTL_ArraySortComparator pCmp;
                 void*                      pData;
                 uint8_t*                   pTmp;
-} R_CSTL_ArraySortCtx;
+};
 
 R_CSTL_API_ATTR uint8_t*
-R_CSTL_ArrayElementBytes (const R_CSTL_ArraySortCtx* pCtx, long index)
-{ return pCtx->pBase + (size_t)index * pCtx->elemSize; }
+R_CSTL_ArrayElementBytes (const struct R_CSTL_ArraySortCtx* pCtx, long index)
+{
+        return pCtx->pBase + (size_t)index * pCtx->elemSize;
+}
 
 R_CSTL_API_ATTR void
 R_CSTL_ArrayCopyElement (uint8_t* pDst, const uint8_t* pSrc, size_t elemSize)
@@ -1264,27 +1311,27 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
         if (elemSize == 1u)
         {
                 uint8_t tmp = *a;
-                *a          = *b;
-                *b          = tmp;
+                *a = *b;
+                *b = tmp;
                 return;
         }
         if (elemSize == 2u)
         {
-                uint16_t tmp  = *(uint16_t*)a;
+                uint16_t tmp = *(uint16_t*)a;
                 *(uint16_t*)a = *(uint16_t*)b;
                 *(uint16_t*)b = tmp;
                 return;
         }
         if (elemSize == 4u)
         {
-                uint32_t tmp  = *(uint32_t*)a;
+                uint32_t tmp = *(uint32_t*)a;
                 *(uint32_t*)a = *(uint32_t*)b;
                 *(uint32_t*)b = tmp;
                 return;
         }
         if (elemSize == 8u)
         {
-                uint64_t tmp  = *(uint64_t*)a;
+                uint64_t tmp = *(uint64_t*)a;
                 *(uint64_t*)a = *(uint64_t*)b;
                 *(uint64_t*)b = tmp;
                 return;
@@ -1363,12 +1410,12 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
 }
 
 R_CSTL_API_ATTR void
-R_CSTL_ArrayInsertionSort (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
+R_CSTL_ArrayInsertionSort (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right)
 {
         const size_t               elemSize = pCtx->elemSize;
-        uint8_t*                   pKey     = pCtx->pTmp;
-        R_CSTL_ArraySortComparator cmp      = pCtx->pCmp;
-        void*                      data     = pCtx->pData;
+        uint8_t*                   pKey = pCtx->pTmp;
+        R_CSTL_ArraySortComparator cmp = pCtx->pCmp;
+        void*                      data = pCtx->pData;
 
         for (long i = left + 1; i <= right; ++i)
         {
@@ -1376,8 +1423,10 @@ R_CSTL_ArrayInsertionSort (const R_CSTL_ArraySortCtx* pCtx, long left, long righ
                 long j = i - 1;
                 while (R_CSTL_LIKELY (j >= left) && cmp (R_CSTL_ArrayElementBytes (pCtx, j), pKey, data) > 0)
                 {
-                        R_CSTL_ArrayCopyElement (R_CSTL_ArrayElementBytes (pCtx, j + 1),
-                                                 R_CSTL_ArrayElementBytes (pCtx, j), elemSize);
+                        R_CSTL_ArrayCopyElement (
+                            R_CSTL_ArrayElementBytes (pCtx, j + 1),
+                            R_CSTL_ArrayElementBytes (pCtx, j),
+                            elemSize);
                         --j;
                 }
                 if (R_CSTL_LIKELY (j + 1 != i))
@@ -1386,74 +1435,97 @@ R_CSTL_ArrayInsertionSort (const R_CSTL_ArraySortCtx* pCtx, long left, long righ
 }
 
 R_CSTL_API_ATTR void
-R_CSTL_ArraySiftDown (const R_CSTL_ArraySortCtx* pCtx, long start, long end)
+R_CSTL_ArraySiftDown (const struct R_CSTL_ArraySortCtx* pCtx, long start, long end)
 {
-        R_CSTL_ArraySortComparator cmp  = pCtx->pCmp;
+        R_CSTL_ArraySortComparator cmp = pCtx->pCmp;
         void*                      data = pCtx->pData;
         long                       root = start;
         while (R_CSTL_LIKELY ((root << 1) + 1 <= end))
         {
                 long child = (root << 1) + 1;
                 if (R_CSTL_LIKELY (child + 1 < end)
-                    && cmp (R_CSTL_ArrayElementBytes (pCtx, child),
-                            R_CSTL_ArrayElementBytes (pCtx, child + 1), data)
+                    && cmp (
+                           R_CSTL_ArrayElementBytes (pCtx, child),
+                           R_CSTL_ArrayElementBytes (pCtx, child + 1),
+                           data)
                            < 0)
                         ++child;
 
-                if (R_CSTL_LIKELY (cmp (R_CSTL_ArrayElementBytes (pCtx, root),
-                                        R_CSTL_ArrayElementBytes (pCtx, child), data)
-                                   >= 0))
+                if (R_CSTL_LIKELY (
+                        cmp (
+                            R_CSTL_ArrayElementBytes (pCtx, root),
+                            R_CSTL_ArrayElementBytes (pCtx, child),
+                            data)
+                        >= 0))
                         break;
 
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, root),
-                                          R_CSTL_ArrayElementBytes (pCtx, child), pCtx->elemSize, pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, root),
+                    R_CSTL_ArrayElementBytes (pCtx, child),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
                 root = child;
         }
 }
 
 R_CSTL_API_ATTR void
-R_CSTL_ArrayHeapsort (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
+R_CSTL_ArrayHeapsort (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right)
 {
         for (long start = (left + right) >> 1; start >= left; --start)
                 R_CSTL_ArraySiftDown (pCtx, start, right);
 
         for (long end = right; end > left; --end)
         {
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, left),
-                                          R_CSTL_ArrayElementBytes (pCtx, end), pCtx->elemSize, pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, left),
+                    R_CSTL_ArrayElementBytes (pCtx, end),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
                 R_CSTL_ArraySiftDown (pCtx, left, end - 1);
         }
 }
 
 R_CSTL_API_ATTR long
-R_CSTL_ArrayPartition (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
+R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right)
 {
-        R_CSTL_ArraySortComparator cmp  = pCtx->pCmp;
+        R_CSTL_ArraySortComparator cmp = pCtx->pCmp;
         void*                      data = pCtx->pData;
-        long                       mid  = (left + right) >> 1;
+        long                       mid = (left + right) >> 1;
 
         if (cmp (R_CSTL_ArrayElementBytes (pCtx, mid), R_CSTL_ArrayElementBytes (pCtx, left), data) < 0)
         {
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, left),
-                                          R_CSTL_ArrayElementBytes (pCtx, mid), pCtx->elemSize, pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, left),
+                    R_CSTL_ArrayElementBytes (pCtx, mid),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
         }
         if (cmp (R_CSTL_ArrayElementBytes (pCtx, right), R_CSTL_ArrayElementBytes (pCtx, left), data) < 0)
         {
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, left),
-                                          R_CSTL_ArrayElementBytes (pCtx, right), pCtx->elemSize, pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, left),
+                    R_CSTL_ArrayElementBytes (pCtx, right),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
         }
         if (cmp (R_CSTL_ArrayElementBytes (pCtx, right), R_CSTL_ArrayElementBytes (pCtx, mid), data) < 0)
         {
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, mid),
-                                          R_CSTL_ArrayElementBytes (pCtx, right), pCtx->elemSize, pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, mid),
+                    R_CSTL_ArrayElementBytes (pCtx, right),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
         }
 
-        R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, mid),
-                                  R_CSTL_ArrayElementBytes (pCtx, right - 1), pCtx->elemSize, pCtx->pTmp);
+        R_CSTL_ArraySwapElements (
+            R_CSTL_ArrayElementBytes (pCtx, mid),
+            R_CSTL_ArrayElementBytes (pCtx, right - 1),
+            pCtx->elemSize,
+            pCtx->pTmp);
 
         uint8_t* pPivot = R_CSTL_ArrayElementBytes (pCtx, right - 1);
-        long     i      = left;
-        long     j      = right - 2;
+        long     i = left;
+        long     j = right - 2;
 
 #if defined(_R_SIMD_AVX2)
         if (R_CSTL_LIKELY (pCtx->elemSize == 4u))
@@ -1475,19 +1547,19 @@ R_CSTL_ArrayPartition (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
                                         break;
                                 }
                                 __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pCtx->pBase + i * 4));
-                                __m256i cmpVec  = _mm256_cmpgt_epi32 (dataVec, pivotVec);
-                                int     mask    = _mm256_movemask_epi8 (cmpVec);
+                                __m256i cmpVec = _mm256_cmpgt_epi32 (dataVec, pivotVec);
+                                int     mask = _mm256_movemask_epi8 (cmpVec);
                                 if (R_CSTL_LIKELY (mask == 0))
                                         i += 8;
                                 else
                                 {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                         unsigned long tz;
                                         _BitScanForward (&tz, (unsigned long)mask);
                                         tz /= 4;
-        #else
+#else
                                         int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                         i += tz;
                                         break;
                                 }
@@ -1504,19 +1576,19 @@ R_CSTL_ArrayPartition (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
                                         break;
                                 }
                                 __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pCtx->pBase + (j - 7) * 4));
-                                __m256i cmpVec  = _mm256_cmpgt_epi32 (pivotVec, dataVec);
-                                int     mask    = _mm256_movemask_epi8 (cmpVec);
+                                __m256i cmpVec = _mm256_cmpgt_epi32 (pivotVec, dataVec);
+                                int     mask = _mm256_movemask_epi8 (cmpVec);
                                 if (R_CSTL_LIKELY (mask == 0))
                                         j -= 8;
                                 else
                                 {
-        #if defined(_R_COMPILER_MSVC)
+#if defined(_R_COMPILER_MSVC)
                                         unsigned long tz;
                                         _BitScanForward (&tz, (unsigned long)mask);
                                         tz /= 4;
-        #else
+#else
                                         int tz = __builtin_ctz (mask) / 4;
-        #endif
+#endif
                                         j -= tz;
                                         break;
                                 }
@@ -1524,9 +1596,11 @@ R_CSTL_ArrayPartition (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
                         if (R_CSTL_UNLIKELY (i >= j))
                                 break;
 
-                        R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, i),
-                                                  R_CSTL_ArrayElementBytes (pCtx, j), pCtx->elemSize,
-                                                  pCtx->pTmp);
+                        R_CSTL_ArraySwapElements (
+                            R_CSTL_ArrayElementBytes (pCtx, i),
+                            R_CSTL_ArrayElementBytes (pCtx, j),
+                            pCtx->elemSize,
+                            pCtx->pTmp);
                         ++i;
                         --j;
                 }
@@ -1542,43 +1616,50 @@ R_CSTL_ArrayPartition (const R_CSTL_ArraySortCtx* pCtx, long left, long right)
                         if (i >= j)
                                 break;
 
-                        R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, i),
-                                                  R_CSTL_ArrayElementBytes (pCtx, j), pCtx->elemSize,
-                                                  pCtx->pTmp);
+                        R_CSTL_ArraySwapElements (
+                            R_CSTL_ArrayElementBytes (pCtx, i),
+                            R_CSTL_ArrayElementBytes (pCtx, j),
+                            pCtx->elemSize,
+                            pCtx->pTmp);
                         ++i;
                         --j;
                 }
 
-                R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, i),
-                                          R_CSTL_ArrayElementBytes (pCtx, right - 1), pCtx->elemSize,
-                                          pCtx->pTmp);
+                R_CSTL_ArraySwapElements (
+                    R_CSTL_ArrayElementBytes (pCtx, i),
+                    R_CSTL_ArrayElementBytes (pCtx, right - 1),
+                    pCtx->elemSize,
+                    pCtx->pTmp);
                 return i;
         }
 
-        R_CSTL_ArraySwapElements (R_CSTL_ArrayElementBytes (pCtx, i),
-                                  R_CSTL_ArrayElementBytes (pCtx, right - 1), pCtx->elemSize, pCtx->pTmp);
+        R_CSTL_ArraySwapElements (
+            R_CSTL_ArrayElementBytes (pCtx, i),
+            R_CSTL_ArrayElementBytes (pCtx, right - 1),
+            pCtx->elemSize,
+            pCtx->pTmp);
         return i;
 }
 
 #endif
 
 R_CSTL_API void
-R_CSTL_ArrayIntrosort (const R_CSTL_ArraySortCtx* pCtx, long left, long right, int depthLimit)
+R_CSTL_ArrayIntrosort (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right, int depthLimit)
 {
-        R_CSTL_ArrayStackFrame  stack[64]  = {0}; // Sufficient for log2(2^64) depth
-        long                    stackTop   = 0;
+        R_CSTL_ArrayStackFrame  stack[64] = {0}; // Sufficient for log2(2^64) depth
+        long                    stackTop = 0;
         R_CSTL_ArrayStackFrame* stackFrame = &stack[0];
-        stackFrame->left                   = left;
-        stackFrame->right                  = right;
-        stackFrame->depth                  = depthLimit;
+        stackFrame->left = left;
+        stackFrame->right = right;
+        stackFrame->depth = depthLimit;
         stackTop++;
 
         while (R_CSTL_LIKELY (stackTop > 0))
         {
                 stackTop--;
                 stackFrame = &stack[stackTop];
-                left       = stackFrame->left;
-                right      = stackFrame->right;
+                left = stackFrame->left;
+                right = stackFrame->right;
                 depthLimit = stackFrame->depth;
 
                 while (R_CSTL_LIKELY (left < right))
@@ -1612,7 +1693,7 @@ R_CSTL_ArrayIntrosort (const R_CSTL_ArraySortCtx* pCtx, long left, long right, i
                                 // Right partition is larger, push to stack
                                 if (R_CSTL_LIKELY (stackTop < 64))
                                 {
-                                        stackFrame->left  = pivot + 1;
+                                        stackFrame->left = pivot + 1;
                                         stackFrame->right = right;
                                         stackFrame->depth = depthLimit;
                                         stackTop++;
@@ -1624,7 +1705,7 @@ R_CSTL_ArrayIntrosort (const R_CSTL_ArraySortCtx* pCtx, long left, long right, i
                                 // Left partition is larger, push to stack
                                 if (R_CSTL_LIKELY (stackTop < 64))
                                 {
-                                        stackFrame->left  = left;
+                                        stackFrame->left = left;
                                         stackFrame->right = pivot - 1;
                                         stackFrame->depth = depthLimit;
                                         stackTop++;
@@ -1636,10 +1717,11 @@ R_CSTL_ArrayIntrosort (const R_CSTL_ArraySortCtx* pCtx, long left, long right, i
 }
 
 R_CSTL_API int
-R_CSTL_ArraySort (struct R_CSTL_Array* pArray,
-                  uint8_t       elemSize,
-                  int (*const pComparator) (const void* pLeft, const void* pRight, void* pData),
-                  void* pData)
+R_CSTL_ArraySort (
+    struct R_CSTL_Array* pArray,
+    uint8_t              elemSize,
+    int (*const pComparator) (const void* pLeft, const void* pRight, void* pData),
+    void* pData)
 {
         if (R_CSTL_UNLIKELY (!pArray || elemSize == 0))
                 goto cstl_fail;
@@ -1707,13 +1789,13 @@ R_CSTL_ArraySort (struct R_CSTL_Array* pArray,
                 return 0;
         }
 
-        uint8_t*            pTmp = (uint8_t*)R_CSTL_STACK_ALLOC (elemSize);
-        R_CSTL_ArraySortCtx ctx  = {
-             .pBase    = pBase,
-             .elemSize = elemSize,
-             .pCmp     = pComparator,
-             .pData    = pData,
-             .pTmp     = pTmp,
+        uint8_t*                   pTmp = (uint8_t*)R_CSTL_STACK_ALLOC (elemSize);
+        struct R_CSTL_ArraySortCtx ctx = {
+            .pBase = pBase,
+            .elemSize = elemSize,
+            .pCmp = pComparator,
+            .pData = pData,
+            .pTmp = pTmp,
         };
         const int depthLimit = (int)(2 * R_CSTL_ArrayFloorLog2 (nelem));
         R_CSTL_ArrayIntrosort (&ctx, 0, (long)nelem - 1, depthLimit);
@@ -1754,4 +1836,6 @@ cstl_fail:
 
 uint8_t
 R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index)
-{ return pArray->pData[index]; }
+{
+        return pArray->pData[index];
+}
