@@ -25,7 +25,7 @@ R_CVulkan_NewCommandPool (
         }
 #endif
 
-        pCommandPool->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pCommandPool->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pCommandPool->handle = VK_NULL_HANDLE;
         pCommandPool->queueFamilyIndex = queueFamilyIndex;
 #if defined(R_CVULKAN_DEBUG)
@@ -46,7 +46,7 @@ R_CVulkan_NewCommandPool (
 #if defined(R_CVULKAN_DEBUG)
         pCommandPool->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -98,7 +98,7 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, R_CVulka
                 return R_CVULKAN_ERROR_FAILED;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -119,7 +119,7 @@ R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
         }
 #endif
         (void)pCommandPool;
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API VkCommandPool

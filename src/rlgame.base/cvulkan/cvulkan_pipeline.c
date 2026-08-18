@@ -23,13 +23,13 @@ R_CVulkan_NewPipelineLayout (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pLayout->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pLayout->handle = VK_NULL_HANDLE;
         pLayout->isInitialized = false;
@@ -51,7 +51,7 @@ R_CVulkan_NewPipelineLayout (
 #if defined(R_CVULKAN_DEBUG)
         pLayout->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 void
@@ -116,13 +116,13 @@ R_CVulkan_GraphicsPipeline_Init (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pRasterizationInfo || !pMultisampleInfo || !pColorBlendInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pPipeline->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
         pPipeline->isInitialized = false;
@@ -161,7 +161,7 @@ R_CVulkan_GraphicsPipeline_Init (
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 enum R_CVulkan_Error
@@ -182,13 +182,13 @@ R_CVulkan_ComputePipeline_Init (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pPipeline->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
         pPipeline->isInitialized = false;
@@ -216,7 +216,7 @@ R_CVulkan_ComputePipeline_Init (
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 void

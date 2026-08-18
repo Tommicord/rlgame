@@ -24,7 +24,7 @@
  * will be rounded up to a power-of-two multiple of the minimum block size (32 bytes).
  *
  * @param heapSizeBytes Desired heap size in bytes. Must be > 0.
- * @return R_CSTL_ERROR_OK on success, R_CSTL_ERROR_INVALID_ARGUMENT if size is 0,
+ * @return R_CSTL_OK on success, R_CSTL_ERROR_INVALID_ARGUMENT if size is 0,
  *         R_CSTL_ERROR_HEAP_ALREADY_INITIALIZED if already initialized,
  *         R_CSTL_ERROR_OUT_OF_MEMORY if mapping fails.
  *
@@ -250,7 +250,7 @@ R_CSTL_API size_t R_CSTL_Heap_GetUsedSize (void);
  * Performs consistency checks on the heap data structures and, on MSVC,
  * validates the CRT debug heap.
  *
- * @return R_CSTL_ERROR_OK if heap is healthy, error code otherwise.
+ * @return R_CSTL_OK if heap is healthy, error code otherwise.
  *
  * @note This is a debug-only function for development.
  * @note May be slow; use sparingly in production debug builds.

@@ -29,7 +29,7 @@ struct R_CVulkan_ImageView
  * @param format Format of the view
  * @param components Component mapping (use VK_COMPONENT_SWIZZLE_IDENTITY for default)
  * @param subresourceRange Subresource range to view
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 enum R_CVulkan_Error R_CVulkan_NewImage (
     struct R_CVulkan_ImageView*    imageView,

@@ -33,7 +33,7 @@ struct R_CVulkan_Buffer
  * @param size Buffer size in bytes
  * @param usage Buffer usage flags
  * @param properties Memory property flags
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewBuffer (
     struct R_CVulkan_Buffer*       pBuffer,
@@ -55,7 +55,7 @@ R_CVULKAN_API void R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer);
  * @param offset Offset in bytes to map from
  * @param size Size in bytes to map
  * @param ppOutData Pointer to receive the mapped data pointer
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferMap (
     struct R_CVulkan_Buffer* pBuffer,
@@ -66,7 +66,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferMap (
 /**
  * @brief Unmap buffer memory
  * @param pBuffer Pointer to buffer
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer);
 
@@ -76,7 +76,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferUnmap (struct R_CVulkan_Buffe
  * @param offset Offset in bytes to copy to
  * @param size Size in bytes to copy
  * @param data Pointer to source data
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferCopyData (
     struct R_CVulkan_Buffer* pBuffer,
@@ -89,7 +89,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferCopyData (
  * @param pBuffer Pointer to buffer
  * @param offset Offset in bytes
  * @param size Size in bytes
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferInvalidate (
     struct R_CVulkan_Buffer* pBuffer,
@@ -101,7 +101,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferInvalidate (
  * @param pBuffer Pointer to buffer
  * @param offset Offset in bytes
  * @param size Size in bytes
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferFlush (
     struct R_CVulkan_Buffer* pBuffer,

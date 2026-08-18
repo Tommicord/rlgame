@@ -36,7 +36,7 @@ struct R_CVulkan_Sampler
  * @param maxLod Maximum LOD
  * @param borderColor Border color (for clamp to border)
  * @param unnormalizedCoordinates Whether to use unnormalized coordinates
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*      pSampler,

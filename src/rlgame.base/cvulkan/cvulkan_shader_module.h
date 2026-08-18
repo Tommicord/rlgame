@@ -26,7 +26,7 @@ struct R_CVulkan_ShaderModule
  * @param device R_CVulkan device wrapper
  * @param pCode Pointer to SPIR-V code
  * @param codeSize Size of SPIR-V code in bytes
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewShaderModule (
     struct R_CVulkan_ShaderModule* pShaderModule,

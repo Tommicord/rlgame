@@ -13,7 +13,7 @@
 #define R_CVULKAN_PLATFORM_ANDROID 1
 #endif
 
-#if defined(_R_DEVMODE)
+#if defined(R_DEVMODE)
 #define R_CVULKAN_DEBUG
 #endif
 

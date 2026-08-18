@@ -9,7 +9,7 @@ R_CVulkan_ErrorToString (const enum R_CVulkan_Error error)
 {
         switch (error)
         {
-        case R_CVULKAN_ERROR_OK:
+        case R_CVULKAN_OK:
                 return "Success";
         case R_CVULKAN_ERROR_FAILED:
                 return "General failure";
@@ -95,7 +95,7 @@ R_CVulkan_ResultToError (const VkResult result)
         switch (result)
         {
         case VK_SUCCESS:
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         case VK_ERROR_OUT_OF_HOST_MEMORY:
         case VK_ERROR_OUT_OF_DEVICE_MEMORY:
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;

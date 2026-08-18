@@ -26,19 +26,21 @@ R_CVulkan_NewRenderPass (
         R_CVULKAN_ASSERT (subpassCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pRenderPass || !pDevice || !pAttachments || attachmentCount == 0 || !pSubpasses
-            || subpassCount == 0)
+        if (!pRenderPass || !pDevice || !pAttachments)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-
+        if(attachmentCount == 0 || !pSubpasses || subpassCount == 0)
+        {
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
         if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pRenderPass->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pRenderPass->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pRenderPass->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
         pRenderPass->isInitialized = false;
@@ -62,7 +64,7 @@ R_CVulkan_NewRenderPass (
 #if defined(R_CVULKAN_DEBUG)
         pRenderPass->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void

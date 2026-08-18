@@ -26,7 +26,7 @@ struct R_CVulkan_CommandPool
  * @param device R_CVulkan device wrapper
  * @param queueFamilyIndex Queue family index
  * @param flags Command pool creation flags
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandPool (
     struct R_CVulkan_CommandPool*   pCommandPool,
@@ -44,7 +44,7 @@ R_CVULKAN_API void R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pC
  * @brief Reset a command pool
  * @param commandPool Pointer to command pool
  * @param flags Reset flags
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, R_CVulkanCommandPoolResetFlags flags);
@@ -52,7 +52,7 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, R_CVulka
 /**
  * @brief Trim a command pool
  * @param commandPool Pointer to command pool
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool);
 

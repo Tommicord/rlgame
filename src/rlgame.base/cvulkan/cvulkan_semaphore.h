@@ -23,11 +23,11 @@ struct R_CVulkan_Semaphore
  * @param device Vulkan device handle
  * @param timelineSemaphore Whether to create a timeline semaphore (requires extension)
  * @param initialValue Initial value for timeline semaphores (ignored for binary semaphores)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_Semaphore_Init (
     struct R_CVulkan_Semaphore* pSemaphore,
-    VkDevice                    device,
+    const struct R_CVulkan_Device* pDevice,
     int                         timelineSemaphore,
     uint64_t                    initialValue);
 
@@ -41,7 +41,7 @@ R_CVULKAN_API void R_CVulkan_SemaphoreShutdown (struct R_CVulkan_Semaphore* pSem
  * @brief Signal a timeline semaphore
  * @param semaphore Pointer to semaphore
  * @param value Value to signal
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value);
 
@@ -50,7 +50,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SemaphoreSignal (struct R_CVulkan_S
  * @param semaphore Pointer to semaphore
  * @param value Value to wait for
  * @param timeout Timeout in nanoseconds (UINT64_MAX for infinite wait)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value, uint64_t timeout);
@@ -59,7 +59,7 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
  * @brief Get the current value of a timeline semaphore
  * @param semaphore Pointer to semaphore
  * @param outValue Pointer to receive the current value
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
 

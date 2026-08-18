@@ -20,7 +20,7 @@
  */
 enum R_CVulkan_Error
 {
-        R_CVULKAN_ERROR_OK = 0, /**< Success */
+        R_CVULKAN_OK = 0, /**< Success */
         R_CVULKAN_ERROR_FAILED = -1, /**< General failure */
         R_CVULKAN_ERROR_OUT_OF_MEMORY = -2, /**< Memory allocation failed */
         R_CVULKAN_ERROR_INVALID_ARGUMENT = -3, /**< Invalid function argument */
@@ -111,7 +111,7 @@ const char* R_CVulkan_ErrorToString (enum R_CVulkan_Error error);
  * @param result Vulkan result code
  * @return Corresponding R_CVulkan error code
  */
-enum R_CVulkan_Error R_CVulkan_ResultToError (VkResult result);
+enum R_CVulkan_Error R_CVulkan_ResultToError (const VkResult result);
 
 /**
  * @brief Check if error requires swapchain recreation

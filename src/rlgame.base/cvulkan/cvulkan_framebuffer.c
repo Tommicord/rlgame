@@ -38,7 +38,7 @@ R_CVulkan_NewFramebuffer (
         }
 #endif
 
-        pFramebuffer->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pFramebuffer->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pFramebuffer->handle = VK_NULL_HANDLE;
         pFramebuffer->renderPass = renderPass;
         pFramebuffer->width = width;
@@ -67,7 +67,7 @@ R_CVulkan_NewFramebuffer (
 #if defined(R_CVULKAN_DEBUG)
         pFramebuffer->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void

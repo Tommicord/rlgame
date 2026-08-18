@@ -23,7 +23,7 @@ struct R_CVulkan_Fence
  * @param fence Pointer to fence to initialize
  * @param device R_CVulkan device wrapper
  * @param signaled Whether the fence should be created in signaled state
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, int signaled);
@@ -41,7 +41,7 @@ R_CVULKAN_API void R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence);
  * @param fenceCount Number of fences
  * @param waitAll Wait for all fences (1) or any fence (0)
  * @param timeout Timeout in nanoseconds (UINT64_MAX for infinite wait)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceWait (
     const struct R_CVulkan_Device* pDevice,
@@ -55,7 +55,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceWait (
  * @param pDevice R_CVulkan device wrapper
  * @param pFences Array of fences
  * @param fenceCount Number of fences
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
     const struct R_CVulkan_Device* pDevice,
@@ -67,7 +67,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
  * @param pDevice R_CVulkan device wrapper
  * @param pFence Pointer to fence
  * @param pOutSignaled Pointer to receive the signaled status (1 = signaled, 0 = unsignaled)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Device* pDevice,

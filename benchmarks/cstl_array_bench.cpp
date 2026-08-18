@@ -275,7 +275,11 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, UncheckedAt) (benchmark::State& state)
         for (auto _ : state)
         {
                 for (int64_t i = 0; i < count; ++i)
-                        checksum += R_CSTL_ArrayUncheckedAt (pArray, static_cast<size_t> (i));
+                {
+                        uint8_t value = 0;
+                        R_CSTL_ArrayUncheckedAt (pArray, static_cast<size_t> (i), &value);
+                        checksum += value;
+                }
                 benchmark::DoNotOptimize (checksum);
         }
 

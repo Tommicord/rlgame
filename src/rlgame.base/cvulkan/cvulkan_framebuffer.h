@@ -33,7 +33,7 @@ struct R_CVulkan_Framebuffer
  * @param width Framebuffer width
  * @param height Framebuffer height
  * @param layers Framebuffer layers
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*  pFramebuffer,

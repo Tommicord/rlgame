@@ -38,7 +38,7 @@ R_CVulkan_NewSampler (
         }
 #endif
 
-        pSampler->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pSampler->handle = VK_NULL_HANDLE;
         pSampler->isInitialized = false;
@@ -69,7 +69,7 @@ R_CVulkan_NewSampler (
 #if defined(R_CVULKAN_DEBUG)
         pSampler->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void

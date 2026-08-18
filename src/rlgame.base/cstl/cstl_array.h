@@ -102,7 +102,7 @@ R_CSTL_API void R_CSTL_DeleteArray (struct R_CSTL_Array* pArray);
  *
  * @param pArray Pointer to array.
  * @param capacityBytes Minimum capacity to reserve.
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note The array length is unchanged.
  * @note May trigger reallocation and data copying.
@@ -116,12 +116,27 @@ R_CSTL_API int R_CSTL_ArrayRevBytes (struct R_CSTL_Array* pArray, size_t capacit
  *
  * @param pArray Pointer to array.
  * @param value Byte value to append.
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note May trigger reallocation and data copying.
  * @note Uses SIMD-optimized copy when reallocating.
  */
 R_CSTL_API int R_CSTL_ArrayPush (struct R_CSTL_Array* pArray, uint8_t value);
+
+/**
+ * @brief Push data with size to the end of the array
+ *
+ * Appends data to the end of the array, growing capacity if needed.
+ *
+ * @param pArray Pointer to array.
+ * @param pData Pointer to data to append.
+ * @param size Size of data to append.
+ * @return R_CSTL_OK on success, error code on failure.
+ *
+ * @note May trigger reallocation and data copying.
+ * @note Uses SIMD-optimized copy when reallocating.
+ */
+R_CSTL_API int R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t* pData, size_t size);
 
 /**
  * @brief Pop a byte from the end of the array
@@ -130,7 +145,7 @@ R_CSTL_API int R_CSTL_ArrayPush (struct R_CSTL_Array* pArray, uint8_t value);
  *
  * @param pArray Pointer to array.
  * @param pOutValue Pointer to receive the popped value. If NULL, value is discarded.
- * @return R_CSTL_ERROR_OK on success, error code if array is empty.
+ * @return R_CSTL_OK on success, error code if array is empty.
  *
  * @note Decrements array length by 1.
  * @note Does not reduce capacity.
@@ -145,7 +160,7 @@ R_CSTL_API int R_CSTL_ArrayPop (struct R_CSTL_Array* pArray, uint8_t* pOutValue)
  *
  * @param pArray Pointer to array.
  * @param pOutValue Pointer to receive the shifted value. If NULL, value is discarded.
- * @return R_CSTL_ERROR_OK on success, error code if array is empty.
+ * @return R_CSTL_OK on success, error code if array is empty.
  *
  * @note This is O(n) operation as it requires shifting all elements.
  * @note Decrements array length by 1.
@@ -160,7 +175,7 @@ R_CSTL_API int R_CSTL_ArrayShift (struct R_CSTL_Array* pArray, uint8_t* pOutValu
  *
  * @param pArray Pointer to array.
  * @param value Byte value to insert.
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note This is O(n) operation as it requires shifting all elements.
  * @note May trigger reallocation and data copying.
@@ -196,7 +211,7 @@ R_CSTL_ArraySlice (const struct R_CSTL_Array* pArray, size_t start, size_t end);
  * @warning The pointer becomes invalid if the array is modified or deleted.
  * @note For empty arrays, returns NULL.
  */
-R_CSTL_API const uint8_t* R_CSTL_ArrayGetData (const struct R_CSTL_Array* pArray);
+R_CSTL_API const uint8_t* R_CSTL_ArrayData (const struct R_CSTL_Array* pArray);
 
 /**
  * @brief Get the current length of the array
@@ -206,7 +221,7 @@ R_CSTL_API const uint8_t* R_CSTL_ArrayGetData (const struct R_CSTL_Array* pArray
  * @param pArray Pointer to array.
  * @return Length in bytes, or 0 if array is NULL or invalid.
  */
-R_CSTL_API size_t R_CSTL_ArrayGetLength (const struct R_CSTL_Array* pArray);
+R_CSTL_API size_t R_CSTL_ArrayLength (const struct R_CSTL_Array* pArray);
 
 /**
  * @brief Get the current capacity of the array
@@ -229,7 +244,7 @@ R_CSTL_API size_t R_CSTL_ArrayGetCapacity (const struct R_CSTL_Array* pArray);
  * @param pArray Pointer to array.
  * @param index Index to read.
  * @param pOutValue Pointer to receive the value.
- * @return R_CSTL_ERROR_OK on success, R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS if invalid.
+ * @return R_CSTL_OK on success, R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS if invalid.
  *
  * @note This function performs bounds checking.
  * @note For performance-critical code, use R_CSTL_ArrayUncheckedAt.
@@ -243,13 +258,14 @@ R_CSTL_API int R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, 
  *
  * @param pArray Pointer to array.
  * @param index Index to read.
- * @return Byte value at the index.
+ * @param pOutValue Output pointer to buffer
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @warning No bounds checking; undefined behavior if index >= length.
  * @note Use only when you can guarantee the index is valid.
  * @note This is faster than R_CSTL_ArrayAt for tight loops.
  */
-R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index);
+R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue);
 
 /**
  * @brief Clear the array contents
@@ -258,7 +274,7 @@ R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_
  *
  * @param pArray Pointer to array.
  * @param zeroMemory If non-zero, sets all bytes to 0; otherwise leaves data as-is.
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note Length is set to 0; capacity is unchanged.
  * @note Does not free the buffer.
@@ -272,7 +288,7 @@ R_CSTL_API int R_CSTL_ArrayClear (struct R_CSTL_Array* pArray, int zeroMemory);
  *
  * @param pArray Pointer to array.
  * @param value Byte value to fill with.
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note Only fills up to the current length, not the entire capacity.
  * @note Does not change the array length.
@@ -338,7 +354,7 @@ R_CSTL_API int R_CSTL_ArrayCompareU64 (const void* pLeft, const void* pRight, vo
  * @param elemSize Size of each element in bytes. Array length must be a multiple.
  * @param pComparator Comparison function with qsort-like semantics plus context.
  * @param pData User context passed to comparator (can be NULL).
- * @return R_CSTL_ERROR_OK on success, error code on failure.
+ * @return R_CSTL_OK on success, error code on failure.
  *
  * @note For primitive types (1/2/4/8 bytes), uses typed fast paths with built-in comparators.
  * @note For uint8_t arrays with R_CSTL_ArrayCompareU8, uses counting sort (O(n)).

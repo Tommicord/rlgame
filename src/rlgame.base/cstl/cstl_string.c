@@ -9,11 +9,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
 #include <immintrin.h>
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
 #include <immintrin.h>
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -82,7 +82,7 @@ R_CSTL_StringCopyBytes (char* R_CSTL_RESTRICT pDst, const char* R_CSTL_RESTRICT 
         if (sizeBytes == 0 || pDst == pSrc)
                 return;
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         if (sizeBytes >= 64)
         {
                 size_t i = 0;
@@ -95,7 +95,7 @@ R_CSTL_StringCopyBytes (char* R_CSTL_RESTRICT pDst, const char* R_CSTL_RESTRICT 
                         pDst[i] = pSrc[i];
                 return;
         }
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         if (sizeBytes >= 32)
         {
                 size_t i = 0;
@@ -108,7 +108,7 @@ R_CSTL_StringCopyBytes (char* R_CSTL_RESTRICT pDst, const char* R_CSTL_RESTRICT 
                         pDst[i] = pSrc[i];
                 return;
         }
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         if (sizeBytes >= 32)
         {
                 size_t i = 0;
@@ -131,7 +131,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
         if (sizeBytes == 0)
                 return;
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         if (sizeBytes >= 32)
         {
                 __m256i vec = _mm256_set1_epi8 (value);
@@ -144,7 +144,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
                         pDst[i] = value;
                 return;
         }
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         if (sizeBytes >= 16)
         {
                 __m128i vec = _mm_set1_epi8 (value);
@@ -157,7 +157,7 @@ R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t size
                         pDst[i] = value;
                 return;
         }
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         if (sizeBytes >= 16)
         {
                 uint8x16_t vec = vdupq_n_u8 ((uint8_t)value);
@@ -199,7 +199,7 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
         if (length == 0)
                 return (size_t)-1;
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         if (length >= 32)
         {
                 __m256i target = _mm256_set1_epi8 (ch);
@@ -221,7 +221,7 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
                 }
                 return (size_t)-1;
         }
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         if (length >= 16)
         {
                 __m128i target = _mm_set1_epi8 (ch);
@@ -243,7 +243,7 @@ R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
                 }
                 return (size_t)-1;
         }
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         if (length >= 16)
         {
                 uint8x16_t target = vdupq_n_u8 ((uint8_t)ch);

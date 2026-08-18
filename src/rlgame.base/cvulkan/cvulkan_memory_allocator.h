@@ -65,7 +65,7 @@ struct R_CVulkan_MemoryAllocator
  * @param pAllocator Pointer to allocator to initialize
  * @param device Vulkan device
  * @param physicalDevice Physical device
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewMemoryAllocator (
     struct R_CVulkan_MemoryAllocator* pAllocator,
@@ -86,7 +86,7 @@ R_CVULKAN_API void R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAlloc
  * @param usage Buffer usage flags
  * @param properties Memory property flags
  * @param outAllocation Pointer to receive the suballocation
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocate (
     struct R_CVulkan_MemoryAllocator* pAllocator,
@@ -111,7 +111,7 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFree (
  * @param memRequirements Memory requirements
  * @param properties Required memory properties
  * @param outTypeIndex Pointer to receive the memory type index
- * @return R_CVULKAN_ERROR_OK on success, R_CVULKAN_ERROR_FAILED if not found
+ * @return R_CVULKAN_OK on success, R_CVULKAN_ERROR_FAILED if not found
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FindMemoryType (
     VkPhysicalDevice            physicalDevice,
@@ -126,7 +126,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FindMemoryType (
  * @param offset Offset in memory
  * @param size Size to copy
  * @param data Pointer to source data
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CopyDataToMemory (
     VkDevice       device,
@@ -171,7 +171,7 @@ R_CVULKAN_API VkDeviceSize R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_
  * @param image Image to allocate memory for
  * @param properties Required memory properties
  * @param outMemory Pointer to receive the allocated memory handle
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocateImageMemory (
     VkDevice              device,

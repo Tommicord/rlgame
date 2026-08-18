@@ -95,43 +95,46 @@ R_CVulkan_NewMemoryAllocator (
 
         pAllocator->device = device;
         pAllocator->physicalDevice = physicalDevice;
-        pAllocator->blocks = NULL;
+        pAllocator->ppBlocks = NULL;
         pAllocator->blockCount = 0;
         pAllocator->blockCapacity = 0;
         pAllocator->minBlockSize = R_CVULKAN_DEFAULT_MIN_BLOCK_SIZE;
         pAllocator->defaultMaxBlockSize = R_CVULKAN_DEFAULT_MAX_BLOCK_SIZE;
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
 R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
+#if defined(R_CVULKAN_DEBUG)
         if (!pAllocator)
         {
                 return;
         }
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->blocks != NULL);
+#endif
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
-                if (pAllocator->blocks[i])
+                if (pAllocator->ppBlocks[i])
                 {
-                        R_CVulkan_DeleteMemoryBlock (pAllocator->blocks[i]);
-                        R_CSTL_HeapFree (pAllocator->blocks[i]);
-                        pAllocator->blocks[i] = NULL;
+                        R_CVulkan_DeleteMemoryBlock (pAllocator->ppBlocks[i]);
+                        R_CSTL_HeapFree (pAllocator->ppBlocks[i]);
+                        pAllocator->ppBlocks[i] = NULL;
                 }
         }
 
-        if (pAllocator->blocks)
+        if (pAllocator->ppBlocks)
         {
-                R_CSTL_HeapFree (pAllocator->blocks);
-                pAllocator->blocks = NULL;
+                R_CSTL_HeapFree (pAllocator->ppBlocks);
+                pAllocator->ppBlocks = NULL;
         }
-
+#if defined(R_CVULKAN_DEBUG)
         pAllocator->blockCount = 0;
         pAllocator->blockCapacity = 0;
         pAllocator->device = VK_NULL_HANDLE;
         pAllocator->physicalDevice = VK_NULL_HANDLE;
+#endif
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -161,13 +164,13 @@ R_CVulkan_MemoryAllocatorAllocate (
 
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
-                struct R_CVulkan_MemoryBlock* block = pAllocator->blocks[i];
+                struct R_CVulkan_MemoryBlock* block = pAllocator->ppBlocks[i];
                 if (block->usage == usage && block->properties == properties)
                 {
                         if (R_CVulkan_MemoryBlockAllocate (block, size, adjustedAlignment, outAllocation))
                         {
                                 outAllocation->blockIndex = i;
-                                return R_CVULKAN_ERROR_OK;
+                                return R_CVULKAN_OK;
                         }
                 }
         }
@@ -189,7 +192,7 @@ R_CVulkan_MemoryAllocatorAllocate (
             blockSize,
             usage,
             properties);
-        if (result != R_CVULKAN_ERROR_OK)
+        if (result != R_CVULKAN_OK)
         {
                 R_CSTL_HeapFree (newBlock);
                 return result;
@@ -199,7 +202,7 @@ R_CVulkan_MemoryAllocatorAllocate (
         {
                 uint32_t newCapacity = pAllocator->blockCapacity == 0 ? 4 : pAllocator->blockCapacity * 2;
                 struct R_CVulkan_MemoryBlock** newBlocks = (struct R_CVulkan_MemoryBlock**)R_CSTL_HeapRealloc (
-                    pAllocator->blocks,
+                    pAllocator->ppBlocks,
                     newCapacity * sizeof (struct R_CVulkan_MemoryBlock*));
                 if (!newBlocks)
                 {
@@ -207,13 +210,13 @@ R_CVulkan_MemoryAllocatorAllocate (
                         R_CSTL_HeapFree (newBlock);
                         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 }
-                pAllocator->blocks = newBlocks;
+                pAllocator->ppBlocks = newBlocks;
                 pAllocator->blockCapacity = newCapacity;
         }
 
-        pAllocator->blocks[pAllocator->blockCount] = newBlock;
+        pAllocator->ppBlocks[pAllocator->blockCount] = newBlock;
         uint32_t blockIndex = pAllocator->blockCount++;
-        pAllocator->blocks[blockIndex] = newBlock;
+        pAllocator->ppBlocks[blockIndex] = newBlock;
 
         if (!R_CVulkan_MemoryBlockAllocate (newBlock, size, adjustedAlignment, outAllocation))
         {
@@ -224,7 +227,7 @@ R_CVulkan_MemoryAllocatorAllocate (
         }
 
         outAllocation->blockIndex = blockIndex;
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -245,7 +248,7 @@ R_CVulkan_MemoryAllocatorFree (
                 return;
         }
 
-        struct R_CVulkan_MemoryBlock* block = pAllocator->blocks[allocation->blockIndex];
+        struct R_CVulkan_MemoryBlock* block = pAllocator->ppBlocks[allocation->blockIndex];
         if (block)
         {
                 R_CVulkan_MemoryBlockFree (block, allocation);
@@ -277,7 +280,7 @@ R_CVulkan_FindMemoryType (
                     && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
                 {
                         *outTypeIndex = i;
-                        return R_CVULKAN_ERROR_OK;
+                        return R_CVULKAN_OK;
                 }
         }
 
@@ -311,7 +314,7 @@ R_CVulkan_CopyDataToMemory (
         memcpy (mapped, data, size);
         vkUnmapMemory (device, bufferMemory);
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API VkDevice
@@ -337,7 +340,7 @@ R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* p
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->blocks != NULL);
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
 #else
         if (!pAllocator)
         {
@@ -348,9 +351,9 @@ R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* p
         VkDeviceSize total = 0;
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
-                if (pAllocator->blocks[i])
+                if (pAllocator->ppBlocks[i])
                 {
-                        total += pAllocator->blocks[i]->size;
+                        total += pAllocator->ppBlocks[i]->size;
                 }
         }
         return total;
@@ -361,7 +364,7 @@ R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pA
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->blocks != NULL);
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
 #else
         if (!pAllocator)
         {
@@ -372,9 +375,9 @@ R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pA
         VkDeviceSize total = 0;
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
-                if (pAllocator->blocks[i])
+                if (pAllocator->ppBlocks[i])
                 {
-                        total += pAllocator->blocks[i]->usedSize;
+                        total += pAllocator->ppBlocks[i]->usedSize;
                 }
         }
         return total;
@@ -404,7 +407,7 @@ R_CVulkan_MemoryAllocatorAllocateImageMemory (
         uint32_t             memoryTypeIndex = 0;
         enum R_CVulkan_Error error
             = R_CVulkan_FindMemoryType (physicalDevice, &memRequirements, properties, &memoryTypeIndex);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 return error;
         }
@@ -420,7 +423,7 @@ R_CVulkan_MemoryAllocatorAllocateImageMemory (
                 return R_CVULKAN_ERROR_MEMORY_ALLOCATE_FAILED;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -449,13 +452,13 @@ R_CVulkan_NewMemoryBlock (
         R_CVulkan_MemoryBlockInitializeFields (block, device, physicalDevice, size, usage, properties);
 
         enum R_CVulkan_Error error = R_CVulkan_MemoryBlockCreateBuffer (block);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 return error;
         }
 
         error = R_CVulkan_MemoryBlockAllocateAndBindMemory (block);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 vkDestroyBuffer (block->device, block->buffer, NULL);
                 block->buffer = VK_NULL_HANDLE;
@@ -463,7 +466,7 @@ R_CVulkan_NewMemoryBlock (
         }
 
         R_CVulkan_FreeRegionAdd (block, 0, size);
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 static void
@@ -502,7 +505,7 @@ R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block)
         {
                 return R_CVULKAN_ERROR_BUFFER_CREATE_FAILED;
         }
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 static enum R_CVulkan_Error
@@ -514,7 +517,7 @@ R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block)
         uint32_t             memoryTypeIndex = 0;
         enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
             block->physicalDevice, &memRequirements, block->properties, &memoryTypeIndex);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 return error;
         }
@@ -537,7 +540,7 @@ R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block)
                 block->memory = VK_NULL_HANDLE;
                 return R_CVULKAN_ERROR_FAILED;
         }
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 static void
@@ -674,7 +677,7 @@ R_CVulkan_MemoryBlockFree (struct R_CVulkan_MemoryBlock* block, const struct R_C
                         return;
                 }
 
-                if (block->pFreeRegions[i].offset + block->pFreeRegions[i].size == allocation.offset)
+                if (block->pFreeRegions[i].offset + block->pFreeRegions[i].size == allocation->offset)
                 {
                         block->pFreeRegions[i].size += allocation->size;
 

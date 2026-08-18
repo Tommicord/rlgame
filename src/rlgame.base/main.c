@@ -107,21 +107,19 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
                 R_CSTL_LogShutdown ();                                                                       \
                 R_CSTL_HeapShutdown ();                                                                      \
         } while (0)
-
+#define R_APP_GB_BINARY (1024 * 1024 * 1024)
+#define R_APP_MB_BINARY (1024 * 1024)
 #define R_APP_LOG_HEAP_STATS()                                                                               \
         do                                                                                                   \
         {                                                                                                    \
                 size_t totalSize = R_CSTL_Heap_GetTotalSize ();                                              \
                 size_t usedSize = R_CSTL_Heap_GetUsedSize ();                                                \
-                size_t registeredCount = R_CSTL_HeapGetRegisteredCount ();                                   \
                 R_CSTL_LOG_INFO (                                                                            \
-                    "Heap Stats: TotalSize=%zu UsedSize=%zu RegisteredCount=%zu",                            \
-                    totalSize,                                                                               \
-                    usedSize,                                                                                \
-                    registeredCount);                                                                        \
+                    "Heap Stats: TotalSize=%.2f GB UsedSize=%.2f GB",                                        \
+                    (double)totalSize / R_APP_GB_BINARY,                                                     \
+                    (double)usedSize / R_APP_GB_BINARY);                                                     \
         } while (0)
 
-#define R_APP_GB_BINARY (1024.0 * 1024.0 * 1024.0)
 #define R_APP_LOG_INFO(Info)                                                                                 \
         do                                                                                                   \
         {                                                                                                    \
@@ -133,23 +131,30 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
                 if ((info).args.pCmdLine)                                                                    \
                         R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
                 R_CSTL_LOG_INFO (                                                                            \
-                    "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB heap=%zu",                             \
+                    "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB heap=%.2f MB",                         \
                     (double)(Info).memory.totalPhysicalBytes / R_APP_GB_BINARY,                              \
                     (double)(Info).memory.availablePhysicalBytes / R_APP_GB_BINARY,                          \
                     (double)(Info).memory.usedBytes / R_APP_GB_BINARY,                                       \
-                    (size_t)(Info).memory.heapAllocatedBytes);                                               \
+                    (double)(Info).memory.heapAllocatedBytes / R_APP_MB_BINARY);                             \
                 if ((Info).pExistingProcesses && (Info).existingProcessCount > 0)                            \
                 {                                                                                            \
-                        R_CSTL_LOG_INFO (                                                                    \
-                            "Process[0]: pid=%u name=%s mem=%.2f GB",                                        \
-                            (Info).pExistingProcesses[0].pid,                                                \
-                            (Info).pExistingProcesses[0].pName ? (Info).pExistingProcesses[0].pName          \
-                                                               : "(null)",                                   \
-                            (double)(Info).pExistingProcesses[0].memoryBytes / R_APP_GB_BINARY);             \
+                        size_t existingProcessCount = (Info).existingProcessCount;                           \
+                        R_CSTL_LOG_INFO ("Existing processes: %d", existingProcessCount);                    \
+                        for (int i = 0; i < existingProcessCount; i++)                                       \
+                        {                                                                                    \
+                                R_ProcessInfo pProcess = (Info).pExistingProcesses[i];                       \
+                                const R_CSTL_String* pNameString = pProcess.pName;                           \
+                                const char* pProcessName = pNameString ?                                     \
+                                        R_CSTL_StringData(pNameString) : "(unknown)";                        \
+                                R_CSTL_LOG_INFO (                                                            \
+                                    "Process[%d]: pid=%u name=%s mem=%.2f GB",                               \
+                                    i,                                                                       \
+                                    pProcess.pid,                                                            \
+                                    pProcessName,                                                            \
+                                    (double)pProcess.memoryBytes / R_APP_GB_BINARY);                         \
+                        }                                                                                    \
                 }                                                                                            \
         } while (0)
-#undef R_APP_GB_BINARY
-
 #define R_APP_LAUNCH(RunCallback, Info)                                                                      \
         const void* pUserData = &Info;                                                                       \
         R_LaunchMainProvider (RunCallback, pUserData);
@@ -442,7 +447,7 @@ R_MainProvider_Run (R_MainProvider* pProvider)
                 lastTime = currentTime;
 
                 frameCount++;
-#if defined(_R_DEVMODE)
+#if defined(R_DEVMODE)
                 if (!pProvider->pExecCallback)
                 {
                         continue;
@@ -538,6 +543,8 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
                 return 1;
         }
         R_APP_LOG_HEAP_STATS ();
+
+        R_APP_LOG_INFO (info);
 
         R_APP_LAUNCH (NULL, info);
 

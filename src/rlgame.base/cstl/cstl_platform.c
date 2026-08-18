@@ -5,7 +5,7 @@ R_CSTL_ErrorToString (int error)
 {
         switch (error)
         {
-        case R_CSTL_ERROR_OK:
+        case R_CSTL_OK:
                 return "Success";
         case R_CSTL_ERROR_INVALID_ARGUMENT:
                 return "Invalid argument";

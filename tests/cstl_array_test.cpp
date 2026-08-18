@@ -30,8 +30,8 @@ class CstlArrayTest : public ::testing::Test
     ExpectBytes (const struct R_CSTL_Array* pArray, const std::vector<uint8_t>& expected)
     {
       ASSERT_NE (nullptr, pArray);
-      EXPECT_EQ (expected.size (), R_CSTL_ArrayGetLength (pArray));
-      const uint8_t* pData = R_CSTL_ArrayGetData (pArray);
+      EXPECT_EQ (expected.size (), R_CSTL_ArrayLength (pArray));
+      const uint8_t* pData = R_CSTL_ArrayData (pArray);
       if (expected.empty ())
       {
         EXPECT_EQ (nullptr, pData);
@@ -43,7 +43,9 @@ class CstlArrayTest : public ::testing::Test
         uint8_t value = 0;
         ASSERT_EQ (0, R_CSTL_ArrayAt (pArray, i, &value));
         EXPECT_EQ (expected[i], value) << "index " << i;
-        EXPECT_EQ (expected[i], R_CSTL_ArrayUncheckedAt (pArray, i));
+        uint8_t uncheckedValue = 0;
+        ASSERT_EQ (0, R_CSTL_ArrayUncheckedAt (pArray, i, &uncheckedValue));
+        EXPECT_EQ (expected[i], uncheckedValue) << "index " << i;
       }
     }
 };
@@ -60,15 +62,17 @@ TEST_F (CstlArrayTest, NewEmptyArrayHasNoBufferUntilPush)
 {
   struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
   ASSERT_NE (nullptr, pArray);
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
   EXPECT_EQ (0u, R_CSTL_ArrayGetCapacity (pArray));
-  EXPECT_EQ (nullptr, R_CSTL_ArrayGetData (pArray));
+  EXPECT_EQ (nullptr, R_CSTL_ArrayData (pArray));
 
   ASSERT_EQ (0, R_CSTL_ArrayPush (pArray, 0xAB));
-  EXPECT_EQ (1u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (1u, R_CSTL_ArrayLength (pArray));
   EXPECT_GE (R_CSTL_ArrayGetCapacity (pArray), 1u);
-  ASSERT_NE (nullptr, R_CSTL_ArrayGetData (pArray));
-  EXPECT_EQ (0xAB, R_CSTL_ArrayUncheckedAt (pArray, 0));
+  ASSERT_NE (nullptr, R_CSTL_ArrayData (pArray));
+  uint8_t value = 0;
+  ASSERT_EQ (0, R_CSTL_ArrayUncheckedAt (pArray, 0, &value));
+  EXPECT_EQ (0xAB, value);
 
   R_CSTL_DeleteArray (pArray);
 }
@@ -77,9 +81,9 @@ TEST_F (CstlArrayTest, NewArrayWithCapacity)
 {
   struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (32);
   ASSERT_NE (nullptr, pArray);
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
   EXPECT_GE (R_CSTL_ArrayGetCapacity (pArray), 32u);
-  ASSERT_NE (nullptr, R_CSTL_ArrayGetData (pArray));
+  ASSERT_NE (nullptr, R_CSTL_ArrayData (pArray));
   R_CSTL_DeleteArray (pArray);
 }
 
@@ -87,9 +91,13 @@ TEST_F (CstlArrayTest, NewArrayWithLengthZeroed)
 {
   struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithLengthZeroed (8);
   ASSERT_NE (nullptr, pArray);
-  EXPECT_EQ (8u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (8u, R_CSTL_ArrayLength (pArray));
   for (size_t i = 0; i < 8; ++i)
-    EXPECT_EQ (0u, R_CSTL_ArrayUncheckedAt (pArray, i));
+  {
+    uint8_t value = 0;
+    ASSERT_EQ (0, R_CSTL_ArrayUncheckedAt (pArray, i, &value));
+    EXPECT_EQ (0u, value);
+  }
   R_CSTL_DeleteArray (pArray);
 }
 
@@ -97,7 +105,7 @@ TEST_F (CstlArrayTest, NewArrayWithLengthUninitialized)
 {
   struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithLength (4);
   ASSERT_NE (nullptr, pArray);
-  EXPECT_EQ (4u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (4u, R_CSTL_ArrayLength (pArray));
   EXPECT_GE (R_CSTL_ArrayGetCapacity (pArray), 4u);
   R_CSTL_DeleteArray (pArray);
 }
@@ -118,7 +126,7 @@ TEST_F (CstlArrayTest, NewArrayWithDataAllowsEmpty)
 {
   struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (nullptr, 0);
   ASSERT_NE (nullptr, pArray);
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
   R_CSTL_DeleteArray (pArray);
 }
 
@@ -127,7 +135,7 @@ TEST_F (CstlArrayTest, RevBytesGrowsCapacityNotLength)
   struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
   ASSERT_NE (nullptr, pArray);
   ASSERT_EQ (0, R_CSTL_ArrayRevBytes (pArray, 64));
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
   EXPECT_GE (R_CSTL_ArrayGetCapacity (pArray), 64u);
   R_CSTL_DeleteArray (pArray);
 }
@@ -247,8 +255,8 @@ TEST_F (CstlArrayTest, AtBoundsCheck)
 
 TEST_F (CstlArrayTest, GettersReturnZeroOrNullForNullArray)
 {
-  EXPECT_EQ (nullptr, R_CSTL_ArrayGetData (nullptr));
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (nullptr));
+  EXPECT_EQ (nullptr, R_CSTL_ArrayData (nullptr));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (nullptr));
   EXPECT_EQ (0u, R_CSTL_ArrayGetCapacity (nullptr));
 }
 
@@ -367,10 +375,10 @@ TEST_F (CstlArrayTest, SortU32Elements)
 
   ASSERT_EQ (0, R_CSTL_ArraySort (pArray, sizeof (uint32_t), R_CSTL_ArrayCompareU32, nullptr));
 
-  const uint8_t* pData = R_CSTL_ArrayGetData (pArray);
+  const uint8_t* pData = R_CSTL_ArrayData (pArray);
   ASSERT_NE (nullptr, pData);
   const auto* pValues = reinterpret_cast<const uint32_t*> (pData);
-  EXPECT_EQ (7u, R_CSTL_ArrayGetLength (pArray) / sizeof (uint32_t));
+  EXPECT_EQ (7u, R_CSTL_ArrayLength (pArray) / sizeof (uint32_t));
   EXPECT_EQ (1u, pValues[0]);
   EXPECT_EQ (3u, pValues[1]);
   EXPECT_EQ (7u, pValues[2]);
@@ -396,9 +404,9 @@ TEST_F (CstlArrayTest, SortSimdSizedElementsPreservesPayload)
 
   ASSERT_EQ (0, R_CSTL_ArraySort (pArray, sizeof (SortableRecord), CompareRecordKey, nullptr));
 
-  const auto* pSorted = reinterpret_cast<const SortableRecord*> (R_CSTL_ArrayGetData (pArray));
+  const auto* pSorted = reinterpret_cast<const SortableRecord*> (R_CSTL_ArrayData (pArray));
   ASSERT_NE (nullptr, pSorted);
-  EXPECT_EQ (3u, R_CSTL_ArrayGetLength (pArray) / sizeof (SortableRecord));
+  EXPECT_EQ (3u, R_CSTL_ArrayLength (pArray) / sizeof (SortableRecord));
   EXPECT_EQ (10u, pSorted[0].key);
   EXPECT_EQ (0xBB, pSorted[0].payload[0]);
   EXPECT_EQ (20u, pSorted[1].key);
@@ -447,7 +455,7 @@ TEST_F (CstlArrayTest, StressManyPushOperations)
     ASSERT_EQ (0, R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i % 256)));
   }
 
-  EXPECT_EQ (kNumPushes, (int)R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (kNumPushes, (int)R_CSTL_ArrayLength (pArray));
 
   R_CSTL_DeleteArray (pArray);
 }
@@ -470,7 +478,7 @@ TEST_F (CstlArrayTest, StressManyPopOperations)
     EXPECT_EQ (static_cast<uint8_t> ((kNumPushes - 1 - i) % 256), value);
   }
 
-  EXPECT_EQ (0u, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
 
   R_CSTL_DeleteArray (pArray);
 }
@@ -544,7 +552,7 @@ TEST_F (CstlArrayTest, StressSliceOperations)
     struct R_CSTL_Array* pSlice = R_CSTL_ArraySlice (pArray, start, end);
     if (pSlice)
     {
-      EXPECT_EQ (end - start, R_CSTL_ArrayGetLength (pSlice));
+      EXPECT_EQ (end - start, R_CSTL_ArrayLength (pSlice));
       R_CSTL_DeleteArray (pSlice);
     }
   }
@@ -607,7 +615,7 @@ TEST_F (CstlArrayTest, StressSortManyElements)
   ASSERT_EQ (0, R_CSTL_ArraySort (pArray, sizeof (uint8_t), R_CSTL_ArrayCompareU8, nullptr));
 
   // Verify sorted
-  const uint8_t* pData = R_CSTL_ArrayGetData (pArray);
+  const uint8_t* pData = R_CSTL_ArrayData (pArray);
   for (size_t i = 1; i < kNumElements; ++i)
   {
     EXPECT_LE (pData[i - 1], pData[i]);
@@ -632,7 +640,7 @@ TEST_F (CstlArrayTest, StressMixedOperations)
         ASSERT_EQ (0, R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (rand ())));
         break;
       case 1: // Pop
-        if (R_CSTL_ArrayGetLength (pArray) > 0)
+        if (R_CSTL_ArrayLength (pArray) > 0)
         {
           uint8_t value = 0;
           R_CSTL_ArrayPop (pArray, &value);
@@ -642,7 +650,7 @@ TEST_F (CstlArrayTest, StressMixedOperations)
         ASSERT_EQ (0, R_CSTL_ArrayUnshift (pArray, static_cast<uint8_t> (rand ())));
         break;
       case 3: // Shift
-        if (R_CSTL_ArrayGetLength (pArray) > 0)
+        if (R_CSTL_ArrayLength (pArray) > 0)
         {
           uint8_t value = 0;
           R_CSTL_ArrayShift (pArray, &value);
@@ -668,7 +676,7 @@ TEST_F (CstlArrayTest, StressLargeArray)
     ASSERT_EQ (0, R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i % 256)));
   }
 
-  EXPECT_EQ (kLargeSize, R_CSTL_ArrayGetLength (pArray));
+  EXPECT_EQ (kLargeSize, R_CSTL_ArrayLength (pArray));
 
   // Verify data integrity
   for (size_t i = 0; i < kLargeSize; ++i)

@@ -23,13 +23,13 @@ R_CVulkan_NewDescriptorSetLayout (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pLayout->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pLayout->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
         pLayout->isInitialized = false;
@@ -49,7 +49,7 @@ R_CVulkan_NewDescriptorSetLayout (
 #if defined(R_CVULKAN_DEBUG)
         pLayout->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 void
@@ -96,13 +96,13 @@ R_CVulkan_NewDescriptorPool (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pPool->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pPool->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pPool->handle = VK_NULL_HANDLE;
         pPool->maxSets = maxSets;
 #if defined(R_CVULKAN_DEBUG)
@@ -125,7 +125,7 @@ R_CVulkan_NewDescriptorPool (
 #if defined(R_CVULKAN_DEBUG)
         pPool->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 void
@@ -189,7 +189,7 @@ R_CVulkan_DescriptorSetAllocate (
                 return R_CVULKAN_ERROR_FAILED;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 void
@@ -235,14 +235,14 @@ R_CVulkan_DescriptorSetUpdate (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_Device_IsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return;
         }
 #endif
 
         vkUpdateDescriptorSets (
-            R_CVulkan_DeviceGetHandle (pDevice),
+            R_CVulkan_DeviceGetLogicalDevice (pDevice),
             descriptorWriteCount,
             pDescriptorWrites,
             descriptorCopyCount,
@@ -280,7 +280,7 @@ R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSet
 }
 
 VkDescriptorPool
-R_CVulkan_DescriptorPool_GetHandle (const struct R_CVulkan_DescriptorPool* pPool)
+R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pPool != NULL);
@@ -289,7 +289,7 @@ R_CVulkan_DescriptorPool_GetHandle (const struct R_CVulkan_DescriptorPool* pPool
 }
 
 VkDevice
-R_CVulkan_DescriptorPool_GetDevice (const struct R_CVulkan_DescriptorPool* pPool)
+R_CVulkan_DescriptorPoolGetDevice (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pPool != NULL);
@@ -298,7 +298,7 @@ R_CVulkan_DescriptorPool_GetDevice (const struct R_CVulkan_DescriptorPool* pPool
 }
 
 uint32_t
-R_CVulkan_DescriptorPool_GetMaxSets (const struct R_CVulkan_DescriptorPool* pPool)
+R_CVulkan_DescriptorPoolGetMaxSets (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pPool != NULL);
@@ -307,7 +307,7 @@ R_CVulkan_DescriptorPool_GetMaxSets (const struct R_CVulkan_DescriptorPool* pPoo
 }
 
 int
-R_CVulkan_DescriptorPool_IsInitialized (const struct R_CVulkan_DescriptorPool* pPool)
+R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pPool != NULL);

@@ -34,7 +34,7 @@ R_CVulkan_NewBuffer (
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        pBuffer->device = R_CVulkan_DeviceGetHandle (device);
+        pBuffer->device = R_CVulkan_DeviceGetLogicalDevice (device);
         pBuffer->handle = VK_NULL_HANDLE;
         pBuffer->memory = VK_NULL_HANDLE;
         pBuffer->size = size;
@@ -64,7 +64,7 @@ R_CVulkan_NewBuffer (
         uint32_t             memoryTypeIndex = 0;
         enum R_CVulkan_Error error
             = R_CVulkan_FindMemoryType (physicalDevice, &memRequirements, properties, &memoryTypeIndex);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 vkDestroyBuffer (pBuffer->device, pBuffer->handle, NULL);
                 pBuffer->handle = VK_NULL_HANDLE;
@@ -95,7 +95,7 @@ R_CVulkan_NewBuffer (
 #if defined(R_CVULKAN_DEBUG)
         pBuffer->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -170,7 +170,7 @@ R_CVulkan_BufferMap (
 
         pBuffer->isMapped = 1;
         *ppOutData = pBuffer->pMapped;
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -200,7 +200,7 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
         pBuffer->pMapped = NULL;
         pBuffer->isMapped = 0;
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -233,19 +233,19 @@ R_CVulkan_BufferCopyData (
 
         void*                mapped = NULL;
         enum R_CVulkan_Error error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 return error;
         }
         memcpy (mapped, data, size);
 
         error = R_CVulkan_BufferUnmap (pBuffer);
-        if (error != R_CVULKAN_ERROR_OK)
+        if (error != R_CVULKAN_OK)
         {
                 return error;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -281,7 +281,7 @@ R_CVulkan_BufferInvalidate (
                 return R_CVULKAN_ERROR_FAILED;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -314,7 +314,7 @@ R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, R_CVulkanDeviceSize off
                 return R_CVULKAN_ERROR_FAILED;
         }
 
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API VkBuffer

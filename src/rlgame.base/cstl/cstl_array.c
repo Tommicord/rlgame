@@ -6,11 +6,11 @@
 
 #include <string.h>
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
 #include <immintrin.h>
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
 #include <immintrin.h>
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -86,7 +86,7 @@ R_CSTL_ArrayCopyBytes (uint8_t* pDst, const uint8_t* pSrc, size_t sizeBytes)
         if (sizeBytes == 0 || pDst == pSrc)
                 return;
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         if (sizeBytes >= R_CSTL_ARRAY_SIMD_THRESHOLD)
         {
                 size_t i = 0;
@@ -99,7 +99,7 @@ R_CSTL_ArrayCopyBytes (uint8_t* pDst, const uint8_t* pSrc, size_t sizeBytes)
                         pDst[i] = pSrc[i];
                 return;
         }
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         if (sizeBytes >= R_CSTL_ARRAY_SIMD_THRESHOLD)
         {
                 size_t i = 0;
@@ -112,7 +112,7 @@ R_CSTL_ArrayCopyBytes (uint8_t* pDst, const uint8_t* pSrc, size_t sizeBytes)
                         pDst[i] = pSrc[i];
                 return;
         }
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         if (sizeBytes >= R_CSTL_ARRAY_SIMD_THRESHOLD)
         {
                 size_t i = 0;
@@ -364,6 +364,24 @@ cstl_fail:
         return -1;
 }
 
+R_CSTL_API int
+R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t* pData, size_t size)
+{
+#if defined(R_CSTL_HEAP_DEBUG)
+        if (!pArray || !pData || size == 0)
+                goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray))
+                goto cstl_fail;
+#endif
+        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + size) != 0)
+                goto cstl_fail;
+        R_CSTL_ArrayCopyBytes (pArray->pData + pArray->length, pData, size);
+        pArray->length += size;
+        return 0;
+cstl_fail:
+        return -1;
+}
+
 R_CSTL_API_ATTR int
 R_CSTL_ArrayPop (struct R_CSTL_Array* pArray, uint8_t* pOutValue)
 {
@@ -456,7 +474,7 @@ cstl_fail:
 }
 
 R_CSTL_API_ATTR const uint8_t*
-R_CSTL_ArrayGetData (const struct R_CSTL_Array* pArray)
+R_CSTL_ArrayData (const struct R_CSTL_Array* pArray)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pArray)
@@ -939,7 +957,7 @@ typedef struct
                 Introsort (pBase, 0, (long)nelem - 1, depthLimit);                                           \
         }
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
 static long
 R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
 {
@@ -982,7 +1000,7 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                                 i += 8;
                         else
                         {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
@@ -1010,7 +1028,7 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                                 j -= 8;
                         else
                         {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
@@ -1036,7 +1054,7 @@ R_CSTL_ARRAY_INTROSORT_SIMD (AVX2, R_CSTL_ArrayPartitionU32AVX2)
 R_CSTL_ARRAY_SORT_SIMD (AVX2, R_CSTL_ArrayIntrosortU32AVX2)
 #endif
 
-#if defined(_R_SIMD_SSE)
+#if defined(R_SIMD_SSE)
 static long
 R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
 {
@@ -1079,7 +1097,7 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                                 i += 4;
                         else
                         {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
@@ -1107,7 +1125,7 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                                 j -= 4;
                         else
                         {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                 unsigned long tz;
                                 _BitScanForward (&tz, (unsigned long)mask);
                                 tz /= 4;
@@ -1133,7 +1151,7 @@ R_CSTL_ARRAY_INTROSORT_SIMD (SSE, R_CSTL_ArrayPartitionU32SSE)
 R_CSTL_ARRAY_SORT_SIMD (SSE, R_CSTL_ArrayIntrosortU32SSE)
 #endif
 
-#if defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#if defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
 static inline int
 R_CSTL_NEON_MASK (uint32x4_t cmpVec)
 {
@@ -1268,7 +1286,7 @@ R_CSTL_ArrayCopyElement (uint8_t* pDst, const uint8_t* pSrc, size_t elemSize)
                 return;
         }
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         size_t off = 0;
         for (; off + 32 <= elemSize; off += 32)
         {
@@ -1282,7 +1300,7 @@ R_CSTL_ArrayCopyElement (uint8_t* pDst, const uint8_t* pSrc, size_t elemSize)
         }
         for (; off < elemSize; ++off)
                 pDst[off] = pSrc[off];
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         size_t off = 0;
         for (; off + 16 <= elemSize; off += 16)
         {
@@ -1291,7 +1309,7 @@ R_CSTL_ArrayCopyElement (uint8_t* pDst, const uint8_t* pSrc, size_t elemSize)
         }
         for (; off < elemSize; ++off)
                 pDst[off] = pSrc[off];
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         size_t off = 0;
         for (; off + 16 <= elemSize; off += 16)
         {
@@ -1337,7 +1355,7 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
                 return;
         }
 
-#if defined(_R_SIMD_AVX2) || defined(_R_SIMD_SSE) || defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#if defined(R_SIMD_AVX2) || defined(R_SIMD_SSE) || defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         if (elemSize < 16u)
         {
                 memcpy (tmpBuf, a, elemSize);
@@ -1347,7 +1365,7 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
         }
 #endif
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         size_t off = 0;
         for (; off + 32 <= elemSize; off += 32)
         {
@@ -1370,7 +1388,7 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
                 memcpy (a + off, b + off, tail);
                 memcpy (b + off, tmpBuf, tail);
         }
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
         size_t off = 0;
         for (; off + 16 <= elemSize; off += 16)
         {
@@ -1386,7 +1404,7 @@ R_CSTL_ArraySwapElements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tmpB
                 memcpy (a + off, b + off, tail);
                 memcpy (b + off, tmpBuf, tail);
         }
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
         size_t off = 0;
         for (; off + 16 <= elemSize; off += 16)
         {
@@ -1527,7 +1545,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
         long     i = left;
         long     j = right - 2;
 
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
         if (R_CSTL_LIKELY (pCtx->elemSize == 4u))
         {
                 uint32_t pivotVal = *(const uint32_t*)pPivot;
@@ -1553,7 +1571,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                         i += 8;
                                 else
                                 {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                         unsigned long tz;
                                         _BitScanForward (&tz, (unsigned long)mask);
                                         tz /= 4;
@@ -1582,7 +1600,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                         j -= 8;
                                 else
                                 {
-#if defined(_R_COMPILER_MSVC)
+#if defined(R_COMPILER_MSVC)
                                         unsigned long tz;
                                         _BitScanForward (&tz, (unsigned long)mask);
                                         tz /= 4;
@@ -1742,11 +1760,11 @@ R_CSTL_ArraySort (
         {
                 if (R_CSTL_LIKELY (pComparator == R_CSTL_ArrayCompareU32 || pComparator == NULL))
                 {
-#if defined(_R_SIMD_AVX2)
+#if defined(R_SIMD_AVX2)
                         R_CSTL_ArraySortU32AVX2 ((uint32_t*)pBase, nelem);
-#elif defined(_R_SIMD_SSE)
+#elif defined(R_SIMD_SSE)
                                 R_CSTL_ArraySortU32SSE ((uint32_t*)pBase, nelem);
-#elif defined(_RL_SIMD_ARM_NEON) || defined(_R_SIMD_ARM_NEON)
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
                                 R_CSTL_ArraySortU32NEON ((uint32_t*)pBase, nelem);
 #endif
                 }
@@ -1805,7 +1823,7 @@ cstl_fail:
 }
 
 R_CSTL_API size_t
-R_CSTL_ArrayGetLength (const struct R_CSTL_Array* pArray)
+R_CSTL_ArrayLength (const struct R_CSTL_Array* pArray)
 {
         if (!pArray)
                 return 0;

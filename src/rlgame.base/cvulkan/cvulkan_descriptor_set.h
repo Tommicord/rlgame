@@ -45,9 +45,9 @@ struct R_CVulkan_DescriptorSet
  * @param device R_CVulkan device wrapper
  * @param bindings Array of descriptor bindings
  * @param bindingCount Number of bindings
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
     struct R_CVulkan_DescriptorSetLayout* layout,
     const struct R_CVulkan_Device*        device,
     const VkDescriptorSetLayoutBinding*   bindings,
@@ -57,7 +57,7 @@ enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
  * @brief Deletes a descriptor set layout and destroy the Vulkan object
  * @param layout Pointer to layout to delete
  */
-void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* layout);
+R_CVULKAN_API void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* layout);
 
 /**
  * @brief Initialize a descriptor pool
@@ -66,9 +66,9 @@ void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* 
  * @param poolSizes Array of pool sizes
  * @param poolSizeCount Number of pool sizes
  * @param maxSets Maximum number of descriptor sets
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
     struct R_CVulkan_DescriptorPool* pool,
     const struct R_CVulkan_Device*   device,
     const VkDescriptorPoolSize*      poolSizes,
@@ -79,7 +79,7 @@ enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
  * @brief Deletes a descriptor pool and destroy the Vulkan object
  * @param pool Pointer to pool to delete
  */
-void R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API void R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pool);
 
 /**
  * @brief Allocate descriptor sets from a pool
@@ -87,9 +87,9 @@ void R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pool);
  * @param layouts Array of layouts to allocate from
  * @param layoutCount Number of layouts
  * @param outSets Pointer to receive the allocated descriptor sets
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_DescriptorSetAllocate (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DescriptorSetAllocate (
     const struct R_CVulkan_DescriptorPool* pool,
     const VkDescriptorSetLayout*           layouts,
     uint32_t                               layoutCount,
@@ -101,7 +101,7 @@ enum R_CVulkan_Error R_CVulkan_DescriptorSetAllocate (
  * @param sets Array of descriptor sets to free
  * @param setCount Number of descriptor sets
  */
-void R_CVulkan_DescriptorSetFree (
+R_CVULKAN_API void R_CVulkan_DescriptorSetFree (
     const struct R_CVulkan_DescriptorPool* pool,
     const VkDescriptorSet*                 sets,
     uint32_t                               setCount);
@@ -114,24 +114,24 @@ void R_CVulkan_DescriptorSetFree (
  * @param descriptorCopies Array of descriptor copy operations (can be NULL)
  * @param descriptorCopyCount Number of descriptor copy operations (can be 0)
  */
-void R_CVulkan_DescriptorSetUpdate (
+R_CVULKAN_API void R_CVulkan_DescriptorSetUpdate (
     const struct R_CVulkan_Device* device,
     const VkWriteDescriptorSet*    descriptorWrites,
     uint32_t                       descriptorWriteCount,
     const VkCopyDescriptorSet*     descriptorCopies,
     uint32_t                       descriptorCopyCount);
 
-VkDescriptorSetLayout
+R_CVULKAN_API VkDescriptorSetLayout
 R_CVulkan_DescriptorSetLayoutGetHandle (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-VkDevice R_CVulkan_DescriptorSetLayoutGetDevice (const struct R_CVulkan_DescriptorSetLayout* layout);
+R_CVULKAN_API VkDevice R_CVulkan_DescriptorSetLayoutGetDevice (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-int R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSetLayout* layout);
+R_CVULKAN_API int R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-VkDescriptorPool R_CVulkan_DescriptorPool_GetHandle (const struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API VkDescriptorPool R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pool);
 
-VkDevice R_CVulkan_DescriptorPool_GetDevice (const struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API VkDevice R_CVulkan_DescriptorPoolGetDevice (const struct R_CVulkan_DescriptorPool* pool);
 
-uint32_t R_CVulkan_DescriptorPool_GetMaxSets (const struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API uint32_t R_CVulkan_DescriptorPoolGetMaxSets (const struct R_CVulkan_DescriptorPool* pool);
 
-int R_CVulkan_DescriptorPool_IsInitialized (const struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API int R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pool);

@@ -24,7 +24,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
         }
 #endif
 
-        pFence->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pFence->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pFence->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
         pFence->isInitialized = false;
@@ -43,7 +43,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
 #if defined(R_CVULKAN_DEBUG)
         pFence->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -115,7 +115,7 @@ R_CVulkan_FenceWait (
         }
 
         VkResult result = vkWaitForFences (
-            R_CVulkan_DeviceGetHandle (pDevice),
+            R_CVulkan_DeviceGetLogicalDevice (pDevice),
             fenceCount,
             nativeFences,
             waitAll ? VK_TRUE : VK_FALSE,
@@ -125,7 +125,7 @@ R_CVulkan_FenceWait (
 
         if (result == VK_SUCCESS)
         {
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else if (result == VK_TIMEOUT)
         {
@@ -133,7 +133,7 @@ R_CVulkan_FenceWait (
         }
         else
         {
-                return R_CVULKAN_ResultToError (result);
+                return R_CVulkan_ResultToError (result);
         }
 }
 
@@ -179,17 +179,17 @@ R_CVulkan_FenceReset (
                 nativeFences[i] = pFences[i].handle;
         }
 
-        VkResult result = vkResetFences (R_CVulkan_DeviceGetHandle (pDevice), fenceCount, nativeFences);
+        VkResult result = vkResetFences (R_CVulkan_DeviceGetLogicalDevice (pDevice), fenceCount, nativeFences);
 
         free (nativeFences);
 
         if (result == VK_SUCCESS)
         {
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else
         {
-                return R_CVULKAN_ResultToError (result);
+                return R_CVulkan_ResultToError (result);
         }
 }
 
@@ -221,21 +221,21 @@ R_CVulkan_FenceGetStatus (
         }
 #endif
 
-        VkResult result = vkGetFenceStatus (R_CVulkan_DeviceGetHandle (pDevice), pFence->handle);
+        VkResult result = vkGetFenceStatus (R_CVulkan_DeviceGetLogicalDevice (pDevice), pFence->handle);
 
         if (result == VK_SUCCESS)
         {
                 *pOutSignaled = 1;
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else if (result == VK_NOT_READY)
         {
                 *pOutSignaled = 0;
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else
         {
-                return R_CVULKAN_ResultToError (result);
+                return R_CVulkan_ResultToError (result);
         }
 }
 

@@ -28,7 +28,7 @@ struct R_CVulkan_RenderPass
  * @param subpassCount Number of subpasses
  * @param pDependencies Array of subpass dependencies (can be NULL)
  * @param dependencyCount Number of dependencies (can be 0)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewRenderPass (
     struct R_CVulkan_RenderPass*   pRenderPass,

@@ -435,7 +435,7 @@ extern "C"
          *
          * @param pDst Destination string (must be valid).
          * @param pSrc Source string.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringCopy (
             struct R_CSTL_String* R_CSTL_RESTRICT       pDst,
@@ -506,7 +506,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param requiredCapacity Minimum required capacity.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int
         R_CSTL_StringBuilderEnsureCapacity (R_CSTL_StringBuilder* pBuilder, const size_t requiredCapacity);
@@ -518,7 +518,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param pString Pointer to string to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int
         R_CSTL_StringBuilderAppend (R_CSTL_StringBuilder* pBuilder, const struct R_CSTL_String* pString);
@@ -530,7 +530,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param pCString Null-terminated string to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplace (R_CSTL_StringBuilder* pBuilder, const char* pCString);
 
@@ -542,7 +542,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param pCString String data to append.
          * @param size Length of string data.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceSized (
             R_CSTL_StringBuilder* pBuilder,
@@ -557,7 +557,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param pData Pointer to data to append.
          * @param length Number of bytes to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendData (
             R_CSTL_StringBuilder* pBuilder,
@@ -571,7 +571,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param value Character to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendChar (R_CSTL_StringBuilder* pBuilder, char value);
 
@@ -582,7 +582,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param value Integer value to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendInt (R_CSTL_StringBuilder* pBuilder, int value);
 
@@ -593,7 +593,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param value Long integer value to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendLong (R_CSTL_StringBuilder* pBuilder, long long value);
 
@@ -604,7 +604,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param value Double value to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendDouble (R_CSTL_StringBuilder* pBuilder, double value);
 
@@ -615,7 +615,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param value Boolean value to append.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendBool (R_CSTL_StringBuilder* pBuilder, bool value);
 
@@ -627,7 +627,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param pData Pointer to data to repeat.
          * @param count Number of times to repeat.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int
         R_CSTL_StringBuilderAppendRepeat (R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count);
@@ -640,7 +640,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param offset Offset at which to insert.
          * @param pString Pointer to string to insert.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderInsert (
             R_CSTL_StringBuilder*       pBuilder,
@@ -655,7 +655,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param offset Offset at which to insert.
          * @param pCString Null-terminated string to insert.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceInsert (
             R_CSTL_StringBuilder* pBuilder,
@@ -670,7 +670,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param offset Offset at which to insert.
          * @param value Character to insert.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int
         R_CSTL_StringBuilderInsertChar (R_CSTL_StringBuilder* pBuilder, size_t offset, char value);
@@ -683,7 +683,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param start Starting index (inclusive).
          * @param end Ending index (exclusive).
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderDelete (R_CSTL_StringBuilder* pBuilder, size_t start, size_t end);
 
@@ -694,7 +694,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param index Index of character to delete.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderDeleteCharAt (R_CSTL_StringBuilder* pBuilder, size_t index);
 
@@ -707,7 +707,7 @@ extern "C"
          * @param start Starting index (inclusive).
          * @param end Ending index (exclusive).
          * @param pString Pointer to replacement string.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderReplace (
             R_CSTL_StringBuilder*       pBuilder,
@@ -724,7 +724,7 @@ extern "C"
          * @param start Starting index (inclusive).
          * @param end Ending index (exclusive).
          * @param pString Null-terminated replacement string.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceReplace (
             R_CSTL_StringBuilder* pBuilder,
@@ -740,7 +740,7 @@ extern "C"
          * @param pBuilder Pointer to string builder.
          * @param index Index of character to set.
          * @param value Character value to set.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int
         R_CSTL_StringBuilderSetCharAt (R_CSTL_StringBuilder* pBuilder, size_t index, char value);
@@ -752,7 +752,7 @@ extern "C"
          *
          * @param pBuilder Pointer to string builder.
          * @param newLength New length to set.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderSetLength (R_CSTL_StringBuilder* pBuilder, size_t newLength);
 
@@ -762,7 +762,7 @@ extern "C"
          * Reverses the characters in the builder's contents.
          *
          * @param pBuilder Pointer to string builder.
-         * @return R_CSTL_ERROR_OK on success, error code on failure.
+         * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderReverse (R_CSTL_StringBuilder* pBuilder);
 

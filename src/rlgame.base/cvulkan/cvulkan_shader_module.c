@@ -52,7 +52,7 @@ R_CVulkan_NewShaderModule (
         pShaderModule->handle = VK_NULL_HANDLE;
         pShaderModule->isInitialized = false;
 #endif
-        pShaderModule->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pShaderModule->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pShaderModule->codeSize = codeSize;
 
         VkShaderModuleCreateInfo createInfo = {0};
@@ -69,7 +69,7 @@ R_CVulkan_NewShaderModule (
 #if defined(R_CVULKAN_DEBUG)
         pShaderModule->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void

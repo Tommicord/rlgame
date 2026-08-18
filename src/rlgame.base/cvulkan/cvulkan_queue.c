@@ -30,7 +30,7 @@ R_CVulkan_NewQueue (
         }
 #endif
 
-        pQueue->device = R_CVulkan_DeviceGetHandle (pDevice);
+        pQueue->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pQueue->handle = VK_NULL_HANDLE;
         pQueue->queueFamilyIndex = queueFamilyIndex;
         pQueue->queueIndex = queueIndex;
@@ -47,7 +47,7 @@ R_CVulkan_NewQueue (
 #if defined(R_CVULKAN_DEBUG)
         pQueue->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -78,7 +78,7 @@ R_CVulkan_QueueSubmit (
     uint32_t                                  commandBufferCount,
     const struct R_CVulkan_Semaphore*         pWaitSemaphores,
     uint32_t                                  waitSemaphoreCount,
-    const struct R_CVulkanPipelineStageFlags* pWaitDstStageMask,
+    const VkPipelineStageFlags*               pWaitDstStageMask,
     const struct R_CVulkan_Semaphore*         pSignalSemaphores,
     uint32_t                                  signalSemaphoreCount,
     const struct R_CVulkan_Fence*             pFence)
@@ -163,7 +163,7 @@ R_CVulkan_QueueSubmit (
                                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
                         }
                         nativeWaitSemaphores[i] = R_CVulkan_SemaphoreGetHandle (&pWaitSemaphores[i]);
-                        nativeWaitStageMask[i] = &pWaitDstStageMask[i];
+                        nativeWaitStageMask[i] = pWaitDstStageMask[i];
                 }
 
                 submitInfo.waitSemaphoreCount = waitSemaphoreCount;
@@ -213,7 +213,7 @@ R_CVulkan_QueueSubmit (
 
         if (result == VK_SUCCESS)
         {
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else
         {
@@ -277,7 +277,7 @@ R_CVulkan_QueuePresent (
 
         if (result == VK_SUCCESS)
         {
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else if (result == VK_ERROR_OUT_OF_DATE_KHR)
         {
@@ -304,7 +304,7 @@ R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue)
 
         if (result == VK_SUCCESS)
         {
-                return R_CVULKAN_ERROR_OK;
+                return R_CVULKAN_OK;
         }
         else
         {

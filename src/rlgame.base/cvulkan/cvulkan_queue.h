@@ -30,7 +30,7 @@ struct R_CVulkan_Queue
  * @param pDevice R_CVulkan device wrapper
  * @param queueFamilyIndex Queue family index
  * @param queueIndex Queue index within family
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewQueue (
     struct R_CVulkan_Queue*        pQueue,
@@ -51,11 +51,11 @@ R_CVULKAN_API void R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue);
  * @param commandBufferCount Number of command buffers
  * @param pWaitSemaphores Array of semaphores to wait on
  * @param waitSemaphoreCount Number of wait semaphores
- * @param pWaitDstStageMask Array of pipeline stages to wait at
+ * @param pWaitDstStageMask Array of pipeline stage flags to wait at
  * @param pSignalSemaphores Array of semaphores to signal
  * @param signalSemaphoreCount Number of signal semaphores
  * @param pFence Optional fence to signal when submission completes
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
     struct R_CVulkan_Queue*               pQueue,
@@ -63,7 +63,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
     uint32_t                              commandBufferCount,
     const struct R_CVulkan_Semaphore*     pWaitSemaphores,
     uint32_t                              waitSemaphoreCount,
-    const R_CVulkanPipelineStageFlags*    pWaitDstStageMask,
+    const VkPipelineStageFlags*           pWaitDstStageMask,
     const struct R_CVulkan_Semaphore*     pSignalSemaphores,
     uint32_t                              signalSemaphoreCount,
     const struct R_CVulkan_Fence*         pFence);
@@ -76,7 +76,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
  * @param pImageIndices Array of image indices to present
  * @param pWaitSemaphores Array of semaphores to wait on
  * @param waitSemaphoreCount Number of wait semaphores
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
     struct R_CVulkan_Queue*           pQueue,
@@ -89,7 +89,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
 /**
  * @brief Wait for the queue to become idle
  * @param queue Pointer to queue
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
 

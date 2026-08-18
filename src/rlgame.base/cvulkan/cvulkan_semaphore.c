@@ -5,19 +5,25 @@
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_Semaphore_Init (
     struct R_CVulkan_Semaphore* pSemaphore,
-    VkDevice                    device,
+    const struct R_CVulkan_Device* pDevice,
     int                         timelineSemaphore,
     uint64_t                    initialValue)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
-        R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pDevice != NULL);
 
-        if (!pSemaphore || device == VK_NULL_HANDLE)
+#if defined(R_CVULKAN_DEBUG)
+        if (!pSemaphore || !pDevice)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
+        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        {
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+#endif
 
-        pSemaphore->device = device;
+        pSemaphore->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pSemaphore->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
         pSemaphore->isInitialized = false;
@@ -44,7 +50,7 @@ R_CVulkan_Semaphore_Init (
 #if defined(R_CVULKAN_DEBUG)
         pSemaphore->isInitialized = true;
 #endif
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
@@ -100,7 +106,7 @@ R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t valu
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -134,7 +140,7 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
@@ -162,7 +168,7 @@ R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* p
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
-        return R_CVULKAN_ERROR_OK;
+        return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API VkSemaphore

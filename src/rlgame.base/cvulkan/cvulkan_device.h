@@ -54,13 +54,13 @@ struct R_CVulkan_Device
  * @param enableValidationLayers Whether to enable validation layers
  * @param headlessMode Whether to run in headless mode (no surface)
  * @param surface Optional surface for presentation (can be NULL in headless mode)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDevice (
     struct R_CVulkan_Device* pDevice,
     const char*              pApplicationName,
-    int                      enableValidationLayers,
-    int                      headlessMode,
+    bool                     enableValidationLayers,
+    bool                     headlessMode,
     VkSurfaceKHR             surface);
 
 /**
@@ -126,12 +126,12 @@ R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* 
  * @param surface Vulkan surface (can be VK_NULL_HANDLE in headless mode)
  * @param headlessMode Whether running in headless mode
  * @param pOutIndices Pointer to receive queue family indices
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
     VkPhysicalDevice                  physicalDevice,
     VkSurfaceKHR                      surface,
-    int                               headlessMode,
+    bool                              headlessMode,
     struct R_CVulkan_QueueFamilyIndices* pOutIndices);
 
 /**

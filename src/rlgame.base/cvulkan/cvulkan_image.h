@@ -46,9 +46,9 @@ struct R_CVulkan_Image
  * @param usage Image usage flags
  * @param properties Memory property flags
  * @param samples Number of samples
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_NewImage (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewImage (
     struct R_CVulkan_Image*        image,
     const struct R_CVulkan_Device* device,
     VkPhysicalDevice               physicalDevice,
@@ -66,7 +66,7 @@ enum R_CVulkan_Error R_CVulkan_NewImage (
  * @brief Deletes an image and destroy the Vulkan objects
  * @param image Pointer to image to delete
  */
-void R_CVulkan_DeleteImage (R_CVulkan_Image* image);
+R_CVULKAN_API void R_CVulkan_DeleteImage (struct R_CVulkan_Image* image);
 
 /**
  * @brief Transition image layout
@@ -76,9 +76,9 @@ void R_CVulkan_DeleteImage (R_CVulkan_Image* image);
  * @param newLayout Desired layout
  * @param srcStageMask Source pipeline stage mask
  * @param dstStageMask Destination pipeline stage mask
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
     struct R_CVulkan_Image*     image,
     VkCommandBuffer             commandBuffer,
     VkImageLayout               oldLayout,
@@ -93,9 +93,9 @@ enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
  * @param dataSize Size of data in bytes
  * @param buffer Staging buffer to use for the copy (raw handle)
  * @param commandBuffer Command buffer to record the copy on (raw handle)
- * @return R_CVULKAN_ERROR_OK on success, error code otherwise
+ * @return R_CVULKAN_OK on success, error code otherwise
  */
-enum R_CVulkan_Error R_CVulkan_ImageCopyData (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* image,
     const void*             data,
     R_CVulkanDeviceSize     dataSize,
@@ -107,53 +107,53 @@ enum R_CVulkan_Error R_CVulkan_ImageCopyData (
  * @param image Pointer to image
  * @return Vulkan image handle, or VK_NULL_HANDLE if not initialized
  */
-VkImage R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* image);
+R_CVULKAN_API VkImage R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the device memory handle
  * @param image Pointer to image
  * @return Device memory handle, or VK_NULL_HANDLE if not initialized
  */
-VkDeviceMemory R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* image);
+R_CVULKAN_API VkDeviceMemory R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the associated device
  * @param image Pointer to image
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-VkDevice R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* image);
+R_CVULKAN_API VkDevice R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the image width
  * @param image Pointer to image
  * @return Image width, or 0 if not initialized
  */
-uint32_t R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* image);
+R_CVULKAN_API uint32_t R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the image height
  * @param image Pointer to image
  * @return Image height, or 0 if not initialized
  */
-uint32_t R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* image);
+R_CVULKAN_API uint32_t R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the image format
  * @param image Pointer to image
  * @return Image format, or VK_FORMAT_UNDEFINED if not initialized
  */
-VkFormat R_CVulkan_Image_GetFormat (const struct R_CVulkan_Image* image);
+R_CVULKAN_API VkFormat R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Get the current image layout
  * @param image Pointer to image
  * @return Current image layout, or VK_IMAGE_LAYOUT_UNDEFINED if not initialized
  */
-VkImageLayout R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* image);
+R_CVULKAN_API VkImageLayout R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* image);
 
 /**
  * @brief Check if the image is initialized
  * @param image Pointer to image
  * @return 1 if initialized, 0 otherwise
  */
-int R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* image);
+R_CVULKAN_API int R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* image);
