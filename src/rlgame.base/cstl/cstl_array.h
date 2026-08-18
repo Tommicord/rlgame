@@ -249,7 +249,7 @@ R_CSTL_API int R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, 
  * @note Use only when you can guarantee the index is valid.
  * @note This is faster than R_CSTL_ArrayAt for tight loops.
  */
-R_CSTL_API uint8_t R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index);
+R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index);
 
 /**
  * @brief Clear the array contents

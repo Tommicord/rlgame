@@ -1823,10 +1823,14 @@ R_CSTL_ArrayGetCapacity (const struct R_CSTL_Array* pArray)
 R_CSTL_API int
 R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue)
 {
-        if (!pArray || !pOutValue || index >= pArray->length)
+#if defined(R_CSTL_HEAP_DEBUG)
+        if (!pArray || !pOutValue)
                 goto cstl_fail;
         if (!R_CSTL_ArrayBufferIsLive (pArray))
                 goto cstl_fail;
+        if (index >= pArray->length)
+                goto cstl_fail;
+#endif
         *pOutValue = pArray->pData[index];
         return 0;
 
@@ -1834,8 +1838,13 @@ cstl_fail:
         return -1;
 }
 
-uint8_t
-R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index)
+R_CSTL_API int
+R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue)
 {
-        return pArray->pData[index];
+#if defined(R_CSTL_HEAP_DEBUG)
+        if (!pArray || !pOutValue)
+                return -1;
+#endif
+        *pOutValue = pArray->pData[index];
+        return 0;
 }
