@@ -1590,6 +1590,45 @@ R_CSTL_StringBuilderAppendRepeat (R_CSTL_StringBuilder* pBuilder, const char* pD
         return 0;
 }
 
+R_CSTL_API int
+R_CSTL_StringBuilderAppendf (R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...)
+{
+#if defined(R_CSTL_HEAP_DEBUG)
+        if (!pBuilder)
+                goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder))
+                goto cstl_fail;
+#endif
+        if (!pFormat)
+                return 0;
+
+        va_list args;
+        va_start (args, pFormat);
+        va_list copy;
+        va_copy (copy, args);
+        int needed = vsnprintf (NULL, 0, pFormat, copy);
+        va_end (copy);
+        if (needed < 0)
+        {
+                va_end (args);
+                return -1;
+        }
+        size_t len = (size_t)needed;
+        char*  buf = (char*)R_CSTL_HeapAlloc (len + 1);
+        if (!buf)
+        {
+                va_end (args);
+                return -1;
+        }
+        vsnprintf (buf, len + 1, pFormat, args);
+        va_end (args);
+        int result = R_CSTL_StringBuilderAppendData (pBuilder, buf, len);
+        R_CSTL_HeapFree (buf);
+        return result;
+cstl_fail:
+        return -1;
+}
+
 void
 R_CSTL_StringBuilderClear (R_CSTL_StringBuilder* pBuilder)
 {

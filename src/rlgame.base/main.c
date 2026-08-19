@@ -123,19 +123,23 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
 #define R_APP_LOG_INFO(Info)                                                                                 \
         do                                                                                                   \
         {                                                                                                    \
+                const char* pAppName = R_CSTL_StringData ((Info).pApplicationName);                          \
+                if (!pAppName)                                                                               \
+                        goto r_log_appinfo;                                                                  \
                 R_CSTL_LOG_INFO (                                                                            \
                     "App: %s pid=%u args=%d",                                                                \
-                    (Info).pApplicationName,                                                                 \
+                    pAppName,                                                                                \
                     (Info).pid,                                                                              \
                     (Info).args.argc);                                                                       \
                 if ((info).args.pCmdLine)                                                                    \
                         R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
                 R_CSTL_LOG_INFO (                                                                            \
-                    "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB heap=%.2f MB",                         \
+                    "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB appHeap=%.2f MB",                      \
                     (double)(Info).memory.totalPhysicalBytes / R_APP_GB_BINARY,                              \
                     (double)(Info).memory.availablePhysicalBytes / R_APP_GB_BINARY,                          \
                     (double)(Info).memory.usedBytes / R_APP_GB_BINARY,                                       \
                     (double)(Info).memory.heapAllocatedBytes / R_APP_MB_BINARY);                             \
+        r_log_appinfo:                                                                                       \
                 if ((Info).pExistingProcesses && (Info).existingProcessCount > 0)                            \
                 {                                                                                            \
                         size_t existingProcessCount = (Info).existingProcessCount;                           \
@@ -284,18 +288,30 @@ R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         if (!info)
                 return;
         memset (info, 0, sizeof (*info));
-        static struct R_CSTL_String* pAppName;
-        if (pAppName == NULL)
-        {
-                pAppName = R_CSTL_NewStringWithData ("Real Game (rlgame)");
-        }
-        info->pApplicationName = pAppName;
-        info->applicationVersionMajor = 0;
-        info->applicationVersionMinor = 1;
-        info->applicationVersionPatch = 0;
         info->pid = R_GetCurrentPid ();
         info->args.argc = argc;
         info->args.argv = (const char* const*)argv;
+        info->applicationVersionMajor = 1;
+        info->applicationVersionMinor = 0;
+        info->applicationVersionPatch = 0;
+
+        static struct R_CSTL_String* pAppName;
+        if (pAppName == NULL)
+        {
+                struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+
+                if (pBuilder) {
+                        R_CSTL_StringBuilderAppendf (
+                            pBuilder,
+                            "Real Game (rlgame) - v%d.%d.%d",
+                            info->applicationVersionMajor,
+                            info->applicationVersionMinor,
+                            info->applicationVersionPatch);
+                        pAppName = R_CSTL_StringBuilderToString (pBuilder);
+                        R_CSTL_DeleteStringBuilder (pBuilder);  
+                }
+        }
+        info->pApplicationName = pAppName;
 }
 
 void
@@ -353,8 +369,8 @@ R_PopulateApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         R_FillMemoryInfo (&info->memory);
 
         size_t         count = 0;
-        R_ProcessInfo* procs = R_CollectProcesses (&count, argc, argv);
-        info->pExistingProcesses = procs;
+        R_ProcessInfo* pProcs = R_CollectProcesses (&count, argc, argv);
+        info->pExistingProcesses = pProcs;
         info->existingProcessCount = count;
 }
 
@@ -491,11 +507,43 @@ WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 PostQuitMessage (0);
                 return 0;
         default:
-                return DefWindowProc (hwnd, uMsg, wParam, lParam);
+                return DefWindowProcW (hwnd, uMsg, wParam, lParam);
         }
 }
 
+static void
+R_UnicodeFromString(const char* pInput, wchar_t** ppOut)
+{
+        int wideLen = MultiByteToWideChar (CP_UTF8, 0, pInput, -1, NULL, 0);
+        if (wideLen == 0)
+                return;
+        *ppOut = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
+        if (*ppOut == NULL)
+                return 0;
+        MultiByteToWideChar (CP_UTF8, 0, pInput, -1, *ppOut, wideLen);
+}
 #define R_WIN32_INSTANCE HINSTANCE
+#define R_WIN32_HWND     HWND
+
+static void R_WindowCenter (R_WIN32_HWND hwnd)
+{
+        RECT rc;
+        GetWindowRect (hwnd, &rc);
+        HMONITOR hMonitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONEAREST);
+
+        MONITORINFO mi = {sizeof (mi)};
+        if (GetMonitorInfo (hMonitor, &mi))
+        {
+                int monitorWidth = mi.rcWork.right - mi.rcWork.left;
+                int monitorHeight = mi.rcWork.bottom - mi.rcWork.top;
+
+                int windowWidth = rc.right - rc.left;
+                int windowHeight = rc.bottom - rc.top;
+                int xPos = mi.rcWork.left + (monitorWidth - windowWidth) / 2;
+                int yPos = mi.rcWork.top + (monitorHeight - windowHeight) / 2;
+                SetWindowPos (hwnd, HWND_TOP, xPos, yPos, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+        }
+}
 
 static int
 R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, int nCmdShow)
@@ -506,11 +554,20 @@ R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, 
         wc.hInstance = hInstance;
         wc.lpszClassName = CLASS_NAME;
         if (!RegisterClassW (&wc))
-                return 0;
-        HWND hwnd = CreateWindowExW (
+                goto r_fail_init;
+        if (!pApplicationInfo)
+                goto r_fail_init;
+        const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+        if (!pAppName)
+                goto r_fail_init;
+        wchar_t* pWideAppName = NULL;
+        R_UnicodeFromString (pAppName, &pWideAppName);
+        if (!pWideAppName)
+                goto r_fail_init;
+        R_WIN32_HWND hwnd = CreateWindowExW(
             0,
             CLASS_NAME,
-            R_CSTL_StringData (pApplicationInfo->pApplicationName),
+            pWideAppName,
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -520,10 +577,15 @@ R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, 
             NULL,
             hInstance,
             NULL);
+        R_WindowCenter (hwnd);
+        R_CSTL_HeapFree(pWideAppName);
         if (!hwnd)
-                return 0;
+                goto r_fail_init;
         ShowWindow (hwnd, nCmdShow);
         return 1;
+r_fail_init:
+        R_CSTL_LOG_ERROR("R_InitWinMain: Failed to initialize WinMain");
+        return 0;
 }
 #undef R_WIN32_INSTANCE
 
@@ -538,12 +600,10 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
 
         if (!R_InitWinMain (hInstance, &info, nCmdShow))
         {
-                R_CSTL_LOG_ERROR ("WinMain: Failed to initialize window");
                 R_APP_SHUTDOWN ();
                 return 1;
         }
         R_APP_LOG_HEAP_STATS ();
-
         R_APP_LOG_INFO (info);
 
         R_APP_LAUNCH (NULL, info);
@@ -713,8 +773,8 @@ main (int argc, char** argv)
         R_PopulateApplicationInfo (&info, argc, argv);
 
         R_APP_LOG_HEAP_STATS ();
-
         R_APP_LOG_INFO (info);
+        R_APP_LAUNCH (NULL, info);
 
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();

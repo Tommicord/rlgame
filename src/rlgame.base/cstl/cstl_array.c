@@ -1846,9 +1846,9 @@ R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutVa
                 goto cstl_fail;
         if (!R_CSTL_ArrayBufferIsLive (pArray))
                 goto cstl_fail;
+#endif
         if (index >= pArray->length)
                 goto cstl_fail;
-#endif
         *pOutValue = pArray->pData[index];
         return 0;
 
@@ -1861,8 +1861,12 @@ R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index, uint8_
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pArray || !pOutValue)
-                return -1;
+                goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsLive (pArray))
+                goto cstl_fail;
 #endif
         *pOutValue = pArray->pData[index];
         return 0;
+cstl_fail:
+        return -1;
 }

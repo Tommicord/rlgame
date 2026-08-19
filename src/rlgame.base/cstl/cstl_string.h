@@ -633,6 +633,18 @@ extern "C"
         R_CSTL_StringBuilderAppendRepeat (R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count);
 
         /**
+         * @brief Append formatted string to builder
+         *
+         * Appends a formatted string to the builder's contents using printf-style formatting.
+         *
+         * @param pBuilder Pointer to string builder.
+         * @param pFormat Printf-style format string.
+         * @param ... Variable arguments for formatting.
+         * @return R_CSTL_OK on success, error code on failure.
+         */
+        R_CSTL_API int R_CSTL_StringBuilderAppendf (R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...);
+
+        /**
          * @brief Insert string at offset
          *
          * Inserts a string at the specified offset in the builder's contents.
