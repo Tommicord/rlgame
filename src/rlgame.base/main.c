@@ -126,11 +126,7 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
                 const char* pAppName = R_CSTL_StringData ((Info).pApplicationName);                          \
                 if (!pAppName)                                                                               \
                         goto r_log_appinfo;                                                                  \
-                R_CSTL_LOG_INFO (                                                                            \
-                    "App: %s pid=%u args=%d",                                                                \
-                    pAppName,                                                                                \
-                    (Info).pid,                                                                              \
-                    (Info).args.argc);                                                                       \
+                R_CSTL_LOG_INFO ("App: %s pid=%u args=%d", pAppName, (Info).pid, (Info).args.argc);          \
                 if ((info).args.pCmdLine)                                                                    \
                         R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
                 R_CSTL_LOG_INFO (                                                                            \
@@ -146,10 +142,10 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
                         R_CSTL_LOG_INFO ("Existing processes: %d", existingProcessCount);                    \
                         for (int i = 0; i < existingProcessCount; i++)                                       \
                         {                                                                                    \
-                                R_ProcessInfo pProcess = (Info).pExistingProcesses[i];                       \
+                                R_ProcessInfo        pProcess = (Info).pExistingProcesses[i];                \
                                 const R_CSTL_String* pNameString = pProcess.pName;                           \
-                                const char* pProcessName = pNameString ?                                     \
-                                        R_CSTL_StringData(pNameString) : "(unknown)";                        \
+                                const char*          pProcessName                                            \
+                                    = pNameString ? R_CSTL_StringData (pNameString) : "(unknown)";           \
                                 R_CSTL_LOG_INFO (                                                            \
                                     "Process[%d]: pid=%u name=%s mem=%.2f GB",                               \
                                     i,                                                                       \
@@ -300,7 +296,8 @@ R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         {
                 struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
 
-                if (pBuilder) {
+                if (pBuilder)
+                {
                         R_CSTL_StringBuilderAppendf (
                             pBuilder,
                             "Real Game (rlgame) - v%d.%d.%d",
@@ -308,7 +305,7 @@ R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
                             info->applicationVersionMinor,
                             info->applicationVersionPatch);
                         pAppName = R_CSTL_StringBuilderToString (pBuilder);
-                        R_CSTL_DeleteStringBuilder (pBuilder);  
+                        R_CSTL_DeleteStringBuilder (pBuilder);
                 }
         }
         info->pApplicationName = pAppName;
@@ -512,7 +509,7 @@ WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 static void
-R_UnicodeFromString(const char* pInput, wchar_t** ppOut)
+R_UnicodeFromString (const char* pInput, wchar_t** ppOut)
 {
         int wideLen = MultiByteToWideChar (CP_UTF8, 0, pInput, -1, NULL, 0);
         if (wideLen == 0)
@@ -525,7 +522,8 @@ R_UnicodeFromString(const char* pInput, wchar_t** ppOut)
 #define R_WIN32_INSTANCE HINSTANCE
 #define R_WIN32_HWND     HWND
 
-static void R_WindowCenter (R_WIN32_HWND hwnd)
+static void
+R_WindowCenter (R_WIN32_HWND hwnd)
 {
         RECT rc;
         GetWindowRect (hwnd, &rc);
@@ -564,7 +562,7 @@ R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, 
         R_UnicodeFromString (pAppName, &pWideAppName);
         if (!pWideAppName)
                 goto r_fail_init;
-        R_WIN32_HWND hwnd = CreateWindowExW(
+        R_WIN32_HWND hwnd = CreateWindowExW (
             0,
             CLASS_NAME,
             pWideAppName,
@@ -578,13 +576,13 @@ R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, 
             hInstance,
             NULL);
         R_WindowCenter (hwnd);
-        R_CSTL_HeapFree(pWideAppName);
+        R_CSTL_HeapFree (pWideAppName);
         if (!hwnd)
                 goto r_fail_init;
         ShowWindow (hwnd, nCmdShow);
         return 1;
 r_fail_init:
-        R_CSTL_LOG_ERROR("R_InitWinMain: Failed to initialize WinMain");
+        R_CSTL_LOG_ERROR ("R_InitWinMain: Failed to initialize WinMain");
         return 0;
 }
 #undef R_WIN32_INSTANCE

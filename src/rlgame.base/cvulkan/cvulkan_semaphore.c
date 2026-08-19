@@ -4,10 +4,10 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_Semaphore_Init (
-    struct R_CVulkan_Semaphore* pSemaphore,
+    struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
-    int                         timelineSemaphore,
-    uint64_t                    initialValue)
+    int                            timelineSemaphore,
+    uint64_t                       initialValue)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
         R_CVULKAN_ASSERT (pDevice != NULL);

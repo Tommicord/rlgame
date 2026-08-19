@@ -70,7 +70,8 @@ R_CVULKAN_API VkDevice R_CVulkan_FramebufferGetDevice (const struct R_CVulkan_Fr
  * @param framebuffer Pointer to framebuffer
  * @return Render pass handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkRenderPass R_CVulkan_FramebufferGetRenderPass (const struct R_CVulkan_Framebuffer* pFramebuffer);
+R_CVULKAN_API VkRenderPass
+R_CVulkan_FramebufferGetRenderPass (const struct R_CVulkan_Framebuffer* pFramebuffer);
 
 /**
  * @brief Get the framebuffer width
@@ -91,7 +92,8 @@ R_CVULKAN_API uint32_t R_CVulkan_FramebufferGetHeight (const struct R_CVulkan_Fr
  * @param framebuffer Pointer to framebuffer
  * @return Number of attachments, or 0 if not initialized
  */
-R_CVULKAN_API uint32_t R_CVulkan_FramebufferGetAttachmentCount (const struct R_CVulkan_Framebuffer* pFramebuffer);
+R_CVULKAN_API uint32_t
+R_CVulkan_FramebufferGetAttachmentCount (const struct R_CVulkan_Framebuffer* pFramebuffer);
 
 /**
  * @brief Check if the framebuffer is initialized

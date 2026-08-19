@@ -14,10 +14,10 @@ struct R_CSTL_Array;
  */
 struct R_CVulkan_QueueFamilyIndices
 {
-        uint32_t graphicsFamily;
-        uint32_t presentFamily;
-        bool     hasGraphicsFamily;
-        bool     hasPresentFamily;
+                uint32_t graphicsFamily;
+                uint32_t presentFamily;
+                bool     hasGraphicsFamily;
+                bool     hasPresentFamily;
 };
 
 /**
@@ -25,9 +25,9 @@ struct R_CVulkan_QueueFamilyIndices
  */
 struct R_CVulkan_SwapChainSupport
 {
-        struct R_CSTL_Array*     pFormats;
-        struct R_CSTL_Array*     pPresentModes;
-        VkSurfaceCapabilitiesKHR capabilities;
+                struct R_CSTL_Array*     pFormats;
+                struct R_CSTL_Array*     pPresentModes;
+                VkSurfaceCapabilitiesKHR capabilities;
 };
 
 /**
@@ -35,16 +35,16 @@ struct R_CVulkan_SwapChainSupport
  */
 struct R_CVulkan_Device
 {
-        VkInstance               instance;
-        VkPhysicalDevice         physicalDevice;
-        VkDevice                 logicalDevice;
-        VkSurfaceKHR             surface;
-        struct R_CVulkan_Queue   graphicsQueue;
-        struct R_CVulkan_Queue   presentQueue;
-        VkDebugUtilsMessengerEXT debugMessenger;
-        int                      enableValidationLayers;
-        int                      headlessMode;
-        R_CVULKAN_DEBUG_FIELD
+                VkInstance               instance;
+                VkPhysicalDevice         physicalDevice;
+                VkDevice                 logicalDevice;
+                VkSurfaceKHR             surface;
+                struct R_CVulkan_Queue   graphicsQueue;
+                struct R_CVulkan_Queue   presentQueue;
+                VkDebugUtilsMessengerEXT debugMessenger;
+                int                      enableValidationLayers;
+                int                      headlessMode;
+                R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -129,9 +129,9 @@ R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* 
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
-    VkPhysicalDevice                  physicalDevice,
-    VkSurfaceKHR                      surface,
-    bool                              headlessMode,
+    VkPhysicalDevice                     physicalDevice,
+    VkSurfaceKHR                         surface,
+    bool                                 headlessMode,
     struct R_CVulkan_QueueFamilyIndices* pOutIndices);
 
 /**
@@ -139,5 +139,5 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
  * @param pIndices Pointer to queue family indices
  * @return 1 if complete, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_QueueFamilyIndicesIsComplete (
-    const struct R_CVulkan_QueueFamilyIndices* pIndices);
+R_CVULKAN_API int
+R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndices* pIndices);

@@ -33,17 +33,17 @@ struct R_CVulkan_FreeRegion
  */
 struct R_CVulkan_MemoryBlock
 {
-                VkDevice                    device; /**< Vulkan device */
-                VkPhysicalDevice            physicalDevice; /**< Physical device */
-                VkDeviceSize                size; /**< Total size of the block */
-                VkBufferUsageFlags          usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags       properties; /**< Memory property flags */
-                VkBuffer                    buffer; /**< Buffer handle */
-                VkDeviceMemory              memory; /**< Device memory handle */
-                VkDeviceSize                usedSize; /**< Currently used size */
+                VkDevice                     device; /**< Vulkan device */
+                VkPhysicalDevice             physicalDevice; /**< Physical device */
+                VkDeviceSize                 size; /**< Total size of the block */
+                VkBufferUsageFlags           usage; /**< Buffer usage flags */
+                VkMemoryPropertyFlags        properties; /**< Memory property flags */
+                VkBuffer                     buffer; /**< Buffer handle */
+                VkDeviceMemory               memory; /**< Device memory handle */
+                VkDeviceSize                 usedSize; /**< Currently used size */
                 struct R_CVulkan_FreeRegion* pFreeRegions; /**< Array of free regions */
-                uint32_t                    freeRegionCount; /**< Number of free regions */
-                uint32_t                    freeRegionCapacity; /**< Capacity of free regions array */
+                uint32_t                     freeRegionCount; /**< Number of free regions */
+                uint32_t                     freeRegionCapacity; /**< Capacity of free regions array */
 };
 
 /**
@@ -140,7 +140,8 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CopyDataToMemory (
  * @param pAllocator Pointer to allocator
  * @return Vulkan device handle
  */
-R_CVULKAN_API VkDevice R_CVulkan_MemoryAllocatorGetDevice (const struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API VkDevice
+R_CVulkan_MemoryAllocatorGetDevice (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get physical device from allocator
@@ -155,14 +156,16 @@ R_CVulkan_MemoryAllocatorGetPhysicalDevice (const struct R_CVulkan_MemoryAllocat
  * @param pAllocator Pointer to allocator
  * @return Total size of all blocks
  */
-R_CVULKAN_API VkDeviceSize R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API VkDeviceSize
+R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get total used size from allocator
  * @param pAllocator Pointer to allocator
  * @return Total used size across all blocks
  */
-R_CVULKAN_API VkDeviceSize R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API VkDeviceSize
+R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Allocate memory for an image

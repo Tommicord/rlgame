@@ -30,7 +30,7 @@ R_CVulkan_NewRenderPass (
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        if(attachmentCount == 0 || !pSubpasses || subpassCount == 0)
+        if (attachmentCount == 0 || !pSubpasses || subpassCount == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
@@ -55,7 +55,8 @@ R_CVulkan_NewRenderPass (
         renderPassInfo.dependencyCount = dependencyCount;
         renderPassInfo.pDependencies = pDependencies;
 
-        VkResult result = vkCreateRenderPass (pRenderPass->device, &renderPassInfo, NULL, &pRenderPass->handle);
+        VkResult result
+            = vkCreateRenderPass (pRenderPass->device, &renderPassInfo, NULL, &pRenderPass->handle);
         if (result != VK_SUCCESS)
         {
                 return R_CVULKAN_ERROR_RENDER_PASS_CREATE_FAILED;

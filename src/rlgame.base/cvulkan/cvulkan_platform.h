@@ -46,7 +46,7 @@
 
 #if defined(R_CVULKAN_DEBUG)
 #include <stdbool.h>
-#define R_CVULKAN_DEBUG_FIELD bool isInitialized;
+#define R_CVULKAN_DEBUG_FIELD                 bool isInitialized;
 #define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) ((pObj)->isInitialized)
 #else
 #define R_CVULKAN_DEBUG_FIELD

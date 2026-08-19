@@ -58,7 +58,7 @@
 
 #define R_CSTL_LOG_DEVMODE R_DEVMODE
 
-#define R_CSTL_OK                       0
+#define R_CSTL_OK                             0
 #define R_CSTL_ERROR_INVALID_ARGUMENT         -1
 #define R_CSTL_ERROR_OUT_OF_MEMORY            -2
 #define R_CSTL_ERROR_INVALID_POINTER          -3

@@ -78,11 +78,11 @@ R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* pLayo
 
 enum R_CVulkan_Error
 R_CVulkan_NewDescriptorPool (
-    struct R_CVulkan_DescriptorPool*   pPool,
-    const struct R_CVulkan_Device*     pDevice,
-    const VkDescriptorPoolSize* pPoolSizes,
-    uint32_t                    poolSizeCount,
-    uint32_t                    maxSets)
+    struct R_CVulkan_DescriptorPool* pPool,
+    const struct R_CVulkan_Device*   pDevice,
+    const VkDescriptorPoolSize*      pPoolSizes,
+    uint32_t                         poolSizeCount,
+    uint32_t                         maxSets)
 {
         R_CVULKAN_ASSERT (pPool);
         R_CVULKAN_ASSERT (pDevice);
@@ -156,9 +156,9 @@ R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pPool)
 enum R_CVulkan_Error
 R_CVulkan_DescriptorSetAllocate (
     const struct R_CVulkan_DescriptorPool* pPool,
-    const VkDescriptorSetLayout*    pLayouts,
-    uint32_t                        layoutCount,
-    VkDescriptorSet*                pOutSets)
+    const VkDescriptorSetLayout*           pLayouts,
+    uint32_t                               layoutCount,
+    VkDescriptorSet*                       pOutSets)
 {
         R_CVULKAN_ASSERT (pPool);
         R_CVULKAN_ASSERT (pLayouts);
@@ -195,8 +195,8 @@ R_CVulkan_DescriptorSetAllocate (
 void
 R_CVulkan_DescriptorSetFree (
     const struct R_CVulkan_DescriptorPool* pPool,
-    const VkDescriptorSet*          pSets,
-    uint32_t                        setCount)
+    const VkDescriptorSet*                 pSets,
+    uint32_t                               setCount)
 {
         R_CVULKAN_ASSERT (pPool);
         R_CVULKAN_ASSERT (pSets);
@@ -219,11 +219,11 @@ R_CVulkan_DescriptorSetFree (
 
 void
 R_CVulkan_DescriptorSetUpdate (
-    const struct R_CVulkan_Device*     pDevice,
-    const VkWriteDescriptorSet* pDescriptorWrites,
-    uint32_t                    descriptorWriteCount,
-    const VkCopyDescriptorSet*  pDescriptorCopies,
-    uint32_t                    descriptorCopyCount)
+    const struct R_CVulkan_Device* pDevice,
+    const VkWriteDescriptorSet*    pDescriptorWrites,
+    uint32_t                       descriptorWriteCount,
+    const VkCopyDescriptorSet*     pDescriptorCopies,
+    uint32_t                       descriptorCopyCount)
 {
         R_CVULKAN_ASSERT (pDevice);
         R_CVULKAN_ASSERT (pDescriptorWrites);

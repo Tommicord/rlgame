@@ -12,25 +12,25 @@
 
 static VkDebugUtilsMessengerEXT s_debugMessenger = VK_NULL_HANDLE;
 
-#define R_CVULKAN_VALIDATION_LAYER_SIZE(VarName) sizeof(VarName) / sizeof(VarName[0])
+#define R_CVULKAN_VALIDATION_LAYER_SIZE(VarName) sizeof (VarName) / sizeof (VarName[0])
 
 #if defined(R_CVULKAN_DEBUG)
-static const char* g_validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
-static const uint32_t g_validationLayerCount = R_CVULKAN_VALIDATION_LAYER_SIZE(g_validationLayers);
+static const char*    g_validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
+static const uint32_t g_validationLayerCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_validationLayers);
 #else
-static const char* g_validationLayers[] = {NULL};
+static const char*    g_validationLayers[] = {NULL};
 static const uint32_t g_validationLayerCount = 0;
 #endif
 
-static const char* g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE(g_deviceExtensions);
+static const char*    g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_deviceExtensions);
 
-static const char* g_optionalDeviceExtensions[] = {
-        VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
-        VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
-        VK_EXT_DEBUG_MARKER_EXTENSION_NAME
-};
-static const uint32_t g_optionalDeviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE(g_optionalDeviceExtensions);
+static const char* g_optionalDeviceExtensions[]
+    = {VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+       VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
+       VK_EXT_DEBUG_MARKER_EXTENSION_NAME};
+static const uint32_t g_optionalDeviceExtensionCount
+    = R_CVULKAN_VALIDATION_LAYER_SIZE (g_optionalDeviceExtensions);
 
 static enum R_CVulkan_Error R_CVulkan_BuildInstanceExtensions (
     struct R_CSTL_Array** ppExtensions,
@@ -75,12 +75,12 @@ R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pD
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {0};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-                                   | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
-                                   | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-                                   | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+                                     | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
+                                     | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+                                     | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-                               | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                               | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+                                 | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+                                 | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = R_CVulkan_DebugCallback;
         createInfo.pUserData = NULL;
 
@@ -333,15 +333,19 @@ R_CVulkan_BuildDeviceExtensions (
                 for (uint32_t i = 0; i < g_deviceExtensionCount; ++i)
                 {
                         R_CSTL_ArrayPushData (
-                            pExtensions, (const uint8_t*)&g_deviceExtensions[i], sizeof (const char*));
+                            pExtensions,
+                            (const uint8_t*)&g_deviceExtensions[i],
+                            sizeof (const char*));
                 }
         }
 
         for (uint32_t i = 0; i < g_optionalDeviceExtensionCount; ++i)
         {
-                bool isAvailable = false;
+                bool                 isAvailable = false;
                 enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
-                    g_optionalDeviceExtensions[i], physicalDevice, &isAvailable);
+                    g_optionalDeviceExtensions[i],
+                    physicalDevice,
+                    &isAvailable);
                 if (err != R_CVULKAN_OK)
                 {
                         R_CSTL_DeleteArray (pExtensions);
@@ -350,8 +354,9 @@ R_CVulkan_BuildDeviceExtensions (
 
                 if (isAvailable)
                 {
-                        R_CSTL_LOG_DEBUG ("Optional device extension available: %s",
-                                          g_optionalDeviceExtensions[i]);
+                        R_CSTL_LOG_DEBUG (
+                            "Optional device extension available: %s",
+                            g_optionalDeviceExtensions[i]);
                         R_CSTL_ArrayPushData (
                             pExtensions,
                             (const uint8_t*)&g_optionalDeviceExtensions[i],
@@ -371,9 +376,9 @@ R_CVulkan_CreateVulkanInstance (
     const bool               headlessMode)
 {
         enum R_CVulkan_Error result = R_CVULKAN_OK;
-        
-        bool                 hasValidationFeatures = false;
-        bool                 hasGpuAssisted = false;
+
+        bool hasValidationFeatures = false;
+        bool hasGpuAssisted = false;
 #if defined(R_CVULKAN_DEBUG)
         if (enableValidationLayers)
         {
@@ -487,7 +492,7 @@ R_CVulkan_CreateVulkanInstance (
         {
 #if defined(R_CVULKAN_DEBUG)
                 enum R_CVulkan_Error err = R_CVulkan_ResultToError (result1);
-                R_CSTL_LOG_ERROR ("Failed to create Vulkan instance: %d", R_CVulkan_ErrorToString(err));
+                R_CSTL_LOG_ERROR ("Failed to create Vulkan instance: %d", R_CVulkan_ErrorToString (err));
 #endif
                 return err;
         }
@@ -564,16 +569,25 @@ CreateLogicalDevice (
         }
 
         R_CSTL_Array* queueCreateInfos = R_CSTL_NewArray ();
-        R_CSTL_Array* uniqueQueueFamilies= R_CSTL_NewArray ();
+        R_CSTL_Array* uniqueQueueFamilies = R_CSTL_NewArray ();
 
         if (indices.graphicsFamily == indices.presentFamily)
         {
-                R_CSTL_ArrayPushData (uniqueQueueFamilies, (const uint8_t*)&indices.graphicsFamily, sizeof (uint32_t));
+                R_CSTL_ArrayPushData (
+                    uniqueQueueFamilies,
+                    (const uint8_t*)&indices.graphicsFamily,
+                    sizeof (uint32_t));
         }
         else
         {
-                R_CSTL_ArrayPushData (uniqueQueueFamilies, (const uint8_t*)&indices.graphicsFamily, sizeof (uint32_t));
-                R_CSTL_ArrayPushData (uniqueQueueFamilies, (const uint8_t*)&indices.presentFamily, sizeof (uint32_t));
+                R_CSTL_ArrayPushData (
+                    uniqueQueueFamilies,
+                    (const uint8_t*)&indices.graphicsFamily,
+                    sizeof (uint32_t));
+                R_CSTL_ArrayPushData (
+                    uniqueQueueFamilies,
+                    (const uint8_t*)&indices.presentFamily,
+                    sizeof (uint32_t));
         }
 
         float queuePriority = 1.0f;
@@ -584,7 +598,10 @@ CreateLogicalDevice (
                 queueCreateInfo.queueFamilyIndex = *(uint32_t*)R_CSTL_ArrayData (uniqueQueueFamilies) + i;
                 queueCreateInfo.queueCount = 1;
                 queueCreateInfo.pQueuePriorities = &queuePriority;
-                R_CSTL_ArrayPushData (queueCreateInfos, (const uint8_t*)&queueCreateInfo, sizeof (VkDeviceQueueCreateInfo));
+                R_CSTL_ArrayPushData (
+                    queueCreateInfos,
+                    (const uint8_t*)&queueCreateInfo,
+                    sizeof (VkDeviceQueueCreateInfo));
         }
 
         VkPhysicalDeviceFeatures deviceFeatures = {0};

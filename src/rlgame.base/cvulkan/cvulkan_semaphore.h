@@ -26,10 +26,10 @@ struct R_CVulkan_Semaphore
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_Semaphore_Init (
-    struct R_CVulkan_Semaphore* pSemaphore,
+    struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
-    int                         timelineSemaphore,
-    uint64_t                    initialValue);
+    int                            timelineSemaphore,
+    uint64_t                       initialValue);
 
 /**
  * @brief Deletes a semaphore and destroy the Vulkan object
@@ -43,7 +43,8 @@ R_CVULKAN_API void R_CVulkan_SemaphoreShutdown (struct R_CVulkan_Semaphore* pSem
  * @param value Value to signal
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value);
 
 /**
  * @brief Wait on a timeline semaphore
@@ -61,7 +62,8 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
  * @param outValue Pointer to receive the current value
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
 
 /**
  * @brief Get the raw Vulkan semaphore handle

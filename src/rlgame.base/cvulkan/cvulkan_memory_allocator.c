@@ -11,21 +11,23 @@
 
 static enum R_CVulkan_Error R_CVulkan_NewMemoryBlock (
     struct R_CVulkan_MemoryBlock* block,
-    VkDevice               device,
-    VkPhysicalDevice       physicalDevice,
-    VkDeviceSize           size,
-    VkBufferUsageFlags     usage,
-    VkMemoryPropertyFlags  properties);
+    VkDevice                      device,
+    VkPhysicalDevice              physicalDevice,
+    VkDeviceSize                  size,
+    VkBufferUsageFlags            usage,
+    VkMemoryPropertyFlags         properties);
 
 static void R_CVulkan_DeleteMemoryBlock (struct R_CVulkan_MemoryBlock* block);
 
 static int R_CVulkan_MemoryBlockAllocate (
     struct R_CVulkan_MemoryBlock*   block,
-    VkDeviceSize             size,
-    VkDeviceSize             alignment,
+    VkDeviceSize                    size,
+    VkDeviceSize                    alignment,
     struct R_CVulkan_Suballocation* outAllocation);
 
-static void R_CVulkan_MemoryBlockFree (struct R_CVulkan_MemoryBlock* block, const struct R_CVulkan_Suballocation* pAllocation);
+static void R_CVulkan_MemoryBlockFree (
+    struct R_CVulkan_MemoryBlock*         block,
+    const struct R_CVulkan_Suballocation* pAllocation);
 
 static VkDeviceSize R_CVulkan_GetAdjustedAlignment (
     VkPhysicalDevice   physicalDevice,
@@ -35,31 +37,30 @@ static VkDeviceSize R_CVulkan_GetAdjustedAlignment (
 static VkDeviceSize
 R_CVulkan_GetBlockSize (VkDeviceSize requestedSize, VkDeviceSize minBlockSize, VkDeviceSize maxBlockSize);
 
-static int R_CVulkan_FreeRegionAdd (struct R_CVulkan_MemoryBlock* block, VkDeviceSize offset, VkDeviceSize size);
+static int
+R_CVulkan_FreeRegionAdd (struct R_CVulkan_MemoryBlock* block, VkDeviceSize offset, VkDeviceSize size);
 
 static void R_CVulkan_FreeRegionMergeAdjacent (struct R_CVulkan_MemoryBlock* block);
 
 static void R_CVulkan_MemoryBlockInitializeFields (
     struct R_CVulkan_MemoryBlock* block,
-    VkDevice               device,
-    VkPhysicalDevice       physicalDevice,
-    VkDeviceSize           size,
-    VkBufferUsageFlags     usage,
-    VkMemoryPropertyFlags  properties);
+    VkDevice                      device,
+    VkPhysicalDevice              physicalDevice,
+    VkDeviceSize                  size,
+    VkBufferUsageFlags            usage,
+    VkMemoryPropertyFlags         properties);
 
-static enum R_CVulkan_Error R_CVulkan_MemoryBlockCreateBuffer (
-    struct R_CVulkan_MemoryBlock* block);
+static enum R_CVulkan_Error R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block);
 
-static enum R_CVulkan_Error R_CVulkan_MemoryBlockAllocateAndBindMemory (
-    struct R_CVulkan_MemoryBlock* block);
+static enum R_CVulkan_Error R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block);
 
 static int R_CVulkan_MemoryBlockFindSuitableRegion (
     struct R_CVulkan_MemoryBlock* block,
-    VkDeviceSize               size,
-    VkDeviceSize               alignment,
-    uint32_t*                  outRegionIndex,
-    VkDeviceSize*              outAlignedOffset,
-    VkDeviceSize*              outPadding);
+    VkDeviceSize                  size,
+    VkDeviceSize                  alignment,
+    uint32_t*                     outRegionIndex,
+    VkDeviceSize*                 outAlignedOffset,
+    VkDeviceSize*                 outPadding);
 
 static void R_CVulkan_MemoryBlockUpdateAllocation (
     struct R_CVulkan_MemoryBlock*   block,
@@ -69,20 +70,18 @@ static void R_CVulkan_MemoryBlockUpdateAllocation (
     VkDeviceSize                    padding,
     struct R_CVulkan_Suballocation* outAllocation);
 
-static int R_CVulkan_MemoryBlockTryMergeWithNext (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
+static int R_CVulkan_MemoryBlockTryMergeWithNext (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
 
-static int R_CVulkan_MemoryBlockTryMergeWithPrevious (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
+static int
+R_CVulkan_MemoryBlockTryMergeWithPrevious (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
 
-static void R_CVulkan_MemoryBlockRemoveFreeRegion (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
+static void R_CVulkan_MemoryBlockRemoveFreeRegion (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewMemoryAllocator (
     struct R_CVulkan_MemoryAllocator* pAllocator,
-    VkDevice                   device,
-    VkPhysicalDevice           physicalDevice)
+    VkDevice                          device,
+    VkPhysicalDevice                  physicalDevice)
 {
         R_CVULKAN_ASSERT (pAllocator != NULL);
         R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
@@ -140,10 +139,10 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemoryAllocatorAllocate (
     struct R_CVulkan_MemoryAllocator* pAllocator,
-    VkDeviceSize               size,
-    VkDeviceSize               alignment,
-    VkBufferUsageFlags         usage,
-    VkMemoryPropertyFlags      properties,
+    VkDeviceSize                      size,
+    VkDeviceSize                      alignment,
+    VkBufferUsageFlags                usage,
+    VkMemoryPropertyFlags             properties,
     struct R_CVulkan_Suballocation*   outAllocation)
 {
         R_CVULKAN_ASSERT (pAllocator != NULL);
@@ -160,7 +159,8 @@ R_CVulkan_MemoryAllocatorAllocate (
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        VkDeviceSize adjustedAlignment = R_CVulkan_GetAdjustedAlignment (pAllocator->physicalDevice, alignment, usage);
+        VkDeviceSize adjustedAlignment
+            = R_CVulkan_GetAdjustedAlignment (pAllocator->physicalDevice, alignment, usage);
 
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
@@ -175,7 +175,8 @@ R_CVulkan_MemoryAllocatorAllocate (
                 }
         }
 
-        VkDeviceSize blockSize = R_CVulkan_GetBlockSize (size, pAllocator->minBlockSize, pAllocator->defaultMaxBlockSize);
+        VkDeviceSize blockSize
+            = R_CVulkan_GetBlockSize (size, pAllocator->minBlockSize, pAllocator->defaultMaxBlockSize);
 
         struct R_CVulkan_MemoryBlock* newBlock
             = (struct R_CVulkan_MemoryBlock*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_MemoryBlock));
@@ -201,9 +202,10 @@ R_CVulkan_MemoryAllocatorAllocate (
         if (pAllocator->blockCount >= pAllocator->blockCapacity)
         {
                 uint32_t newCapacity = pAllocator->blockCapacity == 0 ? 4 : pAllocator->blockCapacity * 2;
-                struct R_CVulkan_MemoryBlock** newBlocks = (struct R_CVulkan_MemoryBlock**)R_CSTL_HeapRealloc (
-                    pAllocator->ppBlocks,
-                    newCapacity * sizeof (struct R_CVulkan_MemoryBlock*));
+                struct R_CVulkan_MemoryBlock** newBlocks
+                    = (struct R_CVulkan_MemoryBlock**)R_CSTL_HeapRealloc (
+                        pAllocator->ppBlocks,
+                        newCapacity * sizeof (struct R_CVulkan_MemoryBlock*));
                 if (!newBlocks)
                 {
                         R_CVulkan_DeleteMemoryBlock (newBlock);
@@ -443,11 +445,11 @@ R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, VkDeviceMemory memory
 static enum R_CVulkan_Error
 R_CVulkan_NewMemoryBlock (
     struct R_CVulkan_MemoryBlock* block,
-    VkDevice               device,
-    VkPhysicalDevice       physicalDevice,
-    VkDeviceSize           size,
-    VkBufferUsageFlags     usage,
-    VkMemoryPropertyFlags  properties)
+    VkDevice                      device,
+    VkPhysicalDevice              physicalDevice,
+    VkDeviceSize                  size,
+    VkBufferUsageFlags            usage,
+    VkMemoryPropertyFlags         properties)
 {
         R_CVulkan_MemoryBlockInitializeFields (block, device, physicalDevice, size, usage, properties);
 
@@ -472,11 +474,11 @@ R_CVulkan_NewMemoryBlock (
 static void
 R_CVulkan_MemoryBlockInitializeFields (
     struct R_CVulkan_MemoryBlock* block,
-    VkDevice               device,
-    VkPhysicalDevice       physicalDevice,
-    VkDeviceSize           size,
-    VkBufferUsageFlags     usage,
-    VkMemoryPropertyFlags  properties)
+    VkDevice                      device,
+    VkPhysicalDevice              physicalDevice,
+    VkDeviceSize                  size,
+    VkBufferUsageFlags            usage,
+    VkMemoryPropertyFlags         properties)
 {
         block->device = device;
         block->physicalDevice = physicalDevice;
@@ -516,7 +518,10 @@ R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block)
 
         uint32_t             memoryTypeIndex = 0;
         enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
-            block->physicalDevice, &memRequirements, block->properties, &memoryTypeIndex);
+            block->physicalDevice,
+            &memRequirements,
+            block->properties,
+            &memoryTypeIndex);
         if (error != R_CVULKAN_OK)
         {
                 return error;
@@ -577,8 +582,8 @@ R_CVulkan_DeleteMemoryBlock (struct R_CVulkan_MemoryBlock* block)
 static int
 R_CVulkan_MemoryBlockAllocate (
     struct R_CVulkan_MemoryBlock*   block,
-    VkDeviceSize             size,
-    VkDeviceSize             alignment,
+    VkDeviceSize                    size,
+    VkDeviceSize                    alignment,
     struct R_CVulkan_Suballocation* outAllocation)
 {
         uint32_t     regionIndex = 0;
@@ -586,24 +591,34 @@ R_CVulkan_MemoryBlockAllocate (
         VkDeviceSize padding = 0;
 
         if (!R_CVulkan_MemoryBlockFindSuitableRegion (
-                block, size, alignment, &regionIndex, &alignedOffset, &padding))
+                block,
+                size,
+                alignment,
+                &regionIndex,
+                &alignedOffset,
+                &padding))
         {
                 return 0;
         }
 
         R_CVulkan_MemoryBlockUpdateAllocation (
-            block, regionIndex, alignedOffset, size, padding, outAllocation);
+            block,
+            regionIndex,
+            alignedOffset,
+            size,
+            padding,
+            outAllocation);
         return 1;
 }
 
 static int
 R_CVulkan_MemoryBlockFindSuitableRegion (
     struct R_CVulkan_MemoryBlock* block,
-    VkDeviceSize               size,
-    VkDeviceSize               alignment,
-    uint32_t*                  outRegionIndex,
-    VkDeviceSize*              outAlignedOffset,
-    VkDeviceSize*              outPadding)
+    VkDeviceSize                  size,
+    VkDeviceSize                  alignment,
+    uint32_t*                     outRegionIndex,
+    VkDeviceSize*                 outAlignedOffset,
+    VkDeviceSize*                 outPadding)
 {
         for (uint32_t i = 0; i < block->freeRegionCount; ++i)
         {
@@ -657,7 +672,9 @@ R_CVulkan_MemoryBlockUpdateAllocation (
 }
 
 static void
-R_CVulkan_MemoryBlockFree (struct R_CVulkan_MemoryBlock* block, const struct R_CVulkan_Suballocation* allocation)
+R_CVulkan_MemoryBlockFree (
+    struct R_CVulkan_MemoryBlock*         block,
+    const struct R_CVulkan_Suballocation* allocation)
 {
         VkDeviceSize allocEnd = allocation->offset + allocation->size;
 
@@ -696,8 +713,7 @@ R_CVulkan_MemoryBlockFree (struct R_CVulkan_MemoryBlock* block, const struct R_C
 }
 
 static int
-R_CVulkan_MemoryBlockTryMergeWithNext (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
+R_CVulkan_MemoryBlockTryMergeWithNext (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
 {
         if (regionIndex + 1 >= block->freeRegionCount)
         {
@@ -715,8 +731,7 @@ R_CVulkan_MemoryBlockTryMergeWithNext (
 }
 
 static int
-R_CVulkan_MemoryBlockTryMergeWithPrevious (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
+R_CVulkan_MemoryBlockTryMergeWithPrevious (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
 {
         if (regionIndex == 0)
         {
@@ -734,8 +749,7 @@ R_CVulkan_MemoryBlockTryMergeWithPrevious (
 }
 
 static void
-R_CVulkan_MemoryBlockRemoveFreeRegion (
-    struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
+R_CVulkan_MemoryBlockRemoveFreeRegion (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex)
 {
         for (uint32_t j = regionIndex; j < block->freeRegionCount - 1; ++j)
         {

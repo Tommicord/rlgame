@@ -73,15 +73,15 @@ R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue)
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_QueueSubmit (
-    struct R_CVulkan_Queue*                   pQueue,
-    const struct R_CVulkan_CommandBuffer*     pCommandBuffers,
-    uint32_t                                  commandBufferCount,
-    const struct R_CVulkan_Semaphore*         pWaitSemaphores,
-    uint32_t                                  waitSemaphoreCount,
-    const VkPipelineStageFlags*               pWaitDstStageMask,
-    const struct R_CVulkan_Semaphore*         pSignalSemaphores,
-    uint32_t                                  signalSemaphoreCount,
-    const struct R_CVulkan_Fence*             pFence)
+    struct R_CVulkan_Queue*               pQueue,
+    const struct R_CVulkan_CommandBuffer* pCommandBuffers,
+    uint32_t                              commandBufferCount,
+    const struct R_CVulkan_Semaphore*     pWaitSemaphores,
+    uint32_t                              waitSemaphoreCount,
+    const VkPipelineStageFlags*           pWaitDstStageMask,
+    const struct R_CVulkan_Semaphore*     pSignalSemaphores,
+    uint32_t                              signalSemaphoreCount,
+    const struct R_CVulkan_Fence*         pFence)
 {
         R_CVULKAN_ASSERT (pQueue);
 #if defined(R_CVULKAN_DEBUG)

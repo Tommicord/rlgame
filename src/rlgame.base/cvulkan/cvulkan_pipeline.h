@@ -114,7 +114,8 @@ R_CVULKAN_API void R_CVulkan_DeletePipeline (struct R_CVulkan_Pipeline* pPipelin
  * @param pLayout Pointer to layout
  * @return Vulkan pipeline layout handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkPipelineLayout R_CVulkan_PipelineLayoutGetHandle (const struct R_CVulkan_PipelineLayout* pLayout);
+R_CVULKAN_API VkPipelineLayout
+R_CVulkan_PipelineLayoutGetHandle (const struct R_CVulkan_PipelineLayout* pLayout);
 
 /**
  * @brief Get the associated device for layout

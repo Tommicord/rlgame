@@ -16,7 +16,7 @@ struct R_CVulkan_CommandBuffer
                 VkCommandPool   pool; /**< Associated command pool */
                 VkDevice        device; /**< Associated device */
 #if defined(R_CVULKAN_DEBUG)
-                bool            isRecording; /**< Whether currently recording */
+                bool isRecording; /**< Whether currently recording */
 #endif
                 R_CVULKAN_DEBUG_FIELD
 };
@@ -31,7 +31,7 @@ struct R_CVulkan_CommandBuffer
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    const struct R_CVulkan_Device* pDevice,
+    const struct R_CVulkan_Device*  pDevice,
     VkCommandPool                   pool,
     VkCommandBufferLevel            level);
 
@@ -58,7 +58,8 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BeginCommandBuffer (
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Reset a command buffer
@@ -194,9 +195,9 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetViewport (
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetScissor (
     const struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    uint32_t                        firstScissor,
-    uint32_t                        scissorCount,
-    const VkRect2D*                 pScissors);
+    uint32_t                              firstScissor,
+    uint32_t                              scissorCount,
+    const VkRect2D*                       pScissors);
 
 /**
  * @brief Set blend constants
@@ -355,7 +356,8 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Next subpass
@@ -416,21 +418,24 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferDispatchIndirect (
  * @param pCommandBuffer Pointer to command buffer
  * @return Vulkan command buffer handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkCommandBuffer R_CVulkan_CommandBufferGetHandle (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API VkCommandBuffer
+R_CVulkan_CommandBufferGetHandle (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Get the associated command pool
  * @param pCommandBuffer Pointer to command buffer
  * @return Command pool handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkCommandPool R_CVulkan_CommandBufferGetPool (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API VkCommandPool
+R_CVulkan_CommandBufferGetPool (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Get the associated device
  * @param pCommandBuffer Pointer to command buffer
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_CommandBufferGetDevice (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API VkDevice
+R_CVulkan_CommandBufferGetDevice (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Check if currently recording

@@ -9,12 +9,12 @@ R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*  pFramebuffer,
     const struct R_CVulkan_Device* pDevice,
-    VkRenderPass            renderPass,
-    const VkImageView*      attachments,
-    uint32_t                attachmentCount,
-    uint32_t                width,
-    uint32_t                height,
-    uint32_t                layers)
+    VkRenderPass                   renderPass,
+    const VkImageView*             attachments,
+    uint32_t                       attachmentCount,
+    uint32_t                       width,
+    uint32_t                       height,
+    uint32_t                       layers)
 {
         R_CVULKAN_ASSERT (pFramebuffer != NULL);
         R_CVULKAN_ASSERT (pDevice != NULL);

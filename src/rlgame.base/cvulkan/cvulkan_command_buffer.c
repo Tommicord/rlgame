@@ -8,7 +8,7 @@
 enum R_CVulkan_Error
 R_CVulkan_NewCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    const struct R_CVulkan_Device* pDevice,
+    const struct R_CVulkan_Device*  pDevice,
     VkCommandPool                   pool,
     VkCommandBufferLevel            level)
 {

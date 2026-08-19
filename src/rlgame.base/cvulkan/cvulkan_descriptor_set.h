@@ -124,11 +124,14 @@ R_CVULKAN_API void R_CVulkan_DescriptorSetUpdate (
 R_CVULKAN_API VkDescriptorSetLayout
 R_CVulkan_DescriptorSetLayoutGetHandle (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-R_CVULKAN_API VkDevice R_CVulkan_DescriptorSetLayoutGetDevice (const struct R_CVulkan_DescriptorSetLayout* layout);
+R_CVULKAN_API VkDevice
+R_CVulkan_DescriptorSetLayoutGetDevice (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-R_CVULKAN_API int R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSetLayout* layout);
+R_CVULKAN_API int
+R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSetLayout* layout);
 
-R_CVULKAN_API VkDescriptorPool R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pool);
+R_CVULKAN_API VkDescriptorPool
+R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pool);
 
 R_CVULKAN_API VkDevice R_CVulkan_DescriptorPoolGetDevice (const struct R_CVulkan_DescriptorPool* pool);
 

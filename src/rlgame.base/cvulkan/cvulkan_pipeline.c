@@ -7,12 +7,12 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout*    pLayout,
-    const struct R_CVulkan_Device*      pDevice,
-    const VkDescriptorSetLayout*        pSetLayouts,
-    uint32_t                            setLayoutCount,
-    const VkPushConstantRange*          pPushConstantRanges,
-    uint32_t                            pushConstantRangeCount)
+    struct R_CVulkan_PipelineLayout* pLayout,
+    const struct R_CVulkan_Device*   pDevice,
+    const VkDescriptorSetLayout*     pSetLayouts,
+    uint32_t                         setLayoutCount,
+    const VkPushConstantRange*       pPushConstantRanges,
+    uint32_t                         pushConstantRangeCount)
 {
         R_CVULKAN_ASSERT (pLayout);
         R_CVULKAN_ASSERT (pDevice);
@@ -42,7 +42,8 @@ R_CVulkan_NewPipelineLayout (
         pipelineLayoutInfo.pushConstantRangeCount = pushConstantRangeCount;
         pipelineLayoutInfo.pPushConstantRanges = pPushConstantRanges;
 
-        VkResult result = vkCreatePipelineLayout (pLayout->device, &pipelineLayoutInfo, NULL, &pLayout->handle);
+        VkResult result
+            = vkCreatePipelineLayout (pLayout->device, &pipelineLayoutInfo, NULL, &pLayout->handle);
         if (result != VK_SUCCESS)
         {
                 return R_CVULKAN_ERROR_FAILED;

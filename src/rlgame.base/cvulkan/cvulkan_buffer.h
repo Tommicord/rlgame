@@ -148,7 +148,8 @@ R_CVULKAN_API R_CVulkanBufferUsageFlags R_CVulkan_BufferGetUsage (const struct R
  * @param pBuffer Pointer to buffer
  * @return Memory property flags, or 0 if not initialized
  */
-R_CVULKAN_API R_CVulkanMemoryPropertyFlags R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API R_CVulkanMemoryPropertyFlags
+R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the mapped memory pointer

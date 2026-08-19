@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 enum R_CVulkan_Error
-R_CVulkan_NewImage(
+R_CVulkan_NewImage (
     struct R_CVulkan_Image*        image,
     const struct R_CVulkan_Device* device,
     VkPhysicalDevice               physicalDevice,
@@ -24,7 +24,6 @@ R_CVulkan_NewImage(
         R_CVULKAN_ASSERT (image);
         R_CVULKAN_ASSERT (device);
         R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
-
 
 #if defined(R_CVULKAN_DEBUG)
         if (!image || !device || physicalDevice == VK_NULL_HANDLE)
@@ -119,7 +118,7 @@ R_CVulkan_NewImage(
 }
 
 void
-R_CVulkan_DeleteImage(struct R_CVulkan_Image* image)
+R_CVulkan_DeleteImage (struct R_CVulkan_Image* image)
 {
         R_CVULKAN_ASSERT (image);
 

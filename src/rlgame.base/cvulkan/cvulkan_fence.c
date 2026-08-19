@@ -179,7 +179,8 @@ R_CVulkan_FenceReset (
                 nativeFences[i] = pFences[i].handle;
         }
 
-        VkResult result = vkResetFences (R_CVulkan_DeviceGetLogicalDevice (pDevice), fenceCount, nativeFences);
+        VkResult result
+            = vkResetFences (R_CVulkan_DeviceGetLogicalDevice (pDevice), fenceCount, nativeFences);
 
         free (nativeFences);
 

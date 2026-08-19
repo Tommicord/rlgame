@@ -45,7 +45,8 @@ R_CVULKAN_API void R_CVulkan_DeleteShaderModule (struct R_CVulkan_ShaderModule* 
  * @param pShaderModule Pointer to shader module
  * @return Vulkan shader module handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkShaderModule R_CVulkan_ShaderModuleGetHandle (const struct R_CVulkan_ShaderModule* pShaderModule);
+R_CVULKAN_API VkShaderModule
+R_CVulkan_ShaderModuleGetHandle (const struct R_CVulkan_ShaderModule* pShaderModule);
 
 /**
  * @brief Get the associated device
