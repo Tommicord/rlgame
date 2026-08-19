@@ -10,6 +10,18 @@
 struct R_CVulkan_Device;
 
 /**
+ * @brief Configuration parameters for buffer creation
+ */
+struct R_CVulkan_BufferCreateInfo
+{
+                const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
+                VkPhysicalDevice               physicalDevice; /**< Physical device */
+                R_CVulkanDeviceSize            size; /**< Buffer size in bytes */
+                R_CVulkanBufferUsageFlags      usage; /**< Buffer usage flags */
+                R_CVulkanMemoryPropertyFlags   properties; /**< Memory property flags */
+};
+
+/**
  * @brief Safe wrapper for VkBuffer
  */
 struct R_CVulkan_Buffer
@@ -21,27 +33,19 @@ struct R_CVulkan_Buffer
                 R_CVulkanBufferUsageFlags    usage; /**< Buffer usage flags */
                 R_CVulkanMemoryPropertyFlags properties; /**< Memory property flags */
                 void*                        pMapped; /**< Mapped memory pointer (if mapped) */
-                int                          isMapped; /**< Whether memory is currently mapped */
+                bool                         isMapped; /**< Whether memory is currently mapped */
                 R_CVULKAN_DEBUG_FIELD
 };
 
 /**
  * @brief Initialize a buffer
  * @param pBuffer Pointer to buffer to initialize
- * @param device R_CVulkan device wrapper
- * @param physicalDevice Physical device
- * @param size Buffer size in bytes
- * @param usage Buffer usage flags
- * @param properties Memory property flags
+ * @param pCreateInfo Buffer creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewBuffer (
-    struct R_CVulkan_Buffer*       pBuffer,
-    const struct R_CVulkan_Device* device,
-    VkPhysicalDevice               physicalDevice,
-    R_CVulkanDeviceSize            size,
-    R_CVulkanBufferUsageFlags      usage,
-    R_CVulkanMemoryPropertyFlags   properties);
+    struct R_CVulkan_Buffer*                 pBuffer,
+    const struct R_CVulkan_BufferCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a buffer and destroy the Vulkan objects

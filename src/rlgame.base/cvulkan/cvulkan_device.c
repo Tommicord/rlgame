@@ -567,9 +567,8 @@ CreateLogicalDevice (
         {
                 return result;
         }
-
-        R_CSTL_Array* queueCreateInfos = R_CSTL_NewArray ();
-        R_CSTL_Array* uniqueQueueFamilies = R_CSTL_NewArray ();
+        struct R_CSTL_Array* queueCreateInfos = R_CSTL_NewArray ();
+        struct R_CSTL_Array* uniqueQueueFamilies = R_CSTL_NewArray ();
 
         if (indices.graphicsFamily == indices.presentFamily)
         {
@@ -650,16 +649,14 @@ CreateLogicalDevice (
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewDevice (
-    struct R_CVulkan_Device* pDevice,
-    const char*              pApplicationName,
-    bool                     enableValidationLayers,
-    bool                     headlessMode,
-    VkSurfaceKHR             surface)
+    struct R_CVulkan_Device*             pDevice,
+    const struct R_CVulkan_DeviceCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pDevice)
+        if (!pDevice || !pCreateInfo)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
@@ -668,9 +665,9 @@ R_CVulkan_NewDevice (
         pDevice->logicalDevice = VK_NULL_HANDLE;
 #endif
         pDevice->debugMessenger = VK_NULL_HANDLE;
-        pDevice->surface = surface;
-        pDevice->enableValidationLayers = enableValidationLayers;
-        pDevice->headlessMode = headlessMode;
+        pDevice->surface = pCreateInfo->surface;
+        pDevice->enableValidationLayers = pCreateInfo->enableValidationLayers;
+        pDevice->headlessMode = pCreateInfo->headlessMode;
 
 #if defined(R_CVULKAN_DEBUG)
         pDevice->isInitialized = false;
@@ -679,7 +676,8 @@ R_CVulkan_NewDevice (
         enum R_CVulkan_Error result = R_CVULKAN_OK;
 
 #if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers && !R_CVulkan_CheckValidationLayerSupport ())
+        bool validationLayersSupported = R_CVulkan_CheckValidationLayerSupport ();
+        if (pCreateInfo->enableValidationLayers && !validationLayersSupported)
         {
                 R_CSTL_LOG_ERROR ("Validation layers requested but not available");
                 result = R_CVULKAN_ERROR_LAYER_NOT_FOUND;
@@ -689,16 +687,16 @@ R_CVulkan_NewDevice (
 
         result = R_CVulkan_CreateVulkanInstance (
             pDevice,
-            pApplicationName,
-            enableValidationLayers,
-            headlessMode);
+            pCreateInfo->pApplicationName,
+            pCreateInfo->enableValidationLayers,
+            pCreateInfo->headlessMode);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers)
+        if (pCreateInfo->enableValidationLayers)
         {
                 result = R_CVulkan_SetupDebugMessenger (pDevice->instance, &pDevice->debugMessenger);
                 if (result != R_CVULKAN_OK)
@@ -708,20 +706,20 @@ R_CVulkan_NewDevice (
         }
 #endif
 
-        result = SelectPhysicalDevice (pDevice, surface, headlessMode);
+        result = SelectPhysicalDevice (pDevice, pCreateInfo->surface, pCreateInfo->headlessMode);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
         }
 
-        result = CreateLogicalDevice (pDevice, surface, headlessMode, enableValidationLayers);
+        result = CreateLogicalDevice (pDevice, pCreateInfo->surface, pCreateInfo->headlessMode, pCreateInfo->enableValidationLayers);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
         }
 
         struct R_CVulkan_QueueFamilyIndices indices;
-        result = R_CVulkan_DeviceFindQueueFamilies (pDevice->physicalDevice, surface, headlessMode, &indices);
+        result = R_CVulkan_DeviceFindQueueFamilies (pDevice->physicalDevice, pCreateInfo->surface, pCreateInfo->headlessMode, &indices);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
@@ -952,4 +950,30 @@ R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndice
         R_CVULKAN_ASSERT (pIndices != NULL);
 #endif
         return pIndices->hasGraphicsFamily && pIndices->hasPresentFamily;
+}
+
+R_CVULKAN_API int
+R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice)
+{
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pDevice != NULL);
+        if (!pDevice)
+        {
+                return 0;
+        }
+#endif
+        if (pDevice->physicalDevice == VK_NULL_HANDLE)
+        {
+                return 0;
+        }
+
+        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {0};
+        dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+
+        VkPhysicalDeviceFeatures2 deviceFeatures2 = {0};
+        deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        deviceFeatures2.pNext = &dynamicRenderingFeatures;
+
+        vkGetPhysicalDeviceFeatures2 (pDevice->physicalDevice, &deviceFeatures2);
+        return dynamicRenderingFeatures.dynamicRendering;
 }

@@ -526,7 +526,7 @@ TEST_F (CstlStringTest, StringJoin)
 
 TEST_F (CstlStringTest, StringBuilderBasic)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
   EXPECT_EQ (0u, R_CSTL_StringBuilderLength (pBuilder));
 
@@ -545,7 +545,7 @@ TEST_F (CstlStringTest, StringBuilderBasic)
 
 TEST_F (CstlStringTest, StringBuilderAppendData)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hello", 5));
@@ -561,7 +561,7 @@ TEST_F (CstlStringTest, StringBuilderAppendData)
 
 TEST_F (CstlStringTest, StringBuilderAppendChar)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendChar (pBuilder, 'A'));
@@ -578,7 +578,7 @@ TEST_F (CstlStringTest, StringBuilderAppendChar)
 
 TEST_F (CstlStringTest, StringBuilderAppendInt)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendInt (pBuilder, 42));
@@ -594,7 +594,7 @@ TEST_F (CstlStringTest, StringBuilderAppendInt)
 
 TEST_F (CstlStringTest, StringBuilderAppendBool)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendBool (pBuilder, true));
@@ -610,7 +610,7 @@ TEST_F (CstlStringTest, StringBuilderAppendBool)
 
 TEST_F (CstlStringTest, StringBuilderEmplace)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderEmplace (pBuilder, "Hello"));
@@ -626,7 +626,7 @@ TEST_F (CstlStringTest, StringBuilderEmplace)
 
 TEST_F (CstlStringTest, StringBuilderInsert)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "World", 5));
@@ -642,7 +642,7 @@ TEST_F (CstlStringTest, StringBuilderInsert)
 
 TEST_F (CstlStringTest, StringBuilderDelete)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
@@ -658,7 +658,7 @@ TEST_F (CstlStringTest, StringBuilderDelete)
 
 TEST_F (CstlStringTest, StringBuilderReplace)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
@@ -674,7 +674,7 @@ TEST_F (CstlStringTest, StringBuilderReplace)
 
 TEST_F (CstlStringTest, StringBuilderReverse)
 {
-  R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+  struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
   ASSERT_NE (nullptr, pBuilder);
 
   ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hello", 5));

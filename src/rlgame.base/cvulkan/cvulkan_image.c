@@ -8,173 +8,164 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewImage (
-    struct R_CVulkan_Image*        image,
-    const struct R_CVulkan_Device* device,
-    VkPhysicalDevice               physicalDevice,
-    VkImageType                    imageType,
-    VkExtent3D                     extent,
-    uint32_t                       mipLevels,
-    uint32_t                       arrayLayers,
-    VkFormat                       format,
-    VkImageTiling                  tiling,
-    R_CVulkanImageUsageFlags       usage,
-    R_CVulkanMemoryPropertyFlags   properties,
-    VkSampleCountFlagBits          samples)
+    struct R_CVulkan_Image*                 pImage,
+    const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (image);
-        R_CVULKAN_ASSERT (device);
-        R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pImage);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->device);
+        R_CVULKAN_ASSERT (pCreateInfo->physicalDevice != VK_NULL_HANDLE);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!image || !device || physicalDevice == VK_NULL_HANDLE)
+        if (!pImage || !pCreateInfo || !pCreateInfo->device || pCreateInfo->physicalDevice == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        if (!R_CVulkan_DeviceIsInitialized (device))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        if (extent.width == 0 || extent.height == 0 || extent.depth == 0)
+        if (pCreateInfo->extent.width == 0 || pCreateInfo->extent.height == 0 || pCreateInfo->extent.depth == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        if (mipLevels == 0 || arrayLayers == 0)
+        if (pCreateInfo->mipLevels == 0 || pCreateInfo->arrayLayers == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        image->device = R_CVulkan_DeviceGetLogicalDevice (device);
-        image->handle = VK_NULL_HANDLE;
-        image->memory = VK_NULL_HANDLE;
-        image->size = 0;
-        image->width = extent.width;
-        image->height = extent.height;
-        image->mipLevels = mipLevels;
-        image->arrayLayers = arrayLayers;
-        image->format = format;
-        image->usage = usage;
-        image->properties = properties;
-        image->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        image->imageType = imageType;
-        image->samples = samples;
-        image->tiling = tiling;
+        pImage->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
+        pImage->handle = VK_NULL_HANDLE;
+        pImage->memory = VK_NULL_HANDLE;
+        pImage->size = 0;
+        pImage->width = pCreateInfo->extent.width;
+        pImage->height = pCreateInfo->extent.height;
+        pImage->mipLevels = pCreateInfo->mipLevels;
+        pImage->arrayLayers = pCreateInfo->arrayLayers;
+        pImage->format = pCreateInfo->format;
+        pImage->usage = pCreateInfo->usage;
+        pImage->properties = pCreateInfo->properties;
+        pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        pImage->imageType = pCreateInfo->imageType;
+        pImage->samples = pCreateInfo->samples;
+        pImage->tiling = pCreateInfo->tiling;
 #if defined(R_CVULKAN_DEBUG)
-        image->isInitialized = false;
+        pImage->isInitialized = false;
 #endif
 
         VkImageCreateInfo imageInfo = {0};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = imageType;
-        imageInfo.extent = extent;
-        imageInfo.mipLevels = mipLevels;
-        imageInfo.arrayLayers = arrayLayers;
-        imageInfo.format = format;
-        imageInfo.tiling = tiling;
+        imageInfo.imageType = pCreateInfo->imageType;
+        imageInfo.extent = pCreateInfo->extent;
+        imageInfo.mipLevels = pCreateInfo->mipLevels;
+        imageInfo.arrayLayers = pCreateInfo->arrayLayers;
+        imageInfo.format = pCreateInfo->format;
+        imageInfo.tiling = pCreateInfo->tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = usage;
-        imageInfo.samples = samples;
+        imageInfo.usage = pCreateInfo->usage;
+        imageInfo.samples = pCreateInfo->samples;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        VkResult result = vkCreateImage (image->device, &imageInfo, NULL, &image->handle);
+        VkResult result = vkCreateImage (pImage->device, &imageInfo, NULL, &pImage->handle);
         if (result != VK_SUCCESS)
         {
                 return R_CVULKAN_ERROR_IMAGE_CREATE_FAILED;
         }
 
         enum R_CVulkan_Error error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
-            image->device,
-            physicalDevice,
-            image->handle,
-            properties,
-            &image->memory);
+            pImage->device,
+            pCreateInfo->physicalDevice,
+            pImage->handle,
+            pCreateInfo->properties,
+            &pImage->memory);
         if (error != R_CVULKAN_OK)
         {
-                vkDestroyImage (image->device, image->handle, NULL);
-                image->handle = VK_NULL_HANDLE;
+                vkDestroyImage (pImage->device, pImage->handle, NULL);
+                pImage->handle = VK_NULL_HANDLE;
                 return error;
         }
 
-        result = vkBindImageMemory (image->device, image->handle, image->memory, 0);
+        result = vkBindImageMemory (pImage->device, pImage->handle, pImage->memory, 0);
         if (result != VK_SUCCESS)
         {
-                R_CVulkan_MemoryAllocatorFreeImageMemory (image->device, image->memory);
-                vkDestroyImage (image->device, image->handle, NULL);
-                image->memory = VK_NULL_HANDLE;
-                image->handle = VK_NULL_HANDLE;
+                R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
+                vkDestroyImage (pImage->device, pImage->handle, NULL);
+                pImage->memory = VK_NULL_HANDLE;
+                pImage->handle = VK_NULL_HANDLE;
                 return R_CVULKAN_ERROR_FAILED;
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements (image->device, image->handle, &memRequirements);
-        image->size = memRequirements.size;
-        image->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        vkGetImageMemoryRequirements (pImage->device, pImage->handle, &memRequirements);
+        pImage->size = memRequirements.size;
+        pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 #if defined(R_CVULKAN_DEBUG)
-        image->isInitialized = true;
+        pImage->isInitialized = true;
 #endif
         return R_CVULKAN_OK;
 }
 
 void
-R_CVulkan_DeleteImage (struct R_CVulkan_Image* image)
+R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 {
-        R_CVULKAN_ASSERT (image);
+        R_CVULKAN_ASSERT (pImage);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!image)
+        if (!pImage)
         {
                 return;
         }
 #endif
-        if (image->memory != VK_NULL_HANDLE)
+        if (pImage->memory != VK_NULL_HANDLE)
         {
-                R_CVulkan_MemoryAllocatorFreeImageMemory (image->device, image->memory);
-                image->memory = VK_NULL_HANDLE;
+                R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
+                pImage->memory = VK_NULL_HANDLE;
         }
 
-        if (image->handle != VK_NULL_HANDLE)
+        if (pImage->handle != VK_NULL_HANDLE)
         {
-                vkDestroyImage (image->device, image->handle, NULL);
-                image->handle = VK_NULL_HANDLE;
+                vkDestroyImage (pImage->device, pImage->handle, NULL);
+                pImage->handle = VK_NULL_HANDLE;
         }
 #if defined(R_CVULKAN_DEBUG)
-        image->device = VK_NULL_HANDLE;
-        image->size = 0;
-        image->width = 0;
-        image->height = 0;
-        image->mipLevels = 0;
-        image->arrayLayers = 0;
-        image->format = VK_FORMAT_UNDEFINED;
-        image->usage = 0;
-        image->properties = 0;
-        image->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        image->imageType = VK_IMAGE_TYPE_2D;
-        image->samples = VK_SAMPLE_COUNT_1_BIT;
-        image->tiling = VK_IMAGE_TILING_OPTIMAL;
-        image->isInitialized = false;
+        pImage->device = VK_NULL_HANDLE;
+        pImage->size = 0;
+        pImage->width = 0;
+        pImage->height = 0;
+        pImage->mipLevels = 0;
+        pImage->arrayLayers = 0;
+        pImage->format = VK_FORMAT_UNDEFINED;
+        pImage->usage = 0;
+        pImage->properties = 0;
+        pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        pImage->imageType = VK_IMAGE_TYPE_2D;
+        pImage->samples = VK_SAMPLE_COUNT_1_BIT;
+        pImage->tiling = VK_IMAGE_TILING_OPTIMAL;
+        pImage->isInitialized = false;
 #endif
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_ImageTransitionLayout (
-    struct R_CVulkan_Image*     image,
+    struct R_CVulkan_Image*     pImage,
     VkCommandBuffer             commandBuffer,
     VkImageLayout               oldLayout,
     VkImageLayout               newLayout,
     R_CVulkanPipelineStageFlags srcStageMask,
     R_CVulkanPipelineStageFlags dstStageMask)
 {
-        R_CVULKAN_ASSERT (image);
+        R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
 #if defined(R_CVULKAN_DEBUG)
-        if (!image || commandBuffer == VK_NULL_HANDLE)
+        if (!pImage || commandBuffer == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!image->isInitialized)
+        if (!pImage->isInitialized)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -186,12 +177,12 @@ R_CVulkan_ImageTransitionLayout (
         barrier.newLayout = newLayout;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = image->handle;
+        barrier.image = pImage->handle;
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = image->mipLevels;
+        barrier.subresourceRange.levelCount = pImage->mipLevels;
         barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = image->arrayLayers;
+        barrier.subresourceRange.layerCount = pImage->arrayLayers;
 
         VkAccessFlags srcAccessMask = 0;
         VkAccessFlags dstAccessMask = 0;
@@ -211,29 +202,29 @@ R_CVulkan_ImageTransitionLayout (
 
         vkCmdPipelineBarrier (commandBuffer, srcStageMask, dstStageMask, 0, 0, NULL, 0, NULL, 1, &barrier);
 
-        image->currentLayout = newLayout;
+        pImage->currentLayout = newLayout;
         return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_ImageCopyData (
-    struct R_CVulkan_Image* image,
+    struct R_CVulkan_Image* pImage,
     const void*             data,
     R_CVulkanDeviceSize     dataSize,
     VkBuffer                buffer,
     VkCommandBuffer         commandBuffer)
 {
-        R_CVULKAN_ASSERT (image);
+        R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (data);
         R_CVULKAN_ASSERT (buffer != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
 #if defined(R_CVULKAN_DEBUG)
-        if (!image || !data || buffer == VK_NULL_HANDLE || commandBuffer == VK_NULL_HANDLE)
+        if (!pImage || !data || buffer == VK_NULL_HANDLE || commandBuffer == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!image->isInitialized)
+        if (!pImage->isInitialized)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -252,12 +243,12 @@ R_CVulkan_ImageCopyData (
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
         region.imageOffset = (VkOffset3D){0, 0, 0};
-        region.imageExtent = (VkExtent3D){image->width, image->height, 1};
+        region.imageExtent = (VkExtent3D){pImage->width, pImage->height, 1};
 
         vkCmdCopyBufferToImage (
             commandBuffer,
             buffer,
-            image->handle,
+            pImage->handle,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
             &region);
@@ -266,54 +257,76 @@ R_CVulkan_ImageCopyData (
 }
 
 R_CVULKAN_API VkImage
-R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->handle : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif  
+        return pImage->handle;
 }
 
 R_CVULKAN_API VkDeviceMemory
-R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->memory : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif  
+        return pImage->memory;
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->device : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif  
+        return pImage->device;
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->width : 0;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif  
+        return pImage->width;
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->height : 0;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif  
+        return pImage->height;
 }
 
 R_CVULKAN_API VkFormat
-R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->format : VK_FORMAT_UNDEFINED;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif
+        return pImage->format;
 }
 
 R_CVULKAN_API VkImageLayout
-R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* pImage)
 {
-        return image ? image->currentLayout : VK_IMAGE_LAYOUT_UNDEFINED;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImage != NULL);
+#endif
+        return pImage->currentLayout;
 }
 
 R_CVULKAN_API int
 R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* image)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return image ? image->isInitialized : 0;
+        R_CVULKAN_ASSERT (pImage != NULL);
+        return pImage->isInitialized;
 #else
-        (void)image;
+        (void)pImage;
         return 1;
 #endif
 }

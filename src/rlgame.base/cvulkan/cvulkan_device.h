@@ -10,6 +10,17 @@
 struct R_CSTL_Array;
 
 /**
+ * @brief Configuration parameters for device creation
+ */
+struct R_CVulkan_DeviceCreateInfo
+{
+                const char*  pApplicationName; /**< Application name (can be NULL) */
+                bool         enableValidationLayers; /**< Whether to enable validation layers */
+                bool         headlessMode; /**< Whether to run in headless mode (no surface) */
+                VkSurfaceKHR surface; /**< Optional surface for presentation (can be NULL in headless mode) */
+};
+
+/**
  * @brief Queue family indices for device selection
  */
 struct R_CVulkan_QueueFamilyIndices
@@ -42,26 +53,20 @@ struct R_CVulkan_Device
                 struct R_CVulkan_Queue   graphicsQueue;
                 struct R_CVulkan_Queue   presentQueue;
                 VkDebugUtilsMessengerEXT debugMessenger;
-                int                      enableValidationLayers;
-                int                      headlessMode;
+                bool                     enableValidationLayers;
+                bool                     headlessMode;
                 R_CVULKAN_DEBUG_FIELD
 };
 
 /**
  * @brief Initialize a Vulkan device with instance and logical device
  * @param pDevice Pointer to device to initialize
- * @param pApplicationName Application name (can be NULL)
- * @param enableValidationLayers Whether to enable validation layers
- * @param headlessMode Whether to run in headless mode (no surface)
- * @param surface Optional surface for presentation (can be NULL in headless mode)
+ * @param pCreateInfo Device creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDevice (
-    struct R_CVulkan_Device* pDevice,
-    const char*              pApplicationName,
-    bool                     enableValidationLayers,
-    bool                     headlessMode,
-    VkSurfaceKHR             surface);
+    struct R_CVulkan_Device*             pDevice,
+    const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
 
 /**
  * @brief Delete a Vulkan device and cleanup resources
@@ -141,3 +146,10 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
  */
 R_CVULKAN_API int
 R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndices* pIndices);
+
+/**
+ * @brief Check if dynamic rendering is supported
+ * @param pDevice Pointer to device
+ * @return 1 if supported, 0 otherwise
+ */
+R_CVULKAN_API int R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice);

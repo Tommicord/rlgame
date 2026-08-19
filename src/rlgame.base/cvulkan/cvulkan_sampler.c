@@ -9,36 +9,24 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSampler (
-    struct R_CVulkan_Sampler*      pSampler,
-    const struct R_CVulkan_Device* pDevice,
-    VkFilter                       magFilter,
-    VkFilter                       minFilter,
-    VkSamplerMipmapMode            mipmapMode,
-    VkSamplerAddressMode           addressModeU,
-    VkSamplerAddressMode           addressModeV,
-    VkSamplerAddressMode           addressModeW,
-    float                          mipLodBias,
-    int                            anisotropyEnable,
-    float                          maxAnisotropy,
-    float                          minLod,
-    float                          maxLod,
-    VkBorderColor                  borderColor,
-    int                            unnormalizedCoordinates)
+    struct R_CVulkan_Sampler*             pSampler,
+    const struct R_CVulkan_SamplerCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pSampler);
-        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pSampler || !pDevice)
+        if (!pSampler || !pCreateInfo || !pCreateInfo->pDevice)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pSampler->handle = VK_NULL_HANDLE;
         pSampler->isInitialized = false;
@@ -46,19 +34,19 @@ R_CVulkan_NewSampler (
 
         VkSamplerCreateInfo samplerInfo = {0};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = magFilter;
-        samplerInfo.minFilter = minFilter;
-        samplerInfo.mipmapMode = mipmapMode;
-        samplerInfo.addressModeU = addressModeU;
-        samplerInfo.addressModeV = addressModeV;
-        samplerInfo.addressModeW = addressModeW;
-        samplerInfo.mipLodBias = mipLodBias;
-        samplerInfo.anisotropyEnable = anisotropyEnable ? VK_TRUE : VK_FALSE;
-        samplerInfo.maxAnisotropy = maxAnisotropy;
-        samplerInfo.minLod = minLod;
-        samplerInfo.maxLod = maxLod;
-        samplerInfo.borderColor = borderColor;
-        samplerInfo.unnormalizedCoordinates = unnormalizedCoordinates ? VK_TRUE : VK_FALSE;
+        samplerInfo.magFilter = pCreateInfo->magFilter;
+        samplerInfo.minFilter = pCreateInfo->minFilter;
+        samplerInfo.mipmapMode = pCreateInfo->mipmapMode;
+        samplerInfo.addressModeU = pCreateInfo->addressModeU;
+        samplerInfo.addressModeV = pCreateInfo->addressModeV;
+        samplerInfo.addressModeW = pCreateInfo->addressModeW;
+        samplerInfo.mipLodBias = pCreateInfo->mipLodBias;
+        samplerInfo.anisotropyEnable = pCreateInfo->anisotropyEnable ? VK_TRUE : VK_FALSE;
+        samplerInfo.maxAnisotropy = pCreateInfo->maxAnisotropy;
+        samplerInfo.minLod = pCreateInfo->minLod;
+        samplerInfo.maxLod = pCreateInfo->maxLod;
+        samplerInfo.borderColor = pCreateInfo->borderColor;
+        samplerInfo.unnormalizedCoordinates = pCreateInfo->unnormalizedCoordinates ? VK_TRUE : VK_FALSE;
 
         VkResult result = vkCreateSampler (pSampler->device, &samplerInfo, NULL, &pSampler->handle);
         if (result != VK_SUCCESS)

@@ -25,7 +25,7 @@ struct R_CVulkan_Semaphore
  * @param initialValue Initial value for timeline semaphores (ignored for binary semaphores)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_Semaphore_Init (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSemaphore (
     struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
     int                            timelineSemaphore,
@@ -35,7 +35,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_Semaphore_Init (
  * @brief Deletes a semaphore and destroy the Vulkan object
  * @param semaphore Pointer to semaphore to delete
  */
-R_CVULKAN_API void R_CVulkan_SemaphoreShutdown (struct R_CVulkan_Semaphore* pSemaphore);
+R_CVULKAN_API void R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore);
 
 /**
  * @brief Signal a timeline semaphore

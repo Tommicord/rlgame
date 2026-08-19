@@ -1,8 +1,10 @@
 #include "rlgame.base/cvulkan/cvulkan_command_buffer.h"
 #include "rlgame.base/cvulkan/cvulkan_device.h"
+#include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <string.h>
 #include <vulkan/vulkan.h>
 
 enum R_CVulkan_Error
@@ -548,18 +550,10 @@ R_CVulkan_CommandBuffer_CopyImageToBuffer (
 
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferPipelineBarrier (
-    struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    VkPipelineStageFlags            srcStageMask,
-    VkPipelineStageFlags            dstStageMask,
-    VkDependencyFlags               dependencyFlags,
-    uint32_t                        memoryBarrierCount,
-    const VkMemoryBarrier*          pMemoryBarriers,
-    uint32_t                        bufferMemoryBarrierCount,
-    const VkBufferMemoryBarrier*    pBufferMemoryBarriers,
-    uint32_t                        imageMemoryBarrierCount,
-    const VkImageMemoryBarrier*     pImageMemoryBarriers)
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo)
 {
-        if (!pCommandBuffer)
+        if (!pCommandBuffer || !pBarrierInfo)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
@@ -571,29 +565,24 @@ R_CVulkan_CommandBufferPipelineBarrier (
 
         vkCmdPipelineBarrier (
             pCommandBuffer->handle,
-            srcStageMask,
-            dstStageMask,
-            dependencyFlags,
-            memoryBarrierCount,
-            pMemoryBarriers,
-            bufferMemoryBarrierCount,
-            pBufferMemoryBarriers,
-            imageMemoryBarrierCount,
-            pImageMemoryBarriers);
+            pBarrierInfo->srcStageMask,
+            pBarrierInfo->dstStageMask,
+            pBarrierInfo->dependencyFlags,
+            pBarrierInfo->memoryBarrierCount,
+            pBarrierInfo->pMemoryBarriers,
+            pBarrierInfo->bufferMemoryBarrierCount,
+            pBarrierInfo->pBufferMemoryBarriers,
+            pBarrierInfo->imageMemoryBarrierCount,
+            pBarrierInfo->pImageMemoryBarriers);
         return R_CVULKAN_OK;
 }
 
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferBeginRenderPass (
-    struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    VkRenderPass                    renderPass,
-    VkFramebuffer                   framebuffer,
-    const VkRect2D*                 pRenderArea,
-    VkSubpassContents               contents,
-    uint32_t                        clearValueCount,
-    const VkClearValue*             pClearValues)
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo)
 {
-        if (!pCommandBuffer)
+        if (!pCommandBuffer || !pRenderPassInfo)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
@@ -605,13 +594,13 @@ R_CVulkan_CommandBufferBeginRenderPass (
 
         VkRenderPassBeginInfo beginInfo = {0};
         beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        beginInfo.renderPass = renderPass;
-        beginInfo.framebuffer = framebuffer;
-        beginInfo.renderArea = *pRenderArea;
-        beginInfo.clearValueCount = clearValueCount;
-        beginInfo.pClearValues = pClearValues;
+        beginInfo.renderPass = pRenderPassInfo->renderPass;
+        beginInfo.framebuffer = pRenderPassInfo->framebuffer;
+        beginInfo.renderArea = *pRenderPassInfo->pRenderArea;
+        beginInfo.clearValueCount = pRenderPassInfo->clearValueCount;
+        beginInfo.pClearValues = pRenderPassInfo->pClearValues;
 
-        vkCmdBeginRenderPass (pCommandBuffer->handle, &beginInfo, contents);
+        vkCmdBeginRenderPass (pCommandBuffer->handle, &beginInfo, pRenderPassInfo->contents);
         return R_CVULKAN_OK;
 }
 
@@ -629,6 +618,113 @@ R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBu
         }
 
         vkCmdEndRenderPass (pCommandBuffer->handle);
+        return R_CVULKAN_OK;
+}
+
+enum R_CVulkan_Error
+R_CVulkan_CommandBufferBeginRendering (
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo)
+{
+        if (!pCommandBuffer || !pRenderingInfo)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
+        {
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+
+        VkRenderingAttachmentInfoKHR* pColorAttachments = NULL;
+        if (pRenderingInfo->colorAttachmentCount > 0)
+        {
+                pColorAttachments = (VkRenderingAttachmentInfoKHR*)R_CSTL_HeapAlloc (
+                        sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
+                if (!pColorAttachments)
+                {
+                        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
+                }
+                memset (pColorAttachments, 0, sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
+
+                for (uint32_t i = 0; i < pRenderingInfo->colorAttachmentCount; ++i)
+                {
+                        const struct R_CVulkan_DynamicRenderingAttachmentInfo* pSrc = &pRenderingInfo->pColorAttachments[i];
+                        pColorAttachments[i].sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+                        pColorAttachments[i].imageView = pSrc->imageView;
+                        pColorAttachments[i].imageLayout = pSrc->imageLayout;
+                        pColorAttachments[i].resolveMode = pSrc->resolveMode;
+                        pColorAttachments[i].resolveImageView = pSrc->resolveImageView;
+                        pColorAttachments[i].resolveImageLayout = pSrc->resolveImageLayout;
+                        pColorAttachments[i].loadOp = pSrc->loadOp;
+                        pColorAttachments[i].storeOp = pSrc->storeOp;
+                        pColorAttachments[i].clearValue = pSrc->clearValue;
+                }
+        }
+
+        VkRenderingAttachmentInfoKHR depthAttachment = {0};
+        if (pRenderingInfo->pDepthAttachment)
+        {
+                depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+                depthAttachment.imageView = pRenderingInfo->pDepthAttachment->imageView;
+                depthAttachment.imageLayout = pRenderingInfo->pDepthAttachment->imageLayout;
+                depthAttachment.resolveMode = pRenderingInfo->pDepthAttachment->resolveMode;
+                depthAttachment.resolveImageView = pRenderingInfo->pDepthAttachment->resolveImageView;
+                depthAttachment.resolveImageLayout = pRenderingInfo->pDepthAttachment->resolveImageLayout;
+                depthAttachment.loadOp = pRenderingInfo->pDepthAttachment->loadOp;
+                depthAttachment.storeOp = pRenderingInfo->pDepthAttachment->storeOp;
+                depthAttachment.clearValue = pRenderingInfo->pDepthAttachment->clearValue;
+        }
+
+        VkRenderingAttachmentInfoKHR stencilAttachment = {0};
+        if (pRenderingInfo->pStencilAttachment)
+        {
+                stencilAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+                stencilAttachment.imageView = pRenderingInfo->pStencilAttachment->imageView;
+                stencilAttachment.imageLayout = pRenderingInfo->pStencilAttachment->imageLayout;
+                stencilAttachment.resolveMode = pRenderingInfo->pStencilAttachment->resolveMode;
+                stencilAttachment.resolveImageView = pRenderingInfo->pStencilAttachment->resolveImageView;
+                stencilAttachment.resolveImageLayout = pRenderingInfo->pStencilAttachment->resolveImageLayout;
+                stencilAttachment.loadOp = pRenderingInfo->pStencilAttachment->loadOp;
+                stencilAttachment.storeOp = pRenderingInfo->pStencilAttachment->storeOp;
+                stencilAttachment.clearValue = pRenderingInfo->pStencilAttachment->clearValue;
+        }
+
+        VkRenderingInfoKHR renderingInfo = {0};
+        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+        renderingInfo.flags = pRenderingInfo->flags;
+        renderingInfo.renderArea = (VkRect2D){0, 0, 0, 0};
+        renderingInfo.layerCount = 1;
+        renderingInfo.viewMask = pRenderingInfo->viewMask;
+        renderingInfo.colorAttachmentCount = pRenderingInfo->colorAttachmentCount;
+        renderingInfo.pColorAttachments = pColorAttachments;
+        renderingInfo.pDepthAttachment = pRenderingInfo->pDepthAttachment ? &depthAttachment : NULL;
+        renderingInfo.pStencilAttachment = pRenderingInfo->pStencilAttachment ? &stencilAttachment : NULL;
+
+        vkCmdBeginRendering (pCommandBuffer->handle, &renderingInfo);
+
+        if (pColorAttachments)
+        {
+                R_CSTL_HeapFree (pColorAttachments);
+        }
+
+        return R_CVULKAN_OK;
+}
+
+enum R_CVulkan_Error
+R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuffer)
+{
+        if (!pCommandBuffer)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
+        {
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+
+        vkCmdEndRendering (pCommandBuffer->handle);
         return R_CVULKAN_OK;
 }
 

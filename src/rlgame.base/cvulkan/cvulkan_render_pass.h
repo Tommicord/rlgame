@@ -9,6 +9,20 @@
 struct R_CVulkan_Device;
 
 /**
+ * @brief Configuration parameters for render pass creation
+ */
+struct R_CVulkan_RenderPassCreateInfo
+{
+                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+                const VkAttachmentDescription* pAttachments; /**< Array of attachment descriptions */
+                uint32_t                       attachmentCount; /**< Number of attachments */
+                const VkSubpassDescription*    pSubpasses; /**< Array of subpass descriptions */
+                uint32_t                       subpassCount; /**< Number of subpasses */
+                const VkSubpassDependency*     pDependencies; /**< Array of subpass dependencies */
+                uint32_t                       dependencyCount; /**< Number of dependencies */
+};
+
+/**
  * @brief Safe wrapper for VkRenderPass
  */
 struct R_CVulkan_RenderPass
@@ -21,24 +35,12 @@ struct R_CVulkan_RenderPass
 /**
  * @brief Initialize a render pass
  * @param pRenderPass Pointer to render pass to initialize
- * @param pDevice R_CVulkan device wrapper
- * @param pAttachments Array of attachment descriptions
- * @param attachmentCount Number of attachments
- * @param pSubpasses Array of subpass descriptions
- * @param subpassCount Number of subpasses
- * @param pDependencies Array of subpass dependencies (can be NULL)
- * @param dependencyCount Number of dependencies (can be 0)
+ * @param pCreateInfo Render pass creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewRenderPass (
-    struct R_CVulkan_RenderPass*   pRenderPass,
-    const struct R_CVulkan_Device* pDevice,
-    const VkAttachmentDescription* pAttachments,
-    uint32_t                       attachmentCount,
-    const VkSubpassDescription*    pSubpasses,
-    uint32_t                       subpassCount,
-    const VkSubpassDependency*     pDependencies,
-    uint32_t                       dependencyCount);
+    struct R_CVulkan_RenderPass*             pRenderPass,
+    const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a render pass and destroy the Vulkan object

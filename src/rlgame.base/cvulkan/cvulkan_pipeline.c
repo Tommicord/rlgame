@@ -7,29 +7,26 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout* pLayout,
-    const struct R_CVulkan_Device*   pDevice,
-    const VkDescriptorSetLayout*     pSetLayouts,
-    uint32_t                         setLayoutCount,
-    const VkPushConstantRange*       pPushConstantRanges,
-    uint32_t                         pushConstantRangeCount)
+    struct R_CVulkan_PipelineLayout*             pLayout,
+    const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pLayout);
-        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pLayout || !pDevice)
+        if (!pLayout || !pCreateInfo || !pCreateInfo->pDevice)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pLayout->handle = VK_NULL_HANDLE;
         pLayout->isInitialized = false;
@@ -37,10 +34,10 @@ R_CVulkan_NewPipelineLayout (
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = setLayoutCount;
-        pipelineLayoutInfo.pSetLayouts = pSetLayouts;
-        pipelineLayoutInfo.pushConstantRangeCount = pushConstantRangeCount;
-        pipelineLayoutInfo.pPushConstantRanges = pPushConstantRanges;
+        pipelineLayoutInfo.setLayoutCount = pCreateInfo->setLayoutCount;
+        pipelineLayoutInfo.pSetLayouts = pCreateInfo->pSetLayouts;
+        pipelineLayoutInfo.pushConstantRangeCount = pCreateInfo->pushConstantRangeCount;
+        pipelineLayoutInfo.pPushConstantRanges = pCreateInfo->pPushConstantRanges;
 
         VkResult result
             = vkCreatePipelineLayout (pLayout->device, &pipelineLayoutInfo, NULL, &pLayout->handle);
@@ -78,52 +75,44 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
 }
 
 enum R_CVulkan_Error
-R_CVulkan_GraphicsPipeline_Init (
-    struct R_CVulkan_Pipeline*                    pPipeline,
-    const struct R_CVulkan_Device*                pDevice,
-    VkPipelineLayout                              pipelineLayout,
-    VkRenderPass                                  pRenderPass,
-    const VkPipelineShaderStageCreateInfo*        pStages,
-    uint32_t                                      stageCount,
-    const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo,
-    const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyInfo,
-    const VkPipelineViewportStateCreateInfo*      pViewportInfo,
-    const VkPipelineRasterizationStateCreateInfo* pRasterizationInfo,
-    const VkPipelineMultisampleStateCreateInfo*   pMultisampleInfo,
-    const VkPipelineDepthStencilStateCreateInfo*  pDepthStencilInfo,
-    const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo,
-    const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo,
-    uint32_t                                      subpass)
+R_CVulkan_NewGraphicsPipeline (
+    struct R_CVulkan_Pipeline*                       pPipeline,
+    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pPipeline);
-        R_CVULKAN_ASSERT (pDevice);
-        R_CVULKAN_ASSERT (pipelineLayout != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (pRenderPass != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (pStages);
-        R_CVULKAN_ASSERT (stageCount > 0);
-        R_CVULKAN_ASSERT (pVertexInputInfo);
-        R_CVULKAN_ASSERT (pInputAssemblyInfo);
-        R_CVULKAN_ASSERT (pViewportInfo);
-        R_CVULKAN_ASSERT (pRasterizationInfo);
-        R_CVULKAN_ASSERT (pMultisampleInfo);
-        R_CVULKAN_ASSERT (pColorBlendInfo);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo->pipelineLayout != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pCreateInfo->pRenderPass != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pCreateInfo->pStages);
+        R_CVULKAN_ASSERT (pCreateInfo->stageCount > 0);
+        R_CVULKAN_ASSERT (pCreateInfo->pVertexInputInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pInputAssemblyInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pViewportInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pRasterizationInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pMultisampleInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pColorBlendInfo);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPipeline || !pDevice || pipelineLayout == VK_NULL_HANDLE)
+        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (pRenderPass == VK_NULL_HANDLE || !pStages || stageCount == 0)
+        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pVertexInputInfo || !pInputAssemblyInfo || !pViewportInfo)
+        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pRasterizationInfo || !pMultisampleInfo || !pColorBlendInfo)
+        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
         pPipeline->isInitialized = false;
@@ -131,19 +120,19 @@ R_CVulkan_GraphicsPipeline_Init (
 
         VkGraphicsPipelineCreateInfo pipelineInfo = {0};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = stageCount;
-        pipelineInfo.pStages = pStages;
-        pipelineInfo.pVertexInputState = pVertexInputInfo;
-        pipelineInfo.pInputAssemblyState = pInputAssemblyInfo;
-        pipelineInfo.pViewportState = pViewportInfo;
-        pipelineInfo.pRasterizationState = pRasterizationInfo;
-        pipelineInfo.pMultisampleState = pMultisampleInfo;
-        pipelineInfo.pDepthStencilState = pDepthStencilInfo;
-        pipelineInfo.pColorBlendState = pColorBlendInfo;
-        pipelineInfo.pDynamicState = pDynamicStateInfo;
-        pipelineInfo.layout = pipelineLayout;
-        pipelineInfo.renderPass = pRenderPass;
-        pipelineInfo.subpass = subpass;
+        pipelineInfo.stageCount = pCreateInfo->stageCount;
+        pipelineInfo.pStages = pCreateInfo->pStages;
+        pipelineInfo.pVertexInputState = pCreateInfo->pVertexInputInfo;
+        pipelineInfo.pInputAssemblyState = pCreateInfo->pInputAssemblyInfo;
+        pipelineInfo.pViewportState = pCreateInfo->pViewportInfo;
+        pipelineInfo.pRasterizationState = pCreateInfo->pRasterizationInfo;
+        pipelineInfo.pMultisampleState = pCreateInfo->pMultisampleInfo;
+        pipelineInfo.pDepthStencilState = pCreateInfo->pDepthStencilInfo;
+        pipelineInfo.pColorBlendState = pCreateInfo->pColorBlendInfo;
+        pipelineInfo.pDynamicState = pCreateInfo->pDynamicStateInfo;
+        pipelineInfo.layout = pCreateInfo->pipelineLayout;
+        pipelineInfo.renderPass = pCreateInfo->pRenderPass;
+        pipelineInfo.subpass = pCreateInfo->subpass;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         pipelineInfo.basePipelineIndex = -1;
 
@@ -166,19 +155,112 @@ R_CVulkan_GraphicsPipeline_Init (
 }
 
 enum R_CVulkan_Error
-R_CVulkan_ComputePipeline_Init (
+R_CVulkan_NewDynamicGraphicsPipeline (
+    struct R_CVulkan_Pipeline*                       pPipeline,
+    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
+{
+        R_CVULKAN_ASSERT (pPipeline);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo->pipelineLayout != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pCreateInfo->pStages);
+        R_CVULKAN_ASSERT (pCreateInfo->stageCount > 0);
+        R_CVULKAN_ASSERT (pCreateInfo->pVertexInputInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pInputAssemblyInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pViewportInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pRasterizationInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pMultisampleInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pColorBlendInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pColorAttachmentFormats);
+
+#if defined(R_CVULKAN_DEBUG)
+        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pColorAttachmentFormats)
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
+        {
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+        if (!R_CVulkan_DeviceIsDynamicRenderingSupported (pCreateInfo->pDevice))
+        {
+                return R_CVULKAN_ERROR_FEATURE_NOT_PRESENT;
+        }
+#endif
+
+        pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+#if defined(R_CVULKAN_DEBUG)
+        pPipeline->handle = VK_NULL_HANDLE;
+        pPipeline->isInitialized = false;
+#endif
+
+        VkPipelineRenderingCreateInfoKHR renderingCreateInfo = {0};
+        renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+        renderingCreateInfo.viewMask = 0;
+        renderingCreateInfo.colorAttachmentCount = pCreateInfo->colorAttachmentCount;
+        renderingCreateInfo.pColorAttachmentFormats = pCreateInfo->pColorAttachmentFormats;
+        renderingCreateInfo.depthAttachmentFormat = pCreateInfo->depthAttachmentFormat;
+        renderingCreateInfo.stencilAttachmentFormat = pCreateInfo->stencilAttachmentFormat;
+
+        VkGraphicsPipelineCreateInfo pipelineInfo = {0};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.pNext = &renderingCreateInfo;
+        pipelineInfo.stageCount = pCreateInfo->stageCount;
+        pipelineInfo.pStages = pCreateInfo->pStages;
+        pipelineInfo.pVertexInputState = pCreateInfo->pVertexInputInfo;
+        pipelineInfo.pInputAssemblyState = pCreateInfo->pInputAssemblyInfo;
+        pipelineInfo.pViewportState = pCreateInfo->pViewportInfo;
+        pipelineInfo.pRasterizationState = pCreateInfo->pRasterizationInfo;
+        pipelineInfo.pMultisampleState = pCreateInfo->pMultisampleInfo;
+        pipelineInfo.pDepthStencilState = pCreateInfo->pDepthStencilInfo;
+        pipelineInfo.pColorBlendState = pCreateInfo->pColorBlendInfo;
+        pipelineInfo.pDynamicState = pCreateInfo->pDynamicStateInfo;
+        pipelineInfo.layout = pCreateInfo->pipelineLayout;
+        pipelineInfo.renderPass = VK_NULL_HANDLE;
+        pipelineInfo.subpass = 0;
+        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pipelineInfo.basePipelineIndex = -1;
+
+        VkResult result = vkCreateGraphicsPipelines (
+            pPipeline->device,
+            VK_NULL_HANDLE,
+            1,
+            &pipelineInfo,
+            NULL,
+            &pPipeline->handle);
+        if (result != VK_SUCCESS)
+        {
+                return R_CVULKAN_ERROR_PIPELINE_CREATE_FAILED;
+        }
+
+#if defined(R_CVULKAN_DEBUG)
+        pPipeline->isInitialized = true;
+#endif
+        return R_CVULKAN_OK;
+}
+
+enum R_CVulkan_Error
+R_CVulkan_NewComputePipeline (
     struct R_CVulkan_Pipeline*             pPipeline,
     const struct R_CVulkan_Device*         pDevice,
     VkPipelineLayout                       pipelineLayout,
-    const VkPipelineShaderStageCreateInfo* stage)
+    const VkPipelineShaderStageCreateInfo* pStage)
 {
         R_CVULKAN_ASSERT (pPipeline);
         R_CVULKAN_ASSERT (pDevice);
         R_CVULKAN_ASSERT (pipelineLayout != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (stage);
+        R_CVULKAN_ASSERT (pStage);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPipeline || !pDevice || pipelineLayout == VK_NULL_HANDLE || !stage)
+        if (!pPipeline || !pDevice || pipelineLayout == VK_NULL_HANDLE || !pStage)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
@@ -198,7 +280,7 @@ R_CVulkan_ComputePipeline_Init (
         VkComputePipelineCreateInfo pipelineInfo = {0};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
         pipelineInfo.layout = pipelineLayout;
-        pipelineInfo.stage = *stage;
+        pipelineInfo.stage = *pStage;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         pipelineInfo.basePipelineIndex = -1;
 

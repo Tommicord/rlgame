@@ -10,36 +10,32 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewBuffer (
-    struct R_CVulkan_Buffer*       pBuffer,
-    const struct R_CVulkan_Device* device,
-    VkPhysicalDevice               physicalDevice,
-    R_CVulkanDeviceSize            size,
-    R_CVulkanBufferUsageFlags      usage,
-    R_CVulkanMemoryPropertyFlags   properties)
+    struct R_CVulkan_Buffer*                 pBuffer,
+    const struct R_CVulkan_BufferCreateInfo* pCreateInfo)
 {
-        if (!pBuffer || !device || physicalDevice == VK_NULL_HANDLE)
+        if (!pBuffer || !pCreateInfo || !pCreateInfo->device || pCreateInfo->physicalDevice == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_DeviceIsInitialized (device))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        if (size == 0)
+        if (pCreateInfo->size == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        pBuffer->device = R_CVulkan_DeviceGetLogicalDevice (device);
+        pBuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
         pBuffer->handle = VK_NULL_HANDLE;
         pBuffer->memory = VK_NULL_HANDLE;
-        pBuffer->size = size;
-        pBuffer->usage = usage;
-        pBuffer->properties = properties;
+        pBuffer->size = pCreateInfo->size;
+        pBuffer->usage = pCreateInfo->usage;
+        pBuffer->properties = pCreateInfo->properties;
         pBuffer->pMapped = NULL;
         pBuffer->isMapped = 0;
 #if defined(R_CVULKAN_DEBUG)
@@ -48,8 +44,8 @@ R_CVulkan_NewBuffer (
 
         VkBufferCreateInfo bufferInfo = {0};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = size;
-        bufferInfo.usage = usage;
+        bufferInfo.size = pCreateInfo->size;
+        bufferInfo.usage = pCreateInfo->usage;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VkResult result = vkCreateBuffer (pBuffer->device, &bufferInfo, NULL, &pBuffer->handle);
@@ -62,8 +58,8 @@ R_CVulkan_NewBuffer (
         vkGetBufferMemoryRequirements (pBuffer->device, pBuffer->handle, &memRequirements);
 
         uint32_t             memoryTypeIndex = 0;
-        enum R_CVulkan_Error error
-            = R_CVulkan_FindMemoryType (physicalDevice, &memRequirements, properties, &memoryTypeIndex);
+        enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
+            pCreateInfo->physicalDevice, &memRequirements, pCreateInfo->properties, &memoryTypeIndex);
         if (error != R_CVULKAN_OK)
         {
                 vkDestroyBuffer (pBuffer->device, pBuffer->handle, NULL);

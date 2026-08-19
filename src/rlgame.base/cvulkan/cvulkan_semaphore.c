@@ -3,7 +3,7 @@
 #include "rlgame.base/cvulkan/cvulkan_device.h"
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_Semaphore_Init (
+R_CVulkan_NewSemaphore (
     struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
     int                            timelineSemaphore,
@@ -54,7 +54,7 @@ R_CVulkan_Semaphore_Init (
 }
 
 R_CVULKAN_API void
-R_CVulkan_SemaphoreShutdown (struct R_CVulkan_Semaphore* pSemaphore)
+R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
 

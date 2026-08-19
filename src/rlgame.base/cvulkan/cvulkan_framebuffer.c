@@ -7,55 +7,54 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFramebuffer (
-    struct R_CVulkan_Framebuffer*  pFramebuffer,
-    const struct R_CVulkan_Device* pDevice,
-    VkRenderPass                   renderPass,
-    const VkImageView*             attachments,
-    uint32_t                       attachmentCount,
-    uint32_t                       width,
-    uint32_t                       height,
-    uint32_t                       layers)
+    struct R_CVulkan_Framebuffer*           pFramebuffer,
+    const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pFramebuffer != NULL);
-        R_CVULKAN_ASSERT (pDevice != NULL);
-        R_CVULKAN_ASSERT (renderPass != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (attachments != NULL);
-        R_CVULKAN_ASSERT (attachmentCount > 0);
+        R_CVULKAN_ASSERT (pCreateInfo != NULL);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice != NULL);
+        R_CVULKAN_ASSERT (pCreateInfo->pRenderPass != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pCreateInfo->pAttachments != NULL);
+        R_CVULKAN_ASSERT (pCreateInfo->attachmentCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pFramebuffer || !pDevice || renderPass == VK_NULL_HANDLE || !attachments || attachmentCount == 0)
+        if (!pFramebuffer || !pCreateInfo || !pCreateInfo->pDevice)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        R_CVULKAN_ASSERT (R_CVulkan_DeviceIsInitialized (pDevice));
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE || !pCreateInfo->pAttachments || pCreateInfo->attachmentCount == 0)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+        R_CVULKAN_ASSERT (R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice));
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
-        if (width == 0 || height == 0 || layers == 0)
+        if (pCreateInfo->width == 0 || pCreateInfo->height == 0 || pCreateInfo->layers == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 #endif
 
-        pFramebuffer->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pFramebuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         pFramebuffer->handle = VK_NULL_HANDLE;
-        pFramebuffer->renderPass = renderPass;
-        pFramebuffer->width = width;
-        pFramebuffer->height = height;
-        pFramebuffer->attachmentCount = attachmentCount;
+        pFramebuffer->renderPass = pCreateInfo->pRenderPass;
+        pFramebuffer->width = pCreateInfo->width;
+        pFramebuffer->height = pCreateInfo->height;
+        pFramebuffer->attachmentCount = pCreateInfo->attachmentCount;
 #if defined(R_CVULKAN_DEBUG)
         pFramebuffer->isInitialized = false;
 #endif
 
         VkFramebufferCreateInfo framebufferInfo = {0};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
-        framebufferInfo.attachmentCount = attachmentCount;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = width;
-        framebufferInfo.height = height;
-        framebufferInfo.layers = layers;
+        framebufferInfo.renderPass = pCreateInfo->pRenderPass;
+        framebufferInfo.attachmentCount = pCreateInfo->attachmentCount;
+        framebufferInfo.pAttachments = pCreateInfo->pAttachments;
+        framebufferInfo.width = pCreateInfo->width;
+        framebufferInfo.height = pCreateInfo->height;
+        framebufferInfo.layers = pCreateInfo->layers;
 
         VkResult result
             = vkCreateFramebuffer (pFramebuffer->device, &framebufferInfo, NULL, &pFramebuffer->handle);

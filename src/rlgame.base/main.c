@@ -13,7 +13,7 @@
 #include <intrin.h>
 #endif
 void
-R_GameLoop_SetState (R_MainProvider* pProvider, uint8_t flags)
+R_GameLoop_SetState (struct R_MainProvider* pProvider, uint8_t flags)
 {
         if (!pProvider)
                 return;
@@ -28,7 +28,7 @@ R_GameLoop_SetState (R_MainProvider* pProvider, uint8_t flags)
 }
 
 void
-R_GameLoop_ClearState (R_MainProvider* pProvider, uint8_t flags)
+R_GameLoop_ClearState (struct R_MainProvider* pProvider, uint8_t flags)
 {
         if (!pProvider)
                 return;
@@ -42,7 +42,7 @@ R_GameLoop_ClearState (R_MainProvider* pProvider, uint8_t flags)
 }
 
 uint8_t
-R_GameLoop_GetState (const R_MainProvider* pProvider)
+R_GameLoop_GetState (const struct R_MainProvider* pProvider)
 {
         if (!pProvider)
                 return R_GAMELOOP_STATE_NONE;
@@ -56,26 +56,26 @@ R_GameLoop_GetState (const R_MainProvider* pProvider)
 }
 
 bool
-R_GameLoop_HasState (const R_MainProvider* pProvider, uint8_t flags)
+R_GameLoop_HasState (const struct  R_MainProvider* pProvider, uint8_t flags)
 {
         uint8_t current = R_GameLoop_GetState (pProvider);
         return (current & flags) == flags;
 }
 
 bool
-R_GameLoop_IsRunning (const R_MainProvider* pProvider)
+R_GameLoop_IsRunning (const struct R_MainProvider* pProvider)
 {
         return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_RUNNING);
 }
 
 bool
-R_GameLoop_IsPaused (const R_MainProvider* pProvider)
+R_GameLoop_IsPaused (const struct R_MainProvider* pProvider)
 {
         return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_PAUSED);
 }
 
 bool
-R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
+R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
 {
         return R_GameLoop_HasState (pProvider, R_GAMELOOP_STATE_DESTROYED);
 }
@@ -139,11 +139,11 @@ R_GameLoop_IsDestroyed (const R_MainProvider* pProvider)
                 if ((Info).pExistingProcesses && (Info).existingProcessCount > 0)                            \
                 {                                                                                            \
                         size_t existingProcessCount = (Info).existingProcessCount;                           \
-                        R_CSTL_LOG_INFO ("Existing processes: %d", existingProcessCount);                    \
+                        R_CSTL_LOG_INFO ("Existing subprocesses: %d", existingProcessCount);                 \
                         for (int i = 0; i < existingProcessCount; i++)                                       \
                         {                                                                                    \
-                                R_ProcessInfo        pProcess = (Info).pExistingProcesses[i];                \
-                                const R_CSTL_String* pNameString = pProcess.pName;                           \
+                                struct R_ProcessInfo        pProcess = (Info).pExistingProcesses[i];                \
+                                const struct R_CSTL_String* pNameString = pProcess.pName;                           \
                                 const char*          pProcessName                                            \
                                     = pNameString ? R_CSTL_StringData (pNameString) : "(unknown)";           \
                                 R_CSTL_LOG_INFO (                                                            \
@@ -174,7 +174,7 @@ R_CopyCStringToHeap (const char* src)
 }
 
 void
-R_AssignProcessName (R_ProcessInfo* proc, char* exePath, int argc, char** argv)
+R_AssignProcessName (struct R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 {
         if (!proc)
                 return;
@@ -200,7 +200,7 @@ R_GetCurrentPid ()
 }
 
 void
-R_FillMemoryInfo (R_MemoryInfo* out)
+R_FillMemoryInfo (struct R_MemoryInfo* out)
 {
         if (!out)
                 return;
@@ -236,23 +236,23 @@ R_GetExecutablePath ()
         return buf;
 }
 
-R_ProcessInfo*
+struct R_ProcessInfo*
 R_CollectProcesses (size_t* outCount, int argc, char** argv)
 {
-        R_ProcessInfo* arr = NULL;
+        struct R_ProcessInfo* arr = NULL;
         char*          exe = NULL;
 
         if (!outCount)
                 return NULL;
 
         *outCount = 1;
-        arr = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
+        arr = (struct R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (struct R_ProcessInfo));
         if (!arr)
         {
                 *outCount = 0;
                 goto r_cleanup;
         }
-        memset (arr, 0, sizeof (R_ProcessInfo));
+        memset (arr, 0, sizeof (struct R_ProcessInfo));
 
         arr[0].pid = R_GetCurrentPid ();
         arr[0].pUser = NULL;
@@ -279,7 +279,7 @@ r_cleanup:
 }
 
 void
-R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
+R_InitializeApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv)
 {
         if (!info)
                 return;
@@ -312,9 +312,9 @@ R_InitializeApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
 }
 
 void
-R_BuildCommandLine (R_ApplicationInfo* info, int argc, char** argv)
+R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv)
 {
-        R_CSTL_StringBuilder* pBuilder = NULL;
+        struct R_CSTL_StringBuilder* pBuilder = NULL;
         struct R_CSTL_String* pCmdString = NULL;
         char*                 cmd = NULL;
 
@@ -356,7 +356,7 @@ r_cleanup:
 }
 
 void
-R_PopulateApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
+R_PopulateApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv)
 {
         if (!info)
                 return;
@@ -366,7 +366,7 @@ R_PopulateApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
         R_FillMemoryInfo (&info->memory);
 
         size_t         count = 0;
-        R_ProcessInfo* pProcs = R_CollectProcesses (&count, argc, argv);
+        struct R_ProcessInfo* pProcs = R_CollectProcesses (&count, argc, argv);
         info->pExistingProcesses = pProcs;
         info->existingProcessCount = count;
 }
@@ -374,8 +374,8 @@ R_PopulateApplicationInfo (R_ApplicationInfo* info, int argc, char** argv)
 void
 R_LaunchMainProvider (R_GameLoopCallback pExecCallback, const void* pUserData)
 {
-        const R_ApplicationInfo* pAppInfo = (const R_ApplicationInfo*)pUserData;
-        R_MainProvider           provider = {
+        const struct R_ApplicationInfo* pAppInfo = (const struct R_ApplicationInfo*)pUserData;
+        struct R_MainProvider            provider = {
                       .pExecCallback = pExecCallback,
                       .pAppInfo = pAppInfo,
                       .stateFlags = R_GAMELOOP_STATE_NONE,
@@ -386,7 +386,7 @@ R_LaunchMainProvider (R_GameLoopCallback pExecCallback, const void* pUserData)
 static HWND g_hwnd = NULL;
 
 void
-R_MainProvider_Run (R_MainProvider* pProvider)
+R_MainProvider_Run (struct R_MainProvider* pProvider)
 {
         if (!pProvider)
         {
@@ -482,7 +482,7 @@ r_endloop:
 }
 
 void
-R_MainProvider_Stop (R_MainProvider* pProvider)
+R_MainProvider_Stop (struct R_MainProvider* pProvider)
 {
         if (pProvider)
         {
@@ -516,7 +516,7 @@ R_UnicodeFromString (const char* pInput, wchar_t** ppOut)
                 return;
         *ppOut = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
         if (*ppOut == NULL)
-                return 0;
+                return;
         MultiByteToWideChar (CP_UTF8, 0, pInput, -1, *ppOut, wideLen);
 }
 #define R_WIN32_INSTANCE HINSTANCE
@@ -544,7 +544,7 @@ R_WindowCenter (R_WIN32_HWND hwnd)
 }
 
 static int
-R_InitWinMain (R_WIN32_INSTANCE hInstance, R_ApplicationInfo* pApplicationInfo, int nCmdShow)
+R_InitWinMain (R_WIN32_INSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow)
 {
         const wchar_t CLASS_NAME[] = L"GameWindowClass";
         WNDCLASSW     wc = {0};
@@ -592,7 +592,7 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
 {
         R_APP_INIT ();
 
-        R_ApplicationInfo info;
+        struct R_ApplicationInfo info;
         LPSTR             cmd = GetCommandLineA ();
         R_PopulateApplicationInfo (&info, 0, NULL);
 
@@ -635,7 +635,7 @@ R_CopyStringToHeap (const char* src)
 }
 
 void
-R_AssignProcessName (R_ProcessInfo* proc, char* exePath, int argc, char** argv)
+R_AssignProcessName (struct R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 {
         if (!proc)
                 return;
@@ -659,7 +659,7 @@ R_GetCurrentPid ()
         return (uint32_t)getpid ();
 }
 void
-R_FillMemoryInfo (R_MemoryInfo* out)
+R_FillMemoryInfo (struct R_MemoryInfo* out)
 {
         if (!out)
                 return;
@@ -704,10 +704,10 @@ R_GetExecutablePath ()
         return NULL;
 }
 
-R_ProcessInfo*
+struct R_ProcessInfo*
 R_CollectProcesses (size_t* outCount, int argc, char** argv)
 {
-        R_ProcessInfo* arr = NULL;
+        struct R_ProcessInfo* arr = NULL;
         char*          exe = NULL;
         FILE*          f = NULL;
 
@@ -715,13 +715,13 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
                 return NULL;
 
         *outCount = 1;
-        arr = (R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (R_ProcessInfo));
+        arr = (struct R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (struct R_ProcessInfo));
         if (!arr)
         {
                 *outCount = 0;
                 goto r_cleanup;
         }
-        memset (arr, 0, sizeof (R_ProcessInfo));
+        memset (arr, 0, sizeof (struct R_ProcessInfo));
 
         arr[0].pid = R_GetCurrentPid ();
         arr[0].pUser = NULL;

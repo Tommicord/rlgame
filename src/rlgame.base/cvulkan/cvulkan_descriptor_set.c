@@ -7,29 +7,27 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewDescriptorSetLayout (
-    struct R_CVulkan_DescriptorSetLayout* pLayout,
-    const struct R_CVulkan_Device*        pDevice,
-    const VkDescriptorSetLayoutBinding*   pBindings,
-    uint32_t                              bindingCount)
+    struct R_CVulkan_DescriptorSetLayout*             pLayout,
+    const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pLayout);
-        R_CVULKAN_ASSERT (pDevice);
-        R_CVULKAN_ASSERT (pBindings);
-        R_CVULKAN_ASSERT (bindingCount > 0);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->device);
+        R_CVULKAN_ASSERT (pCreateInfo->bindings);
+        R_CVULKAN_ASSERT (pCreateInfo->bindingCount > 0);
 
-        if (!pLayout || !pDevice || !pBindings || bindingCount == 0)
+#if defined(R_CVULKAN_DEBUG)
+        if (!pLayout || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->bindings || pCreateInfo->bindingCount == 0)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-
-#if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
         pLayout->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
         pLayout->isInitialized = false;
@@ -37,8 +35,8 @@ R_CVulkan_NewDescriptorSetLayout (
 
         VkDescriptorSetLayoutCreateInfo layoutInfo = {0};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = bindingCount;
-        layoutInfo.pBindings = pBindings;
+        layoutInfo.bindingCount = pCreateInfo->bindingCount;
+        layoutInfo.pBindings = pCreateInfo->bindings;
 
         VkResult result = vkCreateDescriptorSetLayout (pLayout->device, &layoutInfo, NULL, &pLayout->handle);
         if (result != VK_SUCCESS)
@@ -78,42 +76,40 @@ R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* pLayo
 
 enum R_CVulkan_Error
 R_CVulkan_NewDescriptorPool (
-    struct R_CVulkan_DescriptorPool* pPool,
-    const struct R_CVulkan_Device*   pDevice,
-    const VkDescriptorPoolSize*      pPoolSizes,
-    uint32_t                         poolSizeCount,
-    uint32_t                         maxSets)
+    struct R_CVulkan_DescriptorPool*           pPool,
+    const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pPool);
-        R_CVULKAN_ASSERT (pDevice);
-        R_CVULKAN_ASSERT (pPoolSizes);
-        R_CVULKAN_ASSERT (poolSizeCount > 0);
-        R_CVULKAN_ASSERT (maxSets > 0);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->device);
+        R_CVULKAN_ASSERT (pCreateInfo->poolSizes);
+        R_CVULKAN_ASSERT (pCreateInfo->poolSizeCount > 0);
+        R_CVULKAN_ASSERT (pCreateInfo->maxSets > 0);
 
-        if (!pPool || !pDevice || !pPoolSizes || poolSizeCount == 0 || maxSets == 0)
+#if defined(R_CVULKAN_DEBUG)
+        if (!pPool || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->poolSizes || pCreateInfo->poolSizeCount == 0 || pCreateInfo->maxSets == 0)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-#if defined(R_CVULKAN_DEBUG)
-        if (!R_CVulkan_DeviceIsInitialized (pDevice))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
 
-        pPool->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+        pPool->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
         pPool->handle = VK_NULL_HANDLE;
-        pPool->maxSets = maxSets;
+        pPool->maxSets = pCreateInfo->maxSets;
 #if defined(R_CVULKAN_DEBUG)
         pPool->isInitialized = false;
 #endif
 
         VkDescriptorPoolCreateInfo poolInfo = {0};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = poolSizeCount;
-        poolInfo.pPoolSizes = pPoolSizes;
-        poolInfo.maxSets = maxSets;
+        poolInfo.poolSizeCount = pCreateInfo->poolSizeCount;
+        poolInfo.pPoolSizes = pCreateInfo->poolSizes;
+        poolInfo.maxSets = pCreateInfo->maxSets;
         poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
         VkResult result = vkCreateDescriptorPool (pPool->device, &poolInfo, NULL, &pPool->handle);

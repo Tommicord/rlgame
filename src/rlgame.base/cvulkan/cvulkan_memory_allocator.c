@@ -138,36 +138,34 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemoryAllocatorAllocate (
-    struct R_CVulkan_MemoryAllocator* pAllocator,
-    VkDeviceSize                      size,
-    VkDeviceSize                      alignment,
-    VkBufferUsageFlags                usage,
-    VkMemoryPropertyFlags             properties,
-    struct R_CVulkan_Suballocation*   outAllocation)
+    struct R_CVulkan_MemoryAllocator*      pAllocator,
+    const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
+    struct R_CVulkan_Suballocation*       outAllocation)
 {
         R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pAllocInfo != NULL);
         R_CVULKAN_ASSERT (outAllocation != NULL);
-        R_CVULKAN_ASSERT (size > 0);
-
-        if (!pAllocator || !outAllocation)
+        R_CVULKAN_ASSERT (pAllocInfo->size > 0);
+#if defined(R_CVULKAN_DEBUG)
+        if (!pAllocator || !pAllocInfo || !outAllocation)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (size == 0)
+        if (pAllocInfo->size == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
-
+#endif
         VkDeviceSize adjustedAlignment
-            = R_CVulkan_GetAdjustedAlignment (pAllocator->physicalDevice, alignment, usage);
+            = R_CVulkan_GetAdjustedAlignment (pAllocator->physicalDevice, pAllocInfo->alignment, pAllocInfo->usage);
 
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
                 struct R_CVulkan_MemoryBlock* block = pAllocator->ppBlocks[i];
-                if (block->usage == usage && block->properties == properties)
+                if (block->usage == pAllocInfo->usage && block->properties == pAllocInfo->properties)
                 {
-                        if (R_CVulkan_MemoryBlockAllocate (block, size, adjustedAlignment, outAllocation))
+                        if (R_CVulkan_MemoryBlockAllocate (block, pAllocInfo->size, adjustedAlignment, outAllocation))
                         {
                                 outAllocation->blockIndex = i;
                                 return R_CVULKAN_OK;
@@ -176,7 +174,7 @@ R_CVulkan_MemoryAllocatorAllocate (
         }
 
         VkDeviceSize blockSize
-            = R_CVulkan_GetBlockSize (size, pAllocator->minBlockSize, pAllocator->defaultMaxBlockSize);
+            = R_CVulkan_GetBlockSize (pAllocInfo->size, pAllocator->minBlockSize, pAllocator->defaultMaxBlockSize);
 
         struct R_CVulkan_MemoryBlock* newBlock
             = (struct R_CVulkan_MemoryBlock*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_MemoryBlock));
@@ -191,8 +189,8 @@ R_CVulkan_MemoryAllocatorAllocate (
             pAllocator->device,
             pAllocator->physicalDevice,
             blockSize,
-            usage,
-            properties);
+            pAllocInfo->usage,
+            pAllocInfo->properties);
         if (result != R_CVULKAN_OK)
         {
                 R_CSTL_HeapFree (newBlock);
@@ -220,7 +218,7 @@ R_CVulkan_MemoryAllocatorAllocate (
         uint32_t blockIndex = pAllocator->blockCount++;
         pAllocator->ppBlocks[blockIndex] = newBlock;
 
-        if (!R_CVulkan_MemoryBlockAllocate (newBlock, size, adjustedAlignment, outAllocation))
+        if (!R_CVulkan_MemoryBlockAllocate (newBlock, pAllocInfo->size, adjustedAlignment, outAllocation))
         {
                 R_CVulkan_DeleteMemoryBlock (newBlock);
                 R_CSTL_HeapFree (newBlock);

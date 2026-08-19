@@ -432,7 +432,7 @@ cstl_fail:
 R_CSTL_API_ATTR static struct R_CSTL_String*
 R_CSTL_StringCreateShell (void)
 {
-        struct R_CSTL_String* pString = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (R_CSTL_String));
+        struct R_CSTL_String* pString = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String));
         if (!pString)
                 return NULL;
         pString->length = 0;
@@ -507,7 +507,7 @@ struct R_CSTL_String*
 R_CSTL_NewStringWithCapacity (const size_t cap)
 {
         struct R_CSTL_String* pString
-            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (R_CSTL_String) + cap);
+            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String) + cap);
         if (!pString)
                 return NULL;
         char* mem = (char*)R_CSTL_HeapAlloc (cap + 1);
@@ -944,7 +944,7 @@ R_CSTL_StringReplace (const struct R_CSTL_String* pString, const char* pTarget, 
                 return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pString), pString->length);
         size_t rlen = strlen (pReplacement);
 
-        R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
         if (!pBuilder)
                 return NULL;
 
@@ -1131,7 +1131,7 @@ R_CSTL_StringRemove (const struct R_CSTL_String* pString, size_t start, size_t e
         if (end > pString->length)
                 end = pString->length;
 
-        R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
         if (!pBuilder)
                 return NULL;
 
@@ -1175,7 +1175,7 @@ R_CSTL_StringJoin (
 {
         if (count == 0)
                 return R_CSTL_NewString ();
-        R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
         if (!pBuilder)
                 return NULL;
         for (size_t i = 0; i < count; ++i)
@@ -1217,11 +1217,11 @@ cstl_fail:
         return -1;
 }
 
-R_CSTL_StringBuilder*
+struct R_CSTL_StringBuilder*
 R_CSTL_NewStringBuilder (void)
 {
-        R_CSTL_StringBuilder* pBuilder
-            = (R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (R_CSTL_StringBuilder));
+        struct R_CSTL_StringBuilder* pBuilder
+            = (struct R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_StringBuilder));
         if (!pBuilder)
                 return NULL;
         pBuilder->length = 0;
@@ -1231,10 +1231,10 @@ R_CSTL_NewStringBuilder (void)
         return pBuilder;
 }
 
-R_CSTL_StringBuilder*
+struct R_CSTL_StringBuilder*
 R_CSTL_NewStringBuilderWithData (const char* pString)
 {
-        R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
         if (!pBuilder)
                 goto cstl_fail;
         if (!pString)
@@ -1245,11 +1245,11 @@ cstl_fail:
         return NULL;
 }
 
-R_CSTL_StringBuilder*
+struct R_CSTL_StringBuilder*
 R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
 {
-        R_CSTL_StringBuilder* pBuilder
-            = (R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (R_CSTL_StringBuilder));
+        struct R_CSTL_StringBuilder* pBuilder
+            = (struct R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_StringBuilder));
         if (!pBuilder)
                 return NULL;
         pBuilder->length = 0;
@@ -1287,7 +1287,7 @@ R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
 }
 
 void
-R_CSTL_DeleteStringBuilder (R_CSTL_StringBuilder* pBuilder)
+R_CSTL_DeleteStringBuilder (struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1306,7 +1306,7 @@ R_CSTL_DeleteStringBuilder (R_CSTL_StringBuilder* pBuilder)
 }
 
 R_CSTL_API_ATTR size_t
-R_CSTL_StringBuilderLength (const R_CSTL_StringBuilder* pBuilder)
+R_CSTL_StringBuilderLength (const struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1320,7 +1320,7 @@ cstl_fail:
 }
 
 size_t
-R_CSTL_StringBuilderCapacity (const R_CSTL_StringBuilder* pBuilder)
+R_CSTL_StringBuilderCapacity (const struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1334,7 +1334,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderEnsureCapacity (R_CSTL_StringBuilder* pBuilder, size_t requiredCapacity)
+R_CSTL_StringBuilderEnsureCapacity (struct R_CSTL_StringBuilder* pBuilder, size_t requiredCapacity)
 {
         if (!pBuilder)
                 goto cstl_fail;
@@ -1397,7 +1397,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppend (R_CSTL_StringBuilder* pBuilder, const struct R_CSTL_String* pString)
+R_CSTL_StringBuilderAppend (struct R_CSTL_StringBuilder* pBuilder, const struct R_CSTL_String* pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1425,7 +1425,7 @@ cstl_fail:
         return -1
 
 int
-R_CSTL_StringBuilderEmplaceSized (R_CSTL_StringBuilder* pBuilder, const char* pCString, const size_t size)
+R_CSTL_StringBuilderEmplaceSized (struct R_CSTL_StringBuilder* pBuilder, const char* pCString, const size_t size)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1446,7 +1446,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderEmplace (R_CSTL_StringBuilder* pBuilder, const char* pCString)
+R_CSTL_StringBuilderEmplace (struct R_CSTL_StringBuilder* pBuilder, const char* pCString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1467,7 +1467,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppendData (R_CSTL_StringBuilder* pBuilder, const char* pData, size_t length)
+R_CSTL_StringBuilderAppendData (struct R_CSTL_StringBuilder* pBuilder, const char* pData, size_t length)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pData || length == 0)
@@ -1486,7 +1486,7 @@ R_CSTL_StringBuilderAppendData (R_CSTL_StringBuilder* pBuilder, const char* pDat
 }
 
 int
-R_CSTL_StringBuilderAppendChar (R_CSTL_StringBuilder* pBuilder, char value)
+R_CSTL_StringBuilderAppendChar (struct R_CSTL_StringBuilder* pBuilder, char value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1506,7 +1506,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppendInt (R_CSTL_StringBuilder* pBuilder, int value)
+R_CSTL_StringBuilderAppendInt (struct R_CSTL_StringBuilder* pBuilder, int value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1520,7 +1520,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppendLong (R_CSTL_StringBuilder* pBuilder, long long value)
+R_CSTL_StringBuilderAppendLong (struct R_CSTL_StringBuilder* pBuilder, long long value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1534,7 +1534,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppendDouble (R_CSTL_StringBuilder* pBuilder, double value)
+R_CSTL_StringBuilderAppendDouble (struct R_CSTL_StringBuilder* pBuilder, double value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1549,7 +1549,7 @@ cstl_fail:
 #define R_CSTL_STRING_BOOL_STR(b) (b ? "true" : "false")
 
 int
-R_CSTL_StringBuilderAppendBool (R_CSTL_StringBuilder* pBuilder, bool value)
+R_CSTL_StringBuilderAppendBool (struct R_CSTL_StringBuilder* pBuilder, bool value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1565,7 +1565,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderAppendRepeat (R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count)
+R_CSTL_StringBuilderAppendRepeat (struct R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pData || count == 0)
@@ -1591,7 +1591,7 @@ R_CSTL_StringBuilderAppendRepeat (R_CSTL_StringBuilder* pBuilder, const char* pD
 }
 
 R_CSTL_API int
-R_CSTL_StringBuilderAppendf (R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...)
+R_CSTL_StringBuilderAppendf (struct R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1630,7 +1630,7 @@ cstl_fail:
 }
 
 void
-R_CSTL_StringBuilderClear (R_CSTL_StringBuilder* pBuilder)
+R_CSTL_StringBuilderClear (struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1643,7 +1643,7 @@ R_CSTL_StringBuilderClear (R_CSTL_StringBuilder* pBuilder)
 
 int
 R_CSTL_StringBuilderInsert (
-    R_CSTL_StringBuilder*       pBuilder,
+    struct R_CSTL_StringBuilder*       pBuilder,
     size_t                      offset,
     const struct R_CSTL_String* pString)
 {
@@ -1657,7 +1657,7 @@ R_CSTL_StringBuilderInsert (
 }
 
 int
-R_CSTL_StringBuilderEmplaceInsert (R_CSTL_StringBuilder* pBuilder, size_t offset, const char* pCString)
+R_CSTL_StringBuilderEmplaceInsert (struct R_CSTL_StringBuilder* pBuilder, size_t offset, const char* pCString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pCString)
@@ -1687,7 +1687,7 @@ R_CSTL_StringBuilderEmplaceInsert (R_CSTL_StringBuilder* pBuilder, size_t offset
 }
 
 int
-R_CSTL_StringBuilderInsertChar (R_CSTL_StringBuilder* pBuilder, size_t offset, char value)
+R_CSTL_StringBuilderInsertChar (struct R_CSTL_StringBuilder* pBuilder, size_t offset, char value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1714,7 +1714,7 @@ R_CSTL_StringBuilderInsertChar (R_CSTL_StringBuilder* pBuilder, size_t offset, c
 }
 
 int
-R_CSTL_StringBuilderDelete (R_CSTL_StringBuilder* pBuilder, size_t start, size_t end)
+R_CSTL_StringBuilderDelete (struct R_CSTL_StringBuilder* pBuilder, size_t start, size_t end)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1733,7 +1733,7 @@ R_CSTL_StringBuilderDelete (R_CSTL_StringBuilder* pBuilder, size_t start, size_t
 }
 
 int
-R_CSTL_StringBuilderDeleteCharAt (R_CSTL_StringBuilder* pBuilder, size_t index)
+R_CSTL_StringBuilderDeleteCharAt (struct R_CSTL_StringBuilder* pBuilder, size_t index)
 {
 
 #if defined(R_CSTL_HEAP_DEBUG)
@@ -1749,7 +1749,7 @@ cstl_fail:
 
 int
 R_CSTL_StringBuilderReplace (
-    R_CSTL_StringBuilder*       pBuilder,
+    struct R_CSTL_StringBuilder*       pBuilder,
     size_t                      start,
     size_t                      end,
     const struct R_CSTL_String* pString)
@@ -1763,7 +1763,7 @@ R_CSTL_StringBuilderReplace (
 
 int
 R_CSTL_StringBuilderEmplaceReplace (
-    R_CSTL_StringBuilder* pBuilder,
+    struct R_CSTL_StringBuilder* pBuilder,
     size_t                start,
     size_t                end,
     const char*           pString)
@@ -1811,7 +1811,7 @@ R_CSTL_StringBuilderEmplaceReplace (
 }
 
 int
-R_CSTL_StringBuilderSetCharAt (R_CSTL_StringBuilder* pBuilder, size_t index, char value)
+R_CSTL_StringBuilderSetCharAt (struct R_CSTL_StringBuilder* pBuilder, size_t index, char value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || index >= pBuilder->length)
@@ -1826,7 +1826,7 @@ cstl_fail:
 }
 
 int
-R_CSTL_StringBuilderSetLength (R_CSTL_StringBuilder* pBuilder, size_t newLength)
+R_CSTL_StringBuilderSetLength (struct R_CSTL_StringBuilder* pBuilder, size_t newLength)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1854,7 +1854,7 @@ R_CSTL_StringBuilderSetLength (R_CSTL_StringBuilder* pBuilder, size_t newLength)
 }
 
 int
-R_CSTL_StringBuilderReverse (R_CSTL_StringBuilder* pBuilder)
+R_CSTL_StringBuilderReverse (struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1865,7 +1865,7 @@ R_CSTL_StringBuilderReverse (R_CSTL_StringBuilder* pBuilder)
 }
 
 struct R_CSTL_String*
-R_CSTL_StringBuilderToString (const R_CSTL_StringBuilder* pBuilder)
+R_CSTL_StringBuilderToString (const struct R_CSTL_StringBuilder* pBuilder)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)

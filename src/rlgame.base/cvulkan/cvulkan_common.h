@@ -58,6 +58,7 @@ enum R_CVulkan_Error
         R_CVULKAN_ERROR_DEVICE_LOST = -34, /**< Device lost, must exit immediately */
         R_CVULKAN_ERROR_SURFACE_LOST = -35, /**< Surface lost, needs recreation */
         R_CVULKAN_ERROR_OUT_OF_DATE_KHR = -36, /**< Out of date (window resize) */
+        R_CVULKAN_ERROR_FEATURE_NOT_PRESENT = -37, /**< Required feature not present */
         R_CVULKAN_ERROR_UNKNOWN = -99 /**< Unknown error */
 };
 

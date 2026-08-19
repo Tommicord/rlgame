@@ -10,6 +10,20 @@
 struct R_CVulkan_Device;
 
 /**
+ * @brief Configuration parameters for framebuffer creation
+ */
+struct R_CVulkan_FramebufferCreateInfo
+{
+                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+                VkRenderPass                   pRenderPass; /**< Render pass to use with this framebuffer */
+                const VkImageView*             pAttachments; /**< Array of image view attachments */
+                uint32_t                       attachmentCount; /**< Number of attachments */
+                uint32_t                       width; /**< Framebuffer width */
+                uint32_t                       height; /**< Framebuffer height */
+                uint32_t                       layers; /**< Framebuffer layers */
+};
+
+/**
  * @brief Safe wrapper for VkFramebuffer
  */
 struct R_CVulkan_Framebuffer
@@ -25,25 +39,13 @@ struct R_CVulkan_Framebuffer
 
 /**
  * @brief Initialize a framebuffer
- * @param framebuffer Pointer to framebuffer to initialize
- * @param device R_CVulkan device wrapper
- * @param renderPass Render pass to use with this framebuffer
- * @param pAttachments Array of image view pAttachments
- * @param attachmentCount Number of attachments
- * @param width Framebuffer width
- * @param height Framebuffer height
- * @param layers Framebuffer layers
+ * @param pFramebuffer Pointer to framebuffer to initialize
+ * @param pCreateInfo Framebuffer creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewFramebuffer (
-    struct R_CVulkan_Framebuffer*  pFramebuffer,
-    const struct R_CVulkan_Device* pDevice,
-    VkRenderPass                   pRenderPass,
-    const VkImageView*             pAttachments,
-    uint32_t                       attachmentCount,
-    uint32_t                       width,
-    uint32_t                       height,
-    uint32_t                       layers);
+    struct R_CVulkan_Framebuffer*           pFramebuffer,
+    const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a framebuffer and destroy the Vulkan object

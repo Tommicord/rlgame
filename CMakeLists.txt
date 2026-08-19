@@ -150,6 +150,8 @@ file(GLOB_RECURSE CSTL_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
 file(GLOB_RECURSE CSTL_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
 file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
 file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
+file(GLOB_RECURSE GAME_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
+file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
 
 add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
 
@@ -200,6 +202,44 @@ if (UNIX AND NOT APPLE)
   target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
 endif()
 # target_add_renderdoc(rlgame.base.cvulkan)
+
+add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
+
+set_target_properties(
+  rlgame.base.game
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+)
+
+target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+target_compile_definitions(rlgame.base.game PRIVATE GAME_CVULKAN_BUILDING_DLL)
+
+target_include_directories(
+  rlgame.base.game
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_BINARY_DIR}/.shader
+)
+
+target_link_libraries(
+  rlgame.base.game
+  PUBLIC
+  rlgame.base.cvulkan
+  rlgame.base.cstl
+)
+
+if (APPLE)
+  find_package(MoltenVK QUIET)
+  if (MoltenVK_FOUND)
+    target_link_libraries(rlgame.base.game PUBLIC MoltenVK::MoltenVK)
+    target_compile_definitions(rlgame.base.game PUBLIC VK_USE_PLATFORM_METAL_EXT)
+  endif()
+endif()
 
 set(MAIN_SOURCE src/rlgame.base/main.c)
 if(NOT WIN32)

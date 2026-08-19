@@ -10,6 +10,43 @@
 struct R_CVulkan_Device;
 
 /**
+ * @brief Configuration parameters for pipeline layout creation
+ */
+struct R_CVulkan_PipelineLayoutCreateInfo
+{
+                const struct R_CVulkan_Device*   pDevice; /**< R_CVulkan device wrapper */
+                const VkDescriptorSetLayout*     pSetLayouts; /**< Array of descriptor set layouts */
+                uint32_t                         setLayoutCount; /**< Number of descriptor set layouts */
+                const VkPushConstantRange*       pPushConstantRanges; /**< Array of push constant ranges */
+                uint32_t                         pushConstantRangeCount; /**< Number of push constant ranges */
+};
+
+/**
+ * @brief Configuration parameters for graphics pipeline creation
+ */
+struct R_CVulkan_GraphicsPipelineCreateInfo
+{
+                const struct R_CVulkan_Device*                pDevice; /**< R_CVulkan device wrapper */
+                VkPipelineLayout                              pipelineLayout; /**< Pipeline layout */
+                VkRenderPass                                  pRenderPass; /**< Render pass (VK_NULL_HANDLE for dynamic rendering) */
+                const VkPipelineShaderStageCreateInfo*        pStages; /**< Shader stages */
+                uint32_t                                      stageCount; /**< Number of shader stages */
+                const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo; /**< Vertex input state */
+                const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyInfo; /**< Input assembly state */
+                const VkPipelineViewportStateCreateInfo*      pViewportInfo; /**< Viewport state */
+                const VkPipelineRasterizationStateCreateInfo* pRasterizationInfo; /**< Rasterization state */
+                const VkPipelineMultisampleStateCreateInfo*   pMultisampleInfo; /**< Multisample state */
+                const VkPipelineDepthStencilStateCreateInfo*  pDepthStencilInfo; /**< Depth stencil state */
+                const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo; /**< Color blend state */
+                const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo; /**< Dynamic state */
+                uint32_t                                      subpass; /**< Subpass index */
+                uint32_t                                      colorAttachmentCount; /**< Number of color attachments for dynamic rendering */
+                VkFormat*                                     pColorAttachmentFormats; /**< Color attachment formats for dynamic rendering */
+                VkFormat                                      depthAttachmentFormat; /**< Depth attachment format for dynamic rendering */
+                VkFormat                                      stencilAttachmentFormat; /**< Stencil attachment format for dynamic rendering */
+};
+
+/**
  * @brief Safe wrapper for VkPipelineLayout
  */
 struct R_CVulkan_PipelineLayout
@@ -32,20 +69,12 @@ struct R_CVulkan_Pipeline
 /**
  * @brief Initialize a pipeline layout
  * @param pLayout Pointer to layout to initialize
- * @param pDevice R_CVulkan device wrapper
- * @param pSetLayouts Array of descriptor set layouts
- * @param setLayoutCount Number of descriptor set layouts
- * @param pPushConstantRanges Array of push constant ranges (can be NULL)
- * @param pushConstantRangeCount Number of push constant ranges (can be 0)
+ * @param pCreateInfo Pipeline layout creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout* pLayout,
-    const struct R_CVulkan_Device*   pDevice,
-    const VkDescriptorSetLayout*     pSetLayouts,
-    uint32_t                         setLayoutCount,
-    const VkPushConstantRange*       pPushConstantRanges,
-    uint32_t                         pushConstantRangeCount);
+    struct R_CVulkan_PipelineLayout*             pLayout,
+    const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a pipeline layout and destroy the Vulkan object
@@ -56,38 +85,22 @@ R_CVULKAN_API void R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayo
 /**
  * @brief Initialize a graphics pipeline
  * @param pPipeline Pointer to pipeline to initialize
- * @param pDevice R_CVulkan device wrapper
- * @param pipelineLayout Pipeline layout
- * @param pRenderPass Render pass
- * @param pStages Array of shader stages
- * @param stageCount Number of shader stages
- * @param pVertexInputInfo Vertex input state
- * @param pInputAssemblyInfo Input assembly state
- * @param pViewportInfo Viewport state
- * @param pRasterizationInfo Rasterization state
- * @param pMultisampleInfo Multisample state
- * @param pDepthStencilInfo Depth stencil state (can be NULL)
- * @param pColorBlendInfo Color blend state
- * @param pDynamicStateInfo Dynamic state (can be NULL)
- * @param subpass Subpass index
+ * @param pCreateInfo Graphics pipeline creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewGraphicsPipeline (
-    struct R_CVulkan_Pipeline*                    pPipeline,
-    const struct R_CVulkan_Device*                pDevice,
-    VkPipelineLayout                              pipelineLayout,
-    VkRenderPass                                  pRenderPass,
-    const VkPipelineShaderStageCreateInfo*        pStages,
-    uint32_t                                      stageCount,
-    const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo,
-    const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyInfo,
-    const VkPipelineViewportStateCreateInfo*      pViewportInfo,
-    const VkPipelineRasterizationStateCreateInfo* pRasterizationInfo,
-    const VkPipelineMultisampleStateCreateInfo*   pMultisampleInfo,
-    const VkPipelineDepthStencilStateCreateInfo*  pDepthStencilInfo,
-    const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo,
-    const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo,
-    uint32_t                                      subpass);
+    struct R_CVulkan_Pipeline*                         pPipeline,
+    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
+
+/**
+ * @brief Initialize a graphics pipeline with dynamic rendering enabled
+ * @param pPipeline Pointer to pipeline to initialize
+ * @param pCreateInfo Graphics pipeline creation parameters
+ * @return R_CVULKAN_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDynamicGraphicsPipeline (
+    struct R_CVulkan_Pipeline*                         pPipeline,
+    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
 
 /**
  * @brief Initialize a compute pipeline

@@ -7,52 +7,48 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewImageView (
-    struct R_CVulkan_ImageView*    imageView,
-    const struct R_CVulkan_Device* device,
-    VkImage                        image,
-    VkImageViewType                viewType,
-    VkFormat                       format,
-    VkComponentMapping             components,
-    VkImageSubresourceRange        subresourceRange)
+    struct R_CVulkan_ImageView*             pImageView,
+    const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (imageView);
-        R_CVULKAN_ASSERT (device);
-        R_CVULKAN_ASSERT (image != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pImageView);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo->image != VK_NULL_HANDLE);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!imageView || !device || image == VK_NULL_HANDLE)
+        if (!pImageView || !pCreateInfo || !pCreateInfo->pDevice || pCreateInfo->image == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        if (!R_CVulkan_DeviceIsInitialized (device))
+        if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
-        imageView->device = R_CVulkan_DeviceGetLogicalDevice (device);
-        imageView->handle = VK_NULL_HANDLE;
-        imageView->image = image;
-        imageView->format = format;
+        pImageView->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+        pImageView->handle = VK_NULL_HANDLE;
+        pImageView->image = pCreateInfo->image;
+        pImageView->format = pCreateInfo->format;
 #if defined(R_CVULKAN_DEBUG)
-        imageView->isInitialized = false;
+        pImageView->isInitialized = false;
 #endif
 
         VkImageViewCreateInfo viewInfo = {0};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = image;
-        viewInfo.viewType = viewType;
-        viewInfo.format = format;
-        viewInfo.components = components;
-        viewInfo.subresourceRange = subresourceRange;
+        viewInfo.image = pCreateInfo->image;
+        viewInfo.viewType = pCreateInfo->viewType;
+        viewInfo.format = pCreateInfo->format;
+        viewInfo.components = pCreateInfo->components;
+        viewInfo.subresourceRange = pCreateInfo->subresourceRange;
 
-        VkResult result = vkCreateImageView (imageView->device, &viewInfo, NULL, &imageView->handle);
+        VkResult result = vkCreateImageView (pImageView->device, &viewInfo, NULL, &pImageView->handle);
         if (result != VK_SUCCESS)
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        imageView->isInitialized = true;
+        pImageView->isInitialized = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -79,40 +75,49 @@ R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* imageView)
 }
 
 VkImageView
-R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* imageView)
+R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* pImageView)
 {
-        return imageView ? imageView->handle : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImageView != NULL);
+#endif  
+        return pImageView->handle;
 }
 
 VkDevice
-R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* imageView)
+R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* pImageView)
 {
-        return imageView ? imageView->device : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImageView != NULL);
+#endif  
+        return pImageView->device;
 }
 
 VkImage
-R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* imageView)
+R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* pImageView)
 {
-        return imageView ? imageView->image : VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        R_CVULKAN_ASSERT (pImageView != NULL);
+#endif  
+        return pImageView->image;
 }
 
 VkFormat
-R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* imageView)
+R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return imageView ? imageView->isInitialized : 0;
-#else
-        return imageView ? imageView->format : VK_FORMAT_UNDEFINED;
+        R_CVULKAN_ASSERT (pImageView != NULL);
 #endif
+        return pImageView->format;
 }
 
 int
-R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* imageView)
+R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return imageView ? imageView->isInitialized : 0;
+        R_CVULKAN_ASSERT (pImageView != NULL);
+        return pImageView->isInitialized;
 #else
-        (void)imageView;
+        (void)pImageView;
         return 1;
 #endif
 }

@@ -11,7 +11,7 @@
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-typedef struct R_CSTL_Array R_CSTL_Array;
+struct R_CSTL_Array;
 
 /**
  * @brief Create an empty array

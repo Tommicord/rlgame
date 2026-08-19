@@ -22,6 +22,63 @@ struct R_CVulkan_CommandBuffer
 };
 
 /**
+ * @brief Configuration parameters for pipeline barrier
+ */
+struct R_CVulkan_PipelineBarrierInfo
+{
+                VkPipelineStageFlags            srcStageMask; /**< Source stage mask */
+                VkPipelineStageFlags            dstStageMask; /**< Destination stage mask */
+                VkDependencyFlags               dependencyFlags; /**< Dependency flags */
+                uint32_t                        memoryBarrierCount; /**< Number of memory barriers */
+                const VkMemoryBarrier*          pMemoryBarriers; /**< Array of memory barriers */
+                uint32_t                        bufferMemoryBarrierCount; /**< Number of buffer memory barriers */
+                const VkBufferMemoryBarrier*    pBufferMemoryBarriers; /**< Array of buffer memory barriers */
+                uint32_t                        imageMemoryBarrierCount; /**< Number of image memory barriers */
+                const VkImageMemoryBarrier*     pImageMemoryBarriers; /**< Array of image memory barriers */
+};
+
+/**
+ * @brief Configuration parameters for beginning a render pass
+ */
+struct R_CVulkan_RenderPassBeginInfo
+{
+                VkRenderPass                    renderPass; /**< Render pass */
+                VkFramebuffer                   framebuffer; /**< Framebuffer */
+                const VkRect2D*                 pRenderArea; /**< Render area */
+                VkSubpassContents               contents; /**< Render pass contents */
+                uint32_t                        clearValueCount; /**< Number of clear values */
+                const VkClearValue*             pClearValues; /**< Array of clear values */
+};
+
+/**
+ * @brief Configuration for a single dynamic rendering attachment
+ */
+struct R_CVulkan_DynamicRenderingAttachmentInfo
+{
+                VkImageView                    imageView; /**< Image view for the attachment */
+                VkImageLayout                 imageLayout; /**< Layout of the image during rendering */
+                VkResolveModeFlagBits         resolveMode; /**< Resolve mode for MSAA attachments */
+                VkImageView                    resolveImageView; /**< Resolve image view for MSAA */
+                VkImageLayout                 resolveImageLayout; /**< Layout of resolve image */
+                VkAttachmentLoadOp            loadOp; /**< Load operation for the attachment */
+                VkAttachmentStoreOp           storeOp; /**< Store operation for the attachment */
+                VkClearValue                  clearValue; /**< Clear value for load op VK_ATTACHMENT_LOAD_OP_CLEAR */
+};
+
+/**
+ * @brief Configuration parameters for dynamic rendering
+ */
+struct R_CVulkan_DynamicRenderingInfo
+{
+                uint32_t                                    viewMask; /**< View mask for multiview rendering */
+                uint32_t                                    colorAttachmentCount; /**< Number of color attachments */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pColorAttachments; /**< Array of color attachments */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pDepthAttachment; /**< Depth attachment (can be NULL) */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pStencilAttachment; /**< Stencil attachment (can be NULL) */
+                VkRenderingFlagBitsKHR                       flags; /**< Rendering flags */
+};
+
+/**
  * @brief Initialize a command buffer
  * @param pCommandBuffer Pointer to command buffer to initialize
  * @param pDevice R_CVulkan device wrapper
@@ -306,50 +363,32 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferCopyImageToBuffer (
 /**
  * @brief Pipeline barrier
  * @param pCommandBuffer Pointer to command buffer
- * @param srcStageMask Source stage mask
- * @param dstStageMask Destination stage mask
- * @param srcAccessMask Source access mask
- * @param dstAccessMask Destination access mask
- * @param dependencyFlags Dependency flags
- * @param memoryBarrierCount Number of memory barriers
- * @param pMemoryBarriers Array of memory barriers
- * @param bufferMemoryBarrierCount Number of buffer memory barriers
- * @param pBufferMemoryBarriers Array of buffer memory barriers
- * @param imageMemoryBarrierCount Number of image memory barriers
- * @param pImageMemoryBarriers Array of image memory barriers
+ * @param pBarrierInfo Pipeline barrier parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferPipelineBarrier (
-    struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    VkPipelineStageFlags            srcStageMask,
-    VkPipelineStageFlags            dstStageMask,
-    VkDependencyFlags               dependencyFlags,
-    uint32_t                        memoryBarrierCount,
-    const VkMemoryBarrier*          pMemoryBarriers,
-    uint32_t                        bufferMemoryBarrierCount,
-    const VkBufferMemoryBarrier*    pBufferMemoryBarriers,
-    uint32_t                        imageMemoryBarrierCount,
-    const VkImageMemoryBarrier*     pImageMemoryBarriers);
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo);
 
 /**
  * @brief Begin render pass
  * @param pCommandBuffer Pointer to command buffer
- * @param renderPass Render pass
- * @param framebuffer Framebuffer
- * @param pRenderArea Render area
- * @param contents Render pass contents
- * @param clearValueCount Number of clear values
- * @param pClearValues Array of clear values
+ * @param pRenderPassInfo Render pass begin parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
-    struct R_CVulkan_CommandBuffer* pCommandBuffer,
-    VkRenderPass                    renderPass,
-    VkFramebuffer                   framebuffer,
-    const VkRect2D*                 pRenderArea,
-    VkSubpassContents               contents,
-    uint32_t                        clearValueCount,
-    const VkClearValue*             pClearValues);
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo);
+
+/**
+ * @brief Begin dynamic rendering
+ * @param pCommandBuffer Pointer to command buffer
+ * @param pRenderingInfo Dynamic rendering parameters
+ * @return R_CVULKAN_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRendering (
+    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo);
 
 /**
  * @brief End render pass
@@ -358,6 +397,14 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
  */
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer);
+
+/**
+ * @brief End dynamic rendering
+ * @param pCommandBuffer Pointer to command buffer
+ * @return R_CVULKAN_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Next subpass

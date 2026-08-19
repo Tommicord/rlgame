@@ -235,7 +235,7 @@ cstl_fail:
 R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_ArrayCreateShell (void)
 {
-        struct R_CSTL_Array* pArray = (struct R_CSTL_Array*)R_CSTL_HeapAlloc (sizeof (R_CSTL_Array));
+        struct R_CSTL_Array* pArray = (struct R_CSTL_Array*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Array));
         if (!pArray)
                 return NULL;
         pArray->pData = NULL;

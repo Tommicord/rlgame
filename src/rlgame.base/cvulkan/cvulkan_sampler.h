@@ -10,6 +10,27 @@
 struct R_CVulkan_Device;
 
 /**
+ * @brief Configuration parameters for sampler creation
+ */
+struct R_CVulkan_SamplerCreateInfo
+{
+                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+                VkFilter                       magFilter; /**< Magnification filter */
+                VkFilter                       minFilter; /**< Minification filter */
+                VkSamplerMipmapMode            mipmapMode; /**< Mipmap mode */
+                VkSamplerAddressMode           addressModeU; /**< Address mode for U coordinate */
+                VkSamplerAddressMode           addressModeV; /**< Address mode for V coordinate */
+                VkSamplerAddressMode           addressModeW; /**< Address mode for W coordinate */
+                float                          mipLodBias; /**< Mipmap LOD bias */
+                int                            anisotropyEnable; /**< Whether to enable anisotropic filtering */
+                float                          maxAnisotropy; /**< Maximum anisotropy */
+                float                          minLod; /**< Minimum LOD */
+                float                          maxLod; /**< Maximum LOD */
+                VkBorderColor                  borderColor; /**< Border color (for clamp to border) */
+                int                            unnormalizedCoordinates; /**< Whether to use unnormalized coordinates */
+};
+
+/**
  * @brief Safe wrapper for VkSampler
  */
 struct R_CVulkan_Sampler
@@ -22,38 +43,12 @@ struct R_CVulkan_Sampler
 /**
  * @brief Initialize a sampler
  * @param pSampler Pointer to sampler to initialize
- * @param pDevice R_CVulkan device wrapper
- * @param magFilter Magnification filter
- * @param minFilter Minification filter
- * @param mipmapMode Mipmap mode
- * @param addressModeU Address mode for U coordinate
- * @param addressModeV Address mode for V coordinate
- * @param addressModeW Address mode for W coordinate
- * @param mipLodBias Mipmap LOD bias
- * @param anisotropyEnable Whether to enable anisotropic filtering
- * @param maxAnisotropy Maximum anisotropy
- * @param minLod Minimum LOD
- * @param maxLod Maximum LOD
- * @param borderColor Border color (for clamp to border)
- * @param unnormalizedCoordinates Whether to use unnormalized coordinates
+ * @param pCreateInfo Sampler creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSampler (
-    struct R_CVulkan_Sampler*      pSampler,
-    const struct R_CVulkan_Device* pDevice,
-    VkFilter                       magFilter,
-    VkFilter                       minFilter,
-    VkSamplerMipmapMode            mipmapMode,
-    VkSamplerAddressMode           addressModeU,
-    VkSamplerAddressMode           addressModeV,
-    VkSamplerAddressMode           addressModeW,
-    float                          mipLodBias,
-    int                            anisotropyEnable,
-    float                          maxAnisotropy,
-    float                          minLod,
-    float                          maxLod,
-    VkBorderColor                  borderColor,
-    int                            unnormalizedCoordinates);
+    struct R_CVulkan_Sampler*             pSampler,
+    const struct R_CVulkan_SamplerCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a sampler and destroy the Vulkan object
