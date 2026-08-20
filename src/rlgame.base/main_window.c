@@ -1,5 +1,6 @@
 #include "rlgame.base/main_window.h"
 #include "rlgame.base/main.h"
+#include "rlgame.base/main_platform.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_log.h"
@@ -8,20 +9,16 @@
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
 
-static HWND g_hwnd = NULL;
+static R_WIN32_HWND g_hwnd = NULL;
 
-/**
- * @brief Gets the global window handle
- * @return Current window handle (may be NULL)
- */
-HWND
+R_ENTRY_API HWND
 R_GetWindowHandle (void)
 {
         return g_hwnd;
 }
 
 LRESULT CALLBACK
-WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+R_WindowProc (R_WIN32_HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
         switch (uMsg)
         {
@@ -33,22 +30,12 @@ WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 PostQuitMessage (0);
                 return 0;
         default:
-                return DefWindowProcW (hwnd, uMsg, wParam, lParam);
+                return DefWindowProcA (hwnd, uMsg, wParam, lParam);
         }
 }
 
-void
-R_UnicodeFromString (const char* pInput, wchar_t** ppOut)
-{
-        int wideLen = MultiByteToWideChar (CP_UTF8, 0, pInput, -1, NULL, 0);
-        if (wideLen == 0) return;
-        *ppOut = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
-        if (*ppOut == NULL) return;
-        MultiByteToWideChar (CP_UTF8, 0, pInput, -1, *ppOut, wideLen);
-}
-
-void
-R_WindowCenter (HWND hwnd)
+R_ENTRY_API void
+R_WindowCenter (R_WIN32_HWND hwnd)
 {
         RECT rc;
         GetWindowRect (hwnd, &rc);
@@ -68,25 +55,23 @@ R_WindowCenter (HWND hwnd)
         }
 }
 
-int
-R_InitWinMain (HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow)
+R_ENTRY_API int
+R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow)
 {
-        const wchar_t CLASS_NAME[] = L"GameWindowClass";
-        WNDCLASSW     wc = {0};
-        wc.lpfnWndProc = WindowProc;
+        const char* CLASS_NAME = "GameWindowClass";
+        WNDCLASSA     wc = {0};
+        wc.lpfnWndProc = R_WindowProc;
         wc.hInstance = hInstance;
         wc.lpszClassName = CLASS_NAME;
-        if (!RegisterClassW (&wc)) goto r_fail_init;
+        if (!RegisterClassA (&wc)) goto r_fail_init;
         if (!pApplicationInfo) goto r_fail_init;
+
         const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
-        if (!pAppName) goto r_fail_init;
-        wchar_t* pWideAppName = NULL;
-        R_UnicodeFromString (pAppName, &pWideAppName);
-        if (!pWideAppName) goto r_fail_init;
-        HWND hwnd = CreateWindowExW (
+
+        HWND hwnd = CreateWindowExA (
             0,
             CLASS_NAME,
-            pWideAppName,
+            pAppName,
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -97,7 +82,6 @@ R_InitWinMain (HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, 
             hInstance,
             NULL);
         R_WindowCenter (hwnd);
-        R_CSTL_HeapFree (pWideAppName);
         if (!hwnd) goto r_fail_init;
         ShowWindow (hwnd, nCmdShow);
         return 1;
@@ -106,18 +90,18 @@ r_fail_init:
         return 0;
 }
 
-void
-R_WindowSetFullscreen (HWND hwnd, bool fullscreen)
+R_ENTRY_API void
+R_WindowSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen)
 {
         if (!hwnd) return;
 
-        static WINDOWPLACEMENT g_wpPrev = {sizeof (WINDOWPLACEMENT)};
+        static WINDOWPLACEMENT wpPrev = {sizeof (WINDOWPLACEMENT)};
         DWORD                  dwStyle = GetWindowLong (hwnd, GWL_STYLE);
 
         if (fullscreen)
         {
                 MONITORINFO mi = {sizeof (MONITORINFO)};
-                if (GetWindowPlacement (hwnd, &g_wpPrev)
+                if (GetWindowPlacement (hwnd, &wpPrev)
                     && GetMonitorInfo (MonitorFromWindow (hwnd, MONITOR_DEFAULTTONEAREST), &mi))
                 {
                         SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
@@ -134,7 +118,7 @@ R_WindowSetFullscreen (HWND hwnd, bool fullscreen)
         else
         {
                 SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
-                SetWindowPlacement (hwnd, &g_wpPrev);
+                SetWindowPlacement (hwnd, &wpPrev);
                 SetWindowPos (
                     hwnd,
                     NULL,
@@ -146,11 +130,10 @@ R_WindowSetFullscreen (HWND hwnd, bool fullscreen)
         }
 }
 
-void
-R_WindowSetBorderless (HWND hwnd, bool borderless)
+R_ENTRY_API void
+R_WindowSetBorderless (R_WIN32_HWND hwnd, bool borderless)
 {
         if (!hwnd) return;
-
         DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
         if (borderless)
         {
@@ -166,11 +149,10 @@ R_WindowSetBorderless (HWND hwnd, bool borderless)
         SetWindowPos (hwnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
-void
-R_WindowSetResizable (HWND hwnd, bool resizable)
+R_ENTRY_API void
+R_WindowSetResizable (R_WIN32_HWND hwnd, bool resizable)
 {
         if (!hwnd) return;
-
         DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
         if (resizable)
         {
@@ -183,38 +165,38 @@ R_WindowSetResizable (HWND hwnd, bool resizable)
         SetWindowPos (hwnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
-void
-R_WindowMinimize (HWND hwnd)
+R_ENTRY_API void
+R_WindowMinimize (R_WIN32_HWND hwnd)
 {
         if (hwnd) ShowWindow (hwnd, SW_MINIMIZE);
 }
 
-void
-R_WindowMaximize (HWND hwnd)
+R_ENTRY_API void
+R_WindowMaximize (R_WIN32_HWND hwnd)
 {
         if (hwnd) ShowWindow (hwnd, SW_MAXIMIZE);
 }
 
-void
-R_WindowRestore (HWND hwnd)
+R_ENTRY_API void
+R_WindowRestore (R_WIN32_HWND hwnd)
 {
         if (hwnd) ShowWindow (hwnd, SW_RESTORE);
 }
 
-void
-R_WindowHide (HWND hwnd)
+R_ENTRY_API void
+R_WindowHide (R_WIN32_HWND hwnd)
 {
         if (hwnd) ShowWindow (hwnd, SW_HIDE);
 }
 
-void
-R_WindowShow (HWND hwnd)
+R_ENTRY_API void
+R_WindowShow (R_WIN32_HWND hwnd)
 {
         if (hwnd) ShowWindow (hwnd, SW_SHOW);
 }
 
-void
-R_WindowGetClientSize (HWND hwnd, int* pWidth, int* pHeight)
+R_ENTRY_API void
+R_WindowGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 {
         if (!hwnd)
         {
@@ -236,8 +218,8 @@ R_WindowGetClientSize (HWND hwnd, int* pWidth, int* pHeight)
         }
 }
 
-void
-R_WindowGetWindowSize (HWND hwnd, int* pWidth, int* pHeight)
+R_ENTRY_API void
+R_WindowGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 {
         if (!hwnd)
         {
@@ -259,8 +241,8 @@ R_WindowGetWindowSize (HWND hwnd, int* pWidth, int* pHeight)
         }
 }
 
-void
-R_WindowGetPosition (HWND hwnd, int* pX, int* pY)
+R_ENTRY_API void
+R_WindowGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY)
 {
         if (!hwnd)
         {
@@ -282,34 +264,27 @@ R_WindowGetPosition (HWND hwnd, int* pX, int* pY)
         }
 }
 
-void
-R_WindowSetPosition (HWND hwnd, int x, int y)
+R_ENTRY_API void
+R_WindowSetPosition (R_WIN32_HWND hwnd, int x, int y)
 {
         if (hwnd) SetWindowPos (hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
-void
-R_WindowSetSize (HWND hwnd, int width, int height)
+R_ENTRY_API void
+R_WindowSetSize (R_WIN32_HWND hwnd, int width, int height)
 {
         if (hwnd) SetWindowPos (hwnd, NULL, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
 }
 
-void
-R_WindowSetTitle (HWND hwnd, const char* pTitle)
+R_ENTRY_API void
+R_WindowSetTitle (R_WIN32_HWND hwnd, const char* pTitle)
 {
         if (!hwnd || !pTitle) return;
-
-        wchar_t* pWideTitle = NULL;
-        R_UnicodeFromString (pTitle, &pWideTitle);
-        if (pWideTitle)
-        {
-                SetWindowTextW (hwnd, pWideTitle);
-                R_CSTL_HeapFree (pWideTitle);
-        }
+        SetWindowTextA (hwnd, pTitle);
 }
 
-bool
-R_WindowIsFullscreen (HWND hwnd)
+R_ENTRY_API bool
+R_WindowIsFullscreen (R_WIN32_HWND hwnd)
 {
         if (!hwnd) return false;
 
@@ -324,28 +299,26 @@ R_WindowIsFullscreen (HWND hwnd)
         return false;
 }
 
-bool
-R_WindowIsMinimized (HWND hwnd)
+R_ENTRY_API bool
+R_WindowIsMinimized (R_WIN32_HWND hwnd)
 {
         if (!hwnd) return false;
         return IsIconic (hwnd) != 0;
 }
 
-bool
-R_WindowIsMaximized (HWND hwnd)
+R_ENTRY_API bool
+R_WindowIsMaximized (R_WIN32_HWND hwnd)
 {
         if (!hwnd) return false;
         return IsZoomed (hwnd) != 0;
 }
 
-bool
-R_WindowIsVisible (HWND hwnd)
+R_ENTRY_API bool
+R_WindowIsVisible (R_WIN32_HWND hwnd)
 {
         if (!hwnd) return false;
         return IsWindowVisible (hwnd) != 0;
 }
-
-#endif // defined(_WIN32)
 
 #elif defined(__linux__)
 
@@ -357,6 +330,7 @@ R_WindowIsVisible (HWND hwnd)
 
 #include <wayland-client.h>
 #include <xdg-shell.h>
+#include <string.h>
 
 struct R_WaylandWindowState
 {
@@ -466,24 +440,21 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         if (!state)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to allocate state");
-                return NULL;
+                goto r_cleanup_none;
         }
 
         state->display = wl_display_connect (NULL);
         if (!state->display)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to connect to Wayland display");
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_state;
         }
 
         state->registry = wl_display_get_registry (state->display);
         if (!state->registry)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to get registry");
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_displayr;
         }
 
         wl_registry_add_listener (state->registry, &registry_listener, state);
@@ -492,20 +463,13 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         if (!state->compositor)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to bind compositor");
-                wl_registry_destroy (state->registry);
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_registry;
         }
 
         if (!state->xdg_wm_base)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to bind XDG WM base");
-                wl_compositor_destroy (state->compositor);
-                wl_registry_destroy (state->registry);
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_compositor;
         }
 
         xdg_wm_base_add_listener (state->xdg_wm_base, &xdg_wm_base_listener, NULL);
@@ -514,25 +478,14 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         if (!state->surface)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to create surface");
-                xdg_wm_base_destroy (state->xdg_wm_base);
-                wl_compositor_destroy (state->compositor);
-                wl_registry_destroy (state->registry);
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_xdg_wm_base;
         }
 
         state->xdg_surface = xdg_wm_base_get_xdg_surface (state->xdg_wm_base, state->surface);
         if (!state->xdg_surface)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to create XDG surface");
-                wl_surface_destroy (state->surface);
-                xdg_wm_base_destroy (state->xdg_wm_base);
-                wl_compositor_destroy (state->compositor);
-                wl_registry_destroy (state->registry);
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_surface;
         }
 
         xdg_surface_add_listener (state->xdg_surface, &xdg_surface_listener, state);
@@ -541,14 +494,7 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         if (!state->xdg_toplevel)
         {
                 R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to create XDG toplevel");
-                xdg_surface_destroy (state->xdg_surface);
-                wl_surface_destroy (state->surface);
-                xdg_wm_base_destroy (state->xdg_wm_base);
-                wl_compositor_destroy (state->compositor);
-                wl_registry_destroy (state->registry);
-                wl_display_disconnect (state->display);
-                R_CSTL_HeapFree (state);
-                return NULL;
+                goto r_cleanup_xdg_surface;
         }
 
         xdg_toplevel_add_listener (state->xdg_toplevel, &xdg_toplevel_listener, state);
@@ -574,16 +520,35 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         g_waylandState = state;
         R_CSTL_LOG_INFO ("R_InitWaylandWindow: Wayland window initialized successfully");
         return (R_WaylandWindow)state;
+
+r_cleanup_xdg_toplevel:
+        xdg_surface_destroy (state->xdg_surface);
+r_cleanup_xdg_surface:
+        wl_surface_destroy (state->surface);
+r_cleanup_surface:
+        xdg_wm_base_destroy (state->xdg_wm_base);
+r_cleanup_xdg_wm_base:
+        wl_compositor_destroy (state->compositor);
+r_cleanup_compositor:
+        wl_registry_destroy (state->registry);
+r_cleanup_registry:
+        wl_display_disconnect (state->display);
+r_cleanup_displayr:
+        R_CSTL_HeapFree (state);
+r_cleanup_state:
+        return NULL;
+r_cleanup_none:
+        return NULL;
 }
 
-R_WaylandDisplay
+R_ENTRY_API R_WaylandDisplay
 R_GetWaylandDisplay (void)
 {
         if (g_waylandState) return (R_WaylandDisplay)g_waylandState->display;
         return NULL;
 }
 
-void
+R_ENTRY_API void
 R_WaylandWindowSetFullscreen (R_WaylandWindow window, bool fullscreen)
 {
         struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
@@ -603,7 +568,7 @@ R_WaylandWindowSetFullscreen (R_WaylandWindow window, bool fullscreen)
         }
 }
 
-void
+R_ENTRY_API void
 R_WaylandWindowSetTitle (R_WaylandWindow window, const char* pTitle)
 {
         struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
@@ -616,7 +581,7 @@ R_WaylandWindowSetTitle (R_WaylandWindow window, const char* pTitle)
         xdg_toplevel_set_title (state->xdg_toplevel, pTitle);
 }
 
-void
+R_ENTRY_API void
 R_WaylandWindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
 {
         struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
@@ -631,7 +596,7 @@ R_WaylandWindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
         if (pHeight) *pHeight = state->height;
 }
 
-void
+R_ENTRY_API void
 R_DestroyWaylandWindow (R_WaylandWindow window)
 {
         struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
@@ -658,7 +623,7 @@ R_DestroyWaylandWindow (R_WaylandWindow window)
 
 static ANativeWindow* g_androidWindow = NULL;
 
-bool
+R_ENTRY_API bool
 R_InitAndroidWindow (ANativeWindow* pWindow)
 {
 #if defined(R_DEVMODE)
@@ -671,13 +636,13 @@ R_InitAndroidWindow (ANativeWindow* pWindow)
         return true;
 }
 
-ANativeWindow*
+R_ENTRY_API ANativeWindow*
 R_GetAndroidWindow (void)
 {
         return g_androidWindow;
 }
 
-void
+R_ENTRY_API void
 R_AndroidWindowGetSize (int* pWidth, int* pHeight)
 {
         if (g_androidWindow)
@@ -692,7 +657,7 @@ R_AndroidWindowGetSize (int* pWidth, int* pHeight)
         }
 }
 
-void
+R_ENTRY_API void
 R_DestroyAndroidWindow (void)
 {
 #if defined(R_DEVMODE)

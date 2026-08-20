@@ -156,15 +156,12 @@ function(set_base_include_directories TARGET)
 endfunction()
 
 function(link_base_libraries EXECUTABLE)
-  if(MSVC)
-    target_link_libraries(${EXECUTABLE} PRIVATE rlgame.base.cstl rlgame.base.cvulkan rlgame.base.game)
-  elseif(APPLE)
-    target_link_libraries(${EXECUTABLE} PRIVATE -force_load $<TARGET_FILE:rlgame.base.cstl> -force_load $<TARGET_FILE:rlgame.base.cvulkan>)
-  elseif(UNIX)
-    target_link_libraries(${EXECUTABLE} PRIVATE -Wl,--whole-archive rlgame.base.cstl rlgame.base.cvulkan -Wl,--no-whole-archive)
-  else()
-    target_link_libraries(${EXECUTABLE} PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
-  endif()
+  set(LIBRARIES 
+    rlgame.base.cstl 
+    rlgame.base.cvulkan 
+    rlgame.base.game 
+    rlgame.base.entry)
+  target_link_libraries(${EXECUTABLE} PRIVATE ${LIBRARIES})
 endfunction()
 
 include(FetchContent)
@@ -192,6 +189,9 @@ file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
 file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
 file(GLOB_RECURSE GAME_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
 file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
+file(GLOB         MAIN_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/*.c)
+file(GLOB         MAIN_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/*.h)
+list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 
 add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
 
@@ -231,6 +231,14 @@ target_link_libraries(
   rlgame.base.cstl
 )
 
+add_library(
+  rlgame.base.entry SHARED ${MAIN_SOURCES} ${MAIN_HEADERS}
+)
+set_common_output_directories(rlgame.base.entry)
+set_base_include_directories(rlgame.base.entry)
+target_compile_definitions(rlgame.base.entry PUBLIC R_ENTRY_BUILDING_DLL)
+target_link_libraries(rlgame.base.entry PUBLIC rlgame.base.cstl)
+
 if (APPLE)
   find_package(MoltenVK QUIET)
   if (MoltenVK_FOUND)
@@ -241,7 +249,7 @@ endif()
 
 set(MAIN_SOURCE src/rlgame.base/main.c)
 if(NOT WIN32)
-  add_executable(rlgame ${MAIN_SOURCE})
+  add_executable(rlgame ${MAIN_SOURCES} ${MAIN_HEADERS})
 else()
   add_executable(rlgame WIN32 ${MAIN_SOURCE})
 endif()
@@ -497,5 +505,5 @@ foreach (SHADER IN LISTS SHADERS)
   list(APPEND EMBEDDED_CFILES "${EMBEDDED_CFILE}")
 endforeach ()
 
-target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_HEADERS})
-target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CFILES})
+target_sources(rlgame PRIVATE ${EMBEDDED_HEADERS})
+target_sources(rlgame PRIVATE ${EMBEDDED_CFILES})

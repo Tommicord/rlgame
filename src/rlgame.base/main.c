@@ -363,7 +363,6 @@ R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData)
         };
         R_MainProvider_Run (&provider);
 }
-#if defined(_WIN32)
 static struct R_GameState g_gameState = {0};
 
 static bool
