@@ -63,57 +63,49 @@ typedef struct R_CSTL_LogAtomic
 static void
 R_CSTL_LogMutexInit (R_CSTL_LogMutex* m)
 {
-        if (m)
-                InitializeCriticalSection (m);
+        if (m) InitializeCriticalSection (m);
 }
 
 static void
 R_CSTL_LogMutexLock (R_CSTL_LogMutex* m)
 {
-        if (m)
-                EnterCriticalSection (m);
+        if (m) EnterCriticalSection (m);
 }
 
 static void
 R_CSTL_LogMutexUnlock (R_CSTL_LogMutex* m)
 {
-        if (m)
-                LeaveCriticalSection (m);
+        if (m) LeaveCriticalSection (m);
 }
 
 static void
 R_CSTL_LogMutexDestroy (R_CSTL_LogMutex* m)
 {
-        if (m)
-                DeleteCriticalSection (m);
+        if (m) DeleteCriticalSection (m);
 }
 
 static void
 R_CSTL_LogCondInit (R_CSTL_LogCond* c)
 {
-        if (c)
-                InitializeConditionVariable (c);
+        if (c) InitializeConditionVariable (c);
 }
 
 static void
 R_CSTL_LogCondWait (R_CSTL_LogCond* c, R_CSTL_LogMutex* m)
 {
-        if (c && m)
-                SleepConditionVariableCS (c, m, INFINITE);
+        if (c && m) SleepConditionVariableCS (c, m, INFINITE);
 }
 
 static void
 R_CSTL_LogCondSignal (R_CSTL_LogCond* c)
 {
-        if (c)
-                WakeConditionVariable (c);
+        if (c) WakeConditionVariable (c);
 }
 
 static void
 R_CSTL_LogCondBroadcast (R_CSTL_LogCond* c)
 {
-        if (c)
-                WakeAllConditionVariable (c);
+        if (c) WakeAllConditionVariable (c);
 }
 
 static void
@@ -157,8 +149,7 @@ R_CSTL_LogMonotonicUs (void)
 {
         static LARGE_INTEGER frequency = {0};
         LARGE_INTEGER        counter;
-        if (frequency.QuadPart == 0)
-                QueryPerformanceFrequency (&frequency);
+        if (frequency.QuadPart == 0) QueryPerformanceFrequency (&frequency);
         QueryPerformanceCounter (&counter);
         return (uint64_t)((counter.QuadPart * 1000000) / frequency.QuadPart);
 }
@@ -185,57 +176,49 @@ typedef struct R_CSTL_LogAtomics
 static void
 R_CSTL_LogMutexInit (R_CSTL_LogMutex* m)
 {
-        if (m)
-                pthread_mutex_init (m, NULL);
+        if (m) pthread_mutex_init (m, NULL);
 }
 
 static void
 R_CSTL_LogMutexLock (R_CSTL_LogMutex* m)
 {
-        if (m)
-                pthread_mutex_lock (m);
+        if (m) pthread_mutex_lock (m);
 }
 
 static void
 R_CSTL_LogMutexUnlock (R_CSTL_LogMutex* m)
 {
-        if (m)
-                pthread_mutex_unlock (m);
+        if (m) pthread_mutex_unlock (m);
 }
 
 static void
 R_CSTL_LogMutexDestroy (R_CSTL_LogMutex* m)
 {
-        if (m)
-                pthread_mutex_destroy (m);
+        if (m) pthread_mutex_destroy (m);
 }
 
 static void
 R_CSTL_LogCondInit (R_CSTL_LogCond* c)
 {
-        if (c)
-                pthread_cond_init (c, NULL);
+        if (c) pthread_cond_init (c, NULL);
 }
 
 static void
 R_CSTL_LogCondWait (R_CSTL_LogCond* c, R_CSTL_LogMutex* m)
 {
-        if (c && m)
-                pthread_cond_wait (c, m);
+        if (c && m) pthread_cond_wait (c, m);
 }
 
 static void
 R_CSTL_LogCondSignal (R_CSTL_LogCond* c)
 {
-        if (c)
-                pthread_cond_signal (c);
+        if (c) pthread_cond_signal (c);
 }
 
 static void
 R_CSTL_LogCondBroadcast (R_CSTL_LogCond* c)
 {
-        if (c)
-                pthread_cond_broadcast (c);
+        if (c) pthread_cond_broadcast (c);
 }
 
 static void
@@ -382,8 +365,7 @@ static void
 R_CSTL_LogHeapRelease (char* buf)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!buf)
-                return;
+        if (!buf) return;
 #endif
         R_CSTL_HeapUnregisterAllocation (&g_log, buf);
         R_CSTL_HeapFree (buf);
@@ -393,14 +375,11 @@ static int
 R_CSTL_LogFormatMessage (char* buffer, size_t bufferSize, const char* fmt, va_list args)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!buffer || bufferSize == 0 || !fmt)
-                return -1;
+        if (!buffer || bufferSize == 0 || !fmt) return -1;
 #endif
         int result = vsnprintf (buffer, bufferSize, fmt, args);
-        if (result < 0)
-                return -1;
-        if ((size_t)result >= bufferSize)
-                buffer[bufferSize - 1] = '\0';
+        if (result < 0) return -1;
+        if ((size_t)result >= bufferSize) buffer[bufferSize - 1] = '\0';
         return result;
 }
 
@@ -408,14 +387,12 @@ R_CSTL_LogFormatMessage (char* buffer, size_t bufferSize, const char* fmt, va_li
 static void
 R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 {
-        if (!buffer || bufferSize == 0)
-                return;
+        if (!buffer || bufferSize == 0) return;
         buffer[0] = '\0';
 
         void*  frames[R_CSTL_LOG_BACKTRACE_MAX_FRAMES];
         USHORT count = CaptureStackBackTrace (2u, R_CSTL_LOG_BACKTRACE_MAX_FRAMES, frames, NULL);
-        if (count == 0)
-                return;
+        if (count == 0) return;
 
         HANDLE process = GetCurrentProcess ();
         if (!g_log.symInitialized)
@@ -466,8 +443,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
                     file,
                     (unsigned long)lineNo);
                 size_t lineLen = strlen (line);
-                if (used + lineLen + 1u >= bufferSize)
-                        break;
+                if (used + lineLen + 1u >= bufferSize) break;
                 memcpy (buffer + used, line, lineLen + 1u);
                 used += lineLen;
         }
@@ -477,18 +453,15 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 static void
 R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 {
-        if (!buffer || bufferSize == 0)
-                return;
+        if (!buffer || bufferSize == 0) return;
         buffer[0] = '\0';
 
         void* frames[R_CSTL_LOG_BACKTRACE_MAX_FRAMES];
         int   count = backtrace (frames, (int)R_CSTL_LOG_BACKTRACE_MAX_FRAMES);
-        if (count <= 2)
-                return;
+        if (count <= 2) return;
 
         char** symbols = backtrace_symbols (frames, count);
-        if (!symbols)
-                return;
+        if (!symbols) return;
 
         size_t used = 0;
 
@@ -497,8 +470,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
                 char line[512];
                 snprintf (line, sizeof (line), "#%d %p %s\n", i - 2, frames[i], symbols[i]);
                 size_t lineLen = strlen (line);
-                if (used + lineLen + 1u >= bufferSize)
-                        break;
+                if (used + lineLen + 1u >= bufferSize) break;
                 memcpy (buffer + used, line, lineLen + 1u);
                 used += lineLen;
         }
@@ -519,8 +491,7 @@ static void
 R_CSTL_LogDestroyEntry (R_CSTL_LogEntry* entry)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!entry)
-                return;
+        if (!entry) return;
 #endif
         R_CSTL_HeapUnregisterAllocation (&g_log, entry);
         R_CSTL_HeapFree (entry);
@@ -578,8 +549,7 @@ static void
 R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!entry || !entry->message)
-                return;
+        if (!entry || !entry->message) return;
 #endif
         const char* level = R_CSTL_LogLevelName (entry->level);
         fprintf (
@@ -592,11 +562,9 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
         if (entry->message[0] != 0x00)
         {
                 size_t len = strlen (entry->message);
-                if (entry->message[len - 1] != '\n')
-                        fputc ('\n', stderr);
+                if (entry->message[len - 1] != '\n') fputc ('\n', stderr);
         }
-        if (entry->backtrace)
-                fputs (entry->backtrace, stderr);
+        if (entry->backtrace) fputs (entry->backtrace, stderr);
         fflush (stderr);
 
 #if defined(_WIN32)
@@ -607,8 +575,7 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
 static void
 R_CSTL_LogDropOldestLocked (void)
 {
-        if (g_log.count == 0)
-                return;
+        if (g_log.count == 0) return;
         R_CSTL_LogEntry* dropped = g_log.ring[g_log.head];
         g_log.head = (g_log.head + 1u) % g_log.capacity;
         --g_log.count;
@@ -619,20 +586,17 @@ R_CSTL_LogDropOldestLocked (void)
 static void
 R_CSTL_LogNotifyFlushWaitersLocked (void)
 {
-        if (g_log.count == 0)
-                R_CSTL_LogCondBroadcast (&g_log.flushCond);
+        if (g_log.count == 0) R_CSTL_LogCondBroadcast (&g_log.flushCond);
 }
 
 static int
 R_CSTL_LogEnqueueEntry (R_CSTL_LogEntry* entry)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!entry)
-                return -1;
+        if (!entry) return -1;
 #endif
         R_CSTL_LogMutexLock (&g_log.mutex);
-        if (g_log.count >= g_log.capacity)
-                R_CSTL_LogDropOldestLocked ();
+        if (g_log.count >= g_log.capacity) R_CSTL_LogDropOldestLocked ();
 
         g_log.ring[g_log.tail] = entry;
         g_log.tail = (g_log.tail + 1u) % g_log.capacity;
@@ -645,8 +609,7 @@ R_CSTL_LogEnqueueEntry (R_CSTL_LogEntry* entry)
 static R_CSTL_LogEntry*
 R_CSTL_LogDequeueEntryLocked (void)
 {
-        if (g_log.count == 0)
-                return NULL;
+        if (g_log.count == 0) return NULL;
 
         R_CSTL_LogEntry* entry = g_log.ring[g_log.head];
         g_log.head = (g_log.head + 1u) % g_log.capacity;
@@ -719,12 +682,10 @@ R_CSTL_LogLevelName (enum R_CSTL_LogLevel level)
 int
 R_CSTL_LogInit (void)
 {
-        if (g_log.initialized)
-                return 0;
+        if (g_log.initialized) return 0;
         g_log.capacity = R_CSTL_LOG_RING_CAPACITY;
         g_log.ring = (R_CSTL_LogEntry**)R_CSTL_HeapAlloc (g_log.capacity * sizeof (R_CSTL_LogEntry*));
-        if (!g_log.ring)
-                return -1;
+        if (!g_log.ring) return -1;
 
         memset (g_log.ring, 0, g_log.capacity * sizeof (R_CSTL_LogEntry*));
         R_CSTL_HeapRegisterAllocation (
@@ -765,8 +726,7 @@ R_CSTL_LogInit (void)
 void
 R_CSTL_LogShutdown (void)
 {
-        if (!g_log.initialized)
-                return;
+        if (!g_log.initialized) return;
         g_log.initialized = false;
         R_CSTL_LogAtomicStoreRunning (&g_log.atomics, 0);
         R_CSTL_LogMutexLock (&g_log.mutex);
@@ -817,8 +777,7 @@ R_CSTL_LogShutdown (void)
 void
 R_CSTL_LogFlush (void)
 {
-        if (!g_log.initialized)
-                return;
+        if (!g_log.initialized) return;
 
         R_CSTL_LogMutexLock (&g_log.mutex);
         while (g_log.count > 0)
@@ -833,10 +792,8 @@ void
 R_CSTL_LogSetMinLevel (enum R_CSTL_LogLevel level)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (level < R_CSTL_LOG_LEVEL_TRACE)
-                goto cstl_fail;
-        if (level >= _COUNT)
-                goto cstl_fail;
+        if (level < R_CSTL_LOG_LEVEL_TRACE) goto cstl_fail;
+        if (level >= _COUNT) goto cstl_fail;
 #endif
         R_CSTL_LogAtomicStoreMinLevel (&g_log.atomics, level);
 cstl_fail:
@@ -858,15 +815,11 @@ R_CSTL_LogGetDroppedCount (void)
 void
 R_CSTL_LogWriteV (enum R_CSTL_LogLevel level, const char* fmt, va_list args)
 {
-        if (!g_log.initialized)
-                return;
+        if (!g_log.initialized) return;
 #if defined(R_CSTL_LOG_DEVMODE)
-        if (!fmt)
-                goto cstl_fail;
-        if (level < R_CSTL_LOG_LEVEL_TRACE || level >= _COUNT)
-                goto cstl_fail;
-        if ((int)level < (int)R_CSTL_LogGetMinLevel ())
-                goto cstl_fail;
+        if (!fmt) goto cstl_fail;
+        if (level < R_CSTL_LOG_LEVEL_TRACE || level >= _COUNT) goto cstl_fail;
+        if ((int)level < (int)R_CSTL_LogGetMinLevel ()) goto cstl_fail;
 #endif
 
         R_CSTL_LogEntry* entry = (R_CSTL_LogEntry*)R_CSTL_HeapAlloc (sizeof (R_CSTL_LogEntry));

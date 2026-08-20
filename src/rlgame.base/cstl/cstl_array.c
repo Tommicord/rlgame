@@ -44,13 +44,11 @@ struct R_CSTL_Array
 R_CSTL_API_ATTR static int
 R_CSTL_ArrayBufferIsUsable (const struct R_CSTL_Array* pArray)
 {
-        if (!pArray)
-                return 0;
+        if (!pArray) return 0;
 #ifndef R_CSTL_HEAP_DEBUG
         return 1;
 #else
-        if (!pArray->pData)
-                return 1;
+        if (!pArray->pData) return 1;
         return R_CSTL_HeapIsValidPointer (pArray->pData) != 0;
 #endif
 }
@@ -58,8 +56,7 @@ R_CSTL_ArrayBufferIsUsable (const struct R_CSTL_Array* pArray)
 R_CSTL_API_ATTR static int
 R_CSTL_ArrayBufferIsLive (const struct R_CSTL_Array* pArray)
 {
-        if (!pArray || !pArray->pData)
-                return 0;
+        if (!pArray || !pArray->pData) return 0;
 #ifndef R_CSTL_HEAP_DEBUG
         return 1;
 #else
@@ -73,8 +70,7 @@ R_CSTL_ArrayNextCapacity (size_t current, size_t required)
         size_t next = current ? current : R_CSTL_ARRAY_MIN_CAPACITY;
         while (next < required)
         {
-                if (next > (SIZE_MAX / 2))
-                        return required;
+                if (next > (SIZE_MAX / 2)) return required;
                 next <<= 1;
         }
         return next;
@@ -83,8 +79,7 @@ R_CSTL_ArrayNextCapacity (size_t current, size_t required)
 static void
 R_CSTL_ArrayCopyBytes (uint8_t* pDst, const uint8_t* pSrc, size_t sizeBytes)
 {
-        if (sizeBytes == 0 || pDst == pSrc)
-                return;
+        if (sizeBytes == 0 || pDst == pSrc) return;
 
 #if defined(R_SIMD_AVX2)
         if (sizeBytes >= R_CSTL_ARRAY_SIMD_THRESHOLD)
@@ -132,12 +127,10 @@ R_CSTL_ArrayCopyBytes (uint8_t* pDst, const uint8_t* pSrc, size_t sizeBytes)
 static void
 R_CSTL_ArrayReleaseBuffer (struct R_CSTL_Array* pArray)
 {
-        if (!pArray || !pArray->pData)
-                return;
+        if (!pArray || !pArray->pData) return;
 
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!R_CSTL_HeapIsValidPointer (pArray->pData))
-                goto cstl_fail;
+        if (!R_CSTL_HeapIsValidPointer (pArray->pData)) goto cstl_fail;
         R_CSTL_HeapUnregisterAllocation (pArray, pArray->pData);
 #endif
 
@@ -155,19 +148,16 @@ static int
 R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || newCapacity == 0)
-                goto cstl_fail;
+        if (!pArray || newCapacity == 0) goto cstl_fail;
 #endif
         uint8_t* pOldData = pArray->pData;
         size_t   oldLength = pArray->length;
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (pOldData && !R_CSTL_HeapIsValidPointer (pOldData))
-                goto cstl_fail;
+        if (pOldData && !R_CSTL_HeapIsValidPointer (pOldData)) goto cstl_fail;
 #endif
 
         uint8_t* pNew = (uint8_t*)R_CSTL_HeapAlloc (newCapacity);
-        if (!pNew)
-                return -1;
+        if (!pNew) return -1;
 
         if (pOldData && oldLength > 0)
         {
@@ -177,8 +167,7 @@ R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
         if (pOldData)
         {
 #if defined(R_CSTL_HEAP_DEBUG)
-                if (R_CSTL_HeapIsValidPointer (pOldData))
-                        R_CSTL_HeapUnregisterAllocation (pArray, pOldData);
+                if (R_CSTL_HeapIsValidPointer (pOldData)) R_CSTL_HeapUnregisterAllocation (pArray, pOldData);
 #endif
                 R_CSTL_HeapFree (pOldData);
         }
@@ -189,8 +178,7 @@ R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
             pNew,
             newCapacity,
             R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
-        if (success == 0)
-                goto cstl_fail_register;
+        if (success == 0) goto cstl_fail_register;
 #endif
 
         pArray->pData = pNew;
@@ -208,13 +196,10 @@ static int
 R_CSTL_ArrayEnsureCapacity (struct R_CSTL_Array* pArray, size_t requiredCapacity)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsUsable (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray)) goto cstl_fail;
 #endif
-        if (pArray->capacity >= requiredCapacity)
-                return 0;
+        if (pArray->capacity >= requiredCapacity) return 0;
 
         size_t newCapacity = R_CSTL_ArrayNextCapacity (pArray->capacity, requiredCapacity);
         return R_CSTL_ArrayReallocate (pArray, newCapacity);
@@ -227,8 +212,7 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_ArrayCreateShell (void)
 {
         struct R_CSTL_Array* pArray = (struct R_CSTL_Array*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Array));
-        if (!pArray)
-                return NULL;
+        if (!pArray) return NULL;
         pArray->pData = NULL;
         pArray->length = 0;
         pArray->capacity = 0;
@@ -245,14 +229,11 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArrayWithCapacity (size_t capacityBytes)
 {
         struct R_CSTL_Array* pArray = R_CSTL_ArrayCreateShell ();
-        if (!pArray)
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
 
-        if (capacityBytes == 0)
-                return pArray;
+        if (capacityBytes == 0) return pArray;
 
-        if (R_CSTL_ArrayRevBytes (pArray, capacityBytes) != 0)
-                goto cstl_fail;
+        if (R_CSTL_ArrayRevBytes (pArray, capacityBytes) != 0) goto cstl_fail;
 
         return pArray;
 
@@ -265,11 +246,9 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArrayWithLengthZeroed (size_t lengthBytes)
 {
         struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (lengthBytes);
-        if (!pArray)
-                return NULL;
+        if (!pArray) return NULL;
 
-        if (pArray->pData)
-                memset (pArray->pData, 0, lengthBytes);
+        if (pArray->pData) memset (pArray->pData, 0, lengthBytes);
         pArray->length = lengthBytes;
         return pArray;
 }
@@ -278,8 +257,7 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArrayWithLength (size_t lengthBytes)
 {
         struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (lengthBytes);
-        if (!pArray)
-                return NULL;
+        if (!pArray) return NULL;
         pArray->length = lengthBytes;
         return pArray;
 }
@@ -288,14 +266,10 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_NewArrayWithData (const uint8_t* pData, size_t lengthBytes)
 {
         struct R_CSTL_Array* pArray = R_CSTL_ArrayCreateShell ();
-        if (!pArray)
-                return NULL;
-        if (lengthBytes == 0)
-                return pArray;
-        if (!pData)
-                goto cstl_fail;
-        if (R_CSTL_ArrayRevBytes (pArray, lengthBytes) != 0)
-                goto cstl_fail;
+        if (!pArray) return NULL;
+        if (lengthBytes == 0) return pArray;
+        if (!pData) goto cstl_fail;
+        if (R_CSTL_ArrayRevBytes (pArray, lengthBytes) != 0) goto cstl_fail;
 
         R_CSTL_ArrayCopyBytes (pArray->pData, pData, lengthBytes);
         pArray->length = lengthBytes;
@@ -310,8 +284,7 @@ R_CSTL_API_ATTR void
 R_CSTL_DeleteArray (struct R_CSTL_Array* pArray)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                return;
+        if (!pArray) return;
 #endif
         R_CSTL_ArrayReleaseBuffer (pArray);
         R_CSTL_HeapFree (pArray);
@@ -321,13 +294,10 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayRevBytes (struct R_CSTL_Array* pArray, size_t capacityBytes)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsUsable (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray)) goto cstl_fail;
 #endif
-        if (capacityBytes <= pArray->capacity)
-                return 0;
+        if (capacityBytes <= pArray->capacity) return 0;
 
         return R_CSTL_ArrayReallocate (pArray, capacityBytes);
 
@@ -339,14 +309,11 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayPush (struct R_CSTL_Array* pArray, uint8_t value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsUsable (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray)) goto cstl_fail;
 #endif
         // ensure there is room for one more byte
-        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + 1) != 0)
-                goto cstl_fail;
+        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + 1) != 0) goto cstl_fail;
         pArray->pData[pArray->length] = value;
         ++pArray->length;
         return 0;
@@ -359,15 +326,11 @@ R_CSTL_API int
 R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t* pData, size_t size)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsUsable (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray)) goto cstl_fail;
 #endif
-        if (size == 0)
-                return 0;
-        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + size) != 0)
-                goto cstl_fail;
+        if (size == 0) return 0;
+        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + size) != 0) goto cstl_fail;
         R_CSTL_ArrayCopyBytes (pArray->pData + pArray->length, pData, size);
         pArray->length += size;
         return 0;
@@ -379,15 +342,12 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayPop (struct R_CSTL_Array* pArray, uint8_t* pOutValue)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || pArray->length == 0)
-                return -1;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray || pArray->length == 0) return -1;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
         uint8_t value = pArray->pData[pArray->length - 1];
         --pArray->length;
-        if (pOutValue)
-                *pOutValue = value;
+        if (pOutValue) *pOutValue = value;
         return 0;
 
 cstl_fail:
@@ -398,17 +358,13 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayShift (struct R_CSTL_Array* pArray, uint8_t* pOutValue)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || pArray->length == 0)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray || pArray->length == 0) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
         uint8_t value = pArray->pData[0];
-        if (pOutValue)
-                *pOutValue = value;
+        if (pOutValue) *pOutValue = value;
 
-        if (pArray->length > 1)
-                memmove (pArray->pData, pArray->pData + 1, pArray->length - 1);
+        if (pArray->length > 1) memmove (pArray->pData, pArray->pData + 1, pArray->length - 1);
         --pArray->length;
         return 0;
 
@@ -420,16 +376,12 @@ R_CSTL_API_ATTR int
 R_CSTL_ArrayUnshift (struct R_CSTL_Array* pArray, uint8_t value)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsUsable (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsUsable (pArray)) goto cstl_fail;
 #endif
-        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + 1) != 0)
-                goto cstl_fail;
+        if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + 1) != 0) goto cstl_fail;
 
-        if (pArray->length > 0)
-                memmove (pArray->pData + 1, pArray->pData, pArray->length);
+        if (pArray->length > 0) memmove (pArray->pData + 1, pArray->pData, pArray->length);
 
         pArray->pData[0] = value;
         ++pArray->length;
@@ -443,21 +395,17 @@ R_CSTL_API_ATTR struct R_CSTL_Array*
 R_CSTL_ArraySlice (const struct R_CSTL_Array* pArray, size_t start, size_t end)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || start > end || end > pArray->length)
-                goto cstl_fail;
-        if (end > start && !R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray || start > end || end > pArray->length) goto cstl_fail;
+        if (end > start && !R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
 
         size_t               sliceLength = end - start;
         struct R_CSTL_Array* pSlice = R_CSTL_NewArrayWithCapacity (sliceLength);
-        if (!pSlice)
-                goto cstl_fail;
+        if (!pSlice) goto cstl_fail;
 
         if (sliceLength > 0)
         {
-                if (!pArray->pData)
-                        goto cstl_fail;
+                if (!pArray->pData) goto cstl_fail;
                 R_CSTL_ArrayCopyBytes (pSlice->pData, pArray->pData + start, sliceLength);
                 pSlice->length = sliceLength;
         }
@@ -470,10 +418,8 @@ R_CSTL_API_ATTR const uint8_t*
 R_CSTL_ArrayData (const struct R_CSTL_Array* pArray)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
         return pArray->pData;
 cstl_fail:
@@ -483,8 +429,7 @@ cstl_fail:
 R_CSTL_API_ATTR int
 R_CSTL_ArrayClear (struct R_CSTL_Array* pArray, int zeroMemory)
 {
-        if (!pArray)
-                goto cstl_fail;
+        if (!pArray) goto cstl_fail;
         if (zeroMemory && pArray->pData && pArray->length > 0)
         {
                 memset (pArray->pData, 0, pArray->length);
@@ -498,10 +443,8 @@ cstl_fail:
 R_CSTL_API_ATTR int
 R_CSTL_ArrayFill (struct R_CSTL_Array* pArray, uint8_t value)
 {
-        if (!pArray || pArray->length == 0)
-                return -1;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                return -1;
+        if (!pArray || pArray->length == 0) return -1;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) return -1;
         memset (pArray->pData, value, pArray->length);
         return 0;
 }
@@ -634,8 +577,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                         if (child + 1 < end                                                                  \
                             && R_CSTL_ArrayCmp##Suffix##Inline (pBase + child, pBase + child + 1) < 0)       \
                                 ++child;                                                                     \
-                        if (R_CSTL_ArrayCmp##Suffix##Inline (pBase + root, pBase + child) >= 0)              \
-                                break;                                                                       \
+                        if (R_CSTL_ArrayCmp##Suffix##Inline (pBase + root, pBase + child) >= 0) break;       \
                         R_CSTL_ArraySwap##Suffix (pBase + root, pBase + child);                              \
                         root = child;                                                                        \
                 }                                                                                            \
@@ -654,10 +596,8 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                 while ((root << 1) + 1 <= end)                                                               \
                 {                                                                                            \
                         long child = (root << 1) + 1;                                                        \
-                        if (child + 1 < end && cmp (pBase + child, pBase + child + 1, data) < 0)             \
-                                ++child;                                                                     \
-                        if (cmp (pBase + root, pBase + child, data) >= 0)                                    \
-                                break;                                                                       \
+                        if (child + 1 < end && cmp (pBase + child, pBase + child + 1, data) < 0) ++child;    \
+                        if (cmp (pBase + root, pBase + child, data) >= 0) break;                             \
                         R_CSTL_ArraySwap##Suffix (pBase + root, pBase + child);                              \
                         root = child;                                                                        \
                 }                                                                                            \
@@ -710,8 +650,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                                 ++i;                                                                         \
                         while (R_CSTL_COMPARE (pBase[j], pivot) > 0)                                         \
                                 --j;                                                                         \
-                        if (i >= j)                                                                          \
-                                break;                                                                       \
+                        if (i >= j) break;                                                                   \
                         R_CSTL_ArraySwap##Suffix (pBase + i, pBase + j);                                     \
                         ++i;                                                                                 \
                         --j;                                                                                 \
@@ -747,8 +686,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                                 ++i;                                                                         \
                         while (cmp (pBase + j, pPivot, data) > 0)                                            \
                                 --j;                                                                         \
-                        if (i >= j)                                                                          \
-                                break;                                                                       \
+                        if (i >= j) break;                                                                   \
                         R_CSTL_ArraySwap##Suffix (pBase + i, pBase + j);                                     \
                         ++i;                                                                                 \
                         --j;                                                                                 \
@@ -838,8 +776,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
                                                                                                              \
         static void R_CSTL_ArraySort##Suffix##Inline (Type* pBase, size_t nelem)                             \
         {                                                                                                    \
-                if (nelem <= 1)                                                                              \
-                        return;                                                                              \
+                if (nelem <= 1) return;                                                                      \
                 const int depthLimit = (int)(2 * R_CSTL_ArrayFloorLog2 (nelem));                             \
                 R_CSTL_ArrayIntrosort##Suffix (pBase, 0, (long)nelem - 1, depthLimit);                       \
         }                                                                                                    \
@@ -850,8 +787,7 @@ R_CSTL_ArrayFloorLog2 (size_t n)
             const R_CSTL_ArraySortComparator pCmp,                                                           \
             void*                            pData)                                                          \
         {                                                                                                    \
-                if (nelem <= 1)                                                                              \
-                        return;                                                                              \
+                if (nelem <= 1) return;                                                                      \
                 const int depthLimit = (int)(2 * R_CSTL_ArrayFloorLog2 (nelem));                             \
                 R_CSTL_ArrayIntrosort##Suffix##Cb (pBase, 0, (long)nelem - 1, depthLimit, pCmp, pData);      \
         }
@@ -906,8 +842,7 @@ typedef struct
                                 }                                                                            \
                                 if (right - left < 2)                                                        \
                                 {                                                                            \
-                                        if (left < right)                                                    \
-                                                R_CSTL_ArraySwapU32 (pBase + left, pBase + right);           \
+                                        if (left < right) R_CSTL_ArraySwapU32 (pBase + left, pBase + right); \
                                         break;                                                               \
                                 }                                                                            \
                                 const long pivot = PartitionFn (pBase, left, right);                         \
@@ -944,8 +879,7 @@ typedef struct
 #define R_CSTL_ARRAY_SORT_SIMD(Suffix, Introsort)                                                            \
         R_CSTL_API void R_CSTL_ArraySortU32##Suffix (uint32_t* pBase, size_t nelem)                          \
         {                                                                                                    \
-                if (nelem < 2)                                                                               \
-                        return;                                                                              \
+                if (nelem < 2) return;                                                                       \
                 const int depthLimit = (int)(2 * R_CSTL_ArrayFloorLog2 (nelem));                             \
                 Introsort (pBase, 0, (long)nelem - 1, depthLimit);                                           \
         }
@@ -954,21 +888,15 @@ typedef struct
 static long
 R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
 {
-        if (right - left < 2)
-                return left;
+        if (right - left < 2) return left;
 
         long mid = (left + right) >> 1;
-        if (mid < left)
-                mid = left;
-        if (mid > right)
-                mid = right;
+        if (mid < left) mid = left;
+        if (mid > right) mid = right;
 
-        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
-        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
-        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
+        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
+        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
+        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + mid, pBase + right - 1);
         const uint32_t pivot = pBase[right - 1];
         long           i = left, j = right - 2;
@@ -989,8 +917,7 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                         __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pBase + i));
                         __m256i cmpVec = _mm256_cmpgt_epi32 (dataVec, pivotVec);
                         int     mask = _mm256_movemask_epi8 (cmpVec);
-                        if (R_CSTL_LIKELY (mask == 0))
-                                i += 8;
+                        if (R_CSTL_LIKELY (mask == 0)) i += 8;
                         else
                         {
 #if defined(R_COMPILER_MSVC)
@@ -1017,8 +944,7 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                         __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pBase + j - 7));
                         __m256i cmpVec = _mm256_cmpgt_epi32 (pivotVec, dataVec);
                         int     mask = _mm256_movemask_epi8 (cmpVec);
-                        if (R_CSTL_LIKELY (mask == 0))
-                                j -= 8;
+                        if (R_CSTL_LIKELY (mask == 0)) j -= 8;
                         else
                         {
 #if defined(R_COMPILER_MSVC)
@@ -1032,8 +958,7 @@ R_CSTL_ArrayPartitionU32AVX2 (uint32_t* pBase, long left, long right)
                                 break;
                         }
                 }
-                if (R_CSTL_UNLIKELY (i >= j))
-                        break;
+                if (R_CSTL_UNLIKELY (i >= j)) break;
 
                 R_CSTL_ArraySwapU32 (pBase + i, pBase + j);
                 ++i;
@@ -1051,20 +976,14 @@ R_CSTL_ARRAY_SORT_SIMD (AVX2, R_CSTL_ArrayIntrosortU32AVX2)
 static long
 R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
 {
-        if (right - left < 2)
-                return left;
+        if (right - left < 2) return left;
         long mid = (left + right) >> 1;
-        if (mid < left)
-                mid = left;
-        if (mid > right)
-                mid = right;
+        if (mid < left) mid = left;
+        if (mid > right) mid = right;
 
-        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
-        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
-        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
+        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
+        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
+        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + mid, pBase + right - 1);
         const uint32_t pivot = pBase[right - 1];
         long           i = left;
@@ -1086,8 +1005,7 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                         __m128i dataVec = _mm_loadu_si128 ((__m128i*)(pBase + i));
                         __m128i cmpVec = _mm_cmpgt_epi32 (dataVec, pivotVec);
                         int     mask = _mm_movemask_epi8 (cmpVec);
-                        if (R_CSTL_LIKELY (mask == 0))
-                                i += 4;
+                        if (R_CSTL_LIKELY (mask == 0)) i += 4;
                         else
                         {
 #if defined(R_COMPILER_MSVC)
@@ -1114,8 +1032,7 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                         __m128i dataVec = _mm_loadu_si128 ((__m128i*)(pBase + j - 3));
                         __m128i cmpVec = _mm_cmpgt_epi32 (pivotVec, dataVec);
                         int     mask = _mm_movemask_epi8 (cmpVec);
-                        if (R_CSTL_LIKELY (mask == 0))
-                                j -= 4;
+                        if (R_CSTL_LIKELY (mask == 0)) j -= 4;
                         else
                         {
 #if defined(R_COMPILER_MSVC)
@@ -1129,8 +1046,7 @@ R_CSTL_ArrayPartitionU32SSE (uint32_t* pBase, long left, long right)
                                 break;
                         }
                 }
-                if (R_CSTL_UNLIKELY (i >= j))
-                        break;
+                if (R_CSTL_UNLIKELY (i >= j)) break;
 
                 R_CSTL_ArraySwapU32 (pBase + i, pBase + j);
                 ++i;
@@ -1156,21 +1072,15 @@ R_CSTL_NEON_MASK (uint32x4_t cmpVec)
 static long
 R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
 {
-        if (right - left < 2)
-                return left;
+        if (right - left < 2) return left;
         long mid = (left + right) >> 1;
-        if (mid < left)
-                mid = left;
-        if (mid > right)
-                mid = right;
+        if (mid < left) mid = left;
+        if (mid > right) mid = right;
 
-        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
-        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
+        if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + left);
+        if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0) R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + left, pBase + right);
-        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0)
-                R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
+        if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0) R_CSTL_ArraySwapU32 (pBase + mid, pBase + right);
         R_CSTL_ArraySwapU32 (pBase + mid, pBase + right - 1);
         const uint32_t pivot = pBase[right - 1];
         long           i = left;
@@ -1193,8 +1103,7 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                         uint32x4_t cmpVec = vcgtq_u32 (dataVec, pivotVec);
                         uint64x2_t mask64 = vreinterpretq_u64_u32 (cmpVec);
                         uint64_t   mask = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
-                        if (mask == 0)
-                                i += 4;
+                        if (mask == 0) i += 4;
                         else
                         {
                                 int tz = __builtin_ctzll (mask) / 32;
@@ -1216,8 +1125,7 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                         uint32x4_t cmpVec = vcgtq_u32 (pivotVec, dataVec);
                         uint64x2_t mask64 = vreinterpretq_u64_u32 (cmpVec);
                         uint64_t   mask = vgetq_lane_u64 (mask64, 0) | vgetq_lane_u64 (mask64, 1);
-                        if (mask == 0)
-                                j -= 4;
+                        if (mask == 0) j -= 4;
                         else
                         {
                                 int tz = __builtin_ctzll (mask) / 32;
@@ -1225,8 +1133,7 @@ R_CSTL_ArrayPartitionU32NEON (uint32_t* pBase, long left, long right)
                                 break;
                         }
                 }
-                if (i >= j)
-                        break;
+                if (i >= j) break;
 
                 R_CSTL_ArraySwapU32 (pBase + i, pBase + j);
                 ++i;
@@ -1560,8 +1467,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                 __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pCtx->pBase + i * 4));
                                 __m256i cmpVec = _mm256_cmpgt_epi32 (dataVec, pivotVec);
                                 int     mask = _mm256_movemask_epi8 (cmpVec);
-                                if (R_CSTL_LIKELY (mask == 0))
-                                        i += 8;
+                                if (R_CSTL_LIKELY (mask == 0)) i += 8;
                                 else
                                 {
 #if defined(R_COMPILER_MSVC)
@@ -1589,8 +1495,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                 __m256i dataVec = _mm256_loadu_si256 ((__m256i*)(pCtx->pBase + (j - 7) * 4));
                                 __m256i cmpVec = _mm256_cmpgt_epi32 (pivotVec, dataVec);
                                 int     mask = _mm256_movemask_epi8 (cmpVec);
-                                if (R_CSTL_LIKELY (mask == 0))
-                                        j -= 8;
+                                if (R_CSTL_LIKELY (mask == 0)) j -= 8;
                                 else
                                 {
 #if defined(R_COMPILER_MSVC)
@@ -1604,8 +1509,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                         break;
                                 }
                         }
-                        if (R_CSTL_UNLIKELY (i >= j))
-                                break;
+                        if (R_CSTL_UNLIKELY (i >= j)) break;
 
                         R_CSTL_ArraySwapElements (
                             R_CSTL_ArrayElementBytes (pCtx, i),
@@ -1624,8 +1528,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
                                 ++i;
                         while (cmp (R_CSTL_ArrayElementBytes (pCtx, j), pPivot, data) > 0)
                                 --j;
-                        if (i >= j)
-                                break;
+                        if (i >= j) break;
 
                         R_CSTL_ArraySwapElements (
                             R_CSTL_ArrayElementBytes (pCtx, i),
@@ -1734,18 +1637,13 @@ R_CSTL_ArraySort (
     int (*const pComparator) (const void* pLeft, const void* pRight, void* pData),
     void* pData)
 {
-        if (R_CSTL_UNLIKELY (!pArray || elemSize == 0))
-                goto cstl_fail;
-        if (R_CSTL_UNLIKELY ((pArray->length & (elemSize - 1)) != 0))
-                goto cstl_fail;
+        if (R_CSTL_UNLIKELY (!pArray || elemSize == 0)) goto cstl_fail;
+        if (R_CSTL_UNLIKELY ((pArray->length & (elemSize - 1)) != 0)) goto cstl_fail;
 
         const size_t nelem = pArray->length / elemSize;
-        if (R_CSTL_UNLIKELY (nelem == 0))
-                return 0;
-        if (R_CSTL_UNLIKELY (!R_CSTL_ArrayBufferIsLive (pArray)))
-                goto cstl_fail;
-        if (R_CSTL_UNLIKELY (nelem == 1))
-                return 0;
+        if (R_CSTL_UNLIKELY (nelem == 0)) return 0;
+        if (R_CSTL_UNLIKELY (!R_CSTL_ArrayBufferIsLive (pArray))) goto cstl_fail;
+        if (R_CSTL_UNLIKELY (nelem == 1)) return 0;
         uint8_t* pBase = pArray->pData;
 
         // Most common case: 4-byte elements (uint32_t) with built-in comparator
@@ -1775,10 +1673,8 @@ R_CSTL_ArraySort (
                         R_CSTL_ArraySortU8Counting (pBase, nelem);
                         return 0;
                 }
-                if (pComparator == NULL)
-                        R_CSTL_ArraySortU8Inline (pBase, nelem);
-                else
-                        R_CSTL_ArraySortU8Callback (pBase, nelem, pComparator, pData);
+                if (pComparator == NULL) R_CSTL_ArraySortU8Inline (pBase, nelem);
+                else R_CSTL_ArraySortU8Callback (pBase, nelem, pComparator, pData);
                 return 0;
         }
 
@@ -1786,8 +1682,7 @@ R_CSTL_ArraySort (
         {
                 if (pComparator == R_CSTL_ArrayCompareU16 || pComparator == NULL)
                         R_CSTL_ArraySortU16Inline ((uint16_t*)pBase, nelem);
-                else
-                        R_CSTL_ArraySortU16Callback ((uint16_t*)pBase, nelem, pComparator, pData);
+                else R_CSTL_ArraySortU16Callback ((uint16_t*)pBase, nelem, pComparator, pData);
                 return 0;
         }
 
@@ -1795,8 +1690,7 @@ R_CSTL_ArraySort (
         {
                 if (pComparator == R_CSTL_ArrayCompareU64 || pComparator == NULL)
                         R_CSTL_ArraySortU64Inline ((uint64_t*)pBase, nelem);
-                else
-                        R_CSTL_ArraySortU64Callback ((uint64_t*)pBase, nelem, pComparator, pData);
+                else R_CSTL_ArraySortU64Callback ((uint64_t*)pBase, nelem, pComparator, pData);
                 return 0;
         }
 
@@ -1818,16 +1712,14 @@ cstl_fail:
 R_CSTL_API size_t
 R_CSTL_ArrayLength (const struct R_CSTL_Array* pArray)
 {
-        if (!pArray)
-                return 0;
+        if (!pArray) return 0;
         return pArray->length;
 }
 
 R_CSTL_API size_t
 R_CSTL_ArrayGetCapacity (const struct R_CSTL_Array* pArray)
 {
-        if (!pArray)
-                return 0;
+        if (!pArray) return 0;
         return pArray->capacity;
 }
 
@@ -1835,13 +1727,10 @@ R_CSTL_API int
 R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || !pOutValue)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray || !pOutValue) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
-        if (index >= pArray->length)
-                goto cstl_fail;
+        if (index >= pArray->length) goto cstl_fail;
         *pOutValue = pArray->pData[index];
         return 0;
 
@@ -1853,10 +1742,8 @@ R_CSTL_API int
 R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || !pOutValue)
-                goto cstl_fail;
-        if (!R_CSTL_ArrayBufferIsLive (pArray))
-                goto cstl_fail;
+        if (!pArray || !pOutValue) goto cstl_fail;
+        if (!R_CSTL_ArrayBufferIsLive (pArray)) goto cstl_fail;
 #endif
         *pOutValue = pArray->pData[index];
         return 0;

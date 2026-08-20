@@ -1,5 +1,0 @@
-if(EXISTS "C:/Users/USUARIO/IdeaProjects/RLv2/out/rlgame_test[1]_tests.cmake")
-  include("C:/Users/USUARIO/IdeaProjects/RLv2/out/rlgame_test[1]_tests.cmake")
-else()
-  add_test(rlgame_test_NOT_BUILT rlgame_test_NOT_BUILT)
-endif()

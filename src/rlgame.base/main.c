@@ -1,4 +1,5 @@
 #include "rlgame.base/main.h"
+#include "rlgame.base/main_window.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_array.h"
@@ -17,8 +18,7 @@
 void
 R_GameLoop_SetState (struct R_MainProvider* pProvider, uint8_t flags)
 {
-        if (!pProvider)
-                return;
+        if (!pProvider) return;
 
 #if defined(_MSC_VER)
         _InterlockedOr8 ((volatile char*)&pProvider->stateFlags, (char)flags);
@@ -32,8 +32,7 @@ R_GameLoop_SetState (struct R_MainProvider* pProvider, uint8_t flags)
 void
 R_GameLoop_ClearState (struct R_MainProvider* pProvider, uint8_t flags)
 {
-        if (!pProvider)
-                return;
+        if (!pProvider) return;
 #if defined(_MSC_VER)
         _InterlockedAnd8 ((volatile char*)&pProvider->stateFlags, (char)(~flags));
 #elif defined(__GNUC__) || defined(__clang__)
@@ -46,8 +45,7 @@ R_GameLoop_ClearState (struct R_MainProvider* pProvider, uint8_t flags)
 uint8_t
 R_GameLoop_GetState (const struct R_MainProvider* pProvider)
 {
-        if (!pProvider)
-                return R_GAMELOOP_STATE_NONE;
+        if (!pProvider) return R_GAMELOOP_STATE_NONE;
 #if defined(_MSC_VER)
         return (uint8_t)_InterlockedOr8 ((volatile char*)&pProvider->stateFlags, 0);
 #elif defined(__GNUC__) || defined(__clang__)
@@ -100,8 +98,7 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
                                 R_CSTL_HeapFree ((void*)(info).pExistingProcesses[0].pName);                 \
                         R_CSTL_HeapFree ((void*)(info).pExistingProcesses);                                  \
                 }                                                                                            \
-                if ((info).args.pCmdLine)                                                                    \
-                        R_CSTL_HeapFree ((void*)(info).args.pCmdLine);                                       \
+                if ((info).args.pCmdLine) R_CSTL_HeapFree ((void*)(info).args.pCmdLine);                     \
         } while (0)
 
 #define R_APP_SHUTDOWN()                                                                                     \
@@ -127,11 +124,9 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
         do                                                                                                   \
         {                                                                                                    \
                 const char* pAppName = R_CSTL_StringData ((Info).pApplicationName);                          \
-                if (!pAppName)                                                                               \
-                        goto r_log_appinfo;                                                                  \
+                if (!pAppName) goto r_log_appinfo;                                                           \
                 R_CSTL_LOG_INFO ("App: %s pid=%u args=%d", pAppName, (Info).pid, (Info).args.argc);          \
-                if ((Info).args.pCmdLine)                                                                    \
-                        R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
+                if ((Info).args.pCmdLine) R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                 \
                 R_CSTL_LOG_INFO (                                                                            \
                     "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB appHeap=%.2f MB",                      \
                     (double)(Info).memory.totalPhysicalBytes / R_APP_GB_BINARY,                              \
@@ -171,16 +166,14 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
 static struct R_CSTL_String*
 R_CopyCStringToHeap (const char* src)
 {
-        if (!src)
-                return NULL;
+        if (!src) return NULL;
         return R_CSTL_NewStringWithData (src);
 }
 
 void
 R_AssignProcessName (struct R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 {
-        if (!proc)
-                return;
+        if (!proc) return;
         if (exePath)
         {
                 static struct R_CSTL_String* pExeName = NULL;
@@ -205,8 +198,7 @@ R_GetCurrentPid ()
 void
 R_FillMemoryInfo (struct R_MemoryInfo* out)
 {
-        if (!out)
-                return;
+        if (!out) return;
         memset (out, 0, sizeof (*out));
         MEMORYSTATUSEX st;
         st.dwLength = sizeof (st);
@@ -228,8 +220,7 @@ static char*
 R_GetExecutablePath ()
 {
         char* buf = (char*)R_CSTL_HeapAlloc (MAX_PATH);
-        if (!buf)
-                return NULL;
+        if (!buf) return NULL;
         DWORD len = GetModuleFileNameA (NULL, buf, MAX_PATH);
         if (len == 0 || len == MAX_PATH)
         {
@@ -245,8 +236,7 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         struct R_ProcessInfo* arr = NULL;
         char*                 exe = NULL;
 
-        if (!outCount)
-                return NULL;
+        if (!outCount) return NULL;
 
         *outCount = 1;
         arr = (struct R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (struct R_ProcessInfo));
@@ -274,18 +264,15 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         return arr;
 
 r_cleanup:
-        if (arr)
-                R_CSTL_HeapFree (arr);
-        if (exe)
-                R_CSTL_HeapFree (exe);
+        if (arr) R_CSTL_HeapFree (arr);
+        if (exe) R_CSTL_HeapFree (exe);
         return NULL;
 }
 
 void
 R_InitializeApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv)
 {
-        if (!info)
-                return;
+        if (!info) return;
         memset (info, 0, sizeof (*info));
         info->pid = R_GetCurrentPid ();
         info->args.argc = argc;
@@ -321,28 +308,23 @@ R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv)
         struct R_CSTL_String*        pCmdString = NULL;
         char*                        cmd = NULL;
 
-        if (!info || argc <= 0 || !argv)
-                return;
+        if (!info || argc <= 0 || !argv) return;
 
         pBuilder = R_CSTL_NewStringBuilder ();
-        if (!pBuilder)
-                goto r_cleanup;
+        if (!pBuilder) goto r_cleanup;
 
         for (int i = 0; i < argc; ++i)
         {
                 R_CSTL_StringBuilderEmplace (pBuilder, argv[i]);
-                if (i + 1 < argc)
-                        R_CSTL_StringBuilderAppendChar (pBuilder, ' ');
+                if (i + 1 < argc) R_CSTL_StringBuilderAppendChar (pBuilder, ' ');
         }
 
         pCmdString = R_CSTL_StringBuilderToString (pBuilder);
-        if (!pCmdString)
-                goto r_cleanup;
+        if (!pCmdString) goto r_cleanup;
 
         size_t len = R_CSTL_StringLength (pCmdString);
         cmd = (char*)R_CSTL_HeapAlloc (len + 1);
-        if (!cmd)
-                goto r_cleanup;
+        if (!cmd) goto r_cleanup;
 
         memcpy (cmd, R_CSTL_StringData (pCmdString), len);
         cmd[len] = '\0';
@@ -350,19 +332,15 @@ R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv)
         cmd = NULL;
 
 r_cleanup:
-        if (pCmdString)
-                R_CSTL_StringDelete (pCmdString);
-        if (pBuilder)
-                R_CSTL_DeleteStringBuilder (pBuilder);
-        if (cmd)
-                R_CSTL_HeapFree (cmd);
+        if (pCmdString) R_CSTL_StringDelete (pCmdString);
+        if (pBuilder) R_CSTL_DeleteStringBuilder (pBuilder);
+        if (cmd) R_CSTL_HeapFree (cmd);
 }
 
 void
 R_PopulateApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv)
 {
-        if (!info)
-                return;
+        if (!info) return;
 
         R_InitializeApplicationInfo (info, argc, argv);
         R_BuildCommandLine (info, argc, argv);
@@ -385,10 +363,7 @@ R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData)
         };
         R_MainProvider_Run (&provider);
 }
-#define R_WIN32_INSTANCE HINSTANCE
-#define R_WIN32_HWND     HWND
-
-static R_WIN32_HWND       g_hwnd = NULL;
+#if defined(_WIN32)
 static struct R_GameState g_gameState = {0};
 
 static bool
@@ -398,14 +373,14 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo)
         {
                 struct R_GameStateCreateInfo createInfo = {0};
                 createInfo.pApplicationName = pAppInfo->pApplicationName;
-                R_WIN32_INSTANCE hInstance = GetModuleHandle (NULL);
+                HINSTANCE hInstance = GetModuleHandle (NULL);
                 if (hInstance == NULL)
                 {
                         R_CSTL_LOG_WARN ("HINSTANCE handle is NULL, skipping callback initialization.");
                         return false;
                 }
                 createInfo.hInstance = hInstance;
-                createInfo.hWnd = g_hwnd;
+                createInfo.hWnd = R_GetWindowHandle ();
 
                 enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameState, &createInfo);
                 if (result != R_CVULKAN_OK)
@@ -530,100 +505,6 @@ R_MainProvider_Stop (struct R_MainProvider* pProvider)
         }
 }
 
-LRESULT CALLBACK
-WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-        switch (uMsg)
-        {
-        case WM_CREATE:
-                g_hwnd = hwnd;
-                return 0;
-        case WM_DESTROY:
-                g_hwnd = NULL;
-                PostQuitMessage (0);
-                return 0;
-        default:
-                return DefWindowProcW (hwnd, uMsg, wParam, lParam);
-        }
-}
-
-static void
-R_UnicodeFromString (const char* pInput, wchar_t** ppOut)
-{
-        int wideLen = MultiByteToWideChar (CP_UTF8, 0, pInput, -1, NULL, 0);
-        if (wideLen == 0)
-                return;
-        *ppOut = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
-        if (*ppOut == NULL)
-                return;
-        MultiByteToWideChar (CP_UTF8, 0, pInput, -1, *ppOut, wideLen);
-}
-
-static void
-R_WindowCenter (R_WIN32_HWND hwnd)
-{
-        RECT rc;
-        GetWindowRect (hwnd, &rc);
-        HMONITOR hMonitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONEAREST);
-
-        MONITORINFO mi = {sizeof (mi)};
-        if (GetMonitorInfo (hMonitor, &mi))
-        {
-                int monitorWidth = mi.rcWork.right - mi.rcWork.left;
-                int monitorHeight = mi.rcWork.bottom - mi.rcWork.top;
-
-                int windowWidth = rc.right - rc.left;
-                int windowHeight = rc.bottom - rc.top;
-                int xPos = mi.rcWork.left + (monitorWidth - windowWidth) / 2;
-                int yPos = mi.rcWork.top + (monitorHeight - windowHeight) / 2;
-                SetWindowPos (hwnd, HWND_TOP, xPos, yPos, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-        }
-}
-
-static int
-R_InitWinMain (R_WIN32_INSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow)
-{
-        const wchar_t CLASS_NAME[] = L"GameWindowClass";
-        WNDCLASSW     wc = {0};
-        wc.lpfnWndProc = WindowProc;
-        wc.hInstance = hInstance;
-        wc.lpszClassName = CLASS_NAME;
-        if (!RegisterClassW (&wc))
-                goto r_fail_init;
-        if (!pApplicationInfo)
-                goto r_fail_init;
-        const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
-        if (!pAppName)
-                goto r_fail_init;
-        wchar_t* pWideAppName = NULL;
-        R_UnicodeFromString (pAppName, &pWideAppName);
-        if (!pWideAppName)
-                goto r_fail_init;
-        R_WIN32_HWND hwnd = CreateWindowExW (
-            0,
-            CLASS_NAME,
-            pWideAppName,
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            800,
-            600,
-            NULL,
-            NULL,
-            hInstance,
-            NULL);
-        R_WindowCenter (hwnd);
-        R_CSTL_HeapFree (pWideAppName);
-        if (!hwnd)
-                goto r_fail_init;
-        ShowWindow (hwnd, nCmdShow);
-        return 1;
-r_fail_init:
-        R_CSTL_LOG_ERROR ("R_InitWinMain: Failed to initialize WinMain");
-        return 0;
-}
-#undef R_WIN32_INSTANCE
-
 int WINAPI
 wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -663,8 +544,7 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
 static char*
 R_CopyStringToHeap (const char* src)
 {
-        if (!src)
-                return NULL;
+        if (!src) return NULL;
         size_t len = strlen (src);
         char*  copy = (char*)R_CSTL_HeapAlloc (len + 1);
         if (copy)
@@ -678,8 +558,7 @@ R_CopyStringToHeap (const char* src)
 void
 R_AssignProcessName (struct R_ProcessInfo* proc, char* exePath, int argc, char** argv)
 {
-        if (!proc)
-                return;
+        if (!proc) return;
         if (exePath)
         {
                 proc->pName = exePath;
@@ -702,8 +581,7 @@ R_GetCurrentPid ()
 void
 R_FillMemoryInfo (struct R_MemoryInfo* out)
 {
-        if (!out)
-                return;
+        if (!out) return;
         memset (out, 0, sizeof (*out));
         struct sysinfo si;
         if (sysinfo (&si) == 0)
@@ -732,8 +610,7 @@ R_GetExecutablePath ()
 {
         char    buf[4096];
         ssize_t len = readlink ("/proc/self/exe", buf, sizeof (buf) - 1);
-        if (len <= 0)
-                return NULL;
+        if (len <= 0) return NULL;
         buf[len] = 0x00;
         size_t allocLen = len + 1;
         char*  copy = (char*)R_CSTL_HeapAlloc (allocLen);
@@ -752,8 +629,7 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         char*                 exe = NULL;
         FILE*                 f = NULL;
 
-        if (!outCount)
-                return NULL;
+        if (!outCount) return NULL;
 
         *outCount = 1;
         arr = (struct R_ProcessInfo*)R_CSTL_HeapAlloc (sizeof (struct R_ProcessInfo));
@@ -794,12 +670,9 @@ R_CollectProcesses (size_t* outCount, int argc, char** argv)
         return arr;
 
 r_cleanup:
-        if (arr)
-                R_CSTL_HeapFree (arr);
-        if (exe)
-                R_CSTL_HeapFree (exe);
-        if (f)
-                fclose (f);
+        if (arr) R_CSTL_HeapFree (arr);
+        if (exe) R_CSTL_HeapFree (exe);
+        if (f) fclose (f);
         return NULL;
 }
 

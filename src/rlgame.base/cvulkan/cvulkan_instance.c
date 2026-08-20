@@ -119,8 +119,7 @@ R_CVulkan_CheckValidationLayerSupport (void)
         uint32_t layerCount = 0;
         vkEnumerateInstanceLayerProperties (&layerCount, NULL);
 
-        if (layerCount == 0)
-                return false;
+        if (layerCount == 0) return false;
         VkLayerProperties* availableLayers
             = (VkLayerProperties*)R_CSTL_HeapAlloc (layerCount * sizeof (VkLayerProperties));
         if (availableLayers == NULL)

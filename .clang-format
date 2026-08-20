@@ -8,6 +8,7 @@ AlignTrailingComments: false
 AlignConsecutiveBitFields: true
 AlignConsecutiveMacros: true
 AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 BinPackParameters: false
 BinPackArguments: false
 AlignAfterOpenBracket: AlwaysBreak

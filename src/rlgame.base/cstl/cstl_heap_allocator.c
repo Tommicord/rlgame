@@ -41,29 +41,25 @@ typedef CRITICAL_SECTION R_CSTL_HeapMutex;
 static void
 R_CSTL_HeapMutexInit (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                InitializeCriticalSection (m);
+        if (m) InitializeCriticalSection (m);
 }
 
 static void
 R_CSTL_HeapMutexLock (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                EnterCriticalSection (m);
+        if (m) EnterCriticalSection (m);
 }
 
 static void
 R_CSTL_HeapMutexUnlock (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                LeaveCriticalSection (m);
+        if (m) LeaveCriticalSection (m);
 }
 
 static void
 R_CSTL_HeapMutexDestroy (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                DeleteCriticalSection (m);
+        if (m) DeleteCriticalSection (m);
 }
 
 static size_t
@@ -77,17 +73,14 @@ R_CSTL_PlatformPageSize (void)
 static void*
 R_CSTL_PlatformHeapMap (size_t size, size_t* pOutMappedSize)
 {
-        if (!pOutMappedSize || size == 0)
-                return NULL;
+        if (!pOutMappedSize || size == 0) return NULL;
 
         size_t page_size = R_CSTL_PlatformPageSize ();
-        if (page_size == 0)
-                return NULL;
+        if (page_size == 0) return NULL;
 
         size_t mapped = (size + page_size - 1) & ~(page_size - 1);
         void*  p = VirtualAlloc (NULL, mapped, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-        if (!p)
-                return NULL;
+        if (!p) return NULL;
 
         *pOutMappedSize = mapped;
         return p;
@@ -97,8 +90,7 @@ static void
 R_CSTL_PlatformHeapUnmap (void* pData, size_t mappedSize)
 {
         (void)mappedSize;
-        if (pData)
-                VirtualFree (pData, 0, MEM_RELEASE);
+        if (pData) VirtualFree (pData, 0, MEM_RELEASE);
 }
 
 #else
@@ -111,29 +103,25 @@ typedef pthread_mutex_t R_CSTL_HeapMutex;
 static void
 R_CSTL_HeapMutexInit (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                pthread_mutex_init (m, NULL);
+        if (m) pthread_mutex_init (m, NULL);
 }
 
 static void
 R_CSTL_HeapMutexLock (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                pthread_mutex_lock (m);
+        if (m) pthread_mutex_lock (m);
 }
 
 static void
 R_CSTL_HeapMutexUnlock (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                pthread_mutex_unlock (m);
+        if (m) pthread_mutex_unlock (m);
 }
 
 static void
 R_CSTL_HeapMutexDestroy (R_CSTL_HeapMutex* m)
 {
-        if (m)
-                pthread_mutex_destroy (m);
+        if (m) pthread_mutex_destroy (m);
 }
 
 static size_t
@@ -146,14 +134,12 @@ R_CSTL_PlatformPageSize (void)
 static void*
 R_CSTL_PlatformHeapMap (size_t size, size_t* pOutMappedSize)
 {
-        if (!pOutMappedSize || size == 0)
-                return NULL;
+        if (!pOutMappedSize || size == 0) return NULL;
 
         size_t page_size = R_CSTL_PlatformPageSize ();
         size_t mapped = (size + page_size - 1) & ~(page_size - 1);
         void*  p = mmap (NULL, mapped, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (p == MAP_FAILED)
-                return NULL;
+        if (p == MAP_FAILED) return NULL;
 
         *pOutMappedSize = mapped;
         return p;
@@ -162,8 +148,7 @@ R_CSTL_PlatformHeapMap (size_t size, size_t* pOutMappedSize)
 static void
 R_CSTL_PlatformHeapUnmap (void* p, size_t mappedSize)
 {
-        if (p && mappedSize > 0)
-                munmap (p, mappedSize);
+        if (p && mappedSize > 0) munmap (p, mappedSize);
 }
 
 #endif
@@ -238,12 +223,10 @@ R_CSTL_HeapIsReady (void)
 static char*
 R_CSTL_StrDup (const char* pName)
 {
-        if (!pName)
-                return NULL;
+        if (!pName) return NULL;
         size_t len = strlen (pName) + 1;
         char*  dup = (char*)malloc (len);
-        if (!dup)
-                return NULL;
+        if (!dup) return NULL;
         memcpy (dup, pName, len);
         return dup;
 }
@@ -251,8 +234,7 @@ R_CSTL_StrDup (const char* pName)
 static size_t
 R_CSTL_NextPow2 (size_t v)
 {
-        if (v == 0)
-                return 1;
+        if (v == 0) return 1;
         --v;
         v |= v >> 1;
         v |= v >> 2;
@@ -288,15 +270,13 @@ R_CSTL_OrderToSize (int order)
 static void
 R_CSTL_AsanPoison (const void* addr, size_t size)
 {
-        if (addr && size > 0)
-                __asan_poison_memory_region (addr, size);
+        if (addr && size > 0) __asan_poison_memory_region (addr, size);
 }
 
 static void
 R_CSTL_AsanUnpoison (const void* addr, size_t size)
 {
-        if (addr && size > 0)
-                __asan_unpoison_memory_region (addr, size);
+        if (addr && size > 0) __asan_unpoison_memory_region (addr, size);
 }
 #else
 static void
@@ -334,25 +314,20 @@ R_CSTL_DebugInitRuntimeChecks (void)
 static int
 R_CSTL_DebugInstallGuardPage (void)
 {
-        if (!g_heap.pHeapBase || g_heap.mappedSize == 0)
-                return -1;
+        if (!g_heap.pHeapBase || g_heap.mappedSize == 0) return -1;
 
         size_t page_size = R_CSTL_PlatformPageSize ();
-        if (page_size == 0)
-                return -1;
+        if (page_size == 0) return -1;
 
         size_t heap_end = (g_heap.totalSize + page_size - 1) & ~(page_size - 1);
-        if (heap_end + page_size > g_heap.mappedSize)
-                return -1;
+        if (heap_end + page_size > g_heap.mappedSize) return -1;
 
         void* guard = (char*)g_heap.pHeapBase + heap_end;
 #if defined(_WIN32)
         DWORD old_protect = 0;
-        if (!VirtualProtect (guard, page_size, PAGE_NOACCESS, &old_protect))
-                return -1;
+        if (!VirtualProtect (guard, page_size, PAGE_NOACCESS, &old_protect)) return -1;
 #else
-        if (mprotect (guard, page_size, PROT_NONE) != 0)
-                return -1;
+        if (mprotect (guard, page_size, PROT_NONE) != 0) return -1;
 #endif
         g_heap.guardPageOffset = heap_end;
         g_heap.guardPageSize = page_size;
@@ -362,8 +337,7 @@ R_CSTL_DebugInstallGuardPage (void)
 static void
 R_CSTL_DebugRemoveGuardPage (void)
 {
-        if (!g_heap.pHeapBase || g_heap.guardPageSize == 0)
-                return;
+        if (!g_heap.pHeapBase || g_heap.guardPageSize == 0) return;
 
         void* guard = (char*)g_heap.pHeapBase + g_heap.guardPageOffset;
 #if defined(_WIN32)
@@ -380,15 +354,13 @@ static void
 R_CSTL_DebugPoisonBlockRedzone (struct R_CSTL_BlockHeader* pHeader)
 {
 #if R_CSTL_HEAP_POISON_ENABLED
-        if (!pHeader)
-                return;
+        if (!pHeader) return;
 
         size_t blockSize = R_CSTL_OrderToSize ((int)pHeader->order);
         char*  user = (char*)pHeader + sizeof (*pHeader);
         size_t userCapacity = blockSize - sizeof (*pHeader);
         size_t requested = pHeader->requestedSize;
-        if (requested >= userCapacity)
-                return;
+        if (requested >= userCapacity) return;
 
         size_t redzone = userCapacity - requested;
         memset (user + requested, R_CSTL_HEAP_POISON_REDZONE, redzone);
@@ -401,12 +373,10 @@ R_CSTL_DebugPoisonBlockRedzone (struct R_CSTL_BlockHeader* pHeader)
 static void
 R_CSTL_DebugPrepareUserBuffer (struct R_CSTL_BlockHeader* pHeader, void* pData)
 {
-        if (!pHeader || !pData || pHeader->requestedSize == 0)
-                return;
+        if (!pHeader || !pData || pHeader->requestedSize == 0) return;
 
 #if R_CSTL_HEAP_POISON_ENABLED
-        if (R_CSTL_HEAP_POISON_ALLOC)
-                memset (pData, R_CSTL_HEAP_POISON_ALLOC, pHeader->requestedSize);
+        if (R_CSTL_HEAP_POISON_ALLOC) memset (pData, R_CSTL_HEAP_POISON_ALLOC, pHeader->requestedSize);
 #endif
         R_CSTL_AsanUnpoison (pData, pHeader->requestedSize);
 #if R_CSTL_HEAP_POISON_ENABLED
@@ -417,8 +387,7 @@ R_CSTL_DebugPrepareUserBuffer (struct R_CSTL_BlockHeader* pHeader, void* pData)
 static void
 R_CSTL_DebugPrepareUserBufferNoPoison (struct R_CSTL_BlockHeader* pHeader, void* pData)
 {
-        if (!pHeader || !pData)
-                return;
+        if (!pHeader || !pData) return;
 
         R_CSTL_AsanUnpoison (pData, pHeader->requestedSize);
 }
@@ -427,11 +396,9 @@ static void
 R_CSTL_DebugPoisonFreedUserBuffer (struct R_CSTL_BlockHeader* pHeader, void* pUser)
 {
 #if R_CSTL_HEAP_POISON_ENABLED
-        if (!pHeader || !pUser || pHeader->requestedSize == 0)
-                return;
+        if (!pHeader || !pUser || pHeader->requestedSize == 0) return;
 
-        if (R_CSTL_HEAP_POISON_FREE)
-                memset (pUser, R_CSTL_HEAP_POISON_FREE, pHeader->requestedSize);
+        if (R_CSTL_HEAP_POISON_FREE) memset (pUser, R_CSTL_HEAP_POISON_FREE, pHeader->requestedSize);
         R_CSTL_AsanPoison (pUser, pHeader->requestedSize);
 #else
         (void)pHeader;
@@ -491,16 +458,14 @@ R_CSTL_DebugPoisonFreedUserBuffer (struct R_CSTL_BlockHeader* pHeader, void* pUs
 static struct R_CSTL_BlockHeader*
 R_CSTL_HeaderFromUserData (const void* ptr)
 {
-        if (!ptr)
-                return NULL;
+        if (!ptr) return NULL;
         return (struct R_CSTL_BlockHeader*)((const char*)ptr - sizeof (struct R_CSTL_BlockHeader));
 }
 
 static int
 R_CSTL_HeapPointerInRange (const void* ptr)
 {
-        if (!ptr || !g_heap.pHeapBase || g_heap.totalSize == 0)
-                return 0;
+        if (!ptr || !g_heap.pHeapBase || g_heap.totalSize == 0) return 0;
         const char* base = (const char*)g_heap.pHeapBase;
         const char* end = base + g_heap.totalSize;
         const char* p = (const char*)ptr;
@@ -510,8 +475,7 @@ R_CSTL_HeapPointerInRange (const void* ptr)
 static int
 R_CSTL_HeaderInRange (const struct R_CSTL_BlockHeader* pHeader)
 {
-        if (!pHeader || !g_heap.pHeapBase || g_heap.totalSize < sizeof (*pHeader))
-                return 0;
+        if (!pHeader || !g_heap.pHeapBase || g_heap.totalSize < sizeof (*pHeader)) return 0;
         const char* base = (const char*)g_heap.pHeapBase;
         const char* end = base + g_heap.totalSize - sizeof (*pHeader) + 1;
         const char* p = (const char*)pHeader;
@@ -521,18 +485,13 @@ R_CSTL_HeaderInRange (const struct R_CSTL_BlockHeader* pHeader)
 static int
 R_CSTL_IsLiveBlockHeader (const struct R_CSTL_BlockHeader* pHeader)
 {
-        if (!R_CSTL_HeaderInRange (pHeader))
-                goto cstl_fail;
-        if (pHeader->magic != R_CSTL_HEAP_BLOCK_MAGIC)
-                goto cstl_fail;
-        if (pHeader->order > (uint32_t)g_heap.maxOrder)
-                goto cstl_fail;
+        if (!R_CSTL_HeaderInRange (pHeader)) goto cstl_fail;
+        if (pHeader->magic != R_CSTL_HEAP_BLOCK_MAGIC) goto cstl_fail;
+        if (pHeader->order > (uint32_t)g_heap.maxOrder) goto cstl_fail;
         size_t offset = (size_t)((const char*)pHeader - (const char*)g_heap.pHeapBase);
-        if (offset % g_heap.minBlock != 0)
-                goto cstl_fail;
+        if (offset % g_heap.minBlock != 0) goto cstl_fail;
         size_t blockSize = R_CSTL_OrderToSize ((int)pHeader->order);
-        if (offset + blockSize > g_heap.totalSize)
-                goto cstl_fail;
+        if (offset + blockSize > g_heap.totalSize) goto cstl_fail;
         return 1;
 cstl_fail:
         return 0;
@@ -554,8 +513,7 @@ static void
 R_CSTL_PushFreeLocked (int order, size_t offset)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (order < 0 || order > g_heap.maxOrder)
-                return;
+        if (order < 0 || order > g_heap.maxOrder) return;
 #endif
         struct R_CSTL_FreeNode* pNode = R_CSTL_FreeNodeFromOffset (offset);
         pNode->pNext = g_heap.pFreeLists[order];
@@ -574,13 +532,11 @@ static int
 R_CSTL_PopFreeLocked (int order, size_t* pOutOffset)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pOutOffset || order < 0 || order > g_heap.maxOrder)
-                goto cstl_fail;
+        if (!pOutOffset || order < 0 || order > g_heap.maxOrder) goto cstl_fail;
 #endif
 
         struct R_CSTL_FreeNode* pHead = g_heap.pFreeLists[order];
-        if (!pHead)
-                goto cstl_fail;
+        if (!pHead) goto cstl_fail;
 
         g_heap.pFreeLists[order] = pHead->pNext;
         *pOutOffset = R_CSTL_OffsetFromFreeNode (pHead);
@@ -602,8 +558,7 @@ static int
 R_CSTL_RemoveFreeOffsetLocked (int order, size_t offset)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (order < 0 || order > g_heap.maxOrder)
-                goto cstl_fail;
+        if (order < 0 || order > g_heap.maxOrder) goto cstl_fail;
 #endif
         struct R_CSTL_FreeNode* pPrev = NULL;
         struct R_CSTL_FreeNode* pCur = g_heap.pFreeLists[order];
@@ -611,10 +566,8 @@ R_CSTL_RemoveFreeOffsetLocked (int order, size_t offset)
         {
                 if (R_CSTL_OffsetFromFreeNode (pCur) == offset)
                 {
-                        if (pPrev)
-                                pPrev->pNext = pCur->pNext;
-                        else
-                                g_heap.pFreeLists[order] = pCur->pNext;
+                        if (pPrev) pPrev->pNext = pCur->pNext;
+                        else g_heap.pFreeLists[order] = pCur->pNext;
                         return 1;
                 }
                 pPrev = pCur;
@@ -637,8 +590,7 @@ R_CSTL_RemoveFreeOffset (int order, size_t offset)
 static void
 R_CSTL_RemoveAllocationRecord (void* pAllocation)
 {
-        if (!pAllocation)
-                return;
+        if (!pAllocation) return;
         for (struct R_CSTL_OwnerRecord* pOwner = g_heap.pOwners; pOwner; pOwner = pOwner->pNext)
         {
                 for (size_t i = 0; i < pOwner->allocCount;)
@@ -648,8 +600,7 @@ R_CSTL_RemoveAllocationRecord (void* pAllocation)
                                 free (pOwner->pAllocations[i].pName);
                                 pOwner->pAllocations[i] = pOwner->pAllocations[pOwner->allocCount - 1];
                                 --pOwner->allocCount;
-                                if (g_heap.registeredCount > 0)
-                                        --g_heap.registeredCount;
+                                if (g_heap.registeredCount > 0) --g_heap.registeredCount;
                         }
                         else
                         {
@@ -662,24 +613,19 @@ R_CSTL_RemoveAllocationRecord (void* pAllocation)
 int R_CSTL_API
 R_CSTL_HeapInit (size_t heap_size_bytes)
 {
-        if (g_heap.initialized)
-                return 0;
-        if (heap_size_bytes == 0)
-                return -1;
+        if (g_heap.initialized) return 0;
+        if (heap_size_bytes == 0) return -1;
 
         g_heap.minBlock = 32;
         size_t usable = R_CSTL_NextPow2 (heap_size_bytes);
-        if (usable < g_heap.minBlock)
-                usable = g_heap.minBlock;
-        if (usable % g_heap.minBlock)
-                usable = R_CSTL_NextPow2 (usable);
+        if (usable < g_heap.minBlock) usable = g_heap.minBlock;
+        if (usable % g_heap.minBlock) usable = R_CSTL_NextPow2 (usable);
 
         size_t mappedSize = 0;
         size_t mapRequest = usable;
 #ifdef R_CSTL_HEAP_DEBUG
         size_t guard_page = R_CSTL_PlatformPageSize ();
-        if (guard_page > 0)
-                mapRequest = usable + guard_page;
+        if (guard_page > 0) mapRequest = usable + guard_page;
 #endif
         void* base = R_CSTL_PlatformHeapMap (mapRequest, &mappedSize);
         if (!base || mappedSize < usable)
@@ -729,8 +675,7 @@ R_CSTL_HeapInit (size_t heap_size_bytes)
 void R_CSTL_API
 R_CSTL_HeapShutdown (void)
 {
-        if (!R_CSTL_HeapIsReady ())
-                return;
+        if (!R_CSTL_HeapIsReady ()) return;
 
         R_CSTL_HeapLogLeaks ();
 
@@ -760,16 +705,13 @@ R_CSTL_HeapShutdown (void)
 R_CSTL_API void*
 R_CSTL_HeapAlloc (size_t size)
 {
-        if (!R_CSTL_HeapIsReady ())
-                return NULL;
+        if (!R_CSTL_HeapIsReady ()) return NULL;
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (size == 0)
-                return NULL;
+        if (size == 0) return NULL;
 #endif
         size_t total = size + sizeof (struct R_CSTL_BlockHeader);
         int    target = R_CSTL_SizeToOrder (total <= g_heap.minBlock ? g_heap.minBlock : total);
-        if (target > g_heap.maxOrder)
-                return NULL;
+        if (target > g_heap.maxOrder) return NULL;
 
         int    order = target;
         size_t offset = 0;
@@ -778,8 +720,7 @@ R_CSTL_HeapAlloc (size_t size)
 
         while (order <= g_heap.maxOrder)
         {
-                if (R_CSTL_PopFreeLocked (order, &offset))
-                        break;
+                if (R_CSTL_PopFreeLocked (order, &offset)) break;
                 ++order;
         }
         if (order > g_heap.maxOrder)
@@ -813,16 +754,13 @@ R_CSTL_HeapAlloc (size_t size)
 static void*
 R_CSTL_HeapAllocNoPoison (size_t size)
 {
-        if (!R_CSTL_HeapIsReady ())
-                return NULL;
+        if (!R_CSTL_HeapIsReady ()) return NULL;
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (size == 0)
-                return NULL;
+        if (size == 0) return NULL;
 #endif
         size_t total = size + sizeof (struct R_CSTL_BlockHeader);
         int    target = R_CSTL_SizeToOrder (total <= g_heap.minBlock ? g_heap.minBlock : total);
-        if (target > g_heap.maxOrder)
-                return NULL;
+        if (target > g_heap.maxOrder) return NULL;
 
         int    order = target;
         size_t offset = 0;
@@ -831,8 +769,7 @@ R_CSTL_HeapAllocNoPoison (size_t size)
 
         while (order <= g_heap.maxOrder)
         {
-                if (R_CSTL_PopFreeLocked (order, &offset))
-                        break;
+                if (R_CSTL_PopFreeLocked (order, &offset)) break;
                 ++order;
         }
 
@@ -867,18 +804,15 @@ R_CSTL_HeapAllocNoPoison (size_t size)
 R_CSTL_API void*
 R_CSTL_HeapAllocAligned (size_t size, size_t alignment)
 {
-        if (!R_CSTL_HeapIsReady ())
-                return NULL;
+        if (!R_CSTL_HeapIsReady ()) return NULL;
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (size == 0)
-                return NULL;
+        if (size == 0) return NULL;
 #endif
         if (alignment == 0 || (alignment & (alignment - 1)) != 0)
                 return NULL; // alignment must be power of two
         size_t total = size + alignment + sizeof (void*);
         void*  pRaw = R_CSTL_HeapAlloc (total);
-        if (!pRaw)
-                return NULL;
+        if (!pRaw) return NULL;
 
         uintptr_t addr = (uintptr_t)pRaw + sizeof (void*);
         uintptr_t aligned = (addr + alignment - 1) & ~(alignment - 1);
@@ -892,8 +826,7 @@ void R_CSTL_API
 R_CSTL_HeapFree (void* pData)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pData)
-                return;
+        if (!pData) return;
 #endif
         if (!R_CSTL_HeapIsReady ())
         {
@@ -990,10 +923,8 @@ R_CSTL_HeapFree (void* pData)
 R_CSTL_API void*
 R_CSTL_HeapRealloc (void* pData, size_t newSize)
 {
-        if (!R_CSTL_HeapIsReady ())
-                return NULL;
-        if (!pData)
-                return R_CSTL_HeapAlloc (newSize);
+        if (!R_CSTL_HeapIsReady ()) return NULL;
+        if (!pData) return R_CSTL_HeapAlloc (newSize);
         if (newSize == 0)
         {
                 R_CSTL_HeapFree (pData);
@@ -1001,14 +932,12 @@ R_CSTL_HeapRealloc (void* pData, size_t newSize)
         }
 
 #ifdef R_CSTL_HEAP_DEBUG
-        if (!R_CSTL_HeapIsValidPointer (pData))
-                return NULL;
+        if (!R_CSTL_HeapIsValidPointer (pData)) return NULL;
 #endif
 
         struct R_CSTL_BlockHeader* pHeader = R_CSTL_HeaderFromUserData (pData);
 #ifdef R_CSTL_HEAP_DEBUG
-        if (!R_CSTL_IsLiveBlockHeader (pHeader))
-                return NULL;
+        if (!R_CSTL_IsLiveBlockHeader (pHeader)) return NULL;
 #endif
 
         size_t totalNeeded = newSize + sizeof (struct R_CSTL_BlockHeader);
@@ -1030,14 +959,11 @@ R_CSTL_HeapRealloc (void* pData, size_t newSize)
         }
 
         void* pNew = R_CSTL_HeapAllocNoPoison (newSize);
-        if (!pNew)
-                return NULL;
+        if (!pNew) return NULL;
 
         size_t copyBytes = pHeader->requestedSize;
-        if (copyBytes > newSize)
-                copyBytes = newSize;
-        if (copyBytes > 0)
-                memcpy (pNew, pData, copyBytes);
+        if (copyBytes > newSize) copyBytes = newSize;
+        if (copyBytes > 0) memcpy (pNew, pData, copyBytes);
 
         R_CSTL_HeapFree (pData);
 
@@ -1050,8 +976,7 @@ R_CSTL_HeapRealloc (void* pData, size_t newSize)
 static struct R_CSTL_OwnerRecord*
 R_CSTL_FindOrCreateHeapOwner (void* pOwner)
 {
-        if (!pOwner)
-                return NULL;
+        if (!pOwner) return NULL;
 
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         for (struct R_CSTL_OwnerRecord* pRecord = g_heap.pOwners; pRecord; pRecord = pRecord->pNext)
@@ -1126,10 +1051,8 @@ R_CSTL_HeapRegisterAllocation (void* pOwner, void* pAllocation, size_t size, con
         (void)pName;
         return 1;
 #else
-        if (!pOwner || !pAllocation || size == 0)
-                return 0;
-        if (!g_heap.initialized || !g_heap.pHeapBase)
-                return 0;
+        if (!pOwner || !pAllocation || size == 0) return 0;
+        if (!g_heap.initialized || !g_heap.pHeapBase) return 0;
         if (!R_CSTL_HeapIsValidPointer (pAllocation))
         {
                 R_CSTL_LOG_ERROR (
@@ -1150,8 +1073,7 @@ R_CSTL_HeapRegisterAllocation (void* pOwner, void* pAllocation, size_t size, con
         }
 
         struct R_CSTL_OwnerRecord* pOwnerRecord = R_CSTL_FindOrCreateHeapOwner (pOwner);
-        if (!pOwnerRecord)
-                return 0;
+        if (!pOwnerRecord) return 0;
 
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         if (pOwnerRecord->allocCount == pOwnerRecord->allocCapacity)
@@ -1197,27 +1119,22 @@ R_CSTL_HeapUnregisterAllocation (void* pOwner, void* pAllocation)
         (void)pAllocation;
         return;
 #else
-        if (!pOwner || !pAllocation)
-                return;
-        if (!g_heap.initialized)
-                return;
+        if (!pOwner || !pAllocation) return;
+        if (!g_heap.initialized) return;
 
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         for (struct R_CSTL_OwnerRecord* pOwnerRecord = g_heap.pOwners; pOwnerRecord;
              pOwnerRecord = pOwnerRecord->pNext)
         {
-                if (pOwnerRecord->pOwner != pOwner)
-                        continue;
+                if (pOwnerRecord->pOwner != pOwner) continue;
                 for (size_t i = 0; i < pOwnerRecord->allocCount; ++i)
                 {
-                        if (pOwnerRecord->pAllocations[i].pAllocation != pAllocation)
-                                continue;
+                        if (pOwnerRecord->pAllocations[i].pAllocation != pAllocation) continue;
                         free (pOwnerRecord->pAllocations[i].pName);
                         pOwnerRecord->pAllocations[i]
                             = pOwnerRecord->pAllocations[pOwnerRecord->allocCount - 1];
                         --pOwnerRecord->allocCount;
-                        if (g_heap.registeredCount > 0)
-                                --g_heap.registeredCount;
+                        if (g_heap.registeredCount > 0) --g_heap.registeredCount;
                         break;
                 }
                 break;
@@ -1229,16 +1146,14 @@ R_CSTL_HeapUnregisterAllocation (void* pOwner, void* pAllocation)
 size_t
 R_CSTL_HeapCheckObjectLeaks (void* pOwner)
 {
-        if (!pOwner || !g_heap.initialized)
-                return 0;
+        if (!pOwner || !g_heap.initialized) return 0;
 
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         size_t leaked = 0;
         for (struct R_CSTL_OwnerRecord* pOwnerRecord = g_heap.pOwners; pOwnerRecord;
              pOwnerRecord = pOwnerRecord->pNext)
         {
-                if (pOwnerRecord->pOwner != pOwner)
-                        continue;
+                if (pOwnerRecord->pOwner != pOwner) continue;
                 for (size_t i = 0; i < pOwnerRecord->allocCount; ++i)
                 {
                         struct R_CSTL_AllocationRecord* ar = &pOwnerRecord->pAllocations[i];
@@ -1264,8 +1179,7 @@ R_CSTL_HeapCheckObjectLeaks (void* pOwner)
 size_t
 R_CSTL_HeapLogLeaks (void)
 {
-        if (!g_heap.initialized)
-                return 0;
+        if (!g_heap.initialized) return 0;
 
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         size_t total = 0;
@@ -1273,8 +1187,7 @@ R_CSTL_HeapLogLeaks (void)
         for (struct R_CSTL_OwnerRecord* pOwnerRecord = g_heap.pOwners; pOwnerRecord;
              pOwnerRecord = pOwnerRecord->pNext)
         {
-                if (pOwnerRecord->allocCount == 0)
-                        continue;
+                if (pOwnerRecord->allocCount == 0) continue;
                 R_CSTL_LOG_ERROR (
                     "Owner %p (type=%s) has %zu leaked allocations:",
                     pOwnerRecord->pOwner,
@@ -1312,10 +1225,8 @@ R_CSTL_HeapLogLeaks (void)
 int
 R_CSTL_HeapIsValidPointer (const void* ptr)
 {
-        if (!g_heap.initialized || !ptr)
-                return 0;
-        if (!R_CSTL_HeapPointerInRange (ptr))
-                return 0;
+        if (!g_heap.initialized || !ptr) return 0;
+        if (!R_CSTL_HeapPointerInRange (ptr)) return 0;
 #ifdef R_CSTL_HEAP_DEBUG
         return R_CSTL_IsLiveBlockHeader (R_CSTL_HeaderFromUserData (ptr));
 #else
@@ -1327,8 +1238,7 @@ R_CSTL_HeapIsValidPointer (const void* ptr)
 size_t
 R_CSTL_HeapGetRegisteredCount (void)
 {
-        if (!g_heap.initialized)
-                return 0;
+        if (!g_heap.initialized) return 0;
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         size_t count = g_heap.registeredCount;
         R_CSTL_HeapMutexUnlock (&g_heap.mutex);
@@ -1344,8 +1254,7 @@ R_CSTL_Heap_GetTotalSize (void)
 size_t
 R_CSTL_Heap_GetUsedSize (void)
 {
-        if (!g_heap.initialized)
-                return 0;
+        if (!g_heap.initialized) return 0;
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         size_t used = g_heap.usedBytes;
         R_CSTL_HeapMutexUnlock (&g_heap.mutex);
@@ -1356,13 +1265,10 @@ R_CSTL_Heap_GetUsedSize (void)
 int
 R_CSTL_HeapDebugVerify (void)
 {
-        if (!g_heap.initialized || !g_heap.pHeapBase)
-                return 1;
-        if (g_heap.usedBytes > g_heap.totalSize)
-                return 2;
+        if (!g_heap.initialized || !g_heap.pHeapBase) return 1;
+        if (g_heap.usedBytes > g_heap.totalSize) return 2;
 #if defined(_WIN32) && defined(_MSC_VER)
-        if (!_CrtCheckMemory ())
-                return 3;
+        if (!_CrtCheckMemory ()) return 3;
 #endif
         return 0;
 }

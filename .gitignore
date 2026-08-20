@@ -26,3 +26,4 @@ CLAUDE.local.md
 .vs/
 .cursor/rules/codegraph.mdc
 cmake-build-*/
+out/

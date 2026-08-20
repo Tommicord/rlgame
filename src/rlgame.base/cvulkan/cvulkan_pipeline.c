@@ -94,14 +94,10 @@ R_CVulkan_NewGraphicsPipeline (
         R_CVULKAN_ASSERT (pCreateInfo->pColorBlendInfo);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice)
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE)
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE)
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0)
-                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice) return R_CVULKAN_ERROR_NULL_POINTER;
+        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE) return R_CVULKAN_ERROR_NULL_POINTER;
+        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE) return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0) return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo
@@ -175,19 +171,15 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         R_CVULKAN_ASSERT (pCreateInfo->pColorAttachmentFormats);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice)
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE)
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0)
-                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice) return R_CVULKAN_ERROR_NULL_POINTER;
+        if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE) return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0) return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo
             || !pCreateInfo->pColorBlendInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pCreateInfo->pColorAttachmentFormats)
-                return R_CVULKAN_ERROR_NULL_POINTER;
+        if (!pCreateInfo->pColorAttachmentFormats) return R_CVULKAN_ERROR_NULL_POINTER;
         if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;

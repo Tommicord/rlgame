@@ -83,14 +83,6 @@ R_GAME_CVULKAN_API void R_GameState_Cleanup (struct R_GameState* pState);
 R_GAME_CVULKAN_API int R_GameState_IsInitialized (const struct R_GameState* pState);
 
 /**
- * @brief Check if running in headless mode
- *
- * @param pState Pointer to game state
- * @return 1 if headless, 0 otherwise
- */
-R_GAME_CVULKAN_API int R_GameState_IsHeadless (const struct R_GameState* pState);
-
-/**
  * @brief Get the Vulkan pipeline context
  *
  * @param pState Pointer to game state
