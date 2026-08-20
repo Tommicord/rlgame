@@ -15,6 +15,7 @@
 #include "rlgame.base/cvulkan/cvulkan_semaphore.h"
 #include "rlgame.base/cvulkan/cvulkan_surface.h"
 #include "rlgame.base/cvulkan/cvulkan_fence.h"
+#include "rlgame.base/cvulkan/cvulkan_swapchain.h"
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/game/game_cvulkan_platform.h"
 
@@ -58,6 +59,7 @@ struct R_GameCVulkan_PipelineContext
                 struct R_CVulkan_Semaphore    imageAvailableSemaphore;
                 struct R_CVulkan_Semaphore    renderFinishedSemaphore;
                 struct R_CVulkan_Fence        inFlightFence;
+                struct R_CVulkan_Swapchain    swapchain;
                 struct R_CVulkan_RenderPass   renderPass;
                 struct R_CVulkan_Framebuffer* pFramebuffers;
                 uint32_t                      framebufferCount;

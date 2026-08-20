@@ -89,16 +89,16 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
                 R_CSTL_TraceLogEnvironmentInfo ();                                                           \
         } while (0)
 
-#define R_APP_CLEANUP_INFO(info)                                                                             \
+#define R_APP_CLEANUP_INFO(Info)                                                                             \
         do                                                                                                   \
         {                                                                                                    \
-                if ((info).pExistingProcesses)                                                               \
+                if ((Info).pExistingProcesses)                                                               \
                 {                                                                                            \
-                        if ((info).existingProcessCount > 0 && (info).pExistingProcesses[0].pName)           \
-                                R_CSTL_HeapFree ((void*)(info).pExistingProcesses[0].pName);                 \
-                        R_CSTL_HeapFree ((void*)(info).pExistingProcesses);                                  \
+                        if ((Info).existingProcessCount > 0 && (Info).pExistingProcesses[0].pName)           \
+                                R_CSTL_HeapFree ((void*)(Info).pExistingProcesses[0].pName);                 \
+                        R_CSTL_HeapFree ((void*)(Info).pExistingProcesses);                                  \
                 }                                                                                            \
-                if ((info).args.pCmdLine) R_CSTL_HeapFree ((void*)(info).args.pCmdLine);                     \
+                if ((Info).args.pCmdLine) R_CSTL_HeapFree ((void*)(Info).args.pCmdLine);                     \
         } while (0)
 
 #define R_APP_SHUTDOWN()                                                                                     \
@@ -107,6 +107,7 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
                 R_CSTL_LogShutdown ();                                                                       \
                 R_CSTL_HeapShutdown ();                                                                      \
         } while (0)
+
 #define R_APP_GB_BINARY (1024 * 1024 * 1024)
 #define R_APP_MB_BINARY (1024 * 1024)
 #define R_APP_LOG_HEAP_STATS()                                                                               \
@@ -680,16 +681,12 @@ static struct R_GameState g_gameStateLinux = {0};
 static bool
 GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
 {
-        R_CSTL_TRACE_FUNCTION ();
-
         (void)pAppInfo;
 
         if (!R_GameState_IsInitialized (&g_gameStateLinux))
         {
                 struct R_GameStateCreateInfo createInfo = {0};
-                createInfo.pApplicationName = "Real Game";
-                createInfo.enableValidationLayers = true;
-                createInfo.headlessMode = true;
+                createInfo.pApplicationName = pAppInfo->pApplicationName;
 
                 enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameStateLinux, &createInfo);
                 if (result != R_CVULKAN_OK)
@@ -697,11 +694,9 @@ GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
                         R_CSTL_LOG_ERROR (
                             "GameLoopCallbackLinux: Failed to initialize game state (error: %d)",
                             result);
-                        R_CSTL_TRACE_RETURN ();
                         return false;
                 }
                 R_CSTL_LOG_INFO ("GameLoopCallbackLinux: Game state initialized");
-                R_CSTL_TRACE_RETURN ();
                 return true;
         }
 
@@ -709,7 +704,6 @@ GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
         // R_GameState_Update (&g_gameStateLinux, deltaTime);
         // R_GameState_Render (&g_gameStateLinux);
 
-        R_CSTL_TRACE_RETURN ();
         return true;
 }
 

@@ -35,7 +35,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
         pBuffer->usage = pCreateInfo->usage;
         pBuffer->properties = pCreateInfo->properties;
         pBuffer->pMapped = NULL;
-        pBuffer->isMapped = 0;
+        pBuffer->isMapped = false;
 #if defined(R_CVULKAN_DEBUG)
         pBuffer->isInitialized = false;
 #endif
@@ -153,7 +153,7 @@ R_CVulkan_BufferMap (
                 return R_CVULKAN_ERROR_MAP_MEMORY_FAILED;
         }
 
-        pBuffer->isMapped = 1;
+        pBuffer->isMapped = true;
         *ppOutData = pBuffer->pMapped;
         return R_CVULKAN_OK;
 }
@@ -171,7 +171,7 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
 
         vkUnmapMemory (pBuffer->device, pBuffer->memory);
         pBuffer->pMapped = NULL;
-        pBuffer->isMapped = 0;
+        pBuffer->isMapped = false;
 
         return R_CVULKAN_OK;
 }

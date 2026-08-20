@@ -511,6 +511,21 @@ R_CSTL_LogCleanupPartialInit (void)
 }
 
 #if defined(_WIN32)
+static wchar_t*
+R_CSTL_LogUtf8ToWide (const char* utf8Str)
+{
+        if (!utf8Str) return NULL;
+
+        int wideLen = MultiByteToWideChar (CP_UTF8, 0, utf8Str, -1, NULL, 0);
+        if (wideLen == 0) return NULL;
+
+        wchar_t* wideStr = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
+        if (!wideStr) return NULL;
+
+        MultiByteToWideChar (CP_UTF8, 0, utf8Str, -1, wideStr, wideLen);
+        return wideStr;
+}
+
 static void
 R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
 {
@@ -541,7 +556,17 @@ R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
         {
                 strncat (debugBuffer, entry->backtrace, sizeof (debugBuffer) - used - 1);
         }
-        OutputDebugStringA (debugBuffer);
+
+        wchar_t* wideBuffer = R_CSTL_LogUtf8ToWide (debugBuffer);
+        if (wideBuffer)
+        {
+                OutputDebugStringW (wideBuffer);
+                R_CSTL_HeapFree (wideBuffer);
+        }
+        else
+        {
+                OutputDebugStringA (debugBuffer);
+        }
 }
 #endif
 
@@ -703,6 +728,11 @@ R_CSTL_LogInit (void)
         g_log.head = 0;
         g_log.tail = 0;
         g_log.count = 0;
+
+#if defined(_WIN32)
+        SetConsoleOutputCP (CP_UTF8);
+        SetConsoleCP (CP_UTF8);
+#endif
 
 #if defined(_WIN32)
         g_log.symInitialized = false;

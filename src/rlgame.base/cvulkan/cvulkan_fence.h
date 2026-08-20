@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "rlgame.base/cvulkan/cvulkan_common.h"
@@ -72,7 +74,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
-    int*                           pOutSignaled);
+    bool*                          pOutSignaled);
 
 /**
  * @brief Get the raw Vulkan fence handle

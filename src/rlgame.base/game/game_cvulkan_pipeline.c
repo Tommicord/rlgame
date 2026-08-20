@@ -5,6 +5,7 @@
 #include "rlgame.base/cvulkan/cvulkan_command_pool.h"
 #include "rlgame.base/cvulkan/cvulkan_semaphore.h"
 #include "rlgame.base/cvulkan/cvulkan_fence.h"
+#include "rlgame.base/cvulkan/cvulkan_swapchain.h"
 #include "rlgame.base/cvulkan/cvulkan_render_pass.h"
 #include "rlgame.base/cvulkan/cvulkan_framebuffer.h"
 #include "rlgame.base/cstl/cstl_log.h"
@@ -15,6 +16,53 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+
+#if defined(R_CVULKAN_PLATFORM_WINDOWS)
+#include <windows.h>
+#elif defined(R_CVULKAN_PLATFORM_LINUX)
+#include <X11/Xlib.h>
+#elif defined(R_CVULKAN_PLATFORM_ANDROID)
+#include <android/native_window.h>
+#endif
+
+static VkExtent2D
+R_GameCVulkan_GetWindowExtent (const struct R_GameCVulkan_PipelineContextCreateInfo* pCreateInfo)
+{
+        VkExtent2D extent = {0, 0};
+
+#if defined(R_CVULKAN_PLATFORM_WINDOWS)
+        if (pCreateInfo->hWnd != NULL)
+        {
+                RECT rect;
+                if (GetClientRect (pCreateInfo->hWnd, &rect))
+                {
+                        extent.width = rect.right - rect.left;
+                        extent.height = rect.bottom - rect.top;
+                }
+        }
+#elif defined(R_CVULKAN_PLATFORM_LINUX)
+        if (pCreateInfo->pDisplay != NULL && pCreateInfo->window != 0)
+        {
+                XWindowAttributes windowAttributes;
+                if (XGetWindowAttributes (pCreateInfo->pDisplay, pCreateInfo->window, &windowAttributes))
+                {
+                        extent.width = windowAttributes.width;
+                        extent.height = windowAttributes.height;
+                }
+        }
+#elif defined(R_CVULKAN_PLATFORM_ANDROID)
+        if (pCreateInfo->pWindow != NULL)
+        {
+                extent.width = ANativeWindow_getWidth (pCreateInfo->pWindow);
+                extent.height = ANativeWindow_getHeight (pCreateInfo->pWindow);
+        }
+#elif defined(R_CVULKAN_PLATFORM_MACOS)
+        // macOS window dimensions would need to be retrieved via NSWindow
+        // This requires Objective-C runtime integration
+#endif
+
+        return extent;
+}
 
 static enum R_CVulkan_Error
 R_GameCVulkan_InitializeQueues (
@@ -190,6 +238,7 @@ R_GameCVulkan_CleanupPartialInitialization (struct R_GameCVulkan_PipelineContext
         R_CVulkan_DeleteSemaphore (&pContext->imageAvailableSemaphore);
         R_CVulkan_DeleteSemaphore (&pContext->renderFinishedSemaphore);
         R_CVulkan_DeleteFence (&pContext->inFlightFence);
+        R_CVulkan_DeleteSwapchain (&pContext->swapchain);
 #endif
         R_CVulkan_DeleteCommandPool (&pContext->graphicsCommandPool);
         R_CVulkan_DeleteCommandPool (&pContext->computeCommandPool);
@@ -296,6 +345,31 @@ R_GameCVulkan_NewPipelineContext (
                 goto r_cleanup;
         }
 
+#if !defined(R_CVULKAN_HEADLESS)
+        VkExtent2D windowExtent = R_GameCVulkan_GetWindowExtent (pCreateInfo);
+
+        struct R_CVulkan_SwapchainCreateInfo swapchainCreateInfo = {0};
+        swapchainCreateInfo.pDevice = &pContext->device;
+        swapchainCreateInfo.pSurface = pContext->pSurface;
+        swapchainCreateInfo.imageCount = 0;
+        swapchainCreateInfo.surfaceFormat.format = VK_FORMAT_UNDEFINED;
+        swapchainCreateInfo.surfaceFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+        swapchainCreateInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        swapchainCreateInfo.extent = windowExtent;
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainCreateInfo.arrayLayers = 1;
+        swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swapchainCreateInfo.clipped = VK_TRUE;
+        swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+        err = R_CVulkan_NewSwapchain (&pContext->swapchain, &swapchainCreateInfo);
+        if (err != R_CVULKAN_OK)
+        {
+                R_CSTL_LOG_ERROR ("Failed to create swapchain: %s", R_CVulkan_ErrorToString (err));
+                goto r_cleanup;
+        }
+#endif
         pContext->pFramebuffers = NULL;
         pContext->framebufferCount = 0;
         pContext->currentFrameIndex = 0;
@@ -349,6 +423,7 @@ R_GameCVulkan_PipelineContextDelete (struct R_GameCVulkan_PipelineContext* pCont
         R_CVulkan_DeleteSemaphore (&pContext->imageAvailableSemaphore);
         R_CVulkan_DeleteSemaphore (&pContext->renderFinishedSemaphore);
         R_CVulkan_DeleteFence (&pContext->inFlightFence);
+        R_CVulkan_DeleteSwapchain (&pContext->swapchain);
 #endif
 
         R_CVulkan_DeleteCommandPool (&pContext->graphicsCommandPool);

@@ -199,7 +199,7 @@ R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
-    int*                           pOutSignaled)
+    bool*                          pOutSignaled)
 {
         R_CVULKAN_ASSERT (pDevice != NULL);
         R_CVULKAN_ASSERT (pFence != NULL);
@@ -227,12 +227,12 @@ R_CVulkan_FenceGetStatus (
 
         if (result == VK_SUCCESS)
         {
-                *pOutSignaled = 1;
+                *pOutSignaled = true;
                 return R_CVULKAN_OK;
         }
         else if (result == VK_NOT_READY)
         {
-                *pOutSignaled = 0;
+                *pOutSignaled = false;
                 return R_CVULKAN_OK;
         }
         else

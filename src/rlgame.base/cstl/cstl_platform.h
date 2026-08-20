@@ -3,16 +3,12 @@
 #ifdef R_CSTL_BUILDING_DLL
 #if defined(_MSC_VER)
 #define R_CSTL_API __declspec (dllexport)
-#elif defined(__GNUC__) || defined(__clang__)
-#define R_CSTL_API __attribute__ ((visibility ("default")))
 #else
 #define R_CSTL_API
 #endif
 #else
 #if defined(_MSC_VER)
 #define R_CSTL_API __declspec (dllimport)
-#elif defined(__GNUC__) || defined(__clang__)
-#define R_CSTL_API __attribute__ ((visibility ("default")))
 #else
 #define R_CSTL_API
 #endif
@@ -64,18 +60,21 @@
 
 #define R_CSTL_LOG_DEVMODE R_DEVMODE
 
-#define R_CSTL_OK                             0
-#define R_CSTL_ERROR_INVALID_ARGUMENT         -1
-#define R_CSTL_ERROR_OUT_OF_MEMORY            -2
-#define R_CSTL_ERROR_INVALID_POINTER          -3
-#define R_CSTL_ERROR_BUFFER_TOO_SMALL         -4
-#define R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS      -5
-#define R_CSTL_ERROR_HEAP_NOT_INITIALIZED     -6
-#define R_CSTL_ERROR_HEAP_ALREADY_INITIALIZED -7
-#define R_CSTL_ERROR_HEAP_CORRUPTION          -8
-#define R_CSTL_ERROR_STRING_OPERATION         -9
-#define R_CSTL_ERROR_LEAK_DETECTED            -10
-#define R_CSTL_ERROR_UNKNOWN                  -99
+#define R_CSTL_OK                                  0
+#define R_CSTL_ERROR_INVALID_ARGUMENT              -1
+#define R_CSTL_ERROR_OUT_OF_MEMORY                 -2
+#define R_CSTL_ERROR_INVALID_POINTER               -3
+#define R_CSTL_ERROR_BUFFER_TOO_SMALL              -4
+#define R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS           -5
+#define R_CSTL_ERROR_HEAP_NOT_INITIALIZED          -6
+#define R_CSTL_ERROR_HEAP_ALREADY_INITIALIZED      -7
+#define R_CSTL_ERROR_HEAP_CORRUPTION               -8
+#define R_CSTL_ERROR_STRING_OPERATION              -9
+#define R_CSTL_ERROR_LEAK_DETECTED                 -10
+#define R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED    -11
+#define R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED -12
+#define R_CSTL_ERROR_SYMBOL_NOT_FOUND              -13
+#define R_CSTL_ERROR_UNKNOWN                       -99
 
 /**
  * @brief Get human-readable error message for an error code

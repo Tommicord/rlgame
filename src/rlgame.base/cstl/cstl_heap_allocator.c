@@ -659,7 +659,7 @@ R_CSTL_HeapInit (size_t heap_size_bytes)
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         R_CSTL_PushFreeLocked (g_heap.maxOrder, 0);
         R_CSTL_HeapMutexUnlock (&g_heap.mutex);
-        g_heap.initialized = 1;
+        g_heap.initialized = true;
         R_CSTL_HEAP_COMPILER_BARRIER ();
 
         R_CSTL_DebugInitRuntimeChecks ();

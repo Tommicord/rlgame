@@ -59,7 +59,7 @@ R_ENTRY_API int
 R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow)
 {
         const char* CLASS_NAME = "GameWindowClass";
-        WNDCLASSA     wc = {0};
+        WNDCLASSA   wc = {0};
         wc.lpfnWndProc = R_WindowProc;
         wc.hInstance = hInstance;
         wc.lpszClassName = CLASS_NAME;
@@ -82,6 +82,7 @@ R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicati
             hInstance,
             NULL);
         R_WindowCenter (hwnd);
+        R_WindowSetBorderless (hwnd, true);
         if (!hwnd) goto r_fail_init;
         ShowWindow (hwnd, nCmdShow);
         return 1;

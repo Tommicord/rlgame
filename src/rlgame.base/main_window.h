@@ -11,7 +11,7 @@ struct R_ApplicationInfo;
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-typedef HWND R_WIN32_HWND;
+typedef HWND      R_WIN32_HWND;
 typedef HINSTANCE R_WIN32_HINSTANCE;
 
 /**
@@ -43,7 +43,8 @@ R_ENTRY_API HWND R_GetWindowHandle (void);
  * @param nCmdShow Show window command (SW_SHOW, SW_HIDE, etc.)
  * @return 1 on success, 0 on failure
  */
-R_ENTRY_API int R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow);
+R_ENTRY_API int
+R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicationInfo, int nCmdShow);
 
 /**
  * @brief Sets the window to fullscreen mode
@@ -188,7 +189,7 @@ typedef void* R_WaylandDisplay;
  * @param pApplicationInfo Application information structure
  * @return Window handle on success, NULL on failure
  */
-R_ENTRY_API R_WaylandWindow R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo);
+R_ENTRY_API R_WaylandWindow R_InitWindow (struct R_ApplicationInfo* pApplicationInfo);
 
 /**
  * @brief Gets the Wayland display handle
@@ -201,14 +202,14 @@ R_ENTRY_API R_WaylandDisplay R_GetWaylandDisplay (void);
  * @param window Window handle
  * @param fullscreen true to enable fullscreen, false to disable
  */
-R_ENTRY_API void R_WaylandWindowSetFullscreen (R_WaylandWindow window, bool fullscreen);
+R_ENTRY_API void R_WindowSetFullscreen (R_WaylandWindow window, bool fullscreen);
 
 /**
  * @brief Sets the Wayland window title
  * @param window Window handle
  * @param pTitle Window title string (UTF-8)
  */
-R_ENTRY_API void R_WaylandWindowSetTitle (R_WaylandWindow window, const char* pTitle);
+R_ENTRY_API void R_WindowSetTitle (R_WaylandWindow window, const char* pTitle);
 
 /**
  * @brief Gets the Wayland window dimensions
@@ -216,13 +217,13 @@ R_ENTRY_API void R_WaylandWindowSetTitle (R_WaylandWindow window, const char* pT
  * @param pWidth Output pointer for width
  * @param pHeight Output pointer for height
  */
-R_ENTRY_API void R_WaylandWindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
+R_ENTRY_API void R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
 
 /**
  * @brief Destroys the Wayland window
  * @param window Window handle
  */
-R_ENTRY_API void R_DestroyWaylandWindow (R_WaylandWindow window);
+R_ENTRY_API void R_DestroyWindow (R_WaylandWindow window);
 
 #elif defined(__ANDROID__)
 

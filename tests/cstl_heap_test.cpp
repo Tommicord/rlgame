@@ -15,18 +15,18 @@ constexpr size_t kTestHeapSize = 256 * 1024;
 
 class CstlHeapTest : public ::testing::Test
 {
-  protected:
-    void
-    SetUp () override
-    {
-        ASSERT_EQ (0, R_CSTL_HeapInit (kTestHeapSize));
-    }
+        protected:
+                void
+                SetUp () override
+                {
+                        ASSERT_EQ (0, R_CSTL_HeapInit (kTestHeapSize));
+                }
 
-    void
-    TearDown () override
-    {
-        R_CSTL_HeapShutdown ();
-    }
+                void
+                TearDown () override
+                {
+                        R_CSTL_HeapShutdown ();
+                }
 };
 
 TEST_F (CstlHeapTest, InitAndShutdown)
@@ -34,7 +34,6 @@ TEST_F (CstlHeapTest, InitAndShutdown)
         // Already tested in SetUp/TearDown
         EXPECT_EQ (0, R_CSTL_HeapLogLeaks ());
 }
-
 
 TEST_F (CstlHeapTest, AllocAndFree)
 {
@@ -55,10 +54,7 @@ TEST_F (CstlHeapTest, AllocLargeFails)
         EXPECT_EQ (nullptr, p);
 }
 
-TEST_F (CstlHeapTest, FreeNullIsNoOp)
-{
-        R_CSTL_HeapFree (nullptr);
-}
+TEST_F (CstlHeapTest, FreeNullIsNoOp) { R_CSTL_HeapFree (nullptr); }
 
 TEST_F (CstlHeapTest, ReallocNullBehavesLikeAlloc)
 {
@@ -174,8 +170,8 @@ TEST_F (CstlHeapTest, IsValidPointer)
 
 TEST_F (CstlHeapTest, RegisterAllocation)
 {
-        void* pOwner   = (void*)0x1000;
-        void* pAlloc   = R_CSTL_HeapAlloc (100);
+        void* pOwner = (void*)0x1000;
+        void* pAlloc = R_CSTL_HeapAlloc (100);
         ASSERT_NE (nullptr, pAlloc);
 
         uint64_t hash = R_CSTL_HeapRegisterAllocation (pOwner, pAlloc, 100, "TestAlloc");
@@ -271,7 +267,7 @@ TEST_F (CstlHeapTest, PowerOfTwoAllocations)
 // Stress tests
 TEST_F (CstlHeapTest, StressManySmallAllocations)
 {
-        constexpr int kNumAllocs = 1000;
+        constexpr int      kNumAllocs = 1000;
         std::vector<void*> allocations;
         allocations.reserve (kNumAllocs);
 
@@ -290,14 +286,14 @@ TEST_F (CstlHeapTest, StressManySmallAllocations)
 
 TEST_F (CstlHeapTest, StressRandomSizedAllocations)
 {
-        constexpr int kNumAllocs = 200;
+        constexpr int      kNumAllocs = 200;
         std::vector<void*> allocations;
         allocations.reserve (kNumAllocs);
 
         for (int i = 0; i < kNumAllocs; ++i)
         {
                 size_t size = (rand () % 256) + 16;
-                void*   p    = R_CSTL_HeapAlloc (size);
+                void*  p = R_CSTL_HeapAlloc (size);
                 ASSERT_NE (nullptr, p) << "Failed allocation " << i << " of size " << size;
                 allocations.push_back (p);
         }
@@ -310,7 +306,7 @@ TEST_F (CstlHeapTest, StressRandomSizedAllocations)
 
 TEST_F (CstlHeapTest, StressAllocFreePattern)
 {
-        constexpr int kIterations = 100;
+        constexpr int      kIterations = 100;
         std::vector<void*> allocations;
 
         for (int iter = 0; iter < kIterations; ++iter)
@@ -344,7 +340,7 @@ TEST_F (CstlHeapTest, StressAllocFreePattern)
 
 TEST_F (CstlHeapTest, StressReallocPattern)
 {
-        constexpr int kIterations = 200;
+        constexpr int      kIterations = 200;
         std::vector<void*> allocations;
 
         for (int iter = 0; iter < kIterations; ++iter)
@@ -372,7 +368,7 @@ TEST_F (CstlHeapTest, StressReallocPattern)
 TEST_F (CstlHeapTest, StressFragmentation)
 {
         // Pattern designed to cause fragmentation
-        constexpr int kNumBlocks = 100;
+        constexpr int      kNumBlocks = 100;
         std::vector<void*> smallAllocs;
         std::vector<void*> largeAllocs;
 
@@ -404,8 +400,7 @@ TEST_F (CstlHeapTest, StressFragmentation)
         // Free all remaining allocations
         for (void* p : smallAllocs)
         {
-                if (p)
-                        R_CSTL_HeapFree (p);
+                if (p) R_CSTL_HeapFree (p);
         }
         for (void* p : largeAllocs)
         {
@@ -418,9 +413,9 @@ TEST_F (CstlHeapTest, StressAlignment)
         constexpr int kNumAllocs = 200;
         for (int i = 0; i < kNumAllocs; ++i)
         {
-                size_t size      = (rand () % 256) + 16;
+                size_t size = (rand () % 256) + 16;
                 size_t alignment = 16 << (rand () % 4); // 16, 32, 64, 128
-                void*  p         = R_CSTL_HeapAllocAligned (size, alignment);
+                void*  p = R_CSTL_HeapAllocAligned (size, alignment);
                 ASSERT_NE (nullptr, p);
                 EXPECT_EQ (0, (uintptr_t)p % alignment);
                 R_CSTL_HeapFree (p);
@@ -429,9 +424,9 @@ TEST_F (CstlHeapTest, StressAlignment)
 
 TEST_F (CstlHeapTest, StressLeakTracking)
 {
-        constexpr int kNumOwners = 3;
-        constexpr int kNumAllocsPerOwner = 10;
-        std::vector<void*> owners;
+        constexpr int                   kNumOwners = 3;
+        constexpr int                   kNumAllocsPerOwner = 10;
+        std::vector<void*>              owners;
         std::vector<std::vector<void*>> allocations;
 
         for (int i = 0; i < kNumOwners; ++i)
