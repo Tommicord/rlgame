@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <assert.h>
 
+#if defined(R_SIMD_SSE) || defined(R_SIMD_AVX2)
+#include <immintrin.h>
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 #define R_CSTL_MUTEX_WINDOWS
 #elif defined(__linux__)
@@ -30,15 +34,6 @@
 #define R_CSTL_X86_COND_JUMP_MIN 0x80
 #define R_CSTL_X86_COND_JUMP_MAX 0x8F
 #define R_CSTL_X86_MAX_INSTRUCTION_LENGTH 15
-#define R_CSTL_X86_SIMD_VECTOR_SIZE 16
-
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
-#include <immintrin.h>
-#define R_CSTL_HAS_SIMD_X86
-#elif defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>
-#define R_CSTL_HAS_SIMD_ARM
-#endif
 
 struct R_CSTL_Mutex
 {
@@ -58,8 +53,40 @@ static inline size_t
 R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
 {
         size_t i = 0;
+#if defined(R_SIMD_AVX2)
+        while (i + 32 <= remaining && i < maxScan)
+        {
+                __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(p + i));
 
-#ifdef R_CSTL_HAS_SIMD_X86
+                // Check for prefix bytes using constants
+                __m256i cmpLock = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_LOCK));
+                __m256i cmpRepne = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPNE));
+                __m256i cmpRepe = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPE));
+                __m256i cmpDataSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_DATA_SIZE));
+                __m256i cmpAddrSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_ADDR_SIZE));
+                __m256i cmpRexMin = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MIN));
+                __m256i cmpRexMax = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MAX));
+
+                __m256i isPrefix = _mm256_or_si256 (
+                    _mm256_or_si256 (_mm256_or_si256 (cmpLock, cmpRepne), _mm256_or_si256 (cmpRepe, cmpDataSize)),
+                    _mm256_or_si256 (cmpAddrSize, _mm256_or_si256 (cmpRexMin, cmpRexMax)));
+
+                int mask = _mm256_movemask_epi8 (isPrefix);
+                if (mask == 0xFFFFFFFF)
+                {
+                        i += 32;
+                }
+                else
+                {
+                        // Find first non-prefix byte
+                        for (int j = 0; j < 32 && i + j < remaining && i + j < maxScan; ++j)
+                        {
+                                if (!(mask & (1 << j))) return i + j;
+                        }
+                        i += 32;
+                }
+        }
+#elif defined(R_SIMD_SSE)
         while (i + R_CSTL_X86_SIMD_VECTOR_SIZE <= remaining && i < maxScan)
         {
                 __m128i chunk = _mm_loadu_si128 ((__m128i const*)(p + i));
@@ -80,21 +107,19 @@ R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
                 int mask = _mm_movemask_epi8 (isPrefix);
                 if (mask == 0xFFFF)
                 {
-                        i += R_CSTL_X86_SIMD_VECTOR_SIZE;
+                        i += 16;
                 }
                 else
                 {
                         // Find first non-prefix byte
-                        for (int j = 0; j < R_CSTL_X86_SIMD_VECTOR_SIZE && i + j < remaining && i + j < maxScan; ++j)
+                        for (int j = 0; j < 16 && i + j < remaining && i + j < maxScan; ++j)
                         {
                                 if (!(mask & (1 << j))) return i + j;
                         }
-                        i += R_CSTL_X86_SIMD_VECTOR_SIZE;
+                        i += 16;
                 }
         }
 #endif
-
-        // Fallback to scalar for remaining bytes
         while (i < remaining && i < maxScan
                && (p[i] == R_CSTL_X86_PREFIX_LOCK || p[i] == R_CSTL_X86_PREFIX_REPNE
                    || p[i] == R_CSTL_X86_PREFIX_REPE || p[i] == R_CSTL_X86_PREFIX_DATA_SIZE
@@ -110,29 +135,30 @@ R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
 {
         if (size == 0) return;
 
-#ifdef R_CSTL_HAS_SIMD_X86
+#if defined(R_SIMD_AVX2)
         size_t i = 0;
-        while (i + R_CSTL_X86_SIMD_VECTOR_SIZE <= size)
+        while (i + 32 <= size)
+        {
+                __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(src + i));
+                _mm256_storeu_si256 ((__m256i*)(dst + i), chunk);
+                i += 32;
+        }
+        // Handle remaining bytes with SSE
+        while (i + 32 <= size)
         {
                 __m128i chunk = _mm_loadu_si128 ((__m128i const*)(src + i));
                 _mm_storeu_si128 ((__m128i*)(dst + i), chunk);
-                i += R_CSTL_X86_SIMD_VECTOR_SIZE;
+                i += 32;
         }
-        for (; i < size; ++i)
-                dst[i] = src[i];
-#elif defined(R_CSTL_HAS_SIMD_ARM)
-        size_t i = 0;
-        while (i + R_CSTL_X86_SIMD_VECTOR_SIZE <= size)
+#elif defined(R_SIMD_SSE)
+        while (i + 16 <= size)
         {
-                uint8x16_t chunk = vld1q_u8 (src + i);
-                vst1q_u8 (dst + i, chunk);
-                i += R_CSTL_X86_SIMD_VECTOR_SIZE;
+                __m128i chunk = _mm_loadu_si128 ((__m128i const*)(src + i));
+                _mm_storeu_si128 ((__m128i*)(dst + i), chunk);
+                i += 16;
         }
-        for (; i < size; ++i)
-                dst[i] = src[i];
-#else
-        memcpy (dst, src, size);
 #endif
+        memcpy (dst, src, size);
 }
 
 R_CSTL_API int
@@ -211,7 +237,7 @@ struct R_CSTL_Bytecode
 static int
 R_CSTL_BytecodeArchitectureIsValid (enum R_CSTL_BytecodeArchitecture architecture)
 {
-        return architecture >= R_CSTL_MACHINE_CODE_ARCH_X86 && architecture <= R_CSTL_MACHINE_CODE_ARCH_RISC;
+        return architecture >= R_CSTL_BYTECODE_ARCH_X86 && architecture <= R_CSTL_BYTECODE_ARCH_RISC;
 }
 
 static struct R_CSTL_Bytecode*
@@ -725,7 +751,7 @@ R_CSTL_BytecodeDecoderCreate (
 {
         if (!pOutDecoder) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
-        if (architecture != R_CSTL_MACHINE_CODE_ARCH_X86 && architecture != R_CSTL_MACHINE_CODE_ARCH_X86_64)
+        if (architecture != R_CSTL_BYTECODE_ARCH_X86 && architecture != R_CSTL_BYTECODE_ARCH_X86_64)
                 return R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED;
 
         memset (pOutDecoder, 0, sizeof (*pOutDecoder));
@@ -805,8 +831,8 @@ R_CSTL_BytecodeParseEnhanced (
         if (!pBytecode || !pOutInstruction || offset >= pBytecode->size)
                 return R_CSTL_ERROR_INVALID_ARGUMENT;
 
-        if (pBytecode->architecture == R_CSTL_MACHINE_CODE_ARCH_X86
-            || pBytecode->architecture == R_CSTL_MACHINE_CODE_ARCH_X86_64)
+        if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86
+            || pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64)
                 return R_CSTL_BytecodeParseX86Enhanced (pBytecode, offset, pOutInstruction);
 
         return R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED;
@@ -909,8 +935,8 @@ R_CSTL_BytecodeParse (
 {
         if (!pBytecode || !pOutInstruction || offset >= pBytecode->size)
                 return R_CSTL_ERROR_INVALID_ARGUMENT;
-        if (pBytecode->architecture == R_CSTL_MACHINE_CODE_ARCH_X86
-            || pBytecode->architecture == R_CSTL_MACHINE_CODE_ARCH_X86_64)
+        if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86
+            || pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64)
                 return R_CSTL_BytecodeParseX86 (pBytecode, offset, pOutInstruction);
         size_t width = 4;
         if (pBytecode->size - offset < width) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
@@ -957,7 +983,7 @@ R_CSTL_BytecodeTokenize (
             pTokens,
             tokenCapacity,
             pOutTokenCount,
-            R_CSTL_MACHINE_CODE_TOKEN_OPCODE,
+            R_CSTL_BYTECODE_TOKEN_OPCODE,
             offset,
             instruction.opcodeSize,
             instruction.opcode);
@@ -967,18 +993,18 @@ R_CSTL_BytecodeTokenize (
                     pTokens,
                     tokenCapacity,
                     pOutTokenCount,
-                    R_CSTL_MACHINE_CODE_TOKEN_OPERAND,
+                    R_CSTL_BYTECODE_TOKEN_OPERAND,
                     offset + instruction.opcodeSize,
                     (uint8_t)(instruction.size - instruction.opcodeSize),
                     0);
         if (result != R_CSTL_OK) return result;
-        if (pBytecode->architecture == R_CSTL_MACHINE_CODE_ARCH_X86_64 && instruction.size >= 6
+        if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64 && instruction.size >= 6
             && instruction.bytes[instruction.opcodeSize] == 0x05)
                 result = R_CSTL_BytecodeAddToken (
                     pTokens,
                     tokenCapacity,
                     pOutTokenCount,
-                    R_CSTL_MACHINE_CODE_TOKEN_RIP_ADDRESSING,
+                    R_CSTL_BYTECODE_TOKEN_RIP_ADDRESSING,
                     offset + instruction.opcodeSize,
                     5,
                     0);
@@ -1000,5 +1026,5 @@ R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
 R_CSTL_API enum R_CSTL_BytecodeArchitecture
 R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode)
 {
-        return pBytecode ? pBytecode->architecture : R_CSTL_MACHINE_CODE_ARCH_X86;
+        return pBytecode ? pBytecode->architecture : R_CSTL_BYTECODE_ARCH_X86;
 }

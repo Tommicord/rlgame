@@ -3,6 +3,7 @@
 extern "C"
 {
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
+#include "rlgame.base/cstl/cstl_trace.h"
 #include "rlgame.base/cstl/cstl_log.h"
 }
 
@@ -119,3 +120,59 @@ TEST_F (CstlLogTest, ShutdownDrainsPendingMessages)
 }
 
 TEST_F (CstlLogTest, DroppedCountStartsAtZero) { EXPECT_EQ (0u, R_CSTL_LogGetDroppedCount ()); }
+
+TEST_F (CstlLogTest, TraceGetConfigReturnsValidConfig)
+{
+        const struct R_CSTL_TraceConfig* pConfig = R_CSTL_TraceGetConfig ();
+        ASSERT_NE (nullptr, pConfig);
+}
+
+TEST_F (CstlLogTest, TraceSetMinDuration)
+{
+        R_CSTL_TraceSetMinDuration (1000);
+        // Verify the function doesn't crash
+        SUCCEED ();
+}
+
+TEST_F (CstlLogTest, TraceGetTimestampReturnsIncreasingValues)
+{
+        uint64_t ts1 = R_CSTL_TraceGetTimestamp ();
+        uint64_t ts2 = R_CSTL_TraceGetTimestamp ();
+        EXPECT_LE (ts1, ts2);
+}
+
+TEST_F (CstlLogTest, TraceFunctionEntryExit)
+{
+        R_CSTL_TraceFunctionEntry ("TestFunction", "test_file.c", 42);
+        R_CSTL_TraceFunctionExit ("TestFunction", "test_file.c", 42, 100);
+        SUCCEED ();
+}
+
+TEST_F (CstlLogTest, TraceFunctionEntryWithNullParameters)
+{
+        R_CSTL_TraceFunctionEntry (nullptr, nullptr, 0);
+        R_CSTL_TraceFunctionExit (nullptr, nullptr, 0, 0);
+        SUCCEED ();
+}
+
+TEST_F (CstlLogTest, TraceLogEnvironmentInfo)
+{
+        R_CSTL_TraceLogEnvironmentInfo ();
+        R_CSTL_LogFlush ();
+        SUCCEED ();
+}
+
+TEST_F (CstlLogTest, TraceFunctionEntryExitWithRealDuration)
+{
+        uint64_t start = R_CSTL_TraceGetTimestamp ();
+        R_CSTL_TraceFunctionEntry ("TimedFunction", __FILE__, __LINE__);
+        
+        // Simulate some work
+        volatile int dummy = 0;
+        for (int i = 0; i < 1000; ++i) dummy += i;
+        
+        uint64_t end = R_CSTL_TraceGetTimestamp ();
+        uint64_t duration = end - start;
+        R_CSTL_TraceFunctionExit ("TimedFunction", __FILE__, __LINE__, duration);
+        SUCCEED ();
+}

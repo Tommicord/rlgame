@@ -1,0 +1,1056 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>cstl_bytecode.c</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+#include "rlgame.base/cstl/cstl_bytecode.h"
+#include "rlgame.base/cstl/cstl_heap_allocator.h"
+
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;assert.h&gt;
+
+#if defined(R_SIMD_SSE) || defined(R_SIMD_AVX2)
+#include &lt;immintrin.h&gt;
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+#define R_CSTL_MUTEX_WINDOWS
+#elif defined(__linux__)
+#define R_CSTL_MUTEX_PTHREAD
+#endif
+
+#ifdef R_CSTL_MUTEX_WINDOWS
+#include &lt;windows.h&gt;
+#elif defined(R_CSTL_MUTEX_PTHREAD)
+#include &lt;pthread.h&gt;
+#endif
+
+#define R_CSTL_X86_OPCODE_ESCAPE 0x0F
+#define R_CSTL_X86_OPCODE_THREEBYTE_38 0x38
+#define R_CSTL_X86_OPCODE_THREEBYTE_3A 0x3A
+#define R_CSTL_X86_REX_MIN 0x40
+#define R_CSTL_X86_REX_MAX 0x4F
+#define R_CSTL_X86_PREFIX_LOCK 0xF0
+#define R_CSTL_X86_PREFIX_REPNE 0xF2
+#define R_CSTL_X86_PREFIX_REPE 0xF3
+#define R_CSTL_X86_PREFIX_DATA_SIZE 0x66
+#define R_CSTL_X86_PREFIX_ADDR_SIZE 0x67
+#define R_CSTL_X86_COND_JUMP_MIN 0x80
+#define R_CSTL_X86_COND_JUMP_MAX 0x8F
+#define R_CSTL_X86_MAX_INSTRUCTION_LENGTH 15
+
+struct R_CSTL_Mutex
+{
+#ifdef R_CSTL_MUTEX_WINDOWS
+                CRITICAL_SECTION handle;
+#elif defined(R_CSTL_MUTEX_PTHREAD)
+                pthread_mutex_t handle;
+#endif
+};
+
+R_CSTL_API int  R_CSTL_MutexInit (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API void R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API void R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API void R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex);
+
+static inline size_t
+R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
+<span style = "background-color:#dfd">{
+        size_t i = 0;</span>
+#if defined(R_SIMD_AVX2)
+<span style = "background-color:#dfd">        while (i + 32 &lt;= remaining &amp;&amp; i &lt; maxScan)</span>
+        {
+<span style = "background-color:#dfd">                __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(p + i));</span>
+
+                // Check for prefix bytes using constants
+<span style = "background-color:#dfd">                __m256i cmpLock = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_LOCK));
+                __m256i cmpRepne = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPNE));
+                __m256i cmpRepe = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPE));
+                __m256i cmpDataSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_DATA_SIZE));
+                __m256i cmpAddrSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_ADDR_SIZE));
+                __m256i cmpRexMin = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MIN));
+                __m256i cmpRexMax = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MAX));</span>
+
+<span style = "background-color:#dfd">                __m256i isPrefix = _mm256_or_si256 (</span>
+                    _mm256_or_si256 (_mm256_or_si256 (cmpLock, cmpRepne), _mm256_or_si256 (cmpRepe, cmpDataSize)),
+                    _mm256_or_si256 (cmpAddrSize, _mm256_or_si256 (cmpRexMin, cmpRexMax)));
+
+<span style = "background-color:#dfd">                int mask = _mm256_movemask_epi8 (isPrefix);
+                if (mask == 0xFFFFFFFF)</span>
+                {
+<span style = "background-color:#fdd">                        i += 32;
+                }</span>
+                else
+                {
+                        // Find first non-prefix byte
+<span style = "background-color:#dfd">                        for (int j = 0; j &lt; 32 &amp;&amp; i + j &lt; remaining &amp;&amp; i + j &lt; maxScan; ++j)</span>
+                        {
+<span style = "background-color:#dfd">                                if (!(mask &amp; (1 &lt;&lt; j))) return i + j;</span>
+<span style = "background-color:#fdd">                        }
+                        i += 32;</span>
+                }
+<span style = "background-color:#fdd">        }</span>
+#elif defined(R_SIMD_SSE)
+        while (i + R_CSTL_X86_SIMD_VECTOR_SIZE &lt;= remaining &amp;&amp; i &lt; maxScan)
+        {
+                __m128i chunk = _mm_loadu_si128 ((__m128i const*)(p + i));
+
+                // Check for prefix bytes using constants
+                __m128i cmpLock = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_LOCK));
+                __m128i cmpRepne = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_REPNE));
+                __m128i cmpRepe = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_REPE));
+                __m128i cmpDataSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_DATA_SIZE));
+                __m128i cmpAddrSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_ADDR_SIZE));
+                __m128i cmpRexMin = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_REX_MIN));
+                __m128i cmpRexMax = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_REX_MAX));
+
+                __m128i isPrefix = _mm_or_si128 (
+                    _mm_or_si128 (_mm_or_si128 (cmpLock, cmpRepne), _mm_or_si128 (cmpRepe, cmpDataSize)),
+                    _mm_or_si128 (cmpAddrSize, _mm_or_si128 (cmpRexMin, cmpRexMax)));
+
+                int mask = _mm_movemask_epi8 (isPrefix);
+                if (mask == 0xFFFF)
+                {
+                        i += 16;
+                }
+                else
+                {
+                        // Find first non-prefix byte
+                        for (int j = 0; j &lt; 16 &amp;&amp; i + j &lt; remaining &amp;&amp; i + j &lt; maxScan; ++j)
+                        {
+                                if (!(mask &amp; (1 &lt;&lt; j))) return i + j;
+                        }
+                        i += 16;
+                }
+        }
+#endif
+        while (i &lt; remaining &amp;&amp; i &lt; maxScan
+<span style = "background-color:#dfd">               &amp;&amp; (p[i] == R_CSTL_X86_PREFIX_LOCK || p[i] == R_CSTL_X86_PREFIX_REPNE</span>
+                   || p[i] == R_CSTL_X86_PREFIX_REPE || p[i] == R_CSTL_X86_PREFIX_DATA_SIZE
+                   || p[i] == R_CSTL_X86_PREFIX_ADDR_SIZE
+                   || (p[i] &gt;= R_CSTL_X86_REX_MIN &amp;&amp; p[i] &lt;= R_CSTL_X86_REX_MAX)))
+<span style = "background-color:#dfd">                ++i;</span>
+
+<span style = "background-color:#dfd">        return i;
+}</span>
+
+static inline void
+R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
+<span style = "background-color:#dfd">{
+        if (size == 0) return;</span>
+
+#if defined(R_SIMD_AVX2)
+<span style = "background-color:#dfd">        size_t i = 0;
+        while (i + 32 &lt;= size)</span>
+        {
+<span style = "background-color:#fdd">                __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(src + i));
+                _mm256_storeu_si256 ((__m256i*)(dst + i), chunk);
+                i += 32;
+        }</span>
+        // Handle remaining bytes with SSE
+<span style = "background-color:#dfd">        while (i + 32 &lt;= size)</span>
+        {
+<span style = "background-color:#fdd">                __m128i chunk = _mm_loadu_si128 ((__m128i const*)(src + i));
+                _mm_storeu_si128 ((__m128i*)(dst + i), chunk);
+                i += 32;
+        }</span>
+#elif defined(R_SIMD_SSE)
+        while (i + 16 &lt;= size)
+        {
+                __m128i chunk = _mm_loadu_si128 ((__m128i const*)(src + i));
+                _mm_storeu_si128 ((__m128i*)(dst + i), chunk);
+                i += 16;
+        }
+#endif
+<span style = "background-color:#dfd">        memcpy (dst, src, size);
+}</span>
+
+R_CSTL_API int
+R_CSTL_MutexInit (struct R_CSTL_Mutex* pMutex)
+<span style = "background-color:#dfd">{
+        if (!pMutex) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+#if defined(_WIN32) || defined(_WIN64)
+<span style = "background-color:#dfd">        InitializeCriticalSection (&amp;pMutex-&gt;handle);
+        return R_CSTL_OK;</span>
+#elif defined(__linux__)
+        if (pthread_mutex_init (&amp;pMutex-&gt;handle, NULL) != 0) return R_CSTL_ERROR_UNKNOWN;
+        return R_CSTL_OK;
+#else
+        return R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED;
+#endif
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API void
+R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
+<span style = "background-color:#dfd">{
+        if (!pMutex) return;</span>
+#if defined(_WIN32) || defined(_WIN64)
+<span style = "background-color:#dfd">        EnterCriticalSection (&amp;pMutex-&gt;handle);</span>
+#elif defined(__linux__)
+        pthread_mutex_lock (&amp;pMutex-&gt;handle);
+#endif
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API void
+R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
+<span style = "background-color:#dfd">{
+        if (!pMutex) return;</span>
+#if defined(_WIN32) || defined(_WIN64)
+<span style = "background-color:#dfd">        LeaveCriticalSection (&amp;pMutex-&gt;handle);</span>
+#elif defined(__linux__)
+        pthread_mutex_unlock (&amp;pMutex-&gt;handle);
+#endif
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API void
+R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
+<span style = "background-color:#dfd">{
+        if (!pMutex) return;</span>
+#if defined(_WIN32) || defined(_WIN64)
+<span style = "background-color:#dfd">        DeleteCriticalSection (&amp;pMutex-&gt;handle);</span>
+#elif defined(__linux__)
+        pthread_mutex_destroy (&amp;pMutex-&gt;handle);
+#endif
+<span style = "background-color:#dfd">}</span>
+
+#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
+#include &lt;windows.h&gt;
+#include &lt;dbghelp.h&gt;
+#include &lt;psapi.h&gt;
+#pragma comment(lib, "dbghelp.lib")
+#pragma comment(lib, "psapi.lib")
+#elif defined(R_CSTL_PLATFORM_LINUX)
+#include &lt;dlfcn.h&gt;
+#include &lt;link.h&gt;
+#include &lt;execinfo.h&gt;
+#endif
+#endif
+
+struct R_CSTL_Bytecode
+{
+                const uint8_t*                      pCode;
+                uint8_t*                            pOwnedCode;
+                size_t                              size;
+                enum R_CSTL_BytecodeArchitecture architecture;
+                struct R_CSTL_Mutex                 mutex;
+                bool                                mutexInitialized;
+};
+
+static int
+R_CSTL_BytecodeArchitectureIsValid (enum R_CSTL_BytecodeArchitecture architecture)
+<span style = "background-color:#dfd">{
+        return architecture &gt;= R_CSTL_BYTECODE_ARCH_X86 &amp;&amp; architecture &lt;= R_CSTL_BYTECODE_ARCH_RISC;
+}</span>
+
+static struct R_CSTL_Bytecode*
+R_CSTL_BytecodeCreate (
+    const uint8_t*                      pCode,
+    size_t                              sizeBytes,
+    enum R_CSTL_BytecodeArchitecture architecture)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_LOG_DEVMODE)
+<span style = "background-color:#dfd">        assert (R_CSTL_BytecodeArchitectureIsValid (architecture) || "Invalid architecture");
+        assert ((pCode != NULL) == (sizeBytes != 0) || "Invalid code pointer/size combination");</span>
+#endif
+
+<span style = "background-color:#dfd">        if ((!pCode &amp;&amp; sizeBytes != 0) || !R_CSTL_BytecodeArchitectureIsValid (architecture)) return NULL;</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_Bytecode* pBytecode</span>
+            = (struct R_CSTL_Bytecode*)R_CSTL_HeapAlloc (sizeof (*pBytecode));
+<span style = "background-color:#dfd">        if (!pBytecode) return NULL;</span>
+
+#if defined(R_CSTL_LOG_DEVMODE)
+<span style = "background-color:#dfd">        assert (pBytecode != NULL);</span>
+#endif
+
+<span style = "background-color:#dfd">        pBytecode-&gt;pCode = pCode;
+        pBytecode-&gt;pOwnedCode = NULL;
+        pBytecode-&gt;size = sizeBytes;
+        pBytecode-&gt;architecture = architecture;
+        pBytecode-&gt;mutexInitialized = false;</span>
+
+<span style = "background-color:#dfd">        if (R_CSTL_MutexInit (&amp;pBytecode-&gt;mutex) == R_CSTL_OK) pBytecode-&gt;mutexInitialized = true;</span>
+
+#if defined(R_CSTL_LOG_DEVMODE)
+<span style = "background-color:#dfd">        assert (pBytecode-&gt;pCode != NULL || sizeBytes == 0);
+        assert (pBytecode-&gt;size == sizeBytes);</span>
+#endif
+
+<span style = "background-color:#dfd">        return pBytecode;
+}</span>
+
+R_CSTL_API struct R_CSTL_Bytecode*
+R_CSTL_NewBytecodeView (
+    const void*                         pCode,
+    size_t                              sizeBytes,
+    enum R_CSTL_BytecodeArchitecture architecture)
+<span style = "background-color:#dfd">{
+        return R_CSTL_BytecodeCreate ((const uint8_t*)pCode, sizeBytes, architecture);
+}</span>
+
+R_CSTL_API struct R_CSTL_Bytecode*
+R_CSTL_NewBytecodeWithData (
+    const uint8_t*                      pCode,
+    size_t                              sizeBytes,
+    enum R_CSTL_BytecodeArchitecture architecture)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_Bytecode* pBytecode = R_CSTL_BytecodeCreate (pCode, sizeBytes, architecture);
+        if (!pBytecode || sizeBytes == 0) return pBytecode;
+        pBytecode-&gt;pOwnedCode = (uint8_t*)R_CSTL_HeapAlloc (sizeBytes);
+        if (!pBytecode-&gt;pOwnedCode)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (pBytecode);
+                return NULL;</span>
+        }
+<span style = "background-color:#dfd">        memcpy (pBytecode-&gt;pOwnedCode, pCode, sizeBytes);
+        pBytecode-&gt;pCode = pBytecode-&gt;pOwnedCode;
+        return pBytecode;
+}</span>
+
+R_CSTL_API struct R_CSTL_Bytecode*
+R_CSTL_NewBytecodeFromFunction (
+    R_CSTL_BytecodeFunction          pFunction,
+    size_t                              sizeBytes,
+    enum R_CSTL_BytecodeArchitecture architecture)
+<span style = "background-color:#dfd">{
+        if (!pFunction) return NULL;
+        return R_CSTL_NewBytecodeView ((const void*)(uintptr_t)pFunction, sizeBytes, architecture);
+}</span>
+
+R_CSTL_API void
+R_CSTL_DeleteBytecode (struct R_CSTL_Bytecode* pBytecode)
+<span style = "background-color:#dfd">{
+        if (!pBytecode) return;
+        if (pBytecode-&gt;mutexInitialized) R_CSTL_MutexDestroy (&amp;pBytecode-&gt;mutex);
+        if (pBytecode-&gt;pOwnedCode) R_CSTL_HeapFree (pBytecode-&gt;pOwnedCode);
+        R_CSTL_HeapFree (pBytecode);
+}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeRead (
+    const struct R_CSTL_Bytecode* pBytecode,
+    size_t                           offset,
+    uint8_t*                         pOutBytes,
+    size_t                           sizeBytes)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_LOG_DEVMODE)
+<span style = "background-color:#dfd">        assert (pBytecode != NULL || "Machine code pointer is null");
+        assert (pBytecode-&gt;pCode != NULL || pBytecode-&gt;size == 0);
+        assert (offset &lt;= pBytecode-&gt;size || "Offset exceeds code size");
+        assert (sizeBytes &lt;= pBytecode-&gt;size - offset || "Read size exceeds available bytes");</span>
+#endif
+
+<span style = "background-color:#dfd">        if (!pBytecode || (!pOutBytes &amp;&amp; sizeBytes != 0)) return R_CSTL_ERROR_INVALID_ARGUMENT;
+        if (offset &gt; pBytecode-&gt;size || sizeBytes &gt; pBytecode-&gt;size - offset)
+                return R_CSTL_ERROR_BUFFER_TOO_SMALL;</span>
+
+<span style = "background-color:#dfd">        R_CSTL_MutexLock ((struct R_CSTL_Mutex*)&amp;pBytecode-&gt;mutex);
+        if (sizeBytes) memcpy (pOutBytes, pBytecode-&gt;pCode + offset, sizeBytes);
+        R_CSTL_MutexUnlock ((struct R_CSTL_Mutex*)&amp;pBytecode-&gt;mutex);</span>
+
+<span style = "background-color:#dfd">        return R_CSTL_OK;
+}</span>
+
+static int
+R_CSTL_BytecodeParseX86 (
+    const struct R_CSTL_Bytecode*      pBytecode,
+    size_t                                offset,
+    struct R_CSTL_BytecodeInstruction* pOut)
+<span style = "background-color:#dfd">{
+        const uint8_t* p = pBytecode-&gt;pCode + offset;
+        size_t         remaining = pBytecode-&gt;size - offset;</span>
+
+<span style = "background-color:#dfd">        size_t i = R_CSTL_ScanPrefixes (p, remaining, R_CSTL_X86_MAX_INSTRUCTION_LENGTH);
+        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;</span>
+
+<span style = "background-color:#dfd">        size_t  opcodeStart = i;
+        uint8_t opcode = p[i++];</span>
+
+        // Handle multi-byte opcodes
+<span style = "background-color:#dfd">        if (opcode == R_CSTL_X86_OPCODE_ESCAPE)</span>
+        {
+<span style = "background-color:#dfd">                if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                opcode = p[i++];</span>
+
+<span style = "background-color:#dfd">                if (opcode == R_CSTL_X86_OPCODE_THREEBYTE_38 || opcode == R_CSTL_X86_OPCODE_THREEBYTE_3A)</span>
+                {
+<span style = "background-color:#fdd">                        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                        ++i;</span>
+                }
+        }
+
+        // Enhanced ModRM detection for better opcode handling
+<span style = "background-color:#dfd">        int hasModRM = 1;</span>
+        if ((opcode &gt;= 0x50 &amp;&amp; opcode &lt;= 0x5F) || opcode == 0x6A || opcode == 0x6B || opcode == 0x90
+            || opcode == 0xC3 || opcode == 0xC9 || opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEB
+            || opcode == 0xEA || opcode == 0xE3 || opcode == 0xE0 || opcode == 0xE1 || opcode == 0xE2
+<span style = "background-color:#dfd">            || (opcode &lt; 0x40))
+                hasModRM = 0;</span>
+
+        if (opcode == 0x8B || opcode == 0x89 || opcode == 0x8D || opcode == 0xC7 || opcode == 0xFF
+<span style = "background-color:#dfd">            || opcode == 0x01 || opcode == 0x03 || opcode == 0x0F)
+                hasModRM = 1;</span>
+
+        // Parse ModRM if present
+<span style = "background-color:#dfd">        if (hasModRM)</span>
+        {
+<span style = "background-color:#dfd">                if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                uint8_t modrm = p[i++];
+                uint8_t mod = (uint8_t)(modrm &gt;&gt; 6);
+                uint8_t rm = (uint8_t)(modrm &amp; 7);</span>
+
+                // Handle SIB byte
+<span style = "background-color:#dfd">                if (mod != 3 &amp;&amp; rm == 4)</span>
+                {
+<span style = "background-color:#dfd">                        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                        uint8_t sib = p[i++];
+                        if (mod == 0 &amp;&amp; (sib &amp; 7) == 5) i += 4;</span>
+                }
+
+                // Handle displacement
+<span style = "background-color:#dfd">                if (mod == 0 &amp;&amp; rm == 5) i += 4;
+                else if (mod == 1) i += 1;
+                else if (mod == 2) i += 4;</span>
+        }
+
+        // Handle immediate operands
+<span style = "background-color:#dfd">        if (opcode == 0x68 || opcode == 0x69 || opcode == 0x81 || opcode == 0xC7) i += 4;</span>
+        else if (
+            opcode == 0x6A || opcode == 0x6B || opcode == 0x83 || opcode == 0xCD || opcode == 0xEB
+<span style = "background-color:#dfd">            || opcode == 0xE3 || opcode == 0xE0 || opcode == 0xE1 || opcode == 0xE2)
+                i += 1;
+        else if (opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEA) i += 4;</span>
+
+<span style = "background-color:#dfd">        if (i &gt; remaining || i == 0 || i &gt; R_CSTL_X86_MAX_INSTRUCTION_LENGTH)</span>
+<span style = "background-color:#fdd">                return R_CSTL_ERROR_BUFFER_TOO_SMALL;</span>
+
+<span style = "background-color:#dfd">        memset (pOut, 0, sizeof (*pOut));
+        pOut-&gt;offset = offset;
+        pOut-&gt;size = (uint8_t)i;
+        pOut-&gt;opcodeSize = (uint8_t)(i - opcodeStart);
+        pOut-&gt;opcode = opcode;
+        R_CSTL_CopyBytes (pOut-&gt;bytes, p, i);</span>
+
+<span style = "background-color:#dfd">        return R_CSTL_OK;
+}</span>
+
+#if defined(R_CSTL_LOG_DEVMODE)
+
+static int
+R_CSTL_BytecodeParseX86Enhanced (
+    const struct R_CSTL_Bytecode*      pBytecode,
+    size_t                                offset,
+    struct R_CSTL_BytecodeInstruction* pOut)
+<span style = "background-color:#dfd">{
+        const uint8_t* p = pBytecode-&gt;pCode + offset;
+        size_t         remaining = pBytecode-&gt;size - offset;</span>
+
+<span style = "background-color:#dfd">        uint8_t rexPrefix = 0;
+        uint8_t legacyPrefixes = 0;
+        size_t  i = 0;</span>
+
+<span style = "background-color:#dfd">        while (i &lt; remaining &amp;&amp; i &lt; R_CSTL_X86_MAX_INSTRUCTION_LENGTH)</span>
+        {
+                if (p[i] == R_CSTL_X86_PREFIX_LOCK || p[i] == R_CSTL_X86_PREFIX_REPNE
+                    || p[i] == R_CSTL_X86_PREFIX_REPE || p[i] == R_CSTL_X86_PREFIX_DATA_SIZE
+<span style = "background-color:#dfd">                    || p[i] == R_CSTL_X86_PREFIX_ADDR_SIZE)</span>
+                {
+<span style = "background-color:#dfd">                        legacyPrefixes |= (1 &lt;&lt; (p[i] &amp; 0x07));
+                        ++i;
+                }
+                else if (p[i] &gt;= R_CSTL_X86_REX_MIN &amp;&amp; p[i] &lt;= R_CSTL_X86_REX_MAX)</span>
+                {
+<span style = "background-color:#dfd">                        rexPrefix = p[i];
+                        ++i;
+                }
+                else break;
+        }</span>
+
+<span style = "background-color:#dfd">        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;</span>
+
+<span style = "background-color:#dfd">        size_t  opcodeStart = i;
+        uint8_t opcode = p[i++];
+        uint8_t originalOpcode = opcode; // Store original for conditional jump detection</span>
+
+        // Handle multi-byte opcodes
+<span style = "background-color:#dfd">        if (opcode == R_CSTL_X86_OPCODE_ESCAPE)</span>
+        {
+<span style = "background-color:#dfd">                if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                opcode = p[i++];</span>
+
+                // Handle 3-byte opcodes
+<span style = "background-color:#dfd">                if (opcode == R_CSTL_X86_OPCODE_THREEBYTE_38 || opcode == R_CSTL_X86_OPCODE_THREEBYTE_3A)</span>
+                {
+<span style = "background-color:#fdd">                        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                        ++i;</span>
+                }
+        }
+<span style = "background-color:#dfd">        int hasModRM = 1;</span>
+        if ((opcode &gt;= 0x50 &amp;&amp; opcode &lt;= 0x5F) || opcode == 0x6A || opcode == 0x6B || opcode == 0x90
+            || opcode == 0xC3 || opcode == 0xC9 || opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEB
+            || opcode == 0xEA || opcode == 0xE3 || opcode == 0xE0 || opcode == 0xE1 || opcode == 0xE2
+<span style = "background-color:#dfd">            || (opcode &lt; 0x40))
+                hasModRM = 0;</span>
+
+        if (opcode == 0x8B || opcode == 0x89 || opcode == 0x8D || opcode == 0xC7 || opcode == 0xFF
+<span style = "background-color:#dfd">            || opcode == 0x01 || opcode == 0x03 || opcode == 0x0F)
+                hasModRM = 1;
+        if (hasModRM)</span>
+        {
+<span style = "background-color:#dfd">                if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                uint8_t modrm = p[i++];
+                uint8_t mod = (uint8_t)(modrm &gt;&gt; 6);
+                uint8_t rm = (uint8_t)(modrm &amp; 7);</span>
+
+                // Handle SIB byte
+<span style = "background-color:#dfd">                if (mod != 3 &amp;&amp; rm == 4)</span>
+                {
+<span style = "background-color:#dfd">                        if (i &gt;= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+                        uint8_t sib = p[i++];
+                        if (mod == 0 &amp;&amp; (sib &amp; 7) == 5) i += 4;</span>
+                }
+
+                // Handle displacement
+<span style = "background-color:#dfd">                if (mod == 0 &amp;&amp; rm == 5) i += 4;
+                else if (mod == 1) i += 1;
+                else if (mod == 2) i += 4;</span>
+        }
+
+        // Handle immediate operands
+<span style = "background-color:#dfd">        if (opcode == 0x68 || opcode == 0x69 || opcode == 0x81 || opcode == 0xC7) i += 4;</span>
+        else if (
+            opcode == 0x6A || opcode == 0x6B || opcode == 0x83 || opcode == 0xCD || opcode == 0xEB
+<span style = "background-color:#dfd">            || opcode == 0xE3 || opcode == 0xE0 || opcode == 0xE1 || opcode == 0xE2)
+                i += 1;
+        else if (opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEA) i += 4;</span>
+
+<span style = "background-color:#dfd">        if (i &gt; remaining || i == 0 || i &gt; R_CSTL_X86_MAX_INSTRUCTION_LENGTH)</span>
+<span style = "background-color:#fdd">                return R_CSTL_ERROR_BUFFER_TOO_SMALL;</span>
+
+<span style = "background-color:#dfd">        memset (pOut, 0, sizeof (*pOut));
+        pOut-&gt;offset = offset;
+        pOut-&gt;size = (uint8_t)i;
+        pOut-&gt;opcodeSize = (uint8_t)(i - opcodeStart);
+        pOut-&gt;opcode = opcode;
+        R_CSTL_CopyBytes (pOut-&gt;bytes, p, i);</span>
+
+<span style = "background-color:#dfd">        pOut-&gt;rexPrefix = rexPrefix;
+        pOut-&gt;legacyPrefixes = legacyPrefixes;
+        pOut-&gt;hasRex = (rexPrefix != 0);
+        pOut-&gt;rexW = (rexPrefix &gt;&gt; 3) &amp; 1;
+        pOut-&gt;rexR = (rexPrefix &gt;&gt; 2) &amp; 1;
+        pOut-&gt;rexX = (rexPrefix &gt;&gt; 1) &amp; 1;
+        pOut-&gt;rexB = rexPrefix &amp; 1;</span>
+
+        // Enhanced CALL/JMP detection with more jump variants
+<span style = "background-color:#dfd">        pOut-&gt;isCall</span>
+            = (opcode == 0xE8 || (opcode == 0xFF &amp;&amp; hasModRM &amp;&amp; ((p[opcodeStart + 1] &amp; 0x38) == 0x10)));
+<span style = "background-color:#dfd">        pOut-&gt;isJump</span>
+            = (opcode == 0xE9 || opcode == 0xEB || opcode == 0xEA || opcode == 0xE3 || opcode == 0xE0
+               || opcode == 0xE1 || opcode == 0xE2
+               || (opcode == 0xFF &amp;&amp; hasModRM &amp;&amp; ((p[opcodeStart + 1] &amp; 0x38) == 0x20))
+               || (originalOpcode == R_CSTL_X86_OPCODE_ESCAPE
+                   &amp;&amp; (opcode &gt;= R_CSTL_X86_COND_JUMP_MIN &amp;&amp; opcode &lt;= R_CSTL_X86_COND_JUMP_MAX)));
+
+        // Extract CALL/JMP target addresses
+<span style = "background-color:#dfd">        if (opcode == 0xE8 || opcode == 0xE9)</span>
+        {
+                // Relative CALL/JMP with 32-bit displacement
+<span style = "background-color:#dfd">                if (i &gt;= opcodeStart + 5)</span>
+                {
+                        int32_t relOffset;
+<span style = "background-color:#dfd">                        memcpy (&amp;relOffset, p + opcodeStart + 1, sizeof (relOffset));
+                        pOut-&gt;targetAddress</span>
+                            = (uint64_t)((uintptr_t)pBytecode-&gt;pCode + offset + i + relOffset);
+                }
+<span style = "background-color:#dfd">        }
+        else if (opcode == 0xEB)</span>
+        {
+                // Short JMP with 8-bit displacement
+<span style = "background-color:#dfd">                if (i &gt;= opcodeStart + 2)</span>
+                {
+<span style = "background-color:#dfd">                        int8_t relOffset = (int8_t)p[opcodeStart + 1];
+                        pOut-&gt;targetAddress</span>
+                            = (uint64_t)((uintptr_t)pBytecode-&gt;pCode + offset + i + relOffset);
+                }
+<span style = "background-color:#dfd">        }
+        else if (opcode == 0xEA)</span>
+        {
+                // Far JMP with segment:offset (not commonly used in 64-bit)
+<span style = "background-color:#fdd">                if (i &gt;= opcodeStart + 7)</span>
+                {
+                        uint16_t segment;
+                        uint32_t offsetAddr;
+<span style = "background-color:#fdd">                        memcpy (&amp;segment, p + opcodeStart + 5, sizeof (segment));
+                        memcpy (&amp;offsetAddr, p + opcodeStart + 1, sizeof (offsetAddr));
+                        pOut-&gt;targetAddress = ((uint64_t)segment &lt;&lt; 16) | offsetAddr;</span>
+                }
+<span style = "background-color:#fdd">        }</span>
+<span style = "background-color:#dfd">        else if (opcode == 0xE0 || opcode == 0xE1 || opcode == 0xE2)</span>
+        {
+                // LOOP/LOOPE/LOOPNE with 8-bit displacement
+<span style = "background-color:#dfd">                if (i &gt;= opcodeStart + 2)</span>
+                {
+<span style = "background-color:#dfd">                        int8_t relOffset = (int8_t)p[opcodeStart + 1];
+                        pOut-&gt;targetAddress</span>
+                            = (uint64_t)((uintptr_t)pBytecode-&gt;pCode + offset + i + relOffset);
+                }
+<span style = "background-color:#dfd">        }
+        else if (opcode == 0xE3)</span>
+        {
+                // JCXZ/JECXZ/JRCXZ with 8-bit displacement
+<span style = "background-color:#dfd">                if (i &gt;= opcodeStart + 2)</span>
+                {
+<span style = "background-color:#dfd">                        int8_t relOffset = (int8_t)p[opcodeStart + 1];
+                        pOut-&gt;targetAddress</span>
+                            = (uint64_t)((uintptr_t)pBytecode-&gt;pCode + offset + i + relOffset);
+                }
+<span style = "background-color:#dfd">        }
+        else if (opcode == 0xFF &amp;&amp; hasModRM)</span>
+        {
+                // CALL/JMP through ModRM
+<span style = "background-color:#dfd">                uint8_t modrm = p[opcodeStart + 1];
+                uint8_t reg = (modrm &gt;&gt; 3) &amp; 7;
+                if (reg == 2 || reg == 3 || reg == 4 || reg == 5)</span>
+                {
+                        // CALL/JMP with absolute or indirect addressing
+<span style = "background-color:#dfd">                        if (i &gt;= opcodeStart + 5 &amp;&amp; (modrm &amp; 0xC7) == 0x05)</span>
+                        {
+                                uint32_t absAddr;
+<span style = "background-color:#fdd">                                memcpy (&amp;absAddr, p + opcodeStart + 2, sizeof (absAddr));
+                                pOut-&gt;targetAddress = absAddr;</span>
+                        }
+                }
+        }
+        // Handle conditional jumps (Jcc) with 32-bit displacement
+        // These are 0x0F 0x80-0x8F followed by rel32
+        if (originalOpcode == R_CSTL_X86_OPCODE_ESCAPE
+<span style = "background-color:#dfd">            &amp;&amp; (opcode &gt;= R_CSTL_X86_COND_JUMP_MIN &amp;&amp; opcode &lt;= R_CSTL_X86_COND_JUMP_MAX))</span>
+        {
+<span style = "background-color:#dfd">                if (i &gt;= opcodeStart + 6)</span>
+                {
+                        int32_t relOffset;
+<span style = "background-color:#fdd">                        memcpy (&amp;relOffset, p + opcodeStart + 2, sizeof (relOffset));
+                        pOut-&gt;targetAddress</span>
+                            = (uint64_t)((uintptr_t)pBytecode-&gt;pCode + offset + i + relOffset);
+                }
+        }
+
+<span style = "background-color:#dfd">        return R_CSTL_OK;
+}</span>
+
+#endif
+
+#if defined(R_CSTL_LOG_DEVMODE)
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+
+static HANDLE g_symbolHandle = NULL;
+static bool   g_symbolInitialized = false;
+
+static int
+R_CSTL_InitializeSymbolsWindows (void)
+<span style = "background-color:#dfd">{
+        if (g_symbolInitialized) return R_CSTL_OK;</span>
+
+<span style = "background-color:#dfd">        g_symbolHandle = GetCurrentProcess ();
+        if (!SymInitialize (g_symbolHandle, NULL, TRUE))</span>
+        {
+<span style = "background-color:#fdd">                DWORD error = GetLastError ();</span>
+                (void)error;
+<span style = "background-color:#fdd">                return R_CSTL_ERROR_UNKNOWN;</span>
+        }
+
+<span style = "background-color:#dfd">        DWORD options = SymGetOptions ();
+        options |= SYMOPT_LOAD_LINES | SYMOPT_FAIL_CRITICAL_ERRORS;
+        SymSetOptions (options);</span>
+
+<span style = "background-color:#dfd">        g_symbolInitialized = true;
+        return R_CSTL_OK;
+}</span>
+
+static void
+R_CSTL_CleanupSymbolsWindows (void)
+<span style = "background-color:#dfd">{
+        if (g_symbolInitialized &amp;&amp; g_symbolHandle)</span>
+        {
+<span style = "background-color:#dfd">                SymCleanup (g_symbolHandle);
+                g_symbolInitialized = false;</span>
+        }
+<span style = "background-color:#dfd">}</span>
+
+static int
+R_CSTL_ResolveSymbolWindows (uint64_t address, struct R_CSTL_BytecodeSymbol* pOutSymbol)
+<span style = "background-color:#fdd">{
+        if (!g_symbolInitialized)</span>
+        {
+<span style = "background-color:#fdd">                int result = R_CSTL_InitializeSymbolsWindows ();
+                if (result != R_CSTL_OK) return result;</span>
+        }
+
+        char         buffer[sizeof (SYMBOL_INFO) + MAX_SYM_NAME * sizeof (TCHAR)];
+<span style = "background-color:#fdd">        PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+        pSymbol-&gt;SizeOfStruct = sizeof (SYMBOL_INFO);
+        pSymbol-&gt;MaxNameLen = MAX_SYM_NAME;</span>
+
+<span style = "background-color:#fdd">        if (!SymFromAddr (g_symbolHandle, (DWORD64)address, NULL, pSymbol))
+                return R_CSTL_ERROR_SYMBOL_NOT_FOUND;</span>
+
+<span style = "background-color:#fdd">        pOutSymbol-&gt;address = address;
+        pOutSymbol-&gt;pName = pSymbol-&gt;Name;
+        pOutSymbol-&gt;nameSize = pSymbol-&gt;NameLen;
+        pOutSymbol-&gt;size = pSymbol-&gt;Size;</span>
+
+<span style = "background-color:#fdd">        return R_CSTL_OK;
+}</span>
+
+#elif defined(R_CSTL_PLATFORM_LINUX)
+
+static int
+R_CSTL_InitializeSymbolsLinux (void)
+{
+        return R_CSTL_OK;
+}
+
+static void
+R_CSTL_CleanupSymbolsLinux (void)
+{
+}
+
+static int
+R_CSTL_ResolveSymbolLinux (uint64_t address, struct R_CSTL_BytecodeSymbol* pOutSymbol)
+{
+        void* buffer[16];
+        int   nptrs = backtrace (buffer, 16);
+        if (nptrs &lt;= 0) return R_CSTL_ERROR_SYMBOL_NOT_FOUND;
+
+        char** strings = backtrace_symbols (buffer, nptrs);
+        if (!strings) return R_CSTL_ERROR_SYMBOL_NOT_FOUND;
+
+        for (int i = 0; i &lt; nptrs; ++i)
+        {
+                if ((uintptr_t)buffer[i] == (uintptr_t)address)
+                {
+                        pOutSymbol-&gt;address = address;
+                        pOutSymbol-&gt;pName = strings[i];
+                        pOutSymbol-&gt;nameSize = strlen (strings[i]);
+                        pOutSymbol-&gt;size = 0;
+                        free (strings);
+                        return R_CSTL_OK;
+                }
+        }
+
+        free (strings);
+        return R_CSTL_ERROR_SYMBOL_NOT_FOUND;
+}
+
+#endif
+
+R_CSTL_API int
+R_CSTL_BytecodeDecoderCreate (
+    enum R_CSTL_BytecodeArchitecture architecture,
+    struct R_CSTL_BytecodeDecoder*   pOutDecoder)
+<span style = "background-color:#dfd">{
+        if (!pOutDecoder) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+<span style = "background-color:#dfd">        if (architecture != R_CSTL_BYTECODE_ARCH_X86 &amp;&amp; architecture != R_CSTL_BYTECODE_ARCH_X86_64)
+                return R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED;</span>
+
+<span style = "background-color:#dfd">        memset (pOutDecoder, 0, sizeof (*pOutDecoder));
+        pOutDecoder-&gt;architecture = architecture;</span>
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+<span style = "background-color:#dfd">        int result = R_CSTL_InitializeSymbolsWindows ();
+        if (result != R_CSTL_OK) return result;
+        pOutDecoder-&gt;pPlatformHandle = g_symbolHandle;</span>
+#elif defined(R_CSTL_PLATFORM_LINUX)
+        int result = R_CSTL_InitializeSymbolsLinux ();
+        if (result != R_CSTL_OK) return result;
+#endif
+<span style = "background-color:#dfd">        pOutDecoder-&gt;initialized = true;
+        return R_CSTL_OK;
+}</span>
+
+R_CSTL_API void
+R_CSTL_BytecodeDecoderDestroy (struct R_CSTL_BytecodeDecoder* pDecoder)
+<span style = "background-color:#dfd">{
+        if (!pDecoder) return;</span>
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+<span style = "background-color:#dfd">        R_CSTL_CleanupSymbolsWindows ();</span>
+#elif defined(R_CSTL_PLATFORM_LINUX)
+        R_CSTL_CleanupSymbolsLinux ();
+#endif
+
+<span style = "background-color:#dfd">        memset (pDecoder, 0, sizeof (*pDecoder));
+}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeResolveSymbol (
+    const struct R_CSTL_BytecodeDecoder* pDecoder,
+    uint64_t                                address,
+    struct R_CSTL_BytecodeSymbol*        pOutSymbol)
+<span style = "background-color:#dfd">{
+        if (!pDecoder || !pOutSymbol) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+<span style = "background-color:#fdd">        if (!pDecoder-&gt;initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+<span style = "background-color:#fdd">        return R_CSTL_ResolveSymbolWindows (address, pOutSymbol);</span>
+#elif defined(R_CSTL_PLATFORM_LINUX)
+        return R_CSTL_ResolveSymbolLinux (address, pOutSymbol);
+#else
+        return R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED;
+#endif
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeGetFunctionInfo (
+    const struct R_CSTL_BytecodeDecoder* pDecoder,
+    uint64_t                                address,
+    struct R_CSTL_BytecodeFunctionInfo*  pOutInfo)
+<span style = "background-color:#dfd">{
+        if (!pDecoder || !pOutInfo) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+<span style = "background-color:#fdd">        if (!pDecoder-&gt;initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+        struct R_CSTL_BytecodeSymbol symbol;
+<span style = "background-color:#fdd">        int                             result = R_CSTL_BytecodeResolveSymbol (pDecoder, address, &amp;symbol);
+        if (result != R_CSTL_OK) return result;</span>
+
+<span style = "background-color:#fdd">        pOutInfo-&gt;startAddress = symbol.address;
+        pOutInfo-&gt;endAddress = symbol.address + symbol.size;
+        pOutInfo-&gt;pName = symbol.pName;
+        pOutInfo-&gt;nameSize = symbol.nameSize;</span>
+
+<span style = "background-color:#fdd">        return R_CSTL_OK;</span>
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeParseEnhanced (
+    const struct R_CSTL_Bytecode*      pBytecode,
+    size_t                                offset,
+    struct R_CSTL_BytecodeInstruction* pOutInstruction)
+<span style = "background-color:#dfd">{
+        if (!pBytecode || !pOutInstruction || offset &gt;= pBytecode-&gt;size)
+                return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+        if (pBytecode-&gt;architecture == R_CSTL_BYTECODE_ARCH_X86
+<span style = "background-color:#dfd">            || pBytecode-&gt;architecture == R_CSTL_BYTECODE_ARCH_X86_64)
+                return R_CSTL_BytecodeParseX86Enhanced (pBytecode, offset, pOutInstruction);</span>
+
+<span style = "background-color:#dfd">        return R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED;
+}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeGetInstructionTargetSymbol (
+    const struct R_CSTL_BytecodeDecoder*     pDecoder,
+    const struct R_CSTL_BytecodeInstruction* pInstruction,
+    char*                                       pOutBuffer,
+    size_t                                      bufferSize)
+<span style = "background-color:#dfd">{
+        if (!pDecoder || !pInstruction || !pOutBuffer) return R_CSTL_ERROR_INVALID_ARGUMENT;
+        if (!pDecoder-&gt;initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+<span style = "background-color:#dfd">        if (pInstruction-&gt;targetAddress == 0)</span>
+        {
+<span style = "background-color:#dfd">                snprintf (</span>
+                    pOutBuffer,
+                    bufferSize,
+                    "0x%016llX",
+                    (unsigned long long)pInstruction-&gt;targetAddress);
+<span style = "background-color:#dfd">                return R_CSTL_OK;</span>
+        }
+
+        struct R_CSTL_BytecodeSymbol symbol;
+<span style = "background-color:#fdd">        int result = R_CSTL_BytecodeResolveSymbol (pDecoder, pInstruction-&gt;targetAddress, &amp;symbol);
+        if (result == R_CSTL_OK &amp;&amp; symbol.pName)</span>
+        {
+<span style = "background-color:#fdd">                snprintf (pOutBuffer, bufferSize, "%.*s", (int)symbol.nameSize, symbol.pName);
+                return R_CSTL_OK;</span>
+        }
+        // Fallback to raw address
+<span style = "background-color:#fdd">        snprintf (pOutBuffer, bufferSize, "0x%016llX", (unsigned long long)pInstruction-&gt;targetAddress);
+        return R_CSTL_OK;</span>
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeFunctionContainsSymbol (
+    const struct R_CSTL_BytecodeDecoder* pDecoder,
+    R_CSTL_BytecodeFunction              pFunction,
+    size_t                                  functionSize,
+    const char*                             pSymbolName,
+    int*                                    pOutFound)
+<span style = "background-color:#dfd">{
+        if (!pDecoder || !pFunction || !pSymbolName || !pOutFound) return R_CSTL_ERROR_INVALID_ARGUMENT;
+        if (!pDecoder-&gt;initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+<span style = "background-color:#dfd">        *pOutFound = 0;</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_Bytecode* pBytecode</span>
+            = R_CSTL_NewBytecodeFromFunction (pFunction, functionSize, pDecoder-&gt;architecture);
+<span style = "background-color:#dfd">        if (!pBytecode) return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+
+<span style = "background-color:#dfd">        size_t offset = 0;
+        int    found = 0;</span>
+
+<span style = "background-color:#dfd">        while (offset &lt; functionSize)</span>
+        {
+                struct R_CSTL_BytecodeInstruction instruction;
+<span style = "background-color:#dfd">                int result = R_CSTL_BytecodeParseEnhanced (pBytecode, offset, &amp;instruction);
+                if (result != R_CSTL_OK)</span>
+                {
+<span style = "background-color:#dfd">                        R_CSTL_DeleteBytecode (pBytecode);
+                        return result;</span>
+                }
+
+<span style = "background-color:#dfd">                if (instruction.isCall &amp;&amp; instruction.targetAddress != 0)</span>
+                {
+                        char symbolBuffer[256];
+<span style = "background-color:#fdd">                        result = R_CSTL_BytecodeGetInstructionTargetSymbol (</span>
+                            pDecoder,
+                            &amp;instruction,
+                            symbolBuffer,
+                            sizeof (symbolBuffer));
+<span style = "background-color:#fdd">                        if (result == R_CSTL_OK)</span>
+                        {
+<span style = "background-color:#fdd">                                if (strstr (symbolBuffer, pSymbolName) != NULL)</span>
+                                {
+<span style = "background-color:#fdd">                                        found = 1;
+                                        break;</span>
+                                }
+                        }
+                }
+<span style = "background-color:#dfd">                offset += instruction.size;
+        }</span>
+
+<span style = "background-color:#dfd">        R_CSTL_DeleteBytecode (pBytecode);
+        *pOutFound = found;
+        return R_CSTL_OK;
+}</span>
+
+#endif
+
+R_CSTL_API int
+R_CSTL_BytecodeParse (
+    const struct R_CSTL_Bytecode*      pBytecode,
+    size_t                                offset,
+    struct R_CSTL_BytecodeInstruction* pOutInstruction)
+<span style = "background-color:#dfd">{
+        if (!pBytecode || !pOutInstruction || offset &gt;= pBytecode-&gt;size)
+                return R_CSTL_ERROR_INVALID_ARGUMENT;</span>
+        if (pBytecode-&gt;architecture == R_CSTL_BYTECODE_ARCH_X86
+<span style = "background-color:#dfd">            || pBytecode-&gt;architecture == R_CSTL_BYTECODE_ARCH_X86_64)
+                return R_CSTL_BytecodeParseX86 (pBytecode, offset, pOutInstruction);
+        size_t width = 4;
+        if (pBytecode-&gt;size - offset &lt; width) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+        memset (pOutInstruction, 0, sizeof (*pOutInstruction));
+        pOutInstruction-&gt;offset = offset;
+        pOutInstruction-&gt;size = (uint8_t)width;
+        pOutInstruction-&gt;opcodeSize = (uint8_t)width;
+        memcpy (pOutInstruction-&gt;bytes, pBytecode-&gt;pCode + offset, width);
+        for (size_t i = 0; i &lt; width; ++i)
+                pOutInstruction-&gt;opcode |= (uint64_t)pOutInstruction-&gt;bytes[i] &lt;&lt; (i * 8);
+        return R_CSTL_OK;
+}</span>
+
+static int
+R_CSTL_BytecodeAddToken (
+    struct R_CSTL_BytecodeToken*  pTokens,
+    size_t                           capacity,
+    size_t*                          pCount,
+    enum R_CSTL_BytecodeTokenKind kind,
+    size_t                           offset,
+    uint8_t                          size,
+    uint64_t                         value)
+<span style = "background-color:#dfd">{
+        if (*pCount &gt;= capacity) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
+        pTokens[*pCount] = (struct R_CSTL_BytecodeToken){kind, offset, size, value};
+        ++*pCount;
+        return R_CSTL_OK;
+}</span>
+
+R_CSTL_API int
+R_CSTL_BytecodeTokenize (
+    const struct R_CSTL_Bytecode* pBytecode,
+    size_t                           offset,
+    struct R_CSTL_BytecodeToken*  pTokens,
+    size_t                           tokenCapacity,
+    size_t*                          pOutTokenCount)
+<span style = "background-color:#dfd">{
+        if (!pBytecode || !pTokens || !pOutTokenCount) return R_CSTL_ERROR_INVALID_ARGUMENT;
+        *pOutTokenCount = 0;</span>
+        struct R_CSTL_BytecodeInstruction instruction;
+<span style = "background-color:#dfd">        int result = R_CSTL_BytecodeParse (pBytecode, offset, &amp;instruction);
+        if (result != R_CSTL_OK) return result;
+        result = R_CSTL_BytecodeAddToken (</span>
+            pTokens,
+            tokenCapacity,
+            pOutTokenCount,
+            R_CSTL_BYTECODE_TOKEN_OPCODE,
+            offset,
+            instruction.opcodeSize,
+            instruction.opcode);
+<span style = "background-color:#dfd">        if (result != R_CSTL_OK) return result;
+        if (instruction.size &gt; instruction.opcodeSize)</span>
+<span style = "background-color:#fdd">                result = R_CSTL_BytecodeAddToken (</span>
+                    pTokens,
+                    tokenCapacity,
+                    pOutTokenCount,
+                    R_CSTL_BYTECODE_TOKEN_OPERAND,
+                    offset + instruction.opcodeSize,
+                    (uint8_t)(instruction.size - instruction.opcodeSize),
+                    0);
+<span style = "background-color:#dfd">        if (result != R_CSTL_OK) return result;</span>
+        if (pBytecode-&gt;architecture == R_CSTL_BYTECODE_ARCH_X86_64 &amp;&amp; instruction.size &gt;= 6
+<span style = "background-color:#dfd">            &amp;&amp; instruction.bytes[instruction.opcodeSize] == 0x05)</span>
+<span style = "background-color:#fdd">                result = R_CSTL_BytecodeAddToken (</span>
+                    pTokens,
+                    tokenCapacity,
+                    pOutTokenCount,
+                    R_CSTL_BYTECODE_TOKEN_RIP_ADDRESSING,
+                    offset + instruction.opcodeSize,
+                    5,
+                    0);
+<span style = "background-color:#dfd">        return result;
+}</span>
+
+R_CSTL_API const uint8_t*
+R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode)
+<span style = "background-color:#dfd">{
+        return pBytecode ? pBytecode-&gt;pCode : NULL;
+}</span>
+
+R_CSTL_API size_t
+R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
+<span style = "background-color:#dfd">{
+        return pBytecode ? pBytecode-&gt;size : 0;
+}</span>
+
+R_CSTL_API enum R_CSTL_BytecodeArchitecture
+R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode)
+<span style = "background-color:#dfd">{
+        return pBytecode ? pBytecode-&gt;architecture : R_CSTL_BYTECODE_ARCH_X86;
+}</span></pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

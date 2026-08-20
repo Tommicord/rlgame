@@ -694,3 +694,215 @@ TEST_F (CstlArrayTest, StressLargeArray)
 
         R_CSTL_DeleteArray (pArray);
 }
+
+TEST_F (CstlArrayTest, PushDataAppendsMultipleBytes)
+{
+        struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
+        ASSERT_NE (nullptr, pArray);
+
+        const uint8_t data[] = {1, 2, 3, 4, 5};
+        ASSERT_EQ (0, R_CSTL_ArrayPushData (pArray, data, sizeof (data)));
+        
+        EXPECT_EQ (5u, R_CSTL_ArrayLength (pArray));
+        ExpectBytes (pArray, {1, 2, 3, 4, 5});
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, PushDataWithNullDataFails)
+{
+        struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
+        ASSERT_NE (nullptr, pArray);
+
+        EXPECT_EQ (-1, R_CSTL_ArrayPushData (pArray, nullptr, 10));
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, PushDataWithZeroSizeSucceeds)
+{
+        struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
+        ASSERT_NE (nullptr, pArray);
+
+        const uint8_t data[] = {1, 2, 3};
+        ASSERT_EQ (0, R_CSTL_ArrayPushData (pArray, data, 0));
+        EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, ClearWithZeroMemory)
+{
+        const uint8_t        src[] = {1, 2, 3, 4, 5};
+        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (src, sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        ASSERT_EQ (0, R_CSTL_ArrayClear (pArray, 1));
+        EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
+        
+        // Verify memory is zeroed
+        const uint8_t* pData = R_CSTL_ArrayData (pArray);
+        ASSERT_NE (nullptr, pData);
+        for (size_t i = 0; i < sizeof (src); ++i)
+        {
+                EXPECT_EQ (0u, pData[i]);
+        }
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, ClearWithoutZeroMemory)
+{
+        const uint8_t        src[] = {1, 2, 3, 4, 5};
+        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (src, sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        ASSERT_EQ (0, R_CSTL_ArrayClear (pArray, 0));
+        EXPECT_EQ (0u, R_CSTL_ArrayLength (pArray));
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, FillSetsAllBytes)
+{
+        const uint8_t        src[] = {1, 2, 3, 4, 5};
+        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (src, sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        ASSERT_EQ (0, R_CSTL_ArrayFill (pArray, 0xFF));
+        
+        const uint8_t* pData = R_CSTL_ArrayData (pArray);
+        ASSERT_NE (nullptr, pData);
+        for (size_t i = 0; i < sizeof (src); ++i)
+        {
+                EXPECT_EQ (0xFF, pData[i]);
+        }
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, SortU16Elements)
+{
+        const uint16_t       src[] = {100u, 3u, 42u, 7u, 1u, 256u};
+        struct R_CSTL_Array* pArray
+            = R_CSTL_NewArrayWithData (reinterpret_cast<const uint8_t*> (src), sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        ASSERT_EQ (0, R_CSTL_ArraySort (pArray, sizeof (uint16_t), R_CSTL_ArrayCompareU16, nullptr));
+
+        const uint8_t* pData = R_CSTL_ArrayData (pArray);
+        ASSERT_NE (nullptr, pData);
+        const auto* pValues = reinterpret_cast<const uint16_t*> (pData);
+        EXPECT_EQ (6u, R_CSTL_ArrayLength (pArray) / sizeof (uint16_t));
+        EXPECT_EQ (1u, pValues[0]);
+        EXPECT_EQ (3u, pValues[1]);
+        EXPECT_EQ (7u, pValues[2]);
+        EXPECT_EQ (42u, pValues[3]);
+        EXPECT_EQ (100u, pValues[4]);
+        EXPECT_EQ (256u, pValues[5]);
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, SortU64Elements)
+{
+        const uint64_t       src[] = {1000ULL, 3ULL, 42ULL, 7ULL, 1ULL, 256ULL};
+        struct R_CSTL_Array* pArray
+            = R_CSTL_NewArrayWithData (reinterpret_cast<const uint8_t*> (src), sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        ASSERT_EQ (0, R_CSTL_ArraySort (pArray, sizeof (uint64_t), R_CSTL_ArrayCompareU64, nullptr));
+
+        const uint8_t* pData = R_CSTL_ArrayData (pArray);
+        ASSERT_NE (nullptr, pData);
+        const auto* pValues = reinterpret_cast<const uint64_t*> (pData);
+        EXPECT_EQ (6u, R_CSTL_ArrayLength (pArray) / sizeof (uint64_t));
+        EXPECT_EQ (1ULL, pValues[0]);
+        EXPECT_EQ (3ULL, pValues[1]);
+        EXPECT_EQ (7ULL, pValues[2]);
+        EXPECT_EQ (42ULL, pValues[3]);
+        EXPECT_EQ (256ULL, pValues[4]);
+        EXPECT_EQ (1000ULL, pValues[5]);
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, TypedAtMacro)
+{
+        const uint32_t       src[] = {100u, 200u, 300u};
+        struct R_CSTL_Array* pArray
+            = R_CSTL_NewArrayWithData (reinterpret_cast<const uint8_t*> (src), sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        uint32_t value = 0;
+        R_CSTL_ArrayTypedAt (pArray, uint32_t, 1, &value);
+        EXPECT_EQ (200u, value);
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, TypedAtUncheckedMacro)
+{
+        const uint32_t       src[] = {100u, 200u, 300u};
+        struct R_CSTL_Array* pArray
+            = R_CSTL_NewArrayWithData (reinterpret_cast<const uint8_t*> (src), sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        uint32_t value = 0;
+        R_CSTL_ArrayTypedAtUnchecked (pArray, uint32_t, 2, &value);
+        EXPECT_EQ (300u, value);
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, UncheckedAtBoundsCheck)
+{
+        const uint8_t        src[] = {7, 8};
+        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (src, sizeof (src));
+        ASSERT_NE (nullptr, pArray);
+
+        uint8_t value = 0;
+        EXPECT_EQ (0, R_CSTL_ArrayUncheckedAt (pArray, 0, &value));
+        EXPECT_EQ (7u, value);
+        EXPECT_EQ (0, R_CSTL_ArrayUncheckedAt (pArray, 1, &value));
+        EXPECT_EQ (8u, value);
+
+        R_CSTL_DeleteArray (pArray);
+}
+
+TEST_F (CstlArrayTest, RevBytesRejectsNullArray)
+{
+        EXPECT_EQ (-1, R_CSTL_ArrayRevBytes (nullptr, 32));
+}
+
+TEST_F (CstlArrayTest, PushRejectsNullArray)
+{
+        EXPECT_EQ (-1, R_CSTL_ArrayPush (nullptr, 42));
+}
+
+TEST_F (CstlArrayTest, PopRejectsNullArray)
+{
+        uint8_t value = 0;
+        EXPECT_EQ (-1, R_CSTL_ArrayPop (nullptr, &value));
+}
+
+TEST_F (CstlArrayTest, ShiftRejectsNullArray)
+{
+        uint8_t value = 0;
+        EXPECT_EQ (-1, R_CSTL_ArrayShift (nullptr, &value));
+}
+
+TEST_F (CstlArrayTest, UnshiftRejectsNullArray)
+{
+        EXPECT_EQ (-1, R_CSTL_ArrayUnshift (nullptr, 42));
+}
+
+TEST_F (CstlArrayTest, ClearRejectsNullArray)
+{
+        EXPECT_EQ (-1, R_CSTL_ArrayClear (nullptr, 1));
+}
+
+TEST_F (CstlArrayTest, FillRejectsNullArray)
+{
+        EXPECT_EQ (-1, R_CSTL_ArrayFill (nullptr, 0xFF));
+}

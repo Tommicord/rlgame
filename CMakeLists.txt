@@ -319,13 +319,21 @@ target_link_libraries(
   rlgame.base.cstl
   rlgame.base.cvulkan
 )
-# Debug macros and ASan for test target
 target_compile_definitions(rlgame_test PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+
+if (MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_options(rlgame_test PRIVATE /profile)
+  target_link_options(rlgame_test PRIVATE /PROFILE)
+  
+  target_compile_options(rlgame.base.cstl PRIVATE /profile)
+  target_link_options(rlgame.base.cstl PRIVATE /PROFILE)
+  message(STATUS "Code coverage enabled for MSVC Debug build")
+endif()
+
 # target_add_renderdoc(rlgame_test)
 
 # Platform-specific libraries for test target
 if (UNIX AND NOT APPLE)
-  target_link_libraries(rlgame_test PRIVATE X11::X11 dl)
   if(WAYLAND_FOUND)
     target_link_libraries(rlgame_test PRIVATE ${WAYLAND_LIBRARIES})
     target_include_directories(rlgame_test PRIVATE ${WAYLAND_INCLUDE_DIRS})
@@ -346,7 +354,6 @@ elseif (WIN32)
 endif ()
 
 set_common_output_directories(rlgame_test)
-
 gtest_discover_tests(rlgame_test)
 
 file(

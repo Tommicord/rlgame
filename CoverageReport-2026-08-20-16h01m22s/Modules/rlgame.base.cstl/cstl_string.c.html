@@ -1,0 +1,1706 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>cstl_string.c</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+#include "rlgame.base/cstl/cstl_string.h"
+#include "rlgame.base/cstl/cstl_heap_allocator.h"
+
+#define R_CSTL_INLINE
+#include "rlgame.base/cstl/cstl_platform.h"
+
+#include &lt;string.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdarg.h&gt;
+
+#if defined(R_SIMD_AVX2)
+#include &lt;immintrin.h&gt;
+#elif defined(R_SIMD_SSE)
+#include &lt;immintrin.h&gt;
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
+#include &lt;arm_neon.h&gt;
+#endif
+
+#if defined(_MSC_VER)
+#include &lt;intrin.h&gt;
+
+R_CSTL_API_ATTR static unsigned int
+R_CSTL_CountTrailingZeros (unsigned int value)
+<span style = "background-color:#fdd">{</span>
+        unsigned long index;
+<span style = "background-color:#fdd">        if (_BitScanForward (&amp;index, value)) return (unsigned int)index;
+        return 32;
+}</span>
+R_CSTL_API_ATTR static unsigned int
+R_CSTL_CountTrailingZeros64 (unsigned long long value)
+{
+        unsigned long index;
+        if (_BitScanForward64 (&amp;index, value)) return (unsigned int)index;
+        return 64;
+}
+#define R_CSTL_CTZ(v)   R_CSTL_CountTrailingZeros (v)
+#define R_CSTL_CTZLL(v) R_CSTL_CountTrailingZeros64 (v)
+#else
+#define R_CSTL_CTZ(v)   __builtin_ctz (v)
+#define R_CSTL_CTZLL(v) __builtin_ctzll (v)
+#endif
+#define R_CSTL_STRING_SBO_SIZE 24
+
+#define R_CSTL_STORAGE_FLAG_BIT         ((size_t)1 &lt;&lt; (sizeof (size_t) * 8 - 1))
+#define R_CSTL_STORAGE_HEAP_FLAG        R_CSTL_STORAGE_FLAG_BIT
+#define R_CSTL_STORAGE_SBO_FLAG         0
+#define R_CSTL_GET_CAPACITY(cap)        ((cap) &amp; ~R_CSTL_STORAGE_FLAG_BIT)
+#define R_CSTL_SET_CAPACITY(cap, value) (((cap) &amp; R_CSTL_STORAGE_FLAG_BIT) | (value))
+#define R_CSTL_SET_STORAGE_HEAP(cap)    ((cap) | R_CSTL_STORAGE_HEAP_FLAG)
+#define R_CSTL_SET_STORAGE_SBO(cap)     ((cap) &amp; ~R_CSTL_STORAGE_HEAP_FLAG)
+#define R_CSTL_IS_STORAGE_HEAP(cap)     (((cap) &amp; R_CSTL_STORAGE_FLAG_BIT) != 0)
+#define R_CSTL_IS_STORAGE_SBO(cap)      (((cap) &amp; R_CSTL_STORAGE_FLAG_BIT) == 0)
+
+struct R_CSTL_String
+{
+                size_t length;
+                size_t capacity;
+                union
+                {
+                                char* pData;
+                                char  sbo[R_CSTL_STRING_SBO_SIZE];
+                };
+};
+
+struct R_CSTL_StringBuilder
+{
+                size_t length;
+                size_t capacity;
+                union
+                {
+                                char* pData;
+                                char  sbo[R_CSTL_STRING_SBO_SIZE];
+                };
+};
+
+static void
+R_CSTL_StringCopyBytes (char* R_CSTL_RESTRICT pDst, const char* R_CSTL_RESTRICT pSrc, const size_t sizeBytes)
+<span style = "background-color:#dfd">{
+        if (sizeBytes == 0 || pDst == pSrc) return;</span>
+
+#if defined(R_SIMD_AVX2)
+<span style = "background-color:#dfd">        if (sizeBytes &gt;= 64)</span>
+        {
+<span style = "background-color:#fdd">                size_t i = 0;
+                for (; i + 32 &lt;= sizeBytes; i += 32)</span>
+                {
+<span style = "background-color:#fdd">                        __m256i v = _mm256_loadu_si256 ((const __m256i*)(pSrc + i));
+                        _mm256_storeu_si256 ((__m256i*)(pDst + i), v);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = pSrc[i];
+                return;</span>
+        }
+#elif defined(R_SIMD_SSE)
+        if (sizeBytes &gt;= 32)
+        {
+                size_t i = 0;
+                for (; i + 16 &lt;= sizeBytes; i += 16)
+                {
+                        __m128i v = _mm_loadu_si128 ((const __m128i*)(pSrc + i));
+                        _mm_storeu_si128 ((__m128i*)(pDst + i), v);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = pSrc[i];
+                return;
+        }
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
+        if (sizeBytes &gt;= 32)
+        {
+                size_t i = 0;
+                for (; i + 16 &lt;= sizeBytes; i += 16)
+                {
+                        uint8x16_t v = vld1q_u8 ((const uint8_t*)(pSrc + i));
+                        vst1q_u8 ((uint8_t*)(pDst + i), v);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = pSrc[i];
+                return;
+        }
+#endif
+<span style = "background-color:#dfd">        memcpy (pDst, pSrc, sizeBytes);
+}</span>
+
+static void
+R_CSTL_StringSetBytes (char* R_CSTL_RESTRICT pDst, char value, const size_t sizeBytes)
+<span style = "background-color:#fdd">{
+        if (sizeBytes == 0) return;</span>
+
+#if defined(R_SIMD_AVX2)
+<span style = "background-color:#fdd">        if (sizeBytes &gt;= 32)</span>
+        {
+<span style = "background-color:#fdd">                __m256i vec = _mm256_set1_epi8 (value);
+                size_t  i = 0;
+                for (; i + 32 &lt;= sizeBytes; i += 32)</span>
+                {
+<span style = "background-color:#fdd">                        _mm256_storeu_si256 ((__m256i*)(pDst + i), vec);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = value;
+                return;</span>
+        }
+#elif defined(R_SIMD_SSE)
+        if (sizeBytes &gt;= 16)
+        {
+                __m128i vec = _mm_set1_epi8 (value);
+                size_t  i = 0;
+                for (; i + 16 &lt;= sizeBytes; i += 16)
+                {
+                        _mm_storeu_si128 ((__m128i*)(pDst + i), vec);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = value;
+                return;
+        }
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
+        if (sizeBytes &gt;= 16)
+        {
+                uint8x16_t vec = vdupq_n_u8 ((uint8_t)value);
+                size_t     i = 0;
+                for (; i + 16 &lt;= sizeBytes; i += 16)
+                {
+                        vst1q_u8 ((uint8_t*)(pDst + i), vec);
+                }
+                for (; i &lt; sizeBytes; ++i)
+                        pDst[i] = value;
+                return;
+        }
+#endif
+<span style = "background-color:#fdd">        memset (pDst, value, sizeBytes);
+}</span>
+
+R_CSTL_API_ATTR static int
+R_CSTL_StringBufferIsLive (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{
+        if (!pString) return 0;</span>
+#ifndef R_CSTL_HEAP_DEBUG
+        return 1;
+#else
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_HEAP (pString-&gt;capacity))</span>
+        {
+<span style = "background-color:#dfd">                if (!pString-&gt;pData) return 0;
+                return R_CSTL_HeapIsValidPointer (pString-&gt;pData) != 0;</span>
+        }
+        // SBO is always valid if the string itself is valid
+<span style = "background-color:#dfd">        return 1;</span>
+#endif
+<span style = "background-color:#dfd">}</span>
+
+static size_t
+R_CSTL_StringFindChar (const char* pData, size_t length, char ch)
+<span style = "background-color:#dfd">{
+        if (length == 0) return (size_t)-1;</span>
+
+#if defined(R_SIMD_AVX2)
+<span style = "background-color:#dfd">        if (length &gt;= 32)</span>
+        {
+<span style = "background-color:#fdd">                __m256i target = _mm256_set1_epi8 (ch);
+                size_t  i = 0;
+                for (; i + 32 &lt;= length; i += 32)</span>
+                {
+<span style = "background-color:#fdd">                        __m256i data = _mm256_loadu_si256 ((const __m256i*)(pData + i));
+                        __m256i cmp = _mm256_cmpeq_epi8 (data, target);
+                        int     mask = _mm256_movemask_epi8 (cmp);
+                        if (mask != 0)</span>
+                        {
+<span style = "background-color:#fdd">                                return i + R_CSTL_CTZ (mask);</span>
+                        }
+<span style = "background-color:#fdd">                }
+                for (; i &lt; length; ++i)</span>
+                {
+<span style = "background-color:#fdd">                        if (pData[i] == ch) return i;
+                }
+                return (size_t)-1;</span>
+        }
+#elif defined(R_SIMD_SSE)
+        if (length &gt;= 16)
+        {
+                __m128i target = _mm_set1_epi8 (ch);
+                size_t  i = 0;
+                for (; i + 16 &lt;= length; i += 16)
+                {
+                        __m128i data = _mm_loadu_si128 ((const __m128i*)(pData + i));
+                        __m128i cmp = _mm_cmpeq_epi8 (data, target);
+                        int     mask = _mm_movemask_epi8 (cmp);
+                        if (mask != 0)
+                        {
+                                return i + R_CSTL_CTZ (mask);
+                        }
+                }
+                for (; i &lt; length; ++i)
+                {
+                        if (pData[i] == ch) return i;
+                }
+                return (size_t)-1;
+        }
+#elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
+        if (length &gt;= 16)
+        {
+                uint8x16_t target = vdupq_n_u8 ((uint8_t)ch);
+                size_t     i = 0;
+                for (; i + 16 &lt;= length; i += 16)
+                {
+                        uint8x16_t data = vld1q_u8 ((const uint8_t*)(pData + i));
+                        uint8x16_t cmp = vceqq_u8 (data, target);
+                        uint64_t   mask = vget_lane_u64 (vreinterpretq_u64_u8 (cmp), 0);
+                        if (mask != 0)
+                        {
+                                return i + R_CSTL_CTZLL (mask);
+                        }
+                        mask = vget_lane_u64 (vreinterpretq_u64_u8 (cmp), 1);
+                        if (mask != 0)
+                        {
+                                return i + 8 + R_CSTL_CTZLL (mask);
+                        }
+                }
+                for (; i &lt; length; ++i)
+                {
+                        if (pData[i] == ch) return i;
+                }
+                return (size_t)-1;
+        }
+#endif
+<span style = "background-color:#dfd">        for (size_t i = 0; i &lt; length; ++i)</span>
+        {
+<span style = "background-color:#dfd">                if (pData[i] == ch) return i;
+        }
+        return (size_t)-1;
+}</span>
+
+static size_t
+R_CSTL_StringFindCharReverse (const char* pData, size_t length, char ch)
+<span style = "background-color:#dfd">{
+        if (length == 0) return (size_t)-1;</span>
+
+<span style = "background-color:#dfd">        for (size_t i = length; i &gt; 0; --i)</span>
+        {
+<span style = "background-color:#dfd">                if (pData[i - 1] == ch) return i - 1;
+        }
+        return (size_t)-1;
+}</span>
+
+static void
+R_CSTL_StringReverseBytes (char* pData, size_t length)
+<span style = "background-color:#dfd">{
+        if (length &lt;= 1) return;</span>
+
+<span style = "background-color:#dfd">        size_t i = 0;
+        size_t j = length - 1;
+        while (i &lt; j)</span>
+        {
+<span style = "background-color:#dfd">                char temp = pData[i];
+                pData[i] = pData[j];
+                pData[j] = temp;
+                ++i;
+                --j;
+        }
+}</span>
+
+R_CSTL_API_ATTR static char
+R_CSTL_ToLowerChar (char c)
+<span style = "background-color:#dfd">{
+        return (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') ? (c + 32) : c;
+}</span>
+
+R_CSTL_API_ATTR static char
+R_CSTL_ToUpperChar (char c)
+<span style = "background-color:#dfd">{
+        return (c &gt;= 'a' &amp;&amp; c &lt;= 'z') ? (c - 32) : c;
+}</span>
+
+#define R_CSTL_STRING_HEAP_ALLOC_INITIAL_CAPACITY 128
+R_CSTL_API_ATTR static size_t
+R_CSTL_StringNextCapacity (size_t current, const size_t required)
+<span style = "background-color:#dfd">{
+        size_t next = current ? R_CSTL_GET_CAPACITY (current) : R_CSTL_STRING_SBO_SIZE;
+        while (next &lt; required)</span>
+        {
+<span style = "background-color:#dfd">                if (next &gt; (SIZE_MAX / 2)) return required;
+                next &lt;&lt;= 1;
+        }
+        return next;
+}</span>
+
+static int
+R_CSTL_StringEnsureCapacityInternal (struct R_CSTL_String* pString, const size_t required)
+<span style = "background-color:#dfd">{
+        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;
+        if (R_CSTL_GET_CAPACITY (pString-&gt;capacity) &gt;= required) return 0;</span>
+
+<span style = "background-color:#fdd">        size_t newCap = R_CSTL_StringNextCapacity (R_CSTL_GET_CAPACITY (pString-&gt;capacity), required);
+        char*  pOld = R_CSTL_IS_STORAGE_HEAP (pString-&gt;capacity) ? pString-&gt;pData : NULL;</span>
+
+<span style = "background-color:#fdd">        if (pOld)</span>
+        {
+<span style = "background-color:#fdd">                char* pNew = (char*)R_CSTL_HeapRealloc (pOld, newCap + 1);
+                if (!pNew) return -1;</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">                if (pNew != pOld)</span>
+                {
+<span style = "background-color:#fdd">                        uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+                            pString,
+                            pNew,
+                            newCap + 1,
+                            R_CSTL_HEAP_NAME (R_CSTL_StringEnsureCapacityInternal));
+<span style = "background-color:#fdd">                        if (h == 0) goto cstl_fail_register;</span>
+                }
+#endif
+<span style = "background-color:#fdd">                pString-&gt;pData = pNew;
+                pString-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
+                return 0;
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">                char* pNew = (char*)R_CSTL_HeapAlloc (newCap + 1);
+                if (!pNew) return -1;</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">                uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+                    pString,
+                    pNew,
+                    newCap + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_StringEnsureCapacityInternal));
+<span style = "background-color:#fdd">                if (h == 0) goto cstl_fail_register;</span>
+#endif
+<span style = "background-color:#fdd">                R_CSTL_StringCopyBytes (pNew, pString-&gt;sbo, pString-&gt;length);
+                pNew[pString-&gt;length] = '\0';
+                pString-&gt;pData = pNew;
+                pString-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
+                return 0;</span>
+        }
+
+cstl_fail_register:
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">        if (pOld) R_CSTL_HeapUnregisterAllocation (pString, pOld);</span>
+#endif
+<span style = "background-color:#fdd">        return -1;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+static void
+R_CSTL_StringReleaseBuffer (struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{
+        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_HEAP (pString-&gt;capacity))</span>
+        {
+<span style = "background-color:#dfd">                if (!R_CSTL_HeapIsValidPointer (pString-&gt;pData)) goto cstl_fail;
+                R_CSTL_HeapUnregisterAllocation (pString, pString-&gt;pData);</span>
+        }
+#endif
+
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_HEAP (pString-&gt;capacity)) R_CSTL_HeapFree (pString-&gt;pData);
+        pString-&gt;pData = NULL;
+        pString-&gt;capacity = 0;
+        pString-&gt;length = 0;</span>
+        return;
+cstl_fail:
+        return;
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API_ATTR static struct R_CSTL_String*
+R_CSTL_StringCreateShell (void)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_String* pString</span>
+            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String));
+<span style = "background-color:#dfd">        if (!pString) return NULL;
+        pString-&gt;length = 0;
+        pString-&gt;capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
+        pString-&gt;sbo[0] = '\0';
+        return pString;
+}</span>
+
+R_CSTL_API_ATTR struct R_CSTL_String*
+R_CSTL_NewString (void)
+<span style = "background-color:#dfd">{
+        return R_CSTL_StringCreateShell ();
+}</span>
+
+#define R_CSTL_STRING_STRLEN(s)                                                                              \
+        const char* pDataString = (const char*)pData;                                                        \
+        while (*pDataString != '\0')                                                                         \
+                ++pDataString;                                                                               \
+        const size_t length = pDataString - (const char*)pData
+
+struct R_CSTL_String*
+R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
+<span style = "background-color:#dfd">{
+        if (!pData) return NULL;
+        struct R_CSTL_String* pString = R_CSTL_StringCreateShell ();
+        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+
+<span style = "background-color:#dfd">        if (length &lt; R_CSTL_STRING_SBO_SIZE)</span>
+        {
+<span style = "background-color:#dfd">                R_CSTL_StringCopyBytes (pString-&gt;sbo, pData, length);
+                pString-&gt;sbo[length] = '\0';
+                pString-&gt;length = length;
+                pString-&gt;capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
+                return pString;</span>
+        }
+
+<span style = "background-color:#fdd">        size_t cap = R_CSTL_StringNextCapacity (R_CSTL_STRING_SBO_SIZE, length);
+        char*  mem = (char*)R_CSTL_HeapAlloc (cap + 1);
+        if (!mem)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">        uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+            pString,
+            mem,
+            cap + 1,
+            R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
+<span style = "background-color:#fdd">        if (h == 0)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (mem);
+                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#endif
+<span style = "background-color:#fdd">        R_CSTL_StringCopyBytes (mem, pData, length);
+        mem[length] = '\0';
+        pString-&gt;pData = mem;
+        pString-&gt;length = length;
+        pString-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (cap);
+        return pString;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return NULL;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_String*
+R_CSTL_NewStringWithCapacity (const size_t cap)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_String* pString</span>
+            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String) + cap);
+<span style = "background-color:#dfd">        if (!pString) return NULL;
+        char* mem = (char*)R_CSTL_HeapAlloc (cap + 1);
+        if (!mem)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+            pString,
+            mem,
+            cap + 1,
+            R_CSTL_HEAP_NAME (R_CSTL_NewStringWithData));
+<span style = "background-color:#dfd">        if (h == 0)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (mem);
+                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#endif
+<span style = "background-color:#dfd">        mem[0] = '\0';
+        pString-&gt;length = 0;
+        pString-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (cap);
+        pString-&gt;pData = mem;
+        return pString;
+}</span>
+
+R_CSTL_API_ATTR struct R_CSTL_String*
+R_CSTL_NewStringWithData (const char* pData)
+<span style = "background-color:#dfd">{
+        if (!pData) return NULL;
+        R_CSTL_STRING_STRLEN (pData);
+        return R_CSTL_NewStringWithDataSized (pData, length);
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_NewStringWithFormat (const char* pFormat, ...)
+<span style = "background-color:#dfd">{
+        if (!pFormat) return R_CSTL_NewString ();</span>
+        va_list args;
+<span style = "background-color:#dfd">        va_start (args, pFormat);</span>
+        va_list copy;
+<span style = "background-color:#dfd">        va_copy (copy, args);
+        int needed = vsnprintf (NULL, 0, pFormat, copy);
+        va_end (copy);
+        if (needed &lt; 0)</span>
+        {
+<span style = "background-color:#fdd">                va_end (args);
+                return NULL;</span>
+        }
+<span style = "background-color:#dfd">        size_t len = (size_t)needed;
+        char*  buf = (char*)R_CSTL_HeapAlloc (len + 1);
+        if (!buf)</span>
+        {
+<span style = "background-color:#fdd">                va_end (args);
+                return NULL;</span>
+        }
+<span style = "background-color:#dfd">        vsnprintf (buf, len + 1, pFormat, args);
+        va_end (args);
+        struct R_CSTL_String* pString = R_CSTL_NewStringWithDataSized (buf, len);
+        R_CSTL_HeapFree (buf);
+        return pString;
+}</span>
+
+R_CSTL_API_ATTR void
+R_CSTL_StringDelete (struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        R_CSTL_StringReleaseBuffer (pString);
+        R_CSTL_HeapFree (pString);
+        R_CSTL_HeapUnregisterAllocation (pString, pString-&gt;pData);</span>
+cstl_fail:
+        return;
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API_ATTR size_t
+R_CSTL_StringLength (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return pString-&gt;length;</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return 0;
+}</span>
+
+R_CSTL_API_ATTR const char*
+R_CSTL_StringData (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_SBO (pString-&gt;capacity)) return pString-&gt;sbo;
+        return pString-&gt;pData;</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return NULL;
+}</span>
+
+R_CSTL_API_ATTR char
+R_CSTL_StringCharAt (const struct R_CSTL_String* pString, const size_t index)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;
+        if (index &gt;= pString-&gt;length) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_SBO (pString-&gt;capacity)) return pString-&gt;sbo[index];</span>
+<span style = "background-color:#fdd">        return pString-&gt;pData[index];</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return 0x00;
+}</span>
+
+R_CSTL_API_ATTR int
+R_CSTL_StringEquals (const struct R_CSTL_String* pLeft, const struct R_CSTL_String* pRight)
+<span style = "background-color:#dfd">{
+        if (pLeft == pRight) return 1;
+        if (!pLeft || !pRight) return 0;
+        if (pLeft-&gt;length != pRight-&gt;length) return 0;
+        return memcmp (R_CSTL_StringData (pLeft), R_CSTL_StringData (pRight), pLeft-&gt;length) == 0;
+}</span>
+
+int
+R_CSTL_StringCompare (const struct R_CSTL_String* pLeft, const struct R_CSTL_String* pRight)
+<span style = "background-color:#dfd">{
+        if (pLeft == pRight) return 0;
+        if (!pLeft) return -1;
+        if (!pRight) return 1;
+        size_t n = pLeft-&gt;length &lt; pRight-&gt;length ? pLeft-&gt;length : pRight-&gt;length;
+        int    cmp = memcmp (R_CSTL_StringData (pLeft), R_CSTL_StringData (pRight), n);
+        if (cmp != 0) return cmp;
+        if (pLeft-&gt;length &lt; pRight-&gt;length) return -1;
+        if (pLeft-&gt;length &gt; pRight-&gt;length) return 1;
+        return 0;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringConcat (const struct R_CSTL_String* pLeft, const struct R_CSTL_String* pRight)
+<span style = "background-color:#dfd">{
+        if (!pLeft &amp;&amp; !pRight) return R_CSTL_NewString ();
+        if (!pLeft)</span>
+        {
+<span style = "background-color:#dfd">                if (!R_CSTL_StringBufferIsLive (pRight)) return NULL;
+                return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pRight), pRight-&gt;length);</span>
+        }
+<span style = "background-color:#dfd">        if (!pRight)</span>
+        {
+<span style = "background-color:#dfd">                if (!R_CSTL_StringBufferIsLive (pLeft)) return NULL;
+                return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pLeft), pLeft-&gt;length);</span>
+        }
+<span style = "background-color:#dfd">        if (!R_CSTL_StringBufferIsLive (pLeft) || !R_CSTL_StringBufferIsLive (pRight)) return NULL;
+        size_t                total = pLeft-&gt;length + pRight-&gt;length;
+        struct R_CSTL_String* pString = R_CSTL_StringCreateShell ();
+        if (!pString) return NULL;
+        const char* pLeftData = R_CSTL_StringData (pLeft);
+        const char* pRightData = R_CSTL_StringData (pRight);
+        if (total &lt;= R_CSTL_STRING_SBO_SIZE)</span>
+        {
+<span style = "background-color:#dfd">                R_CSTL_StringCopyBytes (pString-&gt;sbo, pLeftData, pLeft-&gt;length);
+                R_CSTL_StringCopyBytes (pString-&gt;sbo + pLeft-&gt;length, pRightData, pRight-&gt;length);
+                pString-&gt;sbo[total] = '\0';
+                pString-&gt;length = total;
+                return pString;</span>
+        }
+<span style = "background-color:#fdd">        size_t cap = R_CSTL_StringNextCapacity (R_CSTL_STRING_SBO_SIZE, total);
+        char*  mem = (char*)R_CSTL_HeapAlloc (cap + 1);
+        if (!mem)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">        uint64_t h</span>
+            = R_CSTL_HeapRegisterAllocation (pString, mem, cap + 1, R_CSTL_HEAP_NAME (R_CSTL_StringConcat));
+<span style = "background-color:#fdd">        if (h == 0)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (mem);
+                R_CSTL_HeapFree (pString);
+                return NULL;</span>
+        }
+#endif
+<span style = "background-color:#fdd">        R_CSTL_StringCopyBytes (mem, pLeftData, pLeft-&gt;length);
+        R_CSTL_StringCopyBytes (mem + pLeft-&gt;length, pRightData, pRight-&gt;length);
+        mem[total] = '\0';
+        pString-&gt;pData = mem;
+        pString-&gt;length = total;
+        pString-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (cap);
+        return pString;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringSubstring (const struct R_CSTL_String* pString, size_t begin, size_t end)
+<span style = "background-color:#dfd">{
+        if (!pString) return NULL;
+        if (!R_CSTL_StringBufferIsLive (pString)) return NULL;
+        if (begin &gt;= pString-&gt;length || begin &gt;= end) return R_CSTL_NewString ();
+        if (end &gt; pString-&gt;length) end = pString-&gt;length;
+        size_t      len = end - begin;
+        const char* pData = R_CSTL_StringData (pString);
+        return R_CSTL_NewStringWithDataSized (pData + begin, len);
+}</span>
+
+R_CSTL_API_ATTR int
+R_CSTL_StringStartsWith (const struct R_CSTL_String* pString, const char* pPrefix)
+<span style = "background-color:#dfd">{
+        if (!pString || !pPrefix) return 0;
+        size_t plen = strlen (pPrefix);
+        if (plen &gt; pString-&gt;length) return 0;
+        return memcmp (R_CSTL_StringData (pString), pPrefix, plen) == 0;
+}</span>
+
+R_CSTL_API_ATTR int
+R_CSTL_StringEndsWith (const struct R_CSTL_String* pString, const char* pSuffix)
+<span style = "background-color:#dfd">{
+        if (!pString || !pSuffix) return 0;
+        size_t slen = strlen (pSuffix);
+        if (slen &gt; pString-&gt;length) return 0;
+        const char* pData = R_CSTL_StringData (pString);
+        return memcmp (pData + (pString-&gt;length - slen), pSuffix, slen) == 0;
+}</span>
+
+R_CSTL_API_ATTR size_t
+R_CSTL_StringIndexOf (const struct R_CSTL_String* pString, const char* pNeedle)
+<span style = "background-color:#dfd">{
+        if (!pString || !pNeedle) return (size_t)-1;
+        if (!R_CSTL_StringBufferIsLive (pString)) return (size_t)-1;
+        size_t nlen = strlen (pNeedle);
+        if (nlen == 0) return 0;
+        if (nlen &gt; pString-&gt;length) return (size_t)-1;</span>
+
+<span style = "background-color:#dfd">        const char* pHay = R_CSTL_StringData (pString);
+        size_t      haylen = pString-&gt;length;
+        const char  needle0 = pNeedle[0];
+        for (size_t i = 0; i + nlen &lt;= haylen; ++i)</span>
+        {
+<span style = "background-color:#dfd">                if (pHay[i] != needle0) continue;
+                if (memcmp (pHay + i, pNeedle, nlen) == 0) return i;</span>
+<span style = "background-color:#fdd">        }</span>
+<span style = "background-color:#dfd">        return (size_t)-1;
+}</span>
+
+size_t
+R_CSTL_StringLastIndexOf (const struct R_CSTL_String* pString, const char* pNeedle)
+<span style = "background-color:#dfd">{
+        if (!pString || !pNeedle) return (size_t)-1;
+        if (!R_CSTL_StringBufferIsLive (pString)) return (size_t)-1;
+        size_t nlen = strlen (pNeedle);
+        if (nlen == 0) return pString-&gt;length;
+        if (nlen &gt; pString-&gt;length) return (size_t)-1;</span>
+
+<span style = "background-color:#dfd">        const char* pHay = R_CSTL_StringData (pString);
+        size_t      haylen = pString-&gt;length;
+        for (size_t i = haylen - nlen + 1; i &gt; 0; --i)</span>
+        {
+<span style = "background-color:#dfd">                if (memcmp (pHay + (i - 1), pNeedle, nlen) == 0) return i - 1;
+        }
+        return (size_t)-1;
+}</span>
+
+size_t
+R_CSTL_StringIndexOfChar (const struct R_CSTL_String* pString, char ch)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_StringFindChar (R_CSTL_StringData (pString), pString-&gt;length, ch);</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return (size_t)-1;
+}</span>
+
+R_CSTL_API_ATTR size_t
+R_CSTL_StringLastIndexOfChar (const struct R_CSTL_String* pString, char ch)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_StringFindCharReverse (R_CSTL_StringData (pString), pString-&gt;length, ch);</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return (size_t)-1;
+}</span>
+
+R_CSTL_API_ATTR int
+R_CSTL_StringContains (const struct R_CSTL_String* pString, const char* pNeedle)
+<span style = "background-color:#dfd">{
+        return R_CSTL_StringIndexOf (pString, pNeedle) != (size_t)-1;
+}</span>
+
+R_CSTL_API_ATTR int
+R_CSTL_StringIsEmpty (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return pString-&gt;length == 0;</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return -1;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringToLowerCase (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pString) return R_CSTL_NewString ();
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString-&gt;length;
+        struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
+        if (!pResult) return NULL;
+        char* pDst = (char*)R_CSTL_StringData (pResult);
+        for (size_t i = 0; i &lt; len; ++i)
+                pDst[i] = R_CSTL_ToLowerChar (pDst[i]);
+        return pResult;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return NULL;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringToUpperCase (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{
+        if (!pString) return R_CSTL_NewString ();
+        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString-&gt;length;
+        struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
+        if (!pResult) return NULL;
+        char* pDst = (char*)R_CSTL_StringData (pResult);
+        for (size_t i = 0; i &lt; len; ++i)
+                pDst[i] = R_CSTL_ToUpperChar (pDst[i]);
+        return pResult;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringTrim (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{
+        if (!pString) return R_CSTL_NewString ();
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;
+        const char* pData = R_CSTL_StringData (pString);
+        size_t      len = pString-&gt;length;
+        size_t      start = 0;</span>
+        while (
+            start &lt; len
+<span style = "background-color:#dfd">            &amp;&amp; (pData[start] == ' ' || pData[start] == '\t' || pData[start] == '\n' || pData[start] == '\r'))
+                ++start;
+        size_t end = len;</span>
+        while (end &gt; start
+<span style = "background-color:#dfd">               &amp;&amp; (pData[end - 1] == ' ' || pData[end - 1] == '\t' || pData[end - 1] == '\n'</span>
+                   || pData[end - 1] == '\r'))
+<span style = "background-color:#dfd">                --end;
+        return R_CSTL_StringSubstring (pString, start, end);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return NULL;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringReplace (const struct R_CSTL_String* pString, const char* pTarget, const char* pReplacement)
+<span style = "background-color:#dfd">{
+        if (!pString || !pTarget || !pReplacement)</span>
+        {
+<span style = "background-color:#fdd">                if (pString &amp;&amp; R_CSTL_StringBufferIsLive (pString))
+                        return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pString), pString-&gt;length);
+                return R_CSTL_NewString ();</span>
+        }
+<span style = "background-color:#dfd">        if (!R_CSTL_StringBufferIsLive (pString)) return NULL;
+        size_t tlen = strlen (pTarget);
+        if (tlen == 0) return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pString), pString-&gt;length);
+        size_t rlen = strlen (pReplacement);</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        if (!pBuilder) return NULL;</span>
+
+<span style = "background-color:#dfd">        const char* pData = R_CSTL_StringData (pString);
+        size_t      len = pString-&gt;length;
+        size_t      pos = 0;
+        size_t      found = R_CSTL_StringIndexOf (pString, pTarget);</span>
+
+<span style = "background-color:#dfd">        while (found != (size_t)-1)</span>
+        {
+<span style = "background-color:#dfd">                R_CSTL_StringBuilderAppendData (pBuilder, pData + pos, found - pos);
+                R_CSTL_StringBuilderEmplace (pBuilder, pReplacement);
+                pos = found + tlen;
+                struct R_CSTL_String* pStringTemp = R_CSTL_StringSubstring (pString, pos, len);
+                found = R_CSTL_StringIndexOf (pStringTemp, pTarget);
+                R_CSTL_StringDelete (pStringTemp);
+        }
+        R_CSTL_StringBuilderAppendData (pBuilder, pData + pos, len - pos);</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_String* pResult = R_CSTL_StringBuilderToString (pBuilder);
+        R_CSTL_DeleteStringBuilder (pBuilder);
+        return pResult;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringReplaceChar (const struct R_CSTL_String* pString, char oldChar, char newChar)
+<span style = "background-color:#dfd">{
+        if (!pString) return R_CSTL_NewString ();
+        if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;
+        const char*           pData = R_CSTL_StringData (pString);
+        size_t                len = pString-&gt;length;
+        struct R_CSTL_String* pResult = R_CSTL_NewStringWithDataSized (pData, len);
+        if (!pResult) return NULL;
+        char* pDst = (char*)R_CSTL_StringData (pResult);
+        for (size_t i = 0; i &lt; len; ++i)</span>
+        {
+<span style = "background-color:#dfd">                if (pDst[i] == oldChar) pDst[i] = newChar;
+        }
+        return pResult;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return NULL;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringRepeat (struct R_CSTL_String* pString, size_t count)
+<span style = "background-color:#dfd">{
+        if (!pString || count == 0) return R_CSTL_NewString ();
+        if (!R_CSTL_StringBufferIsLive (pString)) return NULL;
+        if (count == 1) return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pString), pString-&gt;length);</span>
+
+<span style = "background-color:#dfd">        size_t len = pString-&gt;length;
+        if (len == 0) return R_CSTL_NewString ();</span>
+
+<span style = "background-color:#dfd">        size_t total = len * count;
+        if (total &lt; len) return NULL;</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_String* pResult = R_CSTL_StringCreateShell ();
+        if (!pResult) return NULL;</span>
+
+<span style = "background-color:#dfd">        if (total &lt;= R_CSTL_STRING_SBO_SIZE)</span>
+        {
+<span style = "background-color:#dfd">                for (size_t i = 0; i &lt; count; ++i)
+                        R_CSTL_StringCopyBytes (pResult-&gt;sbo + (i * len), R_CSTL_StringData (pString), len);
+                pResult-&gt;sbo[total] = '\0';
+                pResult-&gt;length = total;
+                return pResult;</span>
+        }
+
+<span style = "background-color:#fdd">        size_t cap = R_CSTL_StringNextCapacity (R_CSTL_STRING_SBO_SIZE, total);
+        char*  mem = (char*)R_CSTL_HeapAlloc (cap + 1);
+        if (!mem)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (pResult);
+                return NULL;</span>
+        }
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">        uint64_t h</span>
+            = R_CSTL_HeapRegisterAllocation (pResult, mem, cap + 1, R_CSTL_HEAP_NAME (R_CSTL_StringRepeat));
+<span style = "background-color:#fdd">        if (h == 0)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_HeapFree (mem);
+                R_CSTL_HeapFree (pResult);
+                return NULL;</span>
+        }
+#endif
+<span style = "background-color:#fdd">        for (size_t i = 0; i &lt; count; ++i)
+                R_CSTL_StringCopyBytes (mem + (i * len), R_CSTL_StringData (pString), len);
+        mem[total] = '\0';
+        pResult-&gt;pData = mem;
+        pResult-&gt;length = total;
+        pResult-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (cap);
+        return pResult;</span>
+<span style = "background-color:#dfd">}</span>
+
+static int
+R_CSTL_StringCompareIgnoreCaseInternal (
+    const char* pLeft,
+    size_t      leftLen,
+    const char* pRight,
+    size_t      rightLen)
+<span style = "background-color:#dfd">{
+        size_t n = leftLen &lt; rightLen ? leftLen : rightLen;
+        for (size_t i = 0; i &lt; n; ++i)</span>
+        {
+<span style = "background-color:#dfd">                char cl = R_CSTL_ToLowerChar (pLeft[i]);
+                char cr = R_CSTL_ToLowerChar (pRight[i]);
+                if (cl &lt; cr) return -1;
+                if (cl &gt; cr) return 1;
+        }
+        if (leftLen &lt; rightLen) return -1;
+        if (leftLen &gt; rightLen) return 1;
+        return 0;
+}</span>
+
+int
+R_CSTL_StringEqualsIgnoreCase (const struct R_CSTL_String* pLeft, const struct R_CSTL_String* pRight)
+<span style = "background-color:#dfd">{
+        if (pLeft == pRight) return 1;
+        if (!pLeft || !pRight) return 0;
+        if (pLeft-&gt;length != pRight-&gt;length) return 0;
+        int res = R_CSTL_StringCompareIgnoreCaseInternal (</span>
+            R_CSTL_StringData (pLeft),
+            pLeft-&gt;length,
+            R_CSTL_StringData (pRight),
+            pRight-&gt;length);
+<span style = "background-color:#dfd">        return res == 0;
+}</span>
+
+int
+R_CSTL_StringCompareIgnoreCase (const struct R_CSTL_String* pLeft, const struct R_CSTL_String* pRight)
+<span style = "background-color:#dfd">{
+        if (pLeft == pRight) return 0;
+        if (!pLeft) return -1;
+        if (!pRight) return 1;
+        return R_CSTL_StringCompareIgnoreCaseInternal (</span>
+            R_CSTL_StringData (pLeft),
+            pLeft-&gt;length,
+            R_CSTL_StringData (pRight),
+            pRight-&gt;length);
+<span style = "background-color:#dfd">}</span>
+
+size_t
+R_CSTL_StringHashCode (const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{
+        if (!pString) return 0;
+        const char* pData = R_CSTL_StringData (pString);
+        size_t      len = pString-&gt;length;
+        size_t      hash = 5381;
+        for (size_t i = 0; i &lt; len; ++i)
+                hash = ((hash &lt;&lt; 5) + hash) + (unsigned char)pData[i];
+        return hash;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringRemove (const struct R_CSTL_String* pString, size_t start, size_t end)
+<span style = "background-color:#dfd">{
+        if (!pString) return NULL;
+        if (!R_CSTL_StringBufferIsLive (pString)) return NULL;
+        if (start &gt;= pString-&gt;length || start &gt;= end)</span>
+<span style = "background-color:#fdd">                return R_CSTL_NewStringWithDataSized (R_CSTL_StringData (pString), pString-&gt;length);</span>
+<span style = "background-color:#dfd">        if (end &gt; pString-&gt;length) end = pString-&gt;length;</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        if (!pBuilder) return NULL;</span>
+
+<span style = "background-color:#dfd">        R_CSTL_StringBuilderAppendData (pBuilder, R_CSTL_StringData (pString), start);
+        R_CSTL_StringBuilderAppendData (pBuilder, R_CSTL_StringData (pString) + end, pString-&gt;length - end);</span>
+
+<span style = "background-color:#dfd">        struct R_CSTL_String* pResult = R_CSTL_StringBuilderToString (pBuilder);
+        R_CSTL_DeleteStringBuilder (pBuilder);
+        return pResult;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringValueOfInt (int value)
+<span style = "background-color:#dfd">{</span>
+        char   buf[32];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%d", value);
+        return R_CSTL_NewStringWithDataSized (buf, len);
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringValueOfLong (long long value)
+<span style = "background-color:#dfd">{</span>
+        char   buf[64];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%lld", value);
+        return R_CSTL_NewStringWithDataSized (buf, len);
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringValueOfDouble (double value)
+<span style = "background-color:#dfd">{</span>
+        char   buf[64];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%g", value);
+        return R_CSTL_NewStringWithDataSized (buf, len);
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringJoin (
+    const struct R_CSTL_String* pStringDelimiter,
+    const struct R_CSTL_String* pStringElements[],
+    size_t                      count)
+<span style = "background-color:#dfd">{
+        if (count == 0) return R_CSTL_NewString ();
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        if (!pBuilder) return NULL;
+        for (size_t i = 0; i &lt; count; ++i)</span>
+        {
+<span style = "background-color:#dfd">                if (pStringElements[i]) R_CSTL_StringBuilderAppend (pBuilder, pStringElements[i]);
+                if (i &lt; count - 1 &amp;&amp; pStringDelimiter)
+                        R_CSTL_StringBuilderAppend (pBuilder, pStringDelimiter);
+        }
+        struct R_CSTL_String* pResult = R_CSTL_StringBuilderToString (pBuilder);
+        R_CSTL_DeleteStringBuilder (pBuilder);
+        return pResult;
+}</span>
+
+int
+R_CSTL_StringCopy (
+    struct R_CSTL_String* R_CSTL_RESTRICT       pDst,
+    const struct R_CSTL_String* R_CSTL_RESTRICT pSrc)
+<span style = "background-color:#dfd">{
+        if (!pDst || !pSrc) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive (pDst) || !R_CSTL_StringBufferIsLive (pSrc)) goto cstl_fail;
+        if (pDst == pSrc) return 0;</span>
+
+<span style = "background-color:#dfd">        if (R_CSTL_StringEnsureCapacityInternal (pDst, pSrc-&gt;length) != 0) goto cstl_fail;</span>
+
+<span style = "background-color:#dfd">        const char* pSrcData = R_CSTL_StringData (pSrc);
+        char*       pDstData = (char*)R_CSTL_StringData (pDst);</span>
+
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (pDstData, pSrcData, pSrc-&gt;length);
+        pDstData[pSrc-&gt;length] = '\0';
+        pDst-&gt;length = pSrc-&gt;length;
+        return 0;</span>
+
+cstl_fail:
+<span style = "background-color:#dfd">        return -1;
+}</span>
+
+struct R_CSTL_StringBuilder*
+R_CSTL_NewStringBuilder (void)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_StringBuilder* pBuilder</span>
+            = (struct R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_StringBuilder));
+<span style = "background-color:#dfd">        if (!pBuilder) return NULL;
+        pBuilder-&gt;length = 0;
+        pBuilder-&gt;capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
+        pBuilder-&gt;pData = pBuilder-&gt;sbo;
+        pBuilder-&gt;sbo[0] = '\0';
+        return pBuilder;
+}</span>
+
+struct R_CSTL_StringBuilder*
+R_CSTL_NewStringBuilderWithData (const char* pString)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        if (!pBuilder) goto cstl_fail;
+        if (!pString) goto cstl_fail;
+        R_CSTL_StringBuilderEmplace (pBuilder, pString);
+        return pBuilder;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return NULL;</span>
+<span style = "background-color:#dfd">}</span>
+
+struct R_CSTL_StringBuilder*
+R_CSTL_NewStringBuilderWithCapacity (size_t capacity)
+<span style = "background-color:#dfd">{
+        struct R_CSTL_StringBuilder* pBuilder</span>
+            = (struct R_CSTL_StringBuilder*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_StringBuilder));
+<span style = "background-color:#dfd">        if (!pBuilder) return NULL;
+        pBuilder-&gt;length = 0;
+        if (capacity &lt;= R_CSTL_STRING_SBO_SIZE)</span>
+        {
+<span style = "background-color:#fdd">                pBuilder-&gt;capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
+                pBuilder-&gt;pData = pBuilder-&gt;sbo;
+        }</span>
+        else
+        {
+<span style = "background-color:#dfd">                char* mem = (char*)R_CSTL_HeapAlloc (capacity + 1);
+                if (!mem)</span>
+                {
+<span style = "background-color:#fdd">                        R_CSTL_HeapFree (pBuilder);
+                        return NULL;</span>
+                }
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">                uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+                    pBuilder,
+                    mem,
+                    capacity + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_NewStringBuilderWithCapacity));
+<span style = "background-color:#dfd">                if (h == 0)</span>
+                {
+<span style = "background-color:#fdd">                        R_CSTL_HeapFree (mem);
+                        R_CSTL_HeapFree (pBuilder);
+                        return NULL;</span>
+                }
+#endif
+<span style = "background-color:#dfd">                pBuilder-&gt;pData = mem;
+                pBuilder-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (capacity);</span>
+        }
+<span style = "background-color:#dfd">        pBuilder-&gt;sbo[0] = '\0';
+        return pBuilder;
+}</span>
+
+void
+R_CSTL_DeleteStringBuilder (struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return;
+        if (R_CSTL_IS_STORAGE_HEAP (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#dfd">                R_CSTL_HeapUnregisterAllocation (pBuilder, pBuilder-&gt;pData);</span>
+        }
+#endif
+<span style = "background-color:#dfd">        if (R_CSTL_IS_STORAGE_HEAP (pBuilder-&gt;capacity)) R_CSTL_HeapFree (pBuilder-&gt;pData);</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        R_CSTL_HeapCheckObjectLeaks (pBuilder);</span>
+#endif
+<span style = "background-color:#dfd">        R_CSTL_HeapFree (pBuilder);
+}</span>
+
+R_CSTL_API_ATTR size_t
+R_CSTL_StringBuilderLength (const struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return pBuilder-&gt;length;</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return 0;
+}</span>
+
+size_t
+R_CSTL_StringBuilderCapacity (const struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity);</span>
+cstl_fail:
+<span style = "background-color:#dfd">        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderEnsureCapacity (struct R_CSTL_StringBuilder* pBuilder, size_t requiredCapacity)
+<span style = "background-color:#dfd">{
+        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;
+        if (R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity) &gt;= requiredCapacity) return 0;
+        size_t newCap = R_CSTL_StringNextCapacity (pBuilder-&gt;capacity, requiredCapacity);
+        char*  old = R_CSTL_IS_STORAGE_HEAP (pBuilder-&gt;capacity) ? pBuilder-&gt;pData : NULL;
+        if (old)</span>
+        {
+<span style = "background-color:#fdd">                char* pNew = (char*)R_CSTL_HeapRealloc (old, newCap + 1);
+                if (!pNew) return -1;</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">                if (pNew != old)</span>
+                {
+<span style = "background-color:#fdd">                        uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+                            pBuilder,
+                            pNew,
+                            newCap + 1,
+                            R_CSTL_HEAP_NAME (R_CSTL_StringBuilderEnsureCapacity));
+<span style = "background-color:#fdd">                        if (h == 0) goto cstl_fail_register;</span>
+                }
+#endif
+<span style = "background-color:#fdd">                pBuilder-&gt;pData = pNew;
+                pBuilder-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
+                return 0;
+        }</span>
+        else
+        {
+<span style = "background-color:#dfd">                char* pNew = (char*)R_CSTL_HeapAlloc (newCap + 1);
+                if (!pNew) return -1;</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">                uint64_t h = R_CSTL_HeapRegisterAllocation (</span>
+                    pBuilder,
+                    pNew,
+                    newCap + 1,
+                    R_CSTL_HEAP_NAME (R_CSTL_StringBuilderEnsureCapacity));
+<span style = "background-color:#dfd">                if (h == 0) goto cstl_fail_register;</span>
+#endif
+<span style = "background-color:#dfd">                R_CSTL_StringCopyBytes (pNew, pBuilder-&gt;sbo, pBuilder-&gt;length);
+                pNew[pBuilder-&gt;length] = '\0';
+                pBuilder-&gt;pData = pNew;
+                pBuilder-&gt;capacity = R_CSTL_SET_STORAGE_HEAP (newCap);
+                return 0;</span>
+        }
+
+cstl_fail_register:
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#fdd">        if (old) R_CSTL_HeapUnregisterAllocation (pBuilder, old);</span>
+#endif
+<span style = "background-color:#fdd">        return -1;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return (size_t)-1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppend (struct R_CSTL_StringBuilder* pBuilder, const struct R_CSTL_String* pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+        // The pString can be NULL, in which case we treat it as an empty string and do nothing
+<span style = "background-color:#dfd">        if (!pString) return 0;
+        return R_CSTL_StringBuilderAppendData (pBuilder, R_CSTL_StringData (pString), pString-&gt;length);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+#define R_CSTL_EmplaceString(Builder, String)                                                                \
+        if (!Builder) goto cstl_fail;                                                                        \
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)Builder)) goto cstl_fail;               \
+        if (!(String)) goto cstl_fail;                                                                       \
+        return R_CSTL_StringBuilderAppend (Builder, String);                                                 \
+        cstl_fail:                                                                                           \
+        return -1
+
+int
+R_CSTL_StringBuilderEmplaceSized (
+    struct R_CSTL_StringBuilder* pBuilder,
+    const char*                  pCString,
+    const size_t                 size)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;
+        if (!pCString) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        struct R_CSTL_String* pString = R_CSTL_NewStringWithDataSized (pCString, size);
+        if (!pString) goto cstl_fail;
+        int result = R_CSTL_StringBuilderAppend (pBuilder, pString);
+        R_CSTL_StringDelete (pString);
+        return result;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderEmplace (struct R_CSTL_StringBuilder* pBuilder, const char* pCString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;
+        if (!pCString) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        struct R_CSTL_String* pString = R_CSTL_NewStringWithData (pCString);
+        if (!pString) goto cstl_fail;
+        int result = R_CSTL_StringBuilderAppend (pBuilder, pString);
+        R_CSTL_StringDelete (pString);
+        return result;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppendData (struct R_CSTL_StringBuilder* pBuilder, const char* pData, size_t length)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pData || length == 0) return 0;</span>
+#endif
+<span style = "background-color:#dfd">        size_t required = pBuilder-&gt;length + length;
+        if (required &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#fdd">                if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0) return -1;</span>
+        }
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (pBuilder-&gt;pData + pBuilder-&gt;length, pData, length);
+        pBuilder-&gt;length = required;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderAppendChar (struct R_CSTL_StringBuilder* pBuilder, char value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        size_t required = pBuilder-&gt;length + 1;
+        if (required &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#fdd">                if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0) goto cstl_fail;</span>
+        }
+<span style = "background-color:#dfd">        pBuilder-&gt;pData[pBuilder-&gt;length++] = value;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppendInt (struct R_CSTL_StringBuilder* pBuilder, int value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;</span>
+#endif
+        char   buf[32];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%d", value);
+        return R_CSTL_StringBuilderAppendData (pBuilder, buf, len);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppendLong (struct R_CSTL_StringBuilder* pBuilder, long long value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;</span>
+#endif
+        char   buf[64];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%lld", value);
+        return R_CSTL_StringBuilderAppendData (pBuilder, buf, len);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppendDouble (struct R_CSTL_StringBuilder* pBuilder, double value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;</span>
+#endif
+        char   buf[64];
+<span style = "background-color:#dfd">        size_t len = (size_t)snprintf (buf, sizeof (buf), "%g", value);
+        return R_CSTL_StringBuilderAppendData (pBuilder, buf, len);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+#define R_CSTL_STRING_BOOL_STR(b) (b ? "true" : "false")
+
+int
+R_CSTL_StringBuilderAppendBool (struct R_CSTL_StringBuilder* pBuilder, bool value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        const char* boolStr = R_CSTL_STRING_BOOL_STR (value);
+        size_t      len = strlen (boolStr);
+        return R_CSTL_StringBuilderAppend (pBuilder, R_CSTL_NewStringWithDataSized (boolStr, len));</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderAppendRepeat (struct R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pData || count == 0) return 0;</span>
+#endif
+<span style = "background-color:#dfd">        R_CSTL_STRING_STRLEN (pStr);</span>
+
+<span style = "background-color:#dfd">        if (length == 0) return 0;
+        size_t total = length * count;
+        if (total &lt; length) return -1;</span>
+
+<span style = "background-color:#dfd">        if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, pBuilder-&gt;length + total) != 0) return -1;</span>
+
+<span style = "background-color:#dfd">        for (size_t i = 0; i &lt; count; ++i)
+                R_CSTL_StringCopyBytes (pBuilder-&gt;pData + pBuilder-&gt;length + (i * length), pData, length);</span>
+
+<span style = "background-color:#dfd">        pBuilder-&gt;length += total;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+R_CSTL_API int
+R_CSTL_StringBuilderAppendf (struct R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        if (!pFormat) return 0;</span>
+
+        va_list args;
+<span style = "background-color:#dfd">        va_start (args, pFormat);</span>
+        va_list copy;
+<span style = "background-color:#dfd">        va_copy (copy, args);
+        int needed = vsnprintf (NULL, 0, pFormat, copy);
+        va_end (copy);
+        if (needed &lt; 0)</span>
+        {
+<span style = "background-color:#fdd">                va_end (args);
+                return -1;</span>
+        }
+<span style = "background-color:#dfd">        size_t len = (size_t)needed;
+        char*  buf = (char*)R_CSTL_HeapAlloc (len + 1);
+        if (!buf)</span>
+        {
+<span style = "background-color:#fdd">                va_end (args);
+                return -1;</span>
+        }
+<span style = "background-color:#dfd">        vsnprintf (buf, len + 1, pFormat, args);
+        va_end (args);
+        int result = R_CSTL_StringBuilderAppendData (pBuilder, buf, len);
+        R_CSTL_HeapFree (buf);
+        return result;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+void
+R_CSTL_StringBuilderClear (struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return;</span>
+#endif
+<span style = "background-color:#dfd">        pBuilder-&gt;length = 0;
+        if (pBuilder-&gt;pData) pBuilder-&gt;pData[0] = '\0';
+}</span>
+
+int
+R_CSTL_StringBuilderInsert (
+    struct R_CSTL_StringBuilder* pBuilder,
+    size_t                       offset,
+    const struct R_CSTL_String*  pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pString) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (offset &gt; pBuilder-&gt;length) offset = pBuilder-&gt;length;
+        return R_CSTL_StringBuilderEmplaceInsert (pBuilder, offset, R_CSTL_StringData (pString));
+}</span>
+
+int
+R_CSTL_StringBuilderEmplaceInsert (struct R_CSTL_StringBuilder* pBuilder, size_t offset, const char* pCString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pCString) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (offset &gt; pBuilder-&gt;length) offset = pBuilder-&gt;length;
+        size_t len = strlen (pCString);
+        if (len == 0) return 0;</span>
+
+<span style = "background-color:#dfd">        size_t required = pBuilder-&gt;length + len;
+        if (required &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#fdd">                if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0) return -1;</span>
+        }
+
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (</span>
+            pBuilder-&gt;pData + offset + len,
+            pBuilder-&gt;pData + offset,
+            pBuilder-&gt;length - offset);
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (pBuilder-&gt;pData + offset, pCString, len);
+        pBuilder-&gt;length += len;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderInsertChar (struct R_CSTL_StringBuilder* pBuilder, size_t offset, char value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (offset &gt; pBuilder-&gt;length) offset = pBuilder-&gt;length;</span>
+
+<span style = "background-color:#dfd">        size_t required = pBuilder-&gt;length + 1;
+        if (required &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#fdd">                if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0) return -1;</span>
+        }
+
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (</span>
+            pBuilder-&gt;pData + offset + 1,
+            pBuilder-&gt;pData + offset,
+            pBuilder-&gt;length - offset);
+<span style = "background-color:#dfd">        pBuilder-&gt;pData[offset] = value;
+        pBuilder-&gt;length++;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderDelete (struct R_CSTL_StringBuilder* pBuilder, size_t start, size_t end)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (start &gt;= pBuilder-&gt;length || start &gt;= end) return 0;
+        if (end &gt; pBuilder-&gt;length) end = pBuilder-&gt;length;</span>
+
+<span style = "background-color:#dfd">        size_t len = end - start;
+        R_CSTL_StringCopyBytes (pBuilder-&gt;pData + start, pBuilder-&gt;pData + end, pBuilder-&gt;length - end);
+        pBuilder-&gt;length -= len;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderDeleteCharAt (struct R_CSTL_StringBuilder* pBuilder, size_t index)
+<span style = "background-color:#dfd">{</span>
+
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || index &gt;= pBuilder-&gt;length) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_StringBuilderDelete (pBuilder, index, index + 1);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderReplace (
+    struct R_CSTL_StringBuilder* pBuilder,
+    size_t                       start,
+    size_t                       end,
+    const struct R_CSTL_String*  pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pString) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_StringBuilderEmplaceReplace (pBuilder, start, end, R_CSTL_StringData (pString));
+}</span>
+
+int
+R_CSTL_StringBuilderEmplaceReplace (
+    struct R_CSTL_StringBuilder* pBuilder,
+    size_t                       start,
+    size_t                       end,
+    const char*                  pString)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || !pString) return -1;
+        if (start &gt; pBuilder-&gt;length) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (end &gt; pBuilder-&gt;length) end = pBuilder-&gt;length;
+        if (start &gt;= end) return R_CSTL_StringBuilderEmplaceInsert (pBuilder, start, pString);
+        size_t oldLen = end - start;
+        size_t newLen = strlen (pString);</span>
+
+<span style = "background-color:#dfd">        if (newLen &gt; oldLen)</span>
+        {
+<span style = "background-color:#dfd">                size_t delta = newLen - oldLen;
+                size_t required = pBuilder-&gt;length + delta;
+                if (required &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+                {
+<span style = "background-color:#fdd">                        if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, required) != 0) return -1;</span>
+                }
+<span style = "background-color:#dfd">                R_CSTL_StringCopyBytes (</span>
+                    pBuilder-&gt;pData + end + delta,
+                    pBuilder-&gt;pData + end,
+                    pBuilder-&gt;length - end);
+<span style = "background-color:#dfd">        }</span>
+<span style = "background-color:#fdd">        else if (newLen &lt; oldLen)</span>
+        {
+<span style = "background-color:#fdd">                size_t delta = oldLen - newLen;
+                R_CSTL_StringCopyBytes (</span>
+                    pBuilder-&gt;pData + end - delta,
+                    pBuilder-&gt;pData + end,
+                    pBuilder-&gt;length - end);
+        }
+
+<span style = "background-color:#dfd">        R_CSTL_StringCopyBytes (pBuilder-&gt;pData + start, pString, newLen);
+        pBuilder-&gt;length = pBuilder-&gt;length - oldLen + newLen;
+        pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderSetCharAt (struct R_CSTL_StringBuilder* pBuilder, size_t index, char value)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder || index &gt;= pBuilder-&gt;length) goto cstl_fail;
+        if (!R_CSTL_StringBufferIsLive ((const struct R_CSTL_String*)pBuilder)) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        pBuilder-&gt;pData[index] = value;
+        return 0;</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return -1;</span>
+<span style = "background-color:#dfd">}</span>
+
+int
+R_CSTL_StringBuilderSetLength (struct R_CSTL_StringBuilder* pBuilder, size_t newLength)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        if (newLength &gt; R_CSTL_GET_CAPACITY (pBuilder-&gt;capacity))</span>
+        {
+<span style = "background-color:#fdd">                if (R_CSTL_StringBuilderEnsureCapacity (pBuilder, newLength) != 0) return -1;</span>
+        }
+<span style = "background-color:#dfd">        if (newLength &lt; pBuilder-&gt;length)</span>
+        {
+<span style = "background-color:#dfd">                pBuilder-&gt;length = newLength;
+                pBuilder-&gt;pData[pBuilder-&gt;length] = '\0';
+        }</span>
+<span style = "background-color:#fdd">        else if (newLength &gt; pBuilder-&gt;length)</span>
+        {
+<span style = "background-color:#fdd">                R_CSTL_StringSetBytes (</span>
+                    pBuilder-&gt;pData + pBuilder-&gt;length,
+                    '\0',
+                    newLength - pBuilder-&gt;length);
+<span style = "background-color:#fdd">                pBuilder-&gt;length = newLength;</span>
+        }
+<span style = "background-color:#dfd">        return 0;
+}</span>
+
+int
+R_CSTL_StringBuilderReverse (struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) return -1;</span>
+#endif
+<span style = "background-color:#dfd">        R_CSTL_StringReverseBytes (pBuilder-&gt;pData, pBuilder-&gt;length);
+        return 0;
+}</span>
+
+struct R_CSTL_String*
+R_CSTL_StringBuilderToString (const struct R_CSTL_StringBuilder* pBuilder)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_HEAP_DEBUG)
+<span style = "background-color:#dfd">        if (!pBuilder) goto cstl_fail;
+        if (pBuilder-&gt;length == 0) goto cstl_fail;</span>
+#endif
+<span style = "background-color:#dfd">        return R_CSTL_NewStringWithDataSized (pBuilder-&gt;pData, pBuilder-&gt;length);</span>
+cstl_fail:
+<span style = "background-color:#fdd">        return R_CSTL_NewString ();</span>
+<span style = "background-color:#dfd">}</span></pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

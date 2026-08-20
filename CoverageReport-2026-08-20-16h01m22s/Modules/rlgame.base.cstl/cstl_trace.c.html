@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>cstl_trace.c</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+#include "rlgame.base/cstl/cstl_trace.h"
+#include "rlgame.base/cstl/cstl_heap_allocator.h"
+#include "rlgame.base/cstl/cstl_log.h"
+
+#include &lt;string.h&gt;
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+#include &lt;windows.h&gt;
+#include &lt;psapi.h&gt;
+#define R_CSTL_THREAD_LOCAL __declspec (thread)
+#elif defined(R_CSTL_PLATFORM_LINUX)
+#include &lt;time.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/sysinfo.h&gt;
+#define R_CSTL_THREAD_LOCAL __thread
+#else
+#define R_CSTL_THREAD_LOCAL
+#endif
+
+static struct R_CSTL_TraceConfig g_traceConfig
+    = {.enableFunctionEntryExit = true,
+       .enablePerformanceTiming = true,
+       .minDurationMicroseconds = true,
+       .enableCallDepthIndentation = true};
+static R_CSTL_THREAD_LOCAL int g_traceCallDepth = 0;
+
+R_CSTL_API const struct R_CSTL_TraceConfig*
+R_CSTL_TraceGetConfig (void)
+<span style = "background-color:#dfd">{
+        return &amp;g_traceConfig;
+}</span>
+
+R_CSTL_API void
+R_CSTL_TraceSetMinDuration (uint64_t microseconds)
+<span style = "background-color:#dfd">{
+        g_traceConfig.minDurationMicroseconds = microseconds;
+}</span>
+
+#define R_CSTL_TRACE_MICROTIME (1000)
+#define R_CSTL_TRACE_MILLITIME (1000000)
+#define R_CSTL_TRACE_SECTIME   (1000000000)
+
+static const char*
+R_CSTL_TraceExtractFileName (const char* filePath)
+<span style = "background-color:#dfd">{
+        if (!filePath)</span>
+        {
+<span style = "background-color:#dfd">                return "&lt;unknown&gt;";</span>
+        }
+<span style = "background-color:#dfd">        const char* lastSlash = strrchr (filePath, '/');
+        const char* lastBackslash = strrchr (filePath, '\\');
+        const char* lastSeparator = (lastSlash &gt; lastBackslash) ? lastSlash : lastBackslash;
+        return lastSeparator ? lastSeparator + 1 : filePath;
+}</span>
+
+R_CSTL_API uint64_t
+R_CSTL_TraceGetTimestamp (void)
+<span style = "background-color:#dfd">{</span>
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+        LARGE_INTEGER frequency;
+        LARGE_INTEGER counter;
+<span style = "background-color:#dfd">        QueryPerformanceFrequency (&amp;frequency);
+        QueryPerformanceCounter (&amp;counter);
+        return (uint64_t)((counter.QuadPart * 1000000ULL) / frequency.QuadPart);</span>
+#elif defined(R_CSTL_PLATFORM_LINUX)
+        struct timespec ts;
+        clock_gettime (CLOCK_MONOTONIC, &amp;ts);
+        return (uint64_t)(ts.tv_sec * R_CSTL_TRACE_SECTIME + ts.tv_nsec / 1000);
+#else
+        return 0;
+#endif
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API void
+R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint32_t lineNumber)
+<span style = "background-color:#dfd">{
+        if (!g_traceConfig.enableFunctionEntryExit)</span>
+        {
+<span style = "background-color:#fdd">                return;</span>
+        }
+<span style = "background-color:#dfd">        const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
+        R_CSTL_LOG_TRACE ("  Enter: %s (%s:%u)", functionName, shortFileName, lineNumber);</span>
+
+<span style = "background-color:#dfd">        if (g_traceConfig.enableCallDepthIndentation)</span>
+        {
+<span style = "background-color:#dfd">                g_traceCallDepth++;</span>
+        }
+<span style = "background-color:#dfd">}</span>
+
+R_CSTL_API void
+R_CSTL_TraceFunctionExit (
+    const char* functionName,
+    const char* fileName,
+    uint32_t    lineNumber,
+    uint64_t    durationMicroseconds)
+<span style = "background-color:#dfd">{
+        if (!g_traceConfig.enableFunctionEntryExit)</span>
+        {
+<span style = "background-color:#fdd">                return;</span>
+        }
+
+        if (g_traceConfig.enablePerformanceTiming
+<span style = "background-color:#dfd">            &amp;&amp; durationMicroseconds &lt; g_traceConfig.minDurationMicroseconds)</span>
+        {
+<span style = "background-color:#fdd">                return;</span>
+        }
+
+<span style = "background-color:#dfd">        if (g_traceConfig.enableCallDepthIndentation &amp;&amp; g_traceCallDepth &gt; 0)</span>
+        {
+<span style = "background-color:#dfd">                g_traceCallDepth--;</span>
+        }
+
+<span style = "background-color:#dfd">        const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
+        if (g_traceConfig.enablePerformanceTiming)</span>
+        {
+<span style = "background-color:#dfd">                if (durationMicroseconds &lt; R_CSTL_TRACE_MICROTIME)</span>
+                {
+<span style = "background-color:#dfd">                        R_CSTL_LOG_TRACE (</span>
+                            "  Exit: %s (%s:%u) - %llu Âµs",
+                            functionName,
+                            shortFileName,
+                            lineNumber,
+                            (unsigned long long)durationMicroseconds);
+<span style = "background-color:#dfd">                }
+                else if (durationMicroseconds &lt; R_CSTL_TRACE_MILLITIME)</span>
+                {
+<span style = "background-color:#dfd">                        R_CSTL_LOG_TRACE (</span>
+                            "  Exit: %s (%s:%u) - %.2f ms",
+                            functionName,
+                            shortFileName,
+                            lineNumber,
+                            durationMicroseconds / 1000.0);
+<span style = "background-color:#dfd">                }</span>
+                else
+                {
+<span style = "background-color:#fdd">                        R_CSTL_LOG_TRACE (</span>
+                            "  Exit: %s (%s:%u) - %.2f s",
+                            functionName,
+                            shortFileName,
+                            lineNumber,
+                            durationMicroseconds / 1000000.0);
+                }
+<span style = "background-color:#dfd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">                R_CSTL_LOG_TRACE ("  Exit: %s (%s:%u)", functionName, shortFileName, lineNumber);</span>
+        }
+<span style = "background-color:#dfd">}</span>
+
+void
+R_CSTL_TraceLogEnvironmentInfo (void)
+<span style = "background-color:#dfd">{
+        R_CSTL_LOG_TRACE ("=== Environment Information ===");</span>
+
+#if defined(R_CSTL_PLATFORM_WINDOWS)
+<span style = "background-color:#dfd">        OSVERSIONINFOEXW osvi = {0};
+        osvi.dwOSVersionInfoSize = sizeof (OSVERSIONINFOEXW);</span>
+#pragma warning(push)
+#pragma warning(disable : 4996)
+<span style = "background-color:#dfd">        GetVersionExW ((OSVERSIONINFOW*)&amp;osvi);</span>
+#pragma warning(pop)
+
+<span style = "background-color:#dfd">        R_CSTL_LOG_TRACE ("Platform: Windows");
+        R_CSTL_LOG_TRACE (</span>
+            "  OS Version: %lu.%lu (Build %lu)",
+            osvi.dwMajorVersion,
+            osvi.dwMinorVersion,
+            osvi.dwBuildNumber);
+<span style = "background-color:#dfd">        R_CSTL_LOG_TRACE ("  Product Type: %lu", osvi.wProductType);</span>
+
+<span style = "background-color:#dfd">        MEMORYSTATUSEX memStatus = {0};
+        memStatus.dwLength = sizeof (MEMORYSTATUSEX);
+        GlobalMemoryStatusEx (&amp;memStatus);
+        R_CSTL_LOG_TRACE ("  Total Memory: %llu MB", memStatus.ullTotalPhys / (1024 * 1024));
+        R_CSTL_LOG_TRACE ("  Available Memory: %llu MB", memStatus.ullAvailPhys / (1024 * 1024));</span>
+
+<span style = "background-color:#dfd">        SYSTEM_INFO sysInfo = {0};
+        GetSystemInfo (&amp;sysInfo);
+        R_CSTL_LOG_TRACE ("  Processor Count: %lu", sysInfo.dwNumberOfProcessors);
+        R_CSTL_LOG_TRACE ("  Page Size: %lu bytes", sysInfo.dwPageSize);</span>
+
+<span style = "background-color:#dfd">        PROCESS_MEMORY_COUNTERS_EX pmc = {0};
+        pmc.cb = sizeof (PROCESS_MEMORY_COUNTERS_EX);
+        if (GetProcessMemoryInfo (GetCurrentProcess (), (PROCESS_MEMORY_COUNTERS*)&amp;pmc, sizeof (pmc)))</span>
+        {
+<span style = "background-color:#dfd">                R_CSTL_LOG_TRACE ("  Process Working Set: %llu MB", pmc.WorkingSetSize / (1024 * 1024));
+                R_CSTL_LOG_TRACE (</span>
+                    "  Process Peak Working Set: %llu MB",
+                    pmc.PeakWorkingSetSize / (1024 * 1024));
+        }
+
+#elif defined(R_CSTL_PLATFORM_LINUX)
+        struct sysinfo sysInfo = {0};
+        sysinfo (&amp;sysInfo);
+
+        R_CSTL_LOG_TRACE ("Platform: Linux");
+        R_CSTL_LOG_TRACE ("  Total Memory: %lu MB", sysInfo.totalram / (1024 * 1024));
+        R_CSTL_LOG_TRACE ("  Available Memory: %lu MB", sysInfo.freeram / (1024 * 1024));
+        R_CSTL_LOG_TRACE ("  Processor Count: %u", sysInfo.procs);
+        R_CSTL_LOG_TRACE ("  Load Average (1min): %.2f", sysInfo.loads[0] / 65536.0);
+        R_CSTL_LOG_TRACE ("  Load Average (5min): %.2f", sysInfo.loads[1] / 65536.0);
+        R_CSTL_LOG_TRACE ("  Load Average (15min): %.2f", sysInfo.loads[2] / 65536.0);
+
+        long pageSize = sysconf (_SC_PAGESIZE);
+        R_CSTL_LOG_TRACE ("  Page Size: %ld bytes", pageSize);
+
+        long numProcessors = sysconf (_SC_NPROCESSORS_ONLN);
+        if (numProcessors &gt; 0)
+        {
+                R_CSTL_LOG_TRACE ("  Online Processors: %ld", numProcessors);
+        }
+#else
+        R_CSTL_LOG_TRACE ("Platform: Unknown");
+#endif
+
+<span style = "background-color:#dfd">        R_CSTL_LOG_TRACE ("=== End Environment Information ===");
+}</span></pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

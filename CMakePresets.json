@@ -24,7 +24,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
-    }
+    },
   ],
   "buildPresets": [
     {
@@ -36,6 +36,6 @@
       "name": "x64-release",
       "configurePreset": "x64-release",
       "configuration": "Release"
-    }
+    },
   ]
 }
