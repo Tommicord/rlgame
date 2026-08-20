@@ -26,15 +26,15 @@ struct R_CVulkan_CommandBuffer
  */
 struct R_CVulkan_PipelineBarrierInfo
 {
-                VkPipelineStageFlags            srcStageMask; /**< Source stage mask */
-                VkPipelineStageFlags            dstStageMask; /**< Destination stage mask */
-                VkDependencyFlags               dependencyFlags; /**< Dependency flags */
-                uint32_t                        memoryBarrierCount; /**< Number of memory barriers */
-                const VkMemoryBarrier*          pMemoryBarriers; /**< Array of memory barriers */
-                uint32_t                        bufferMemoryBarrierCount; /**< Number of buffer memory barriers */
-                const VkBufferMemoryBarrier*    pBufferMemoryBarriers; /**< Array of buffer memory barriers */
-                uint32_t                        imageMemoryBarrierCount; /**< Number of image memory barriers */
-                const VkImageMemoryBarrier*     pImageMemoryBarriers; /**< Array of image memory barriers */
+                VkPipelineStageFlags   srcStageMask; /**< Source stage mask */
+                VkPipelineStageFlags   dstStageMask; /**< Destination stage mask */
+                VkDependencyFlags      dependencyFlags; /**< Dependency flags */
+                uint32_t               memoryBarrierCount; /**< Number of memory barriers */
+                const VkMemoryBarrier* pMemoryBarriers; /**< Array of memory barriers */
+                uint32_t               bufferMemoryBarrierCount; /**< Number of buffer memory barriers */
+                const VkBufferMemoryBarrier* pBufferMemoryBarriers; /**< Array of buffer memory barriers */
+                uint32_t                     imageMemoryBarrierCount; /**< Number of image memory barriers */
+                const VkImageMemoryBarrier*  pImageMemoryBarriers; /**< Array of image memory barriers */
 };
 
 /**
@@ -42,12 +42,12 @@ struct R_CVulkan_PipelineBarrierInfo
  */
 struct R_CVulkan_RenderPassBeginInfo
 {
-                VkRenderPass                    renderPass; /**< Render pass */
-                VkFramebuffer                   framebuffer; /**< Framebuffer */
-                const VkRect2D*                 pRenderArea; /**< Render area */
-                VkSubpassContents               contents; /**< Render pass contents */
-                uint32_t                        clearValueCount; /**< Number of clear values */
-                const VkClearValue*             pClearValues; /**< Array of clear values */
+                VkRenderPass        renderPass; /**< Render pass */
+                VkFramebuffer       framebuffer; /**< Framebuffer */
+                const VkRect2D*     pRenderArea; /**< Render area */
+                VkSubpassContents   contents; /**< Render pass contents */
+                uint32_t            clearValueCount; /**< Number of clear values */
+                const VkClearValue* pClearValues; /**< Array of clear values */
 };
 
 /**
@@ -55,14 +55,14 @@ struct R_CVulkan_RenderPassBeginInfo
  */
 struct R_CVulkan_DynamicRenderingAttachmentInfo
 {
-                VkImageView                    imageView; /**< Image view for the attachment */
-                VkImageLayout                 imageLayout; /**< Layout of the image during rendering */
-                VkResolveModeFlagBits         resolveMode; /**< Resolve mode for MSAA attachments */
-                VkImageView                    resolveImageView; /**< Resolve image view for MSAA */
-                VkImageLayout                 resolveImageLayout; /**< Layout of resolve image */
-                VkAttachmentLoadOp            loadOp; /**< Load operation for the attachment */
-                VkAttachmentStoreOp           storeOp; /**< Store operation for the attachment */
-                VkClearValue                  clearValue; /**< Clear value for load op VK_ATTACHMENT_LOAD_OP_CLEAR */
+                VkImageView           imageView; /**< Image view for the attachment */
+                VkImageLayout         imageLayout; /**< Layout of the image during rendering */
+                VkResolveModeFlagBits resolveMode; /**< Resolve mode for MSAA attachments */
+                VkImageView           resolveImageView; /**< Resolve image view for MSAA */
+                VkImageLayout         resolveImageLayout; /**< Layout of resolve image */
+                VkAttachmentLoadOp    loadOp; /**< Load operation for the attachment */
+                VkAttachmentStoreOp   storeOp; /**< Store operation for the attachment */
+                VkClearValue          clearValue; /**< Clear value for load op VK_ATTACHMENT_LOAD_OP_CLEAR */
 };
 
 /**
@@ -70,12 +70,15 @@ struct R_CVulkan_DynamicRenderingAttachmentInfo
  */
 struct R_CVulkan_DynamicRenderingInfo
 {
-                uint32_t                                    viewMask; /**< View mask for multiview rendering */
-                uint32_t                                    colorAttachmentCount; /**< Number of color attachments */
-                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pColorAttachments; /**< Array of color attachments */
-                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pDepthAttachment; /**< Depth attachment (can be NULL) */
-                const struct R_CVulkan_DynamicRenderingAttachmentInfo* pStencilAttachment; /**< Stencil attachment (can be NULL) */
-                VkRenderingFlagBitsKHR                       flags; /**< Rendering flags */
+                uint32_t viewMask; /**< View mask for multiview rendering */
+                uint32_t colorAttachmentCount; /**< Number of color attachments */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo*
+                    pColorAttachments; /**< Array of color attachments */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo*
+                    pDepthAttachment; /**< Depth attachment (can be NULL) */
+                const struct R_CVulkan_DynamicRenderingAttachmentInfo*
+                                       pStencilAttachment; /**< Stencil attachment (can be NULL) */
+                VkRenderingFlagBitsKHR flags; /**< Rendering flags */
 };
 
 /**
@@ -367,7 +370,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferCopyImageToBuffer (
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferPipelineBarrier (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo);
 
 /**
@@ -377,7 +380,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferPipelineBarrier (
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo);
 
 /**
@@ -387,7 +390,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRendering (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*              pCommandBuffer,
     const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo);
 
 /**

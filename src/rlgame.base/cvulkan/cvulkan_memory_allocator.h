@@ -83,10 +83,10 @@ R_CVULKAN_API void R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAlloc
  */
 struct R_CVulkan_MemoryAllocationInfo
 {
-                VkDeviceSize           size; /**< Size to allocate */
-                VkDeviceSize           alignment; /**< Alignment requirement */
-                VkBufferUsageFlags     usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags  properties; /**< Memory property flags */
+                VkDeviceSize          size; /**< Size to allocate */
+                VkDeviceSize          alignment; /**< Alignment requirement */
+                VkBufferUsageFlags    usage; /**< Buffer usage flags */
+                VkMemoryPropertyFlags properties; /**< Memory property flags */
 };
 
 /**
@@ -97,9 +97,9 @@ struct R_CVulkan_MemoryAllocationInfo
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocate (
-    struct R_CVulkan_MemoryAllocator*      pAllocator,
+    struct R_CVulkan_MemoryAllocator*            pAllocator,
     const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
-    struct R_CVulkan_Suballocation*       outAllocation);
+    struct R_CVulkan_Suballocation*              outAllocation);
 
 /**
  * @brief Free a suballocation

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_cvulkan_pipeline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_cvulkan_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_cvulkan_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\game_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\game\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{14E09A03-24D6-3D4B-8E7E-B7181045A9C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8DBC9AEB-FA5C-34F2-BC12-02B638060151}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

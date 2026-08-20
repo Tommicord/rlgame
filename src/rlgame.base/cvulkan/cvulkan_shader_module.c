@@ -85,9 +85,9 @@ R_CVulkan_DeleteShaderModule (struct R_CVulkan_ShaderModule* pShaderModule)
         if (pShaderModule->handle != VK_NULL_HANDLE)
         {
                 vkDestroyShaderModule (pShaderModule->device, pShaderModule->handle, NULL);
-                pShaderModule->handle = VK_NULL_HANDLE;
         }
 #if defined(R_CVULKAN_DEBUG)
+        pShaderModule->handle = VK_NULL_HANDLE;
         pShaderModule->device = VK_NULL_HANDLE;
         pShaderModule->codeSize = 0;
         pShaderModule->isInitialized = false;
@@ -126,6 +126,8 @@ R_CVulkan_ShaderModuleIsInitialized (const struct R_CVulkan_ShaderModule* pShade
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pShaderModule != NULL);
-#endif
         return pShaderModule->isInitialized;
+#else
+        return true;
+#endif
 }

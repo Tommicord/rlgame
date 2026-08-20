@@ -14,11 +14,11 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_PipelineLayoutCreateInfo
 {
-                const struct R_CVulkan_Device*   pDevice; /**< R_CVulkan device wrapper */
-                const VkDescriptorSetLayout*     pSetLayouts; /**< Array of descriptor set layouts */
-                uint32_t                         setLayoutCount; /**< Number of descriptor set layouts */
-                const VkPushConstantRange*       pPushConstantRanges; /**< Array of push constant ranges */
-                uint32_t                         pushConstantRangeCount; /**< Number of push constant ranges */
+                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+                const VkDescriptorSetLayout*   pSetLayouts; /**< Array of descriptor set layouts */
+                uint32_t                       setLayoutCount; /**< Number of descriptor set layouts */
+                const VkPushConstantRange*     pPushConstantRanges; /**< Array of push constant ranges */
+                uint32_t                       pushConstantRangeCount; /**< Number of push constant ranges */
 };
 
 /**
@@ -26,9 +26,9 @@ struct R_CVulkan_PipelineLayoutCreateInfo
  */
 struct R_CVulkan_GraphicsPipelineCreateInfo
 {
-                const struct R_CVulkan_Device*                pDevice; /**< R_CVulkan device wrapper */
-                VkPipelineLayout                              pipelineLayout; /**< Pipeline layout */
-                VkRenderPass                                  pRenderPass; /**< Render pass (VK_NULL_HANDLE for dynamic rendering) */
+                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+                VkPipelineLayout               pipelineLayout; /**< Pipeline layout */
+                VkRenderPass pRenderPass; /**< Render pass (VK_NULL_HANDLE for dynamic rendering) */
                 const VkPipelineShaderStageCreateInfo*        pStages; /**< Shader stages */
                 uint32_t                                      stageCount; /**< Number of shader stages */
                 const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo; /**< Vertex input state */
@@ -40,10 +40,10 @@ struct R_CVulkan_GraphicsPipelineCreateInfo
                 const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo; /**< Color blend state */
                 const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo; /**< Dynamic state */
                 uint32_t                                      subpass; /**< Subpass index */
-                uint32_t                                      colorAttachmentCount; /**< Number of color attachments for dynamic rendering */
-                VkFormat*                                     pColorAttachmentFormats; /**< Color attachment formats for dynamic rendering */
-                VkFormat                                      depthAttachmentFormat; /**< Depth attachment format for dynamic rendering */
-                VkFormat                                      stencilAttachmentFormat; /**< Stencil attachment format for dynamic rendering */
+                uint32_t  colorAttachmentCount; /**< Number of color attachments for dynamic rendering */
+                VkFormat* pColorAttachmentFormats; /**< Color attachment formats for dynamic rendering */
+                VkFormat  depthAttachmentFormat; /**< Depth attachment format for dynamic rendering */
+                VkFormat  stencilAttachmentFormat; /**< Stencil attachment format for dynamic rendering */
 };
 
 /**
@@ -73,7 +73,7 @@ struct R_CVulkan_Pipeline
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout*             pLayout,
+    struct R_CVulkan_PipelineLayout*                 pLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo);
 
 /**

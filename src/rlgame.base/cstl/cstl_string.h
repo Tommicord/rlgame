@@ -508,8 +508,9 @@ extern "C"
          * @param requiredCapacity Minimum required capacity.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int
-        R_CSTL_StringBuilderEnsureCapacity (struct R_CSTL_StringBuilder* pBuilder, const size_t requiredCapacity);
+        R_CSTL_API int R_CSTL_StringBuilderEnsureCapacity (
+            struct R_CSTL_StringBuilder* pBuilder,
+            const size_t                 requiredCapacity);
 
         /**
          * @brief Append string to builder
@@ -520,8 +521,9 @@ extern "C"
          * @param pString Pointer to string to append.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int
-        R_CSTL_StringBuilderAppend (struct R_CSTL_StringBuilder* pBuilder, const struct R_CSTL_String* pString);
+        R_CSTL_API int R_CSTL_StringBuilderAppend (
+            struct R_CSTL_StringBuilder* pBuilder,
+            const struct R_CSTL_String*  pString);
 
         /**
          * @brief Append C string to builder
@@ -532,7 +534,8 @@ extern "C"
          * @param pCString Null-terminated string to append.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int R_CSTL_StringBuilderEmplace (struct R_CSTL_StringBuilder* pBuilder, const char* pCString);
+        R_CSTL_API int
+        R_CSTL_StringBuilderEmplace (struct R_CSTL_StringBuilder* pBuilder, const char* pCString);
 
         /**
          * @brief Append sized C string to builder
@@ -546,8 +549,8 @@ extern "C"
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceSized (
             struct R_CSTL_StringBuilder* pBuilder,
-            const char*           pCString,
-            const size_t          size);
+            const char*                  pCString,
+            const size_t                 size);
 
         /**
          * @brief Append raw data to builder
@@ -561,8 +564,8 @@ extern "C"
          */
         R_CSTL_API int R_CSTL_StringBuilderAppendData (
             struct R_CSTL_StringBuilder* pBuilder,
-            const char*           pData,
-            const size_t          length);
+            const char*                  pData,
+            const size_t                 length);
 
         /**
          * @brief Append character to builder
@@ -595,7 +598,8 @@ extern "C"
          * @param value Long integer value to append.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int R_CSTL_StringBuilderAppendLong (struct R_CSTL_StringBuilder* pBuilder, long long value);
+        R_CSTL_API int
+        R_CSTL_StringBuilderAppendLong (struct R_CSTL_StringBuilder* pBuilder, long long value);
 
         /**
          * @brief Append double to builder
@@ -629,8 +633,10 @@ extern "C"
          * @param count Number of times to repeat.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int
-        R_CSTL_StringBuilderAppendRepeat (struct R_CSTL_StringBuilder* pBuilder, const char* pData, size_t count);
+        R_CSTL_API int R_CSTL_StringBuilderAppendRepeat (
+            struct R_CSTL_StringBuilder* pBuilder,
+            const char*                  pData,
+            size_t                       count);
 
         /**
          * @brief Append formatted string to builder
@@ -642,7 +648,8 @@ extern "C"
          * @param ... Variable arguments for formatting.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int R_CSTL_StringBuilderAppendf (struct R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...);
+        R_CSTL_API int
+        R_CSTL_StringBuilderAppendf (struct R_CSTL_StringBuilder* pBuilder, const char* pFormat, ...);
 
         /**
          * @brief Insert string at offset
@@ -655,9 +662,9 @@ extern "C"
          * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderInsert (
-            struct R_CSTL_StringBuilder*       pBuilder,
-            size_t                      offset,
-            const struct R_CSTL_String* pString);
+            struct R_CSTL_StringBuilder* pBuilder,
+            size_t                       offset,
+            const struct R_CSTL_String*  pString);
 
         /**
          * @brief Insert C string at offset
@@ -671,8 +678,8 @@ extern "C"
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceInsert (
             struct R_CSTL_StringBuilder* pBuilder,
-            size_t                offset,
-            const char*           pCString);
+            size_t                       offset,
+            const char*                  pCString);
 
         /**
          * @brief Insert character at offset
@@ -697,7 +704,8 @@ extern "C"
          * @param end Ending index (exclusive).
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int R_CSTL_StringBuilderDelete (struct R_CSTL_StringBuilder* pBuilder, size_t start, size_t end);
+        R_CSTL_API int
+        R_CSTL_StringBuilderDelete (struct R_CSTL_StringBuilder* pBuilder, size_t start, size_t end);
 
         /**
          * @brief Delete character at index
@@ -722,10 +730,10 @@ extern "C"
          * @return R_CSTL_OK on success, error code on failure.
          */
         R_CSTL_API int R_CSTL_StringBuilderReplace (
-            struct R_CSTL_StringBuilder*       pBuilder,
-            size_t                      start,
-            size_t                      end,
-            const struct R_CSTL_String* pString);
+            struct R_CSTL_StringBuilder* pBuilder,
+            size_t                       start,
+            size_t                       end,
+            const struct R_CSTL_String*  pString);
 
         /**
          * @brief Replace range with C string
@@ -740,9 +748,9 @@ extern "C"
          */
         R_CSTL_API int R_CSTL_StringBuilderEmplaceReplace (
             struct R_CSTL_StringBuilder* pBuilder,
-            size_t                start,
-            size_t                end,
-            const char*           pString);
+            size_t                       start,
+            size_t                       end,
+            const char*                  pString);
 
         /**
          * @brief Set character at index
@@ -766,7 +774,8 @@ extern "C"
          * @param newLength New length to set.
          * @return R_CSTL_OK on success, error code on failure.
          */
-        R_CSTL_API int R_CSTL_StringBuilderSetLength (struct R_CSTL_StringBuilder* pBuilder, size_t newLength);
+        R_CSTL_API int
+        R_CSTL_StringBuilderSetLength (struct R_CSTL_StringBuilder* pBuilder, size_t newLength);
 
         /**
          * @brief Reverse builder contents
@@ -797,7 +806,8 @@ extern "C"
          *
          * @note The builder is not modified by this operation.
          */
-        R_CSTL_API struct R_CSTL_String* R_CSTL_StringBuilderToString (const struct R_CSTL_StringBuilder* pBuilder);
+        R_CSTL_API struct R_CSTL_String*
+        R_CSTL_StringBuilderToString (const struct R_CSTL_StringBuilder* pBuilder);
 
 #ifdef __cplusplus
 }

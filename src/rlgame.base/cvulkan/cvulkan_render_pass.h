@@ -39,7 +39,7 @@ struct R_CVulkan_RenderPass
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewRenderPass (
-    struct R_CVulkan_RenderPass*             pRenderPass,
+    struct R_CVulkan_RenderPass*                 pRenderPass,
     const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo);
 
 /**

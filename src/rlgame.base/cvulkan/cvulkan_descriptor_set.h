@@ -13,9 +13,9 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_DescriptorSetLayoutCreateInfo
 {
-                const struct R_CVulkan_Device*        device; /**< R_CVulkan device wrapper */
-                const VkDescriptorSetLayoutBinding*   bindings; /**< Array of descriptor bindings */
-                uint32_t                              bindingCount; /**< Number of bindings */
+                const struct R_CVulkan_Device*      device; /**< R_CVulkan device wrapper */
+                const VkDescriptorSetLayoutBinding* bindings; /**< Array of descriptor bindings */
+                uint32_t                            bindingCount; /**< Number of bindings */
 };
 
 /**
@@ -23,10 +23,10 @@ struct R_CVulkan_DescriptorSetLayoutCreateInfo
  */
 struct R_CVulkan_DescriptorPoolCreateInfo
 {
-                const struct R_CVulkan_Device*   device; /**< R_CVulkan device wrapper */
-                const VkDescriptorPoolSize*      poolSizes; /**< Array of pool sizes */
-                uint32_t                         poolSizeCount; /**< Number of pool sizes */
-                uint32_t                         maxSets; /**< Maximum number of descriptor sets */
+                const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
+                const VkDescriptorPoolSize*    poolSizes; /**< Array of pool sizes */
+                uint32_t                       poolSizeCount; /**< Number of pool sizes */
+                uint32_t                       maxSets; /**< Maximum number of descriptor sets */
 };
 
 /**
@@ -67,7 +67,7 @@ struct R_CVulkan_DescriptorSet
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
-    struct R_CVulkan_DescriptorSetLayout*             layout,
+    struct R_CVulkan_DescriptorSetLayout*                 layout,
     const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo);
 
 /**
@@ -83,7 +83,7 @@ R_CVULKAN_API void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_Descrip
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
-    struct R_CVulkan_DescriptorPool*           pool,
+    struct R_CVulkan_DescriptorPool*                 pool,
     const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo);
 
 /**

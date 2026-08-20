@@ -29,8 +29,9 @@ endif ()
 add_compile_definitions(_R_CHUNK_VULKAN_BACKEND)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_definitions(R_DEVMODE)
+  add_compile_definitions(R_DEVMODE R_CSTL_TRACE_ENABLED)
   message(STATUS "Development mode enabled")
+  message(STATUS "Trace logging enabled")
 endif ()
 
 if (MSVC)
@@ -127,6 +128,40 @@ function(target_add_renderdoc TARGET)
   endif()
 endfunction()
 
+function(set_common_output_directories TARGET)
+  set_target_properties(
+    ${TARGET}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+  )
+endfunction()
+
+function(set_base_include_directories TARGET)
+  target_include_directories(
+    ${TARGET}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_BINARY_DIR}/.shader
+  )
+endfunction()
+
+function(link_base_libraries EXECUTABLE)
+  if(MSVC)
+    target_link_libraries(${EXECUTABLE} PRIVATE rlgame.base.cstl rlgame.base.cvulkan rlgame.base.game)
+  elseif(APPLE)
+    target_link_libraries(${EXECUTABLE} PRIVATE -force_load $<TARGET_FILE:rlgame.base.cstl> -force_load $<TARGET_FILE:rlgame.base.cvulkan>)
+  elseif(UNIX)
+    target_link_libraries(${EXECUTABLE} PRIVATE -Wl,--whole-archive rlgame.base.cstl rlgame.base.cvulkan -Wl,--no-whole-archive)
+  else()
+    target_link_libraries(${EXECUTABLE} PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
+  endif()
+endfunction()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -159,38 +194,14 @@ if (WIN32)
   target_link_libraries(rlgame.base.cstl PUBLIC dbghelp)
 endif()
 
-target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
-target_compile_definitions(rlgame.base.cstl PRIVATE R_CSTL_BUILDING_DLL)
+target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CSTL_BUILDING_DLL)
+set_base_include_directories(rlgame.base.cstl)
 
 add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS})
 
-set_target_properties(
-  rlgame.base.cvulkan
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
-)
-
-target_compile_definitions(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
-target_compile_definitions(rlgame.base.cvulkan PRIVATE R_CVULKAN_BUILDING_DLL)
-
-
-target_include_directories(
-  rlgame.base.cstl
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_BINARY_DIR}/.shader
-)
-target_include_directories(
-  rlgame.base.cvulkan
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_BINARY_DIR}/.shader
-)
+set_common_output_directories(rlgame.base.cvulkan)
+set_base_include_directories(rlgame.base.cvulkan)
+target_compile_definitions(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CVULKAN_BUILDING_DLL)
 
 target_link_libraries(
   rlgame.base.cvulkan
@@ -201,30 +212,12 @@ target_link_libraries(
 if (UNIX AND NOT APPLE)
   target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
 endif()
-# target_add_renderdoc(rlgame.base.cvulkan)
 
 add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
 
-set_target_properties(
-  rlgame.base.game
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
-)
-
-target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
-target_compile_definitions(rlgame.base.game PRIVATE GAME_CVULKAN_BUILDING_DLL)
-
-target_include_directories(
-  rlgame.base.game
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_BINARY_DIR}/.shader
-)
+set_common_output_directories(rlgame.base.game)
+set_base_include_directories(rlgame.base.game)
+target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_GAME_CVULKAN_BUILDING_DLL)
 
 target_link_libraries(
   rlgame.base.game
@@ -248,17 +241,7 @@ else()
   add_executable(rlgame WIN32 ${MAIN_SOURCE})
 endif()
 
-if(MSVC)
-  target_link_libraries(rlgame PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
-elseif(APPLE)
-  # macOS: Use -force_load
-  target_link_libraries(rlgame PRIVATE -force_load $<TARGET_FILE:rlgame.base.cstl> -force_load $<TARGET_FILE:rlgame.base.cvulkan>)
-elseif(UNIX)
-  # Linux/Unix: Use -Wl,--whole-archive -Wl,--no-whole-archive
-  target_link_libraries(rlgame PRIVATE -Wl,--whole-archive rlgame.base.cstl rlgame.base.cvulkan -Wl,--no-whole-archive)
-else()
-  target_link_libraries(rlgame PRIVATE rlgame.base.cstl rlgame.base.cvulkan)
-endif()
+link_base_libraries(rlgame)
 
 if (UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
@@ -339,13 +322,7 @@ elseif (WIN32)
   target_link_libraries(rlgame_test PRIVATE dbghelp)
 endif ()
 
-set_target_properties(
-  rlgame_test 
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
-)
+set_common_output_directories(rlgame_test)
 
 gtest_discover_tests(rlgame_test)
 
@@ -373,11 +350,7 @@ target_link_libraries(
   rlgame.base.cvulkan
 )
 
-set_target_properties(
-  rlgame_bench
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
-)
+set_common_output_directories(rlgame_bench)
 
 target_compile_definitions(
   rlgame

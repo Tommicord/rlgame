@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_command_buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_command_pool.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_descriptor_set.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_fence.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_framebuffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_image.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_image_view.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_instance.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_memory_allocator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_pipeline.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_queue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_render_pass.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_sampler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_semaphore.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_shader_module.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_surface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\z06hVODay6dQC5KqEOPgTvjnVCWwOrMS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\6X0Z8S0OwAlTgZW9VisQ8lTMP50OnzPD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\qQoBrynuguMtOD46V5QFH2wYrNVRsU85.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\YspCzWgrcNyOMDdC9OMPHrcj6TgelVuU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\I3AZJux0aOVpXMvGiikZZX0guASxNp7X.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\Q4PSZURkFZ9VZczrejimk8VNSjKsWVmd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\ApFwXgQv2hfdVl3LBptFmZcKAsZgIBgC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\GrLESCMEaOb6S1MHITlkMuF0WOl4inoA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\vPoo1Jda3FVjOgBsFYl55pHYGomv1BZp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\GgHrCPwvJ8alFHx2P9rqV9zf2dUSihYo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\PeWwayGghGG1Tn3D9f5JrCQB6OEv2w3A.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\bAwSA1cfRdCFRZ0IKeG6iHJzBUWaCQdC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\Q6bpgDkrQZEqI9TrHBmY93ZaA8ivyNGj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\kC2B6rUCl4yfzI94qbV4cJiqPxPwMOn4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\DalRd7yGR1nguXmyqgXRTzhXgYfwAeW0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_command_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_command_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_descriptor_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_fence.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_framebuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_image_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_instance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_memory_allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_render_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_sampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_semaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_shader_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\src\rlgame.base\cvulkan\cvulkan_surface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\z06hVODay6dQC5KqEOPgTvjnVCWwOrMS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\6X0Z8S0OwAlTgZW9VisQ8lTMP50OnzPD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\qQoBrynuguMtOD46V5QFH2wYrNVRsU85.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\YspCzWgrcNyOMDdC9OMPHrcj6TgelVuU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\I3AZJux0aOVpXMvGiikZZX0guASxNp7X.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\Q4PSZURkFZ9VZczrejimk8VNSjKsWVmd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\ApFwXgQv2hfdVl3LBptFmZcKAsZgIBgC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\GrLESCMEaOb6S1MHITlkMuF0WOl4inoA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\vPoo1Jda3FVjOgBsFYl55pHYGomv1BZp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\GgHrCPwvJ8alFHx2P9rqV9zf2dUSihYo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\PeWwayGghGG1Tn3D9f5JrCQB6OEv2w3A.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\bAwSA1cfRdCFRZ0IKeG6iHJzBUWaCQdC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\Q6bpgDkrQZEqI9TrHBmY93ZaA8ivyNGj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\kC2B6rUCl4yfzI94qbV4cJiqPxPwMOn4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\.shader\DalRd7yGR1nguXmyqgXRTzhXgYfwAeW0.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\TestTriangle.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\z06hVODay6dQC5KqEOPgTvjnVCWwOrMS.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\TestTriangle.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\6X0Z8S0OwAlTgZW9VisQ8lTMP50OnzPD.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\TestTriangle3d.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\qQoBrynuguMtOD46V5QFH2wYrNVRsU85.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\TestTriangle3d.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\YspCzWgrcNyOMDdC9OMPHrcj6TgelVuU.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\Simplex.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\I3AZJux0aOVpXMvGiikZZX0guASxNp7X.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldHeightmap.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\Q4PSZURkFZ9VZczrejimk8VNSjKsWVmd.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldClimate.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\ApFwXgQv2hfdVl3LBptFmZcKAsZgIBgC.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldUnitPlace.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\GrLESCMEaOb6S1MHITlkMuF0WOl4inoA.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshGen.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\vPoo1Jda3FVjOgBsFYl55pHYGomv1BZp.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshGen.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\GgHrCPwvJ8alFHx2P9rqV9zf2dUSihYo.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshGen.frag.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\PeWwayGghGG1Tn3D9f5JrCQB6OEv2w3A.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshGenGeom.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\bAwSA1cfRdCFRZ0IKeG6iHJzBUWaCQdC.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshDelaunay2D.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\Q6bpgDkrQZEqI9TrHBmY93ZaA8ivyNGj.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldMeshGenGeomNoOcclusion.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\kC2B6rUCl4yfzI94qbV4cJiqPxPwMOn4.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\5f72949f7a6e0aeca63166d695dd1305\WorldOcclusionCull.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\out\CMakeFiles\f7f69a46d0b9512ef40d33473aa5e195\DalRd7yGR1nguXmyqgXRTzhXgYfwAeW0.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\USUARIO\IdeaProjects\RLv2\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{84B8D26C-F166-387F-8BDC-71C4781BB12D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{14E09A03-24D6-3D4B-8E7E-B7181045A9C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8DBC9AEB-FA5C-34F2-BC12-02B638060151}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

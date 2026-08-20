@@ -1,0 +1,841 @@
+{
+  "tests": 155,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CstlArrayInitTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "DeleteNullIsSafe",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 55
+        }
+      ]
+    },
+    {
+      "name": "CstlArrayTest",
+      "tests": 36,
+      "testsuite": [
+        {
+          "name": "NewEmptyArrayHasNoBufferUntilPush",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 61
+        },
+        {
+          "name": "NewArrayWithCapacity",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 80
+        },
+        {
+          "name": "NewArrayWithLengthZeroed",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 90
+        },
+        {
+          "name": "NewArrayWithLengthUninitialized",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 104
+        },
+        {
+          "name": "NewArrayWithData",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 113
+        },
+        {
+          "name": "NewArrayWithDataRejectsNullForNonZeroLength",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 122
+        },
+        {
+          "name": "NewArrayWithDataAllowsEmpty",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 125
+        },
+        {
+          "name": "RevBytesGrowsCapacityNotLength",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 133
+        },
+        {
+          "name": "PushAndPop",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 143
+        },
+        {
+          "name": "PopOnEmptyFails",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 164
+        },
+        {
+          "name": "ShiftAndUnshift",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 172
+        },
+        {
+          "name": "ShiftOnEmptyFails",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 189
+        },
+        {
+          "name": "SliceReturnsSubrange",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 197
+        },
+        {
+          "name": "SliceEmptyRange",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 211
+        },
+        {
+          "name": "SliceRejectsInvalidRange",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 225
+        },
+        {
+          "name": "AtBoundsCheck",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 238
+        },
+        {
+          "name": "GettersReturnZeroOrNullForNullArray",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 256
+        },
+        {
+          "name": "RevBytesNoOpWhenAlreadyLargeEnough",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 263
+        },
+        {
+          "name": "SortEmptyAndSingleElementSucceed",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 313
+        },
+        {
+          "name": "SortU8Ascending",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 326
+        },
+        {
+          "name": "SortAlreadySortedAndReverseSorted",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 338
+        },
+        {
+          "name": "SortSmallArrayUsesInsertionPath",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 357
+        },
+        {
+          "name": "SortU32Elements",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 370
+        },
+        {
+          "name": "SortSimdSizedElementsPreservesPayload",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 393
+        },
+        {
+          "name": "SortWithComparatorContext",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 420
+        },
+        {
+          "name": "SortRejectsInvalidArguments",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 433
+        },
+        {
+          "name": "StressManyPushOperations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 447
+        },
+        {
+          "name": "StressManyPopOperations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 463
+        },
+        {
+          "name": "StressPushPopPattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 486
+        },
+        {
+          "name": "StressShiftUnshiftPattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 511
+        },
+        {
+          "name": "StressSliceOperations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 536
+        },
+        {
+          "name": "StressResizeOperations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 563
+        },
+        {
+          "name": "StressFillAndClear",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 578
+        },
+        {
+          "name": "StressSortManyElements",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 602
+        },
+        {
+          "name": "StressMixedOperations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 627
+        },
+        {
+          "name": "StressLargeArray",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_array_test.cpp",
+          "line": 668
+        }
+      ]
+    },
+    {
+      "name": "CstlHeapAllocatorInitTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "InitFailsWithZeroSize",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 30
+        },
+        {
+          "name": "InitDestroyAndReinit",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 37
+        },
+        {
+          "name": "SecondInitIsIdempotent",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 48
+        },
+        {
+          "name": "TotalSizeRoundsUpToPowerOfTwo",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 57
+        }
+      ]
+    },
+    {
+      "name": "CstlHeapAllocatorTest",
+      "tests": 22,
+      "testsuite": [
+        {
+          "name": "AllocReturnsNullForZeroSize",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 64
+        },
+        {
+          "name": "BasicAllocFreeUpdatesUsedSize",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 78
+        },
+        {
+          "name": "ReallocMovesWhenOrderChanges",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 91
+        },
+        {
+          "name": "MultipleAllocationsAreDistinct",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 108
+        },
+        {
+          "name": "FreeNullIsSafe",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 126
+        },
+        {
+          "name": "DoubleFreeIsRejected",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 132
+        },
+        {
+          "name": "InvalidPointerIsNotValid",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 142
+        },
+        {
+          "name": "RegisterAndUnregisterAllocation",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 149
+        },
+        {
+          "name": "RegisterAllocationRejectsNullOwnerOrAllocation",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 164
+        },
+        {
+          "name": "RegisterAllocationRejectsNonHeapPointer",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 174
+        },
+        {
+          "name": "RegisterAllocationRejectsSizeMismatch",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 182
+        },
+        {
+          "name": "RegisterAllocationAllowsNullName",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 192
+        },
+        {
+          "name": "UnregisterAllocationIsNoOpWhenMissing",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 203
+        },
+        {
+          "name": "UnregisterAllocationIgnoresNullArguments",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 213
+        },
+        {
+          "name": "CheckObjectLeaksReportsRegisteredAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 226
+        },
+        {
+          "name": "LogLeaksReturnsRegisteredCount",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 240
+        },
+        {
+          "name": "FreeRemovesRegisteredAllocationRecord",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 260
+        },
+        {
+          "name": "ExhaustHeapReturnsNull",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 272
+        },
+        {
+          "name": "AllocatedMemoryIsWritable",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 286
+        },
+        {
+          "name": "DebugVerifyReportsHealthyHeap",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 297
+        },
+        {
+          "name": "DebugAllocFillsPoisonPattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 306
+        },
+        {
+          "name": "DebugFreeFillsPoisonPattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 316
+        }
+      ]
+    },
+    {
+      "name": "CstlHeapAllocatorAllocTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "AllocFailsWhenHeapNotInitialized",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_allocator_test.cpp",
+          "line": 70
+        }
+      ]
+    },
+    {
+      "name": "CstlHeapTest",
+      "tests": 31,
+      "testsuite": [
+        {
+          "name": "InitAndShutdown",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 32
+        },
+        {
+          "name": "AllocAndFree",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 39
+        },
+        {
+          "name": "AllocZeroReturnsNull",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 46
+        },
+        {
+          "name": "AllocLargeFails",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 52
+        },
+        {
+          "name": "FreeNullIsNoOp",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 58
+        },
+        {
+          "name": "ReallocNullBehavesLikeAlloc",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 63
+        },
+        {
+          "name": "ReallocZeroBehavesLikeFree",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 70
+        },
+        {
+          "name": "ReallocGrow",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 78
+        },
+        {
+          "name": "ReallocShrink",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 94
+        },
+        {
+          "name": "ReallocSameSize",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 104
+        },
+        {
+          "name": "ReallocFailLeavesOriginal",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 114
+        },
+        {
+          "name": "AllocAligned",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 132
+        },
+        {
+          "name": "AllocAligned32",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 140
+        },
+        {
+          "name": "AllocAligned64",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 148
+        },
+        {
+          "name": "AllocAlignedZeroReturnsNull",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 156
+        },
+        {
+          "name": "IsValidPointer",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 162
+        },
+        {
+          "name": "RegisterAllocation",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 175
+        },
+        {
+          "name": "RegisterAllocationNullOwner",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 188
+        },
+        {
+          "name": "UnregisterAllocationNoOpIfNotFound",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 199
+        },
+        {
+          "name": "CheckObjectLeaks",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 205
+        },
+        {
+          "name": "LogLeaks",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 220
+        },
+        {
+          "name": "MultipleAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 235
+        },
+        {
+          "name": "SmallAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 251
+        },
+        {
+          "name": "PowerOfTwoAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 261
+        },
+        {
+          "name": "StressManySmallAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 272
+        },
+        {
+          "name": "StressRandomSizedAllocations",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 291
+        },
+        {
+          "name": "StressAllocFreePattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 311
+        },
+        {
+          "name": "StressReallocPattern",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 345
+        },
+        {
+          "name": "StressFragmentation",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 372
+        },
+        {
+          "name": "StressAlignment",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 416
+        },
+        {
+          "name": "StressLeakTracking",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_heap_test.cpp",
+          "line": 430
+        }
+      ]
+    },
+    {
+      "name": "CstlLogInitTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "InitFailsWithoutHeap",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 32
+        },
+        {
+          "name": "InitDestroyAndReinit",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "name": "CstlLogTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "LevelNames",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 45
+        },
+        {
+          "name": "DefaultMinLevelIsTrace",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 56
+        },
+        {
+          "name": "SetMinLevelFiltersMessages",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 59
+        },
+        {
+          "name": "InvalidMinLevelIsIgnored",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 71
+        },
+        {
+          "name": "WriteAllLevelsAndFlush",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 78
+        },
+        {
+          "name": "VariadicFormattingMatchesPrintf",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 89
+        },
+        {
+          "name": "FatalLogsBacktraceWithoutCrashing",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 96
+        },
+        {
+          "name": "LogWriteVWorks",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 103
+        },
+        {
+          "name": "FlushOnEmptyQueueIsSafe",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 110
+        },
+        {
+          "name": "ShutdownDrainsPendingMessages",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 116
+        },
+        {
+          "name": "DroppedCountStartsAtZero",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_log_test.cpp",
+          "line": 123
+        }
+      ]
+    },
+    {
+      "name": "CstlStringInitTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "DeleteNullIsSafe",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "name": "CstlStringTest",
+      "tests": 46,
+      "testsuite": [
+        {
+          "name": "NewEmptyString",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 48
+        },
+        {
+          "name": "NewStringWithData",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 57
+        },
+        {
+          "name": "NewStringWithDataSized",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 65
+        },
+        {
+          "name": "NewStringWithDataRejectsNull",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 73
+        },
+        {
+          "name": "NewStringWithFormat",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 78
+        },
+        {
+          "name": "NewStringWithFormatNullReturnsEmpty",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 86
+        },
+        {
+          "name": "CharAtBoundsCheck",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 94
+        },
+        {
+          "name": "StringEquals",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 108
+        },
+        {
+          "name": "StringCompare",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 128
+        },
+        {
+          "name": "StringConcat",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 149
+        },
+        {
+          "name": "StringConcatWithNull",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 166
+        },
+        {
+          "name": "StringSubstring",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 189
+        },
+        {
+          "name": "StringSubstringInvalidRange",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 212
+        },
+        {
+          "name": "StringStartsWith",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 232
+        },
+        {
+          "name": "StringEndsWith",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 247
+        },
+        {
+          "name": "StringIndexOf",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 262
+        },
+        {
+          "name": "StringLastIndexOf",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 277
+        },
+        {
+          "name": "StringIndexOfChar",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 291
+        },
+        {
+          "name": "StringLastIndexOfChar",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 304
+        },
+        {
+          "name": "StringContains",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 317
+        },
+        {
+          "name": "StringIsEmpty",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 328
+        },
+        {
+          "name": "StringToLowerCase",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 344
+        },
+        {
+          "name": "StringToUpperCase",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 357
+        },
+        {
+          "name": "StringTrim",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 370
+        },
+        {
+          "name": "StringReplace",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 383
+        },
+        {
+          "name": "StringReplaceChar",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 396
+        },
+        {
+          "name": "StringRepeat",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 409
+        },
+        {
+          "name": "StringEqualsIgnoreCase",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 422
+        },
+        {
+          "name": "StringCompareIgnoreCase",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 437
+        },
+        {
+          "name": "StringHashCode",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 452
+        },
+        {
+          "name": "StringRemove",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 466
+        },
+        {
+          "name": "StringValueOfInt",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 479
+        },
+        {
+          "name": "StringValueOfLong",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 487
+        },
+        {
+          "name": "StringValueOfDouble",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 495
+        },
+        {
+          "name": "StringJoin",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 503
+        },
+        {
+          "name": "StringBuilderBasic",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 527
+        },
+        {
+          "name": "StringBuilderAppendData",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 546
+        },
+        {
+          "name": "StringBuilderAppendChar",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 562
+        },
+        {
+          "name": "StringBuilderAppendInt",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 579
+        },
+        {
+          "name": "StringBuilderAppendBool",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 595
+        },
+        {
+          "name": "StringBuilderEmplace",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 611
+        },
+        {
+          "name": "StringBuilderInsert",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 627
+        },
+        {
+          "name": "StringBuilderDelete",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 643
+        },
+        {
+          "name": "StringBuilderReplace",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 659
+        },
+        {
+          "name": "StringBuilderReverse",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 675
+        },
+        {
+          "name": "GettersReturnZeroOrNullForNullString",
+          "file": "C:\\Users\\USUARIO\\IdeaProjects\\RLv2\\tests\\cstl_string_test.cpp",
+          "line": 691
+        }
+      ]
+    }
+  ]
+}

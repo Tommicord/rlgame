@@ -22,12 +22,12 @@ struct R_CVulkan_SamplerCreateInfo
                 VkSamplerAddressMode           addressModeV; /**< Address mode for V coordinate */
                 VkSamplerAddressMode           addressModeW; /**< Address mode for W coordinate */
                 float                          mipLodBias; /**< Mipmap LOD bias */
-                int                            anisotropyEnable; /**< Whether to enable anisotropic filtering */
-                float                          maxAnisotropy; /**< Maximum anisotropy */
-                float                          minLod; /**< Minimum LOD */
-                float                          maxLod; /**< Maximum LOD */
-                VkBorderColor                  borderColor; /**< Border color (for clamp to border) */
-                int                            unnormalizedCoordinates; /**< Whether to use unnormalized coordinates */
+                int           anisotropyEnable; /**< Whether to enable anisotropic filtering */
+                float         maxAnisotropy; /**< Maximum anisotropy */
+                float         minLod; /**< Minimum LOD */
+                float         maxLod; /**< Maximum LOD */
+                VkBorderColor borderColor; /**< Border color (for clamp to border) */
+                int           unnormalizedCoordinates; /**< Whether to use unnormalized coordinates */
 };
 
 /**
@@ -47,7 +47,7 @@ struct R_CVulkan_Sampler
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSampler (
-    struct R_CVulkan_Sampler*             pSampler,
+    struct R_CVulkan_Sampler*                 pSampler,
     const struct R_CVulkan_SamplerCreateInfo* pCreateInfo);
 
 /**

@@ -1,5 +1,6 @@
 #include "rlgame.base/cvulkan/cvulkan_command_buffer.h"
 #include "rlgame.base/cvulkan/cvulkan_device.h"
+#include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <stdint.h>
@@ -32,8 +33,8 @@ R_CVulkan_NewCommandBuffer (
         pCommandBuffer->handle = VK_NULL_HANDLE;
         pCommandBuffer->pool = pool;
         pCommandBuffer->device = device;
-        pCommandBuffer->isRecording = 0;
 #if defined(R_CVULKAN_DEBUG)
+        pCommandBuffer->isRecording = 0;
         pCommandBuffer->isInitialized = false;
 #endif
 
@@ -76,9 +77,8 @@ R_CVulkan_DeleteCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
                     &pCommandBuffer->handle);
                 pCommandBuffer->handle = VK_NULL_HANDLE;
         }
-
-        pCommandBuffer->isRecording = 0;
 #if defined(R_CVULKAN_DEBUG)
+        pCommandBuffer->isRecording = 0;
         pCommandBuffer->isInitialized = false;
 #endif
         pCommandBuffer->pool = VK_NULL_HANDLE;
@@ -91,16 +91,9 @@ R_CVulkan_BeginCommandBuffer (
     VkCommandBufferUsageFlags             flags,
     const VkCommandBufferInheritanceInfo* pInheritanceInfo)
 {
-        R_CVULKAN_ASSERT (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
+        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-        if (!pCommandBuffer->isInitialized)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
         if (pCommandBuffer->isRecording)
         {
                 return R_CVULKAN_ERROR_FAILED;
@@ -126,18 +119,9 @@ R_CVulkan_BeginCommandBuffer (
 enum R_CVulkan_Error
 R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
-        R_CVULKAN_ASSERT (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
+        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
         if (!pCommandBuffer->isRecording)
         {
                 return R_CVULKAN_ERROR_FAILED;
@@ -157,18 +141,8 @@ R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 enum R_CVulkan_Error
 R_CVulkan_ResetCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer, VkCommandBufferResetFlags flags)
 {
-        R_CVULKAN_ASSERT (pCommandBuffer);
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
+        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
         VkResult result = vkResetCommandBuffer (pCommandBuffer->handle, flags);
         if (result != VK_SUCCESS)
         {
@@ -186,17 +160,7 @@ R_CVulkan_CommandBufferBindPipeline (
     VkPipelineBindPoint             pipelineBindPoint,
     VkPipeline                      pipeline)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdBindPipeline (pCommandBuffer->handle, pipelineBindPoint, pipeline);
         return R_CVULKAN_OK;
 }
@@ -209,17 +173,7 @@ R_CVulkan_CommandBufferBindVertexBuffer (
     const VkBuffer*                 pBuffers,
     const VkDeviceSize*             pOffsets)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdBindVertexBuffers (pCommandBuffer->handle, firstBinding, bindingCount, pBuffers, pOffsets);
         return R_CVULKAN_OK;
 }
@@ -231,17 +185,7 @@ R_CVulkan_CommandBufferBindIndexBuffer (
     VkDeviceSize                    offset,
     VkIndexType                     indexType)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdBindIndexBuffer (pCommandBuffer->handle, buffer, offset, indexType);
         return R_CVULKAN_OK;
 }
@@ -257,17 +201,7 @@ R_CVulkan_CommandBufferBindDescriptorSets (
     uint32_t                        dynamicOffsetCount,
     const uint32_t*                 pDynamicOffsets)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdBindDescriptorSets (
             pCommandBuffer->handle,
             pipelineBindPoint,
@@ -288,17 +222,7 @@ R_CVulkan_CommandBufferDraw (
     uint32_t                        firstVertex,
     uint32_t                        firstInstance)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdDraw (pCommandBuffer->handle, vertexCount, instanceCount, firstVertex, firstInstance);
         return R_CVULKAN_OK;
 }
@@ -312,17 +236,7 @@ R_CVulkan_CommandBufferDrawIndexed (
     int32_t                         vertexOffset,
     uint32_t                        firstInstance)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdDrawIndexed (
             pCommandBuffer->handle,
             indexCount,
@@ -340,17 +254,7 @@ R_CVulkan_CommandBuffer_SetViewport (
     uint32_t                        viewportCount,
     const VkViewport*               pViewports)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetViewport (pCommandBuffer->handle, firstViewport, viewportCount, pViewports);
         return R_CVULKAN_OK;
 }
@@ -362,17 +266,7 @@ R_CVulkan_CommandBufferSetScissor (
     uint32_t                              scissorCount,
     const VkRect2D*                       pScissors)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetScissor (pCommandBuffer->handle, firstScissor, scissorCount, pScissors);
         return R_CVULKAN_OK;
 }
@@ -382,17 +276,7 @@ R_CVulkan_CommandBufferSetBlendConstants (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     const float                     blendConstants[4])
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetBlendConstants (pCommandBuffer->handle, blendConstants);
         return R_CVULKAN_OK;
 }
@@ -403,17 +287,7 @@ R_CVulkan_CommandBuffer_SetDepthBounds (
     float                           minDepth,
     float                           maxDepth)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetDepthBounds (pCommandBuffer->handle, minDepth, maxDepth);
         return R_CVULKAN_OK;
 }
@@ -424,17 +298,7 @@ R_CVulkan_CommandBuffer_SetStencilCompareMask (
     VkStencilFaceFlags              faceMask,
     uint32_t                        compareMask)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetStencilCompareMask (pCommandBuffer->handle, faceMask, compareMask);
         return R_CVULKAN_OK;
 }
@@ -445,17 +309,7 @@ R_CVulkan_CommandBuffer_SetStencilWriteMask (
     VkStencilFaceFlags              faceMask,
     uint32_t                        writeMask)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetStencilWriteMask (pCommandBuffer->handle, faceMask, writeMask);
         return R_CVULKAN_OK;
 }
@@ -466,17 +320,7 @@ R_CVulkan_CommandBufferSetStencilReference (
     VkStencilFaceFlags              faceMask,
     uint32_t                        reference)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdSetStencilReference (pCommandBuffer->handle, faceMask, reference);
         return R_CVULKAN_OK;
 }
@@ -488,17 +332,7 @@ R_CVulkan_CommandBufferCopyBuffer (
     VkBuffer                        dstBuffer,
     const VkBufferCopy*             pRegion)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdCopyBuffer (pCommandBuffer->handle, srcBuffer, dstBuffer, 1, pRegion);
         return R_CVULKAN_OK;
 }
@@ -511,17 +345,7 @@ R_CVulkan_CommandBufferCopyBufferToImage (
     VkImageLayout                   dstLayout,
     const VkBufferImageCopy*        pRegion)
 {
-#if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-#endif
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdCopyBufferToImage (pCommandBuffer->handle, srcBuffer, dstImage, dstLayout, 1, pRegion);
         return R_CVULKAN_OK;
 }
@@ -534,15 +358,7 @@ R_CVulkan_CommandBuffer_CopyImageToBuffer (
     VkBuffer                        dstBuffer,
     const VkBufferImageCopy*        pRegion)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
 
         vkCmdCopyImageToBuffer (pCommandBuffer->handle, srcImage, srcLayout, dstBuffer, 1, pRegion);
         return R_CVULKAN_OK;
@@ -550,19 +366,11 @@ R_CVulkan_CommandBuffer_CopyImageToBuffer (
 
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferPipelineBarrier (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo)
 {
-        if (!pCommandBuffer || !pBarrierInfo)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_PTR (pBarrierInfo);
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdPipelineBarrier (
             pCommandBuffer->handle,
             pBarrierInfo->srcStageMask,
@@ -579,19 +387,11 @@ R_CVulkan_CommandBufferPipelineBarrier (
 
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferBeginRenderPass (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo)
 {
-        if (!pCommandBuffer || !pRenderPassInfo)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_PTR (pRenderPassInfo);
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         VkRenderPassBeginInfo beginInfo = {0};
         beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         beginInfo.renderPass = pRenderPassInfo->renderPass;
@@ -607,49 +407,36 @@ R_CVulkan_CommandBufferBeginRenderPass (
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdEndRenderPass (pCommandBuffer->handle);
         return R_CVULKAN_OK;
 }
 
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferBeginRendering (
-    struct R_CVulkan_CommandBuffer*       pCommandBuffer,
+    struct R_CVulkan_CommandBuffer*              pCommandBuffer,
     const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo)
 {
-        if (!pCommandBuffer || !pRenderingInfo)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_PTR (pRenderingInfo);
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         VkRenderingAttachmentInfoKHR* pColorAttachments = NULL;
         if (pRenderingInfo->colorAttachmentCount > 0)
         {
                 pColorAttachments = (VkRenderingAttachmentInfoKHR*)R_CSTL_HeapAlloc (
-                        sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
+                    sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
                 if (!pColorAttachments)
                 {
                         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 }
-                memset (pColorAttachments, 0, sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
+                memset (
+                    pColorAttachments,
+                    0,
+                    sizeof (VkRenderingAttachmentInfoKHR) * pRenderingInfo->colorAttachmentCount);
 
                 for (uint32_t i = 0; i < pRenderingInfo->colorAttachmentCount; ++i)
                 {
-                        const struct R_CVulkan_DynamicRenderingAttachmentInfo* pSrc = &pRenderingInfo->pColorAttachments[i];
+                        const struct R_CVulkan_DynamicRenderingAttachmentInfo* pSrc
+                            = &pRenderingInfo->pColorAttachments[i];
                         pColorAttachments[i].sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
                         pColorAttachments[i].imageView = pSrc->imageView;
                         pColorAttachments[i].imageLayout = pSrc->imageLayout;
@@ -714,16 +501,7 @@ R_CVulkan_CommandBufferBeginRendering (
 enum R_CVulkan_Error
 R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdEndRendering (pCommandBuffer->handle);
         return R_CVULKAN_OK;
 }
@@ -733,16 +511,7 @@ R_CVulkan_CommandBufferNextSubpass (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkSubpassContents               contents)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdNextSubpass (pCommandBuffer->handle, contents);
         return R_CVULKAN_OK;
 }
@@ -756,16 +525,7 @@ R_CVulkan_CommandBufferPushConstants (
     uint32_t                        size,
     const void*                     pValues)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdPushConstants (pCommandBuffer->handle, layout, stageFlags, offset, size, pValues);
         return R_CVULKAN_OK;
 }
@@ -777,16 +537,7 @@ R_CVulkan_CommandBuffer_Dispatch (
     uint32_t                        groupCountY,
     uint32_t                        groupCountZ)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdDispatch (pCommandBuffer->handle, groupCountX, groupCountY, groupCountZ);
         return R_CVULKAN_OK;
 }
@@ -797,16 +548,7 @@ R_CVulkan_CommandBufferDispatchIndirect (
     VkBuffer                        buffer,
     VkDeviceSize                    offset)
 {
-        if (!pCommandBuffer)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (!pCommandBuffer->isInitialized || !pCommandBuffer->isRecording)
-        {
-                return R_CVULKAN_ERROR_NOT_INITIALIZED;
-        }
-
+        R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdDispatchIndirect (pCommandBuffer->handle, buffer, offset);
         return R_CVULKAN_OK;
 }
@@ -814,29 +556,40 @@ R_CVulkan_CommandBufferDispatchIndirect (
 VkCommandBuffer
 R_CVulkan_CommandBufferGetHandle (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
+        R_CVULKAN_VALIDATE_GETTER (pCommandBuffer);
         return pCommandBuffer->handle;
 }
 
 VkCommandPool
 R_CVulkan_CommandBufferGetPool (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
+        R_CVULKAN_VALIDATE_GETTER (pCommandBuffer);
         return pCommandBuffer->pool;
 }
 
 VkDevice
 R_CVulkan_CommandBufferGetDevice (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
+        R_CVULKAN_VALIDATE_GETTER (pCommandBuffer);
         return pCommandBuffer->device;
 }
 
 int
 R_CVulkan_CommandBufferIsRecording (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
+#if defined(R_CVULKAN_DEBUG)
         return pCommandBuffer->isRecording;
+#else
+        return false;
+#endif
 }
 
 int
 R_CVulkan_CommandBufferIsInitialized (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
+#if defined(R_CVULKAN_DEBUG)
         return pCommandBuffer->isInitialized;
+#else
+        return true;
+#endif
 }

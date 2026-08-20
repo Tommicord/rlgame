@@ -367,3 +367,60 @@ R_CSTL_API int R_CSTL_ArraySort (
     uint8_t              elemSize,
     int (*pComparator) (const void* pLeft, const void* pRight, void* pData),
     void* pData);
+
+/**
+ * @brief Get a typed element at a specific index with bounds checking
+ *
+ * Reads the element of type Type at the specified index, validating that the index is within bounds.
+ * This macro reconstructs the element byte-by-byte from the array.
+ *
+ * @param pArray Pointer to array.
+ * @param Type The type of element to retrieve.
+ * @param index Index of the element to read.
+ * @param pOutValue Pointer to receive the value.
+ *
+ * @note This macro performs bounds checking via R_CSTL_ArrayAt.
+ * @note The element is reconstructed byte-by-byte from the array data.
+ */
+#define R_CSTL_ArrayTypedAt(pArray, Type, index, pOutValue)                                                  \
+        do                                                                                                   \
+        {                                                                                                    \
+                Type _temp;                                                                                  \
+                memset (&_temp, 0, sizeof (Type));                                                           \
+                uint8_t* _bytes = (uint8_t*)&_temp;                                                          \
+                size_t   _offset = (index) * sizeof (Type);                                                  \
+                for (size_t _j = 0; _j < sizeof (Type); ++_j)                                                \
+                {                                                                                            \
+                        R_CSTL_ArrayAt (pArray, _offset + _j, &_bytes[_j]);                                  \
+                }                                                                                            \
+                *(pOutValue) = _temp;                                                                        \
+        } while (0)
+
+/**
+ * @brief Get a typed element at a specific index without bounds checking
+ *
+ * Reads the element of type Type at the specified index without validating bounds.
+ * This macro reconstructs the element byte-by-byte from the array data.
+ *
+ * @param pArray Pointer to array.
+ * @param Type The type of element to retrieve.
+ * @param index Index of the element to read.
+ * @param pOutValue Pointer to receive the value.
+ *
+ * @warning No bounds checking; undefined behavior if index is invalid.
+ * @note This macro uses R_CSTL_ArrayUncheckedAt for better performance.
+ * @note The element is reconstructed byte-by-byte from the array data.
+ */
+#define R_CSTL_ArrayTypedAtUnchecked(pArray, Type, index, pOutValue)                                         \
+        do                                                                                                   \
+        {                                                                                                    \
+                Type _temp;                                                                                  \
+                memset (&_temp, 0, sizeof (Type));                                                           \
+                uint8_t* _bytes = (uint8_t*)&_temp;                                                          \
+                size_t   _offset = (index) * sizeof (Type);                                                  \
+                for (size_t _j = 0; _j < sizeof (Type); ++_j)                                                \
+                {                                                                                            \
+                        R_CSTL_ArrayUncheckedAt (pArray, _offset + _j, &_bytes[_j]);                         \
+                }                                                                                            \
+                *(pOutValue) = _temp;                                                                        \
+        } while (0)

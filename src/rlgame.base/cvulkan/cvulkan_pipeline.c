@@ -7,7 +7,7 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout*             pLayout,
+    struct R_CVulkan_PipelineLayout*                 pLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pLayout);
@@ -76,7 +76,7 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
 
 enum R_CVulkan_Error
 R_CVulkan_NewGraphicsPipeline (
-    struct R_CVulkan_Pipeline*                       pPipeline,
+    struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pPipeline);
@@ -104,7 +104,8 @@ R_CVulkan_NewGraphicsPipeline (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
+        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo
+            || !pCreateInfo->pColorBlendInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
@@ -156,7 +157,7 @@ R_CVulkan_NewGraphicsPipeline (
 
 enum R_CVulkan_Error
 R_CVulkan_NewDynamicGraphicsPipeline (
-    struct R_CVulkan_Pipeline*                       pPipeline,
+    struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pPipeline);
@@ -182,7 +183,8 @@ R_CVulkan_NewDynamicGraphicsPipeline (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
-        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
+        if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo
+            || !pCreateInfo->pColorBlendInfo)
                 return R_CVULKAN_ERROR_NULL_POINTER;
         if (!pCreateInfo->pColorAttachmentFormats)
                 return R_CVULKAN_ERROR_NULL_POINTER;

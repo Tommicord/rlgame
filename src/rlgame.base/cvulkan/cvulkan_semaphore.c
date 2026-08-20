@@ -64,17 +64,15 @@ R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore)
                 return;
         }
 #endif
-
         if (pSemaphore->handle != VK_NULL_HANDLE)
         {
                 vkDestroySemaphore (pSemaphore->device, pSemaphore->handle, NULL);
-                pSemaphore->handle = VK_NULL_HANDLE;
         }
-
 #if defined(R_CVULKAN_DEBUG)
+        pSemaphore->handle = VK_NULL_HANDLE;
+        pSemaphore->device = VK_NULL_HANDLE;
         pSemaphore->isInitialized = false;
 #endif
-        pSemaphore->device = VK_NULL_HANDLE;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error

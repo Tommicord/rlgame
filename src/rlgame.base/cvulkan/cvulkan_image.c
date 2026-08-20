@@ -7,9 +7,7 @@
 #include <stdlib.h>
 
 enum R_CVulkan_Error
-R_CVulkan_NewImage (
-    struct R_CVulkan_Image*                 pImage,
-    const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
+R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (pCreateInfo);
@@ -27,7 +25,8 @@ R_CVulkan_NewImage (
         }
 #endif
 
-        if (pCreateInfo->extent.width == 0 || pCreateInfo->extent.height == 0 || pCreateInfo->extent.depth == 0)
+        if (pCreateInfo->extent.width == 0 || pCreateInfo->extent.height == 0
+            || pCreateInfo->extent.depth == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
@@ -261,7 +260,7 @@ R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-#endif  
+#endif
         return pImage->handle;
 }
 
@@ -270,7 +269,7 @@ R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-#endif  
+#endif
         return pImage->memory;
 }
 
@@ -279,7 +278,7 @@ R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-#endif  
+#endif
         return pImage->device;
 }
 
@@ -288,7 +287,7 @@ R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-#endif  
+#endif
         return pImage->width;
 }
 
@@ -297,7 +296,7 @@ R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-#endif  
+#endif
         return pImage->height;
 }
 
@@ -320,7 +319,7 @@ R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API int
-R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* image)
+R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);

@@ -50,7 +50,7 @@ TEST_F (CstlLogTest, LevelNames)
   EXPECT_STREQ ("WARN", R_CSTL_LogLevelName (R_CSTL_LOG_LEVEL_WARN));
   EXPECT_STREQ ("ERROR", R_CSTL_LogLevelName (R_CSTL_LOG_LEVEL_ERROR));
   EXPECT_STREQ ("FATAL", R_CSTL_LogLevelName (R_CSTL_LOG_LEVEL_FATAL));
-  EXPECT_STREQ ("UNKNOWN", R_CSTL_LogLevelName (static_cast<R_CSTL_LogLevel> (999)));
+  EXPECT_STREQ ("UNKNOWN", R_CSTL_LogLevelName (static_cast<enum R_CSTL_LogLevel> (999)));
 }
 
 TEST_F (CstlLogTest, DefaultMinLevelIsTrace)
@@ -71,7 +71,7 @@ TEST_F (CstlLogTest, SetMinLevelFiltersMessages)
 TEST_F (CstlLogTest, InvalidMinLevelIsIgnored)
 {
   R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_INFO);
-  R_CSTL_LogSetMinLevel (static_cast<R_CSTL_LogLevel> (-1));
+  R_CSTL_LogSetMinLevel (static_cast<enum R_CSTL_LogLevel> (-1));
   EXPECT_EQ (R_CSTL_LOG_LEVEL_INFO, R_CSTL_LogGetMinLevel ());
 }
 

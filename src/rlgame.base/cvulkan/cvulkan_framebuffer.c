@@ -7,7 +7,7 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFramebuffer (
-    struct R_CVulkan_Framebuffer*           pFramebuffer,
+    struct R_CVulkan_Framebuffer*                 pFramebuffer,
     const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pFramebuffer != NULL);
@@ -22,7 +22,8 @@ R_CVulkan_NewFramebuffer (
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE || !pCreateInfo->pAttachments || pCreateInfo->attachmentCount == 0)
+        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE || !pCreateInfo->pAttachments
+            || pCreateInfo->attachmentCount == 0)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }

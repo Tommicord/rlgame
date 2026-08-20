@@ -18,6 +18,12 @@
 #endif
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define R_CSTL_PLATFORM_WINDOWS
+#elif defined(__linux__)
+#define R_CSTL_PLATFORM_LINUX
+#endif
+
 #if defined(_MSC_VER)
 #define R_CSTL_HEAP_COMPILER_BARRIER() MemoryBarrier ()
 #elif defined(__GNUC__) || defined(__clang__)

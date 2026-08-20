@@ -432,7 +432,8 @@ cstl_fail:
 R_CSTL_API_ATTR static struct R_CSTL_String*
 R_CSTL_StringCreateShell (void)
 {
-        struct R_CSTL_String* pString = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String));
+        struct R_CSTL_String* pString
+            = (struct R_CSTL_String*)R_CSTL_HeapAlloc (sizeof (struct R_CSTL_String));
         if (!pString)
                 return NULL;
         pString->length = 0;
@@ -1425,7 +1426,10 @@ cstl_fail:
         return -1
 
 int
-R_CSTL_StringBuilderEmplaceSized (struct R_CSTL_StringBuilder* pBuilder, const char* pCString, const size_t size)
+R_CSTL_StringBuilderEmplaceSized (
+    struct R_CSTL_StringBuilder* pBuilder,
+    const char*                  pCString,
+    const size_t                 size)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder)
@@ -1643,9 +1647,9 @@ R_CSTL_StringBuilderClear (struct R_CSTL_StringBuilder* pBuilder)
 
 int
 R_CSTL_StringBuilderInsert (
-    struct R_CSTL_StringBuilder*       pBuilder,
-    size_t                      offset,
-    const struct R_CSTL_String* pString)
+    struct R_CSTL_StringBuilder* pBuilder,
+    size_t                       offset,
+    const struct R_CSTL_String*  pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)
@@ -1749,10 +1753,10 @@ cstl_fail:
 
 int
 R_CSTL_StringBuilderReplace (
-    struct R_CSTL_StringBuilder*       pBuilder,
-    size_t                      start,
-    size_t                      end,
-    const struct R_CSTL_String* pString)
+    struct R_CSTL_StringBuilder* pBuilder,
+    size_t                       start,
+    size_t                       end,
+    const struct R_CSTL_String*  pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)
@@ -1764,9 +1768,9 @@ R_CSTL_StringBuilderReplace (
 int
 R_CSTL_StringBuilderEmplaceReplace (
     struct R_CSTL_StringBuilder* pBuilder,
-    size_t                start,
-    size_t                end,
-    const char*           pString)
+    size_t                       start,
+    size_t                       end,
+    const char*                  pString)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
         if (!pBuilder || !pString)

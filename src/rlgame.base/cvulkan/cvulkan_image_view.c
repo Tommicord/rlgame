@@ -7,7 +7,7 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewImageView (
-    struct R_CVulkan_ImageView*             pImageView,
+    struct R_CVulkan_ImageView*                 pImageView,
     const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pImageView);
@@ -79,7 +79,7 @@ R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImageView != NULL);
-#endif  
+#endif
         return pImageView->handle;
 }
 
@@ -88,7 +88,7 @@ R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImageView != NULL);
-#endif  
+#endif
         return pImageView->device;
 }
 
@@ -97,7 +97,7 @@ R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImageView != NULL);
-#endif  
+#endif
         return pImageView->image;
 }
 

@@ -6,18 +6,23 @@
 #include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_queue.h"
+#include "rlgame.base/cstl/cstl_array.h"
+#include "rlgame.base/cstl/cstl_string.h"
 
 struct R_CSTL_Array;
 
+struct R_CVulkan_Surface;
+struct R_CVulkan_Instance;
+
 /**
  * @brief Configuration parameters for device creation
+ * The instance must be created separately using R_CVulkan_NewInstance before creating a device.
  */
 struct R_CVulkan_DeviceCreateInfo
 {
-                const char*  pApplicationName; /**< Application name (can be NULL) */
-                bool         enableValidationLayers; /**< Whether to enable validation layers */
-                bool         headlessMode; /**< Whether to run in headless mode (no surface) */
-                VkSurfaceKHR surface; /**< Optional surface for presentation (can be NULL in headless mode) */
+                const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
+                const struct R_CVulkan_Surface*
+                    pSurface; /**< Optional surface for presentation (can be NULL in headless mode) */
 };
 
 /**
@@ -27,8 +32,12 @@ struct R_CVulkan_QueueFamilyIndices
 {
                 uint32_t graphicsFamily;
                 uint32_t presentFamily;
+                uint32_t computeFamily;
+                uint32_t transferFamily;
                 bool     hasGraphicsFamily;
                 bool     hasPresentFamily;
+                bool     hasComputeFamily;
+                bool     hasTransferFamily;
 };
 
 /**
@@ -42,31 +51,37 @@ struct R_CVulkan_SwapChainSupport
 };
 
 /**
- * @brief Vulkan device wrapper containing instance, physical device, and logical device
+ * @brief Vulkan device wrapper containing physical device and logical device
+ * The instance is managed separately by R_CVulkan_Instance.
  */
 struct R_CVulkan_Device
 {
-                VkInstance               instance;
-                VkPhysicalDevice         physicalDevice;
-                VkDevice                 logicalDevice;
-                VkSurfaceKHR             surface;
-                struct R_CVulkan_Queue   graphicsQueue;
-                struct R_CVulkan_Queue   presentQueue;
-                VkDebugUtilsMessengerEXT debugMessenger;
-                bool                     enableValidationLayers;
-                bool                     headlessMode;
+                const struct R_CVulkan_Instance* pInstance; /**< Associated Vulkan instance */
+                VkPhysicalDevice                 physicalDevice;
+                VkDevice                         logicalDevice;
+                VkSurfaceKHR                     surface;
+                struct R_CVulkan_Queue           graphicsQueue;
+                struct R_CVulkan_Queue           presentQueue;
                 R_CVULKAN_DEBUG_FIELD
 };
 
 /**
- * @brief Initialize a Vulkan device with instance and logical device
+ * @brief Initialize a Vulkan device with the specified instance and surface
  * @param pDevice Pointer to device to initialize
- * @param pCreateInfo Device creation parameters
+ * @param pCreateInfo Device creation parameters (must include valid instance)
  * @return R_CVULKAN_OK on success, error code otherwise
+ *
+ * This function creates a logical Vulkan device from a physical device.
+ * The instance must be created separately using R_CVulkan_NewInstance before calling this function.
+ * The surface is optional but required for presentation (swapchain support).
+ *
+ * Common errors:
+ * - R_CVULKAN_ERROR_NOT_INITIALIZED: Instance not initialized or surface not provided when required
+ * - R_CVULKAN_ERROR_PHYSICAL_DEVICE_NOT_FOUND: No suitable physical device found
+ * - R_CVULKAN_ERROR_DEVICE_CREATE_FAILED: Failed to create logical device
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDevice (
-    struct R_CVulkan_Device*             pDevice,
-    const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
 
 /**
  * @brief Delete a Vulkan device and cleanup resources
@@ -75,11 +90,12 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDevice (
 R_CVULKAN_API void R_CVulkan_DeleteDevice (struct R_CVulkan_Device* pDevice);
 
 /**
- * @brief Get the Vulkan instance handle
+ * @brief Get the associated Vulkan instance
  * @param pDevice Pointer to device
- * @return Vulkan instance handle, or VK_NULL_HANDLE if not initialized
+ * @return Pointer to Vulkan instance, or NULL if not initialized
  */
-R_CVULKAN_API VkInstance R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice);
+R_CVULKAN_API const struct R_CVulkan_Instance*
+R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the physical device handle
@@ -136,7 +152,6 @@ R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* 
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
     VkPhysicalDevice                     physicalDevice,
     VkSurfaceKHR                         surface,
-    bool                                 headlessMode,
     struct R_CVulkan_QueueFamilyIndices* pOutIndices);
 
 /**

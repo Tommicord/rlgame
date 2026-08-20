@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
@@ -43,9 +44,8 @@ struct R_CVulkan_Buffer
  * @param pCreateInfo Buffer creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewBuffer (
-    struct R_CVulkan_Buffer*                 pBuffer,
-    const struct R_CVulkan_BufferCreateInfo* pCreateInfo);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_BufferCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes a buffer and destroy the Vulkan objects

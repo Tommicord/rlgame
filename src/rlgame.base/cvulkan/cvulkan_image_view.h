@@ -40,7 +40,7 @@ struct R_CVulkan_ImageView
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewImageView (
-    struct R_CVulkan_ImageView*             pImageView,
+    struct R_CVulkan_ImageView*                 pImageView,
     const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo);
 
 /**

@@ -3,6 +3,8 @@
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_array.h"
 #include "rlgame.base/cstl/cstl_log.h"
+#include "rlgame.base/cstl/cstl_trace.h"
+#include "rlgame.base/game/game_state.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +58,7 @@ R_GameLoop_GetState (const struct R_MainProvider* pProvider)
 }
 
 bool
-R_GameLoop_HasState (const struct  R_MainProvider* pProvider, uint8_t flags)
+R_GameLoop_HasState (const struct R_MainProvider* pProvider, uint8_t flags)
 {
         uint8_t current = R_GameLoop_GetState (pProvider);
         return (current & flags) == flags;
@@ -86,6 +88,7 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
         {                                                                                                    \
                 R_CSTL_HeapInit (R_APP_INITIAL_HEAP_SIZE);                                                   \
                 R_CSTL_LogInit ();                                                                           \
+                R_CSTL_TraceLogEnvironmentInfo ();                                                           \
         } while (0)
 
 #define R_APP_CLEANUP_INFO(info)                                                                             \
@@ -127,7 +130,7 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
                 if (!pAppName)                                                                               \
                         goto r_log_appinfo;                                                                  \
                 R_CSTL_LOG_INFO ("App: %s pid=%u args=%d", pAppName, (Info).pid, (Info).args.argc);          \
-                if ((info).args.pCmdLine)                                                                    \
+                if ((Info).args.pCmdLine)                                                                    \
                         R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                                   \
                 R_CSTL_LOG_INFO (                                                                            \
                     "Memory: total=%.2f GB avail=%.2f GB used=%.2f GB appHeap=%.2f MB",                      \
@@ -142,9 +145,9 @@ R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider)
                         R_CSTL_LOG_INFO ("Existing subprocesses: %d", existingProcessCount);                 \
                         for (int i = 0; i < existingProcessCount; i++)                                       \
                         {                                                                                    \
-                                struct R_ProcessInfo        pProcess = (Info).pExistingProcesses[i];                \
-                                const struct R_CSTL_String* pNameString = pProcess.pName;                           \
-                                const char*          pProcessName                                            \
+                                struct R_ProcessInfo        pProcess = (Info).pExistingProcesses[i];         \
+                                const struct R_CSTL_String* pNameString = pProcess.pName;                    \
+                                const char*                 pProcessName                                     \
                                     = pNameString ? R_CSTL_StringData (pNameString) : "(unknown)";           \
                                 R_CSTL_LOG_INFO (                                                            \
                                     "Process[%d]: pid=%u name=%s mem=%.2f GB",                               \
@@ -240,7 +243,7 @@ struct R_ProcessInfo*
 R_CollectProcesses (size_t* outCount, int argc, char** argv)
 {
         struct R_ProcessInfo* arr = NULL;
-        char*          exe = NULL;
+        char*                 exe = NULL;
 
         if (!outCount)
                 return NULL;
@@ -315,8 +318,8 @@ void
 R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv)
 {
         struct R_CSTL_StringBuilder* pBuilder = NULL;
-        struct R_CSTL_String* pCmdString = NULL;
-        char*                 cmd = NULL;
+        struct R_CSTL_String*        pCmdString = NULL;
+        char*                        cmd = NULL;
 
         if (!info || argc <= 0 || !argv)
                 return;
@@ -365,25 +368,68 @@ R_PopulateApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv
         R_BuildCommandLine (info, argc, argv);
         R_FillMemoryInfo (&info->memory);
 
-        size_t         count = 0;
+        size_t                count = 0;
         struct R_ProcessInfo* pProcs = R_CollectProcesses (&count, argc, argv);
         info->pExistingProcesses = pProcs;
         info->existingProcessCount = count;
 }
 
 void
-R_LaunchMainProvider (R_GameLoopCallback pExecCallback, const void* pUserData)
+R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData)
 {
         const struct R_ApplicationInfo* pAppInfo = (const struct R_ApplicationInfo*)pUserData;
-        struct R_MainProvider            provider = {
+        struct R_MainProvider           provider = {
                       .pExecCallback = pExecCallback,
                       .pAppInfo = pAppInfo,
                       .stateFlags = R_GAMELOOP_STATE_NONE,
         };
         R_MainProvider_Run (&provider);
 }
+#define R_WIN32_INSTANCE HINSTANCE
+#define R_WIN32_HWND     HWND
 
-static HWND g_hwnd = NULL;
+static R_WIN32_HWND       g_hwnd = NULL;
+static struct R_GameState g_gameState = {0};
+
+static bool
+R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo)
+{
+        if (!R_GameState_IsInitialized (&g_gameState))
+        {
+                struct R_GameStateCreateInfo createInfo = {0};
+                createInfo.pApplicationName = pAppInfo->pApplicationName;
+                R_WIN32_INSTANCE hInstance = GetModuleHandle (NULL);
+                if (hInstance == NULL)
+                {
+                        R_CSTL_LOG_WARN ("HINSTANCE handle is NULL, skipping callback initialization.");
+                        return false;
+                }
+                createInfo.hInstance = hInstance;
+                createInfo.hWnd = g_hwnd;
+
+                enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameState, &createInfo);
+                if (result != R_CVULKAN_OK)
+                {
+                        return false;
+                }
+                R_CSTL_LOG_INFO ("R_GameLoopCallback: Game state initialized");
+                return true;
+        }
+        return true;
+}
+
+static void
+R_GameLoopCleanup (void)
+{
+        R_CSTL_TRACE_FUNCTION ();
+
+        if (R_GameState_IsInitialized (&g_gameState))
+        {
+                R_CSTL_LOG_INFO ("GameLoopCleanup: Cleaning up game state");
+                R_GameState_Cleanup (&g_gameState);
+        }
+        R_CSTL_TRACE_RETURN ();
+}
 
 void
 R_MainProvider_Run (struct R_MainProvider* pProvider)
@@ -450,22 +496,15 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
                 if (!QueryPerformanceCounter (&currentTime))
                 {
                         R_CSTL_LOG_ERROR ("GameLoop: QueryPerformanceCounter failed for frame time");
-                        Sleep (16); // Fallback to ~60fps timing
+                        Sleep (16); // Fallback to 60fps timing
                         continue;
                 }
-
                 const float delta
                     = (float)((currentTime.QuadPart - lastTime.QuadPart) * 1000.0 / frequency.QuadPart)
                       / 1000.0f;
                 lastTime = currentTime;
 
                 frameCount++;
-#if defined(R_DEVMODE)
-                if (!pProvider->pExecCallback)
-                {
-                        continue;
-                }
-#endif
                 bool shouldContinue = pProvider->pExecCallback (pProvider->pAppInfo);
                 if (!shouldContinue)
                 {
@@ -519,8 +558,6 @@ R_UnicodeFromString (const char* pInput, wchar_t** ppOut)
                 return;
         MultiByteToWideChar (CP_UTF8, 0, pInput, -1, *ppOut, wideLen);
 }
-#define R_WIN32_INSTANCE HINSTANCE
-#define R_WIN32_HWND     HWND
 
 static void
 R_WindowCenter (R_WIN32_HWND hwnd)
@@ -590,25 +627,29 @@ r_fail_init:
 int WINAPI
 wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+        R_CSTL_TRACE_FUNCTION ();
+
         R_APP_INIT ();
 
         struct R_ApplicationInfo info;
-        LPSTR             cmd = GetCommandLineA ();
+        LPSTR                    cmd = GetCommandLineA ();
         R_PopulateApplicationInfo (&info, 0, NULL);
 
         if (!R_InitWinMain (hInstance, &info, nCmdShow))
         {
                 R_APP_SHUTDOWN ();
+                R_CSTL_TRACE_RETURN ();
                 return 1;
         }
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
 
-        R_APP_LAUNCH (NULL, info);
+        R_APP_LAUNCH (R_GameLoopCallback, info);
 
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();
 
+        R_CSTL_TRACE_RETURN ();
         return 0;
 }
 
@@ -708,8 +749,8 @@ struct R_ProcessInfo*
 R_CollectProcesses (size_t* outCount, int argc, char** argv)
 {
         struct R_ProcessInfo* arr = NULL;
-        char*          exe = NULL;
-        FILE*          f = NULL;
+        char*                 exe = NULL;
+        FILE*                 f = NULL;
 
         if (!outCount)
                 return NULL;
@@ -762,9 +803,62 @@ r_cleanup:
         return NULL;
 }
 
+static struct R_GameState g_gameStateLinux = {0};
+
+static bool
+GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
+{
+        R_CSTL_TRACE_FUNCTION ();
+
+        (void)pAppInfo;
+
+        if (!R_GameState_IsInitialized (&g_gameStateLinux))
+        {
+                struct R_GameStateCreateInfo createInfo = {0};
+                createInfo.pApplicationName = "Real Game";
+                createInfo.enableValidationLayers = true;
+                createInfo.headlessMode = true;
+
+                enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameStateLinux, &createInfo);
+                if (result != R_CVULKAN_OK)
+                {
+                        R_CSTL_LOG_ERROR (
+                            "GameLoopCallbackLinux: Failed to initialize game state (error: %d)",
+                            result);
+                        R_CSTL_TRACE_RETURN ();
+                        return false;
+                }
+                R_CSTL_LOG_INFO ("GameLoopCallbackLinux: Game state initialized");
+                R_CSTL_TRACE_RETURN ();
+                return true;
+        }
+
+        // TODO: Add game update and render calls here later
+        // R_GameState_Update (&g_gameStateLinux, deltaTime);
+        // R_GameState_Render (&g_gameStateLinux);
+
+        R_CSTL_TRACE_RETURN ();
+        return true;
+}
+
+static void
+GameLoopCleanupLinux (void)
+{
+        R_CSTL_TRACE_FUNCTION ();
+
+        if (R_GameState_IsInitialized (&g_gameStateLinux))
+        {
+                R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up game state");
+                R_GameState_Cleanup (&g_gameStateLinux);
+        }
+        R_CSTL_TRACE_RETURN ();
+}
+
 int
 main (int argc, char** argv)
 {
+        R_CSTL_TRACE_FUNCTION ();
+
         R_APP_INIT ();
 
         R_ApplicationInfo info;
@@ -772,11 +866,13 @@ main (int argc, char** argv)
 
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
-        R_APP_LAUNCH (NULL, info);
+        R_APP_LAUNCH (R_GameLoopCallbackLinux, info);
 
+        GameLoopCleanupLinux ();
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();
 
+        R_CSTL_TRACE_RETURN ();
         return 0;
 }
 

@@ -9,7 +9,7 @@
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSampler (
-    struct R_CVulkan_Sampler*             pSampler,
+    struct R_CVulkan_Sampler*                 pSampler,
     const struct R_CVulkan_SamplerCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pSampler);

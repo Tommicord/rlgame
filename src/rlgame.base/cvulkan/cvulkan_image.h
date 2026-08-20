@@ -56,9 +56,8 @@ struct R_CVulkan_Image
  * @param pCreateInfo Image creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewImage (
-    struct R_CVulkan_Image*                 pImage,
-    const struct R_CVulkan_ImageCreateInfo* pCreateInfo);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes an image and destroy the Vulkan objects

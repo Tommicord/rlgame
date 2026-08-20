@@ -7,7 +7,7 @@
 
 enum R_CVulkan_Error
 R_CVulkan_NewDescriptorSetLayout (
-    struct R_CVulkan_DescriptorSetLayout*             pLayout,
+    struct R_CVulkan_DescriptorSetLayout*                 pLayout,
     const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pLayout);
@@ -17,7 +17,8 @@ R_CVulkan_NewDescriptorSetLayout (
         R_CVULKAN_ASSERT (pCreateInfo->bindingCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pLayout || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->bindings || pCreateInfo->bindingCount == 0)
+        if (!pLayout || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->bindings
+            || pCreateInfo->bindingCount == 0)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
@@ -76,7 +77,7 @@ R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* pLayo
 
 enum R_CVulkan_Error
 R_CVulkan_NewDescriptorPool (
-    struct R_CVulkan_DescriptorPool*           pPool,
+    struct R_CVulkan_DescriptorPool*                 pPool,
     const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pPool);
@@ -87,7 +88,8 @@ R_CVulkan_NewDescriptorPool (
         R_CVULKAN_ASSERT (pCreateInfo->maxSets > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPool || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->poolSizes || pCreateInfo->poolSizeCount == 0 || pCreateInfo->maxSets == 0)
+        if (!pPool || !pCreateInfo || !pCreateInfo->device || !pCreateInfo->poolSizes
+            || pCreateInfo->poolSizeCount == 0 || pCreateInfo->maxSets == 0)
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }

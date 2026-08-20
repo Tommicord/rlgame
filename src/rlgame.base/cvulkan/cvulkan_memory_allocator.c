@@ -138,9 +138,9 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemoryAllocatorAllocate (
-    struct R_CVulkan_MemoryAllocator*      pAllocator,
+    struct R_CVulkan_MemoryAllocator*            pAllocator,
     const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
-    struct R_CVulkan_Suballocation*       outAllocation)
+    struct R_CVulkan_Suballocation*              outAllocation)
 {
         R_CVULKAN_ASSERT (pAllocator != NULL);
         R_CVULKAN_ASSERT (pAllocInfo != NULL);
@@ -157,15 +157,21 @@ R_CVulkan_MemoryAllocatorAllocate (
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 #endif
-        VkDeviceSize adjustedAlignment
-            = R_CVulkan_GetAdjustedAlignment (pAllocator->physicalDevice, pAllocInfo->alignment, pAllocInfo->usage);
+        VkDeviceSize adjustedAlignment = R_CVulkan_GetAdjustedAlignment (
+            pAllocator->physicalDevice,
+            pAllocInfo->alignment,
+            pAllocInfo->usage);
 
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
                 struct R_CVulkan_MemoryBlock* block = pAllocator->ppBlocks[i];
                 if (block->usage == pAllocInfo->usage && block->properties == pAllocInfo->properties)
                 {
-                        if (R_CVulkan_MemoryBlockAllocate (block, pAllocInfo->size, adjustedAlignment, outAllocation))
+                        if (R_CVulkan_MemoryBlockAllocate (
+                                block,
+                                pAllocInfo->size,
+                                adjustedAlignment,
+                                outAllocation))
                         {
                                 outAllocation->blockIndex = i;
                                 return R_CVULKAN_OK;
@@ -173,8 +179,10 @@ R_CVulkan_MemoryAllocatorAllocate (
                 }
         }
 
-        VkDeviceSize blockSize
-            = R_CVulkan_GetBlockSize (pAllocInfo->size, pAllocator->minBlockSize, pAllocator->defaultMaxBlockSize);
+        VkDeviceSize blockSize = R_CVulkan_GetBlockSize (
+            pAllocInfo->size,
+            pAllocator->minBlockSize,
+            pAllocator->defaultMaxBlockSize);
 
         struct R_CVulkan_MemoryBlock* newBlock
             = (struct R_CVulkan_MemoryBlock*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_MemoryBlock));

@@ -1,5 +1,4 @@
 #include "rlgame.base/cstl/cstl_log.h"
-
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <stdio.h>
@@ -43,11 +42,11 @@
 
 typedef struct R_CSTL_LogEntry
 {
-                R_CSTL_LogLevel level;
-                char            timestamp[32];
-                uint32_t        threadId;
-                char            message[R_CSTL_LOG_MESSAGE_SIZE];
-                char            backtrace[R_CSTL_LOG_BACKTRACE_SIZE];
+                enum R_CSTL_LogLevel level;
+                char                 timestamp[32];
+                uint32_t             threadId;
+                char                 message[R_CSTL_LOG_MESSAGE_SIZE];
+                char                 backtrace[R_CSTL_LOG_BACKTRACE_SIZE];
 } R_CSTL_LogEntry;
 
 #if defined(_WIN32)
@@ -308,7 +307,7 @@ R_CSTL_LogAtomicLoadRunning (const R_CSTL_LogAtomics* atomics)
 }
 
 static void
-R_CSTL_LogAtomicStoreMinLevel (R_CSTL_LogAtomics* atomics, R_CSTL_LogLevel level)
+R_CSTL_LogAtomicStoreMinLevel (R_CSTL_LogAtomics* atomics, enum R_CSTL_LogLevel level)
 {
 #if defined(_WIN32)
         InterlockedExchange (&atomics->minLevel, (LONG)level);
@@ -317,13 +316,13 @@ R_CSTL_LogAtomicStoreMinLevel (R_CSTL_LogAtomics* atomics, R_CSTL_LogLevel level
 #endif
 }
 
-static R_CSTL_LogLevel
+static enum R_CSTL_LogLevel
 R_CSTL_LogAtomicLoadMinLevel (const R_CSTL_LogAtomics* atomics)
 {
 #if defined(_WIN32)
-        return (R_CSTL_LogLevel)InterlockedCompareExchange ((volatile LONG*)&atomics->minLevel, 0, 0);
+        return (enum R_CSTL_LogLevel)InterlockedCompareExchange ((volatile LONG*)&atomics->minLevel, 0, 0);
 #else
-        return (R_CSTL_LogLevel)atomic_load_explicit (&atomics->minLevel, memory_order_acquire);
+        return (enum R_CSTL_LogLevel)atomic_load_explicit (&atomics->minLevel, memory_order_acquire);
 #endif
 }
 
@@ -370,11 +369,11 @@ typedef struct R_CSTL_LogState
                 R_CSTL_LogAtomics atomics;
 #if defined(_WIN32)
                 HANDLE consumerThread;
-                int    symInitialized;
+                bool   symInitialized;
 #else
                 pthread_t consumerThread;
 #endif
-                int initialized;
+                bool initialized;
 } R_CSTL_LogState;
 
 static R_CSTL_LogState g_log = {0};
@@ -421,7 +420,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
         HANDLE process = GetCurrentProcess ();
         if (!g_log.symInitialized)
         {
-                g_log.symInitialized = SymInitialize (process, NULL, TRUE) ? 1 : 0;
+                g_log.symInitialized = SymInitialize (process, NULL, TRUE) ? true : false;
         }
 
         char   line[512];
@@ -696,7 +695,7 @@ R_CSTL_LogConsumerThread (void* param)
 }
 
 const char*
-R_CSTL_LogLevelName (R_CSTL_LogLevel level)
+R_CSTL_LogLevelName (enum R_CSTL_LogLevel level)
 {
         switch (level)
         {
@@ -745,7 +744,7 @@ R_CSTL_LogInit (void)
         g_log.count = 0;
 
 #if defined(_WIN32)
-        g_log.symInitialized = 0;
+        g_log.symInitialized = false;
         g_log.consumerThread = CreateThread (NULL, 0, R_CSTL_LogConsumerThread, NULL, 0, NULL);
         if (!g_log.consumerThread)
         {
@@ -759,8 +758,7 @@ R_CSTL_LogInit (void)
                 return -1;
         }
 #endif
-
-        g_log.initialized = 1;
+        g_log.initialized = true;
         return 0;
 }
 
@@ -769,7 +767,7 @@ R_CSTL_LogShutdown (void)
 {
         if (!g_log.initialized)
                 return;
-        g_log.initialized = 0;
+        g_log.initialized = false;
         R_CSTL_LogAtomicStoreRunning (&g_log.atomics, 0);
         R_CSTL_LogMutexLock (&g_log.mutex);
         R_CSTL_LogCondBroadcast (&g_log.cond);
@@ -785,7 +783,7 @@ R_CSTL_LogShutdown (void)
         if (g_log.symInitialized)
         {
                 SymCleanup (GetCurrentProcess ());
-                g_log.symInitialized = 0;
+                g_log.symInitialized = false;
         }
 #else
         pthread_join (g_log.consumerThread, NULL);
@@ -832,7 +830,7 @@ R_CSTL_LogFlush (void)
 }
 
 void
-R_CSTL_LogSetMinLevel (R_CSTL_LogLevel level)
+R_CSTL_LogSetMinLevel (enum R_CSTL_LogLevel level)
 {
 #if defined(R_CSTL_LOG_DEVMODE)
         if (level < R_CSTL_LOG_LEVEL_TRACE)
@@ -845,7 +843,7 @@ cstl_fail:
         return;
 }
 
-R_CSTL_LogLevel
+enum R_CSTL_LogLevel
 R_CSTL_LogGetMinLevel (void)
 {
         return R_CSTL_LogAtomicLoadMinLevel (&g_log.atomics);
@@ -858,7 +856,7 @@ R_CSTL_LogGetDroppedCount (void)
 }
 
 void
-R_CSTL_LogWriteV (R_CSTL_LogLevel level, const char* fmt, va_list args)
+R_CSTL_LogWriteV (enum R_CSTL_LogLevel level, const char* fmt, va_list args)
 {
         if (!g_log.initialized)
                 return;
@@ -911,7 +909,7 @@ cstl_fail:
 }
 
 void
-R_CSTL_LogWrite (R_CSTL_LogLevel level, const char* fmt, ...)
+R_CSTL_LogWrite (enum R_CSTL_LogLevel level, const char* fmt, ...)
 {
         va_list args;
         va_start (args, fmt);

@@ -159,47 +159,39 @@ R_CSTL_ArrayReallocate (struct R_CSTL_Array* pArray, size_t newCapacity)
                 goto cstl_fail;
 #endif
         uint8_t* pOldData = pArray->pData;
+        size_t   oldLength = pArray->length;
 #if defined(R_CSTL_HEAP_DEBUG)
         if (pOldData && !R_CSTL_HeapIsValidPointer (pOldData))
                 goto cstl_fail;
 #endif
 
-        uint8_t* pNew = NULL;
+        uint8_t* pNew = (uint8_t*)R_CSTL_HeapAlloc (newCapacity);
+        if (!pNew)
+                return -1;
+
+        if (pOldData && oldLength > 0)
+        {
+                memcpy (pNew, pOldData, oldLength);
+        }
+
         if (pOldData)
         {
-                pNew = (uint8_t*)R_CSTL_HeapRealloc (pOldData, newCapacity);
-                if (!pNew)
-                        return -1;
+#if defined(R_CSTL_HEAP_DEBUG)
+                if (R_CSTL_HeapIsValidPointer (pOldData))
+                        R_CSTL_HeapUnregisterAllocation (pArray, pOldData);
+#endif
+                R_CSTL_HeapFree (pOldData);
+        }
 
 #if defined(R_CSTL_HEAP_DEBUG)
-                if (pNew != pOldData)
-                {
-                        uint64_t success = R_CSTL_HeapRegisterAllocation (
-                            pArray,
-                            pNew,
-                            newCapacity,
-                            R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
-                        if (success == 0)
-                                goto cstl_fail_register;
-                }
+        uint64_t success = R_CSTL_HeapRegisterAllocation (
+            pArray,
+            pNew,
+            newCapacity,
+            R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
+        if (success == 0)
+                goto cstl_fail_register;
 #endif
-        }
-        else
-        {
-                pNew = (uint8_t*)R_CSTL_HeapAlloc (newCapacity);
-                if (!pNew)
-                        return -1;
-
-#if defined(R_CSTL_HEAP_DEBUG)
-                uint64_t success = R_CSTL_HeapRegisterAllocation (
-                    pArray,
-                    pNew,
-                    newCapacity,
-                    R_CSTL_HEAP_NAME (R_CSTL_ArrayReallocate));
-                if (success == 0)
-                        goto cstl_fail_register;
-#endif
-        }
 
         pArray->pData = pNew;
         pArray->capacity = newCapacity;
@@ -209,7 +201,6 @@ cstl_fail:
         return -1;
 cstl_fail_register:
         R_CSTL_HeapFree (pNew);
-        R_CSTL_HeapUnregisterAllocation (pArray, pOldData);
         return -1;
 }
 
@@ -368,11 +359,13 @@ R_CSTL_API int
 R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t* pData, size_t size)
 {
 #if defined(R_CSTL_HEAP_DEBUG)
-        if (!pArray || !pData || size == 0)
+        if (!pArray)
                 goto cstl_fail;
         if (!R_CSTL_ArrayBufferIsUsable (pArray))
                 goto cstl_fail;
 #endif
+        if (size == 0)
+                return 0;
         if (R_CSTL_ArrayEnsureCapacity (pArray, pArray->length + size) != 0)
                 goto cstl_fail;
         R_CSTL_ArrayCopyBytes (pArray->pData + pArray->length, pData, size);

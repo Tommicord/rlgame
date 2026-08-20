@@ -1,0 +1,10 @@
+^C:\USERS\USUARIO\IDEAPROJECTS\RLV2\OUT\CMAKEFILES\806DFB7527EC67A453EE7A693703D77B\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/USUARIO/IdeaProjects/RLv2 -BC:/Users/USUARIO/IdeaProjects/RLv2/out --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/USUARIO/IdeaProjects/RLv2/out/rlgame.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

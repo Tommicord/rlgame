@@ -1,0 +1,201 @@
+#include "rlgame.base/cvulkan/cvulkan_surface.h"
+#include "rlgame.base/cvulkan/cvulkan_instance.h"
+#include "rlgame.base/cvulkan/cvulkan_platform.h"
+#include "rlgame.base/cstl/cstl_log.h"
+#include "rlgame.base/cstl/cstl_trace.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <vulkan/vulkan.h>
+
+#if defined(R_CVULKAN_PLATFORM_ANDROID)
+#include <android/native_window.h>
+#endif
+
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_NewSurface (
+    struct R_CVulkan_Surface*                 pSurface,
+    const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo)
+{
+        R_CSTL_TRACE_SCOPE_CTX ("instance=%p", pCreateInfo ? pCreateInfo->pInstance : NULL);
+
+        if (!pSurface || !pCreateInfo)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        if (pCreateInfo->pInstance == NULL)
+        {
+                R_CSTL_LOG_ERROR (
+                    "Instance is NULL. Create instance using R_CVulkan_NewInstance before creating surface.");
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+
+        if (!R_CVulkan_InstanceIsInitialized (pCreateInfo->pInstance))
+        {
+                R_CSTL_LOG_ERROR ("Instance not initialized. Call R_CVulkan_NewInstance first.");
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+
+        VkInstance instance = R_CVulkan_InstanceGetHandle (pCreateInfo->pInstance);
+        if (instance == VK_NULL_HANDLE)
+        {
+                R_CSTL_LOG_ERROR ("Instance handle is NULL despite being marked as initialized.");
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        }
+
+        pSurface->instance = instance;
+        pSurface->handle = VK_NULL_HANDLE;
+#if defined(R_CVULKAN_DEBUG)
+        pSurface->isInitialized = false;
+#endif
+
+        VkResult result = VK_ERROR_UNKNOWN;
+
+#if defined(R_CVULKAN_PLATFORM_WINDOWS)
+        if (!pCreateInfo->hInstance || !pCreateInfo->hWnd)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        VkWin32SurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.hinstance = pCreateInfo->hInstance;
+        surfaceInfo.hwnd = pCreateInfo->hWnd;
+
+        result = vkCreateWin32SurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+
+#elif defined(R_CVULKAN_PLATFORM_LINUX)
+        if (!pCreateInfo->pDisplay || !pCreateInfo->window)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        VkXlibSurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.dpy = pCreateInfo->pDisplay;
+        surfaceInfo.window = pCreateInfo->window;
+
+        result = vkCreateXlibSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+
+#elif defined(R_CVULKAN_PLATFORM_ANDROID)
+        if (!pCreateInfo->pWindow)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        VkAndroidSurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.window = pCreateInfo->pWindow;
+
+        result = vkCreateAndroidSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+
+#elif defined(R_CVULKAN_PLATFORM_MACOS)
+        if (!pCreateInfo->pNSWindow)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        VkMetalSurfaceCreateInfoEXT surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        surfaceInfo.pLayer = pCreateInfo->pNSWindow;
+
+        result = vkCreateMetalSurfaceEXT (instance, &surfaceInfo, NULL, &pSurface->handle);
+
+#else
+        R_CSTL_TRACE_SCOPE_EXIT ();
+        return R_CVULKAN_ERROR_FEATURE_NOT_PRESENT;
+#endif
+
+        if (result != VK_SUCCESS)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return R_CVULKAN_ERROR_SURFACE_CREATE_FAILED;
+        }
+
+#if defined(R_CVULKAN_DEBUG)
+        pSurface->isInitialized = true;
+#endif
+        R_CSTL_TRACE_SCOPE_EXIT ();
+        return R_CVULKAN_OK;
+}
+
+R_CVULKAN_API void
+R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
+{
+        R_CSTL_TRACE_SCOPE ();
+
+#if defined(R_CVULKAN_DEBUG)
+        if (!pSurface)
+        {
+                R_CSTL_TRACE_SCOPE_EXIT ();
+                return;
+        }
+#endif
+        if (pSurface->handle != VK_NULL_HANDLE)
+        {
+                vkDestroySurfaceKHR (pSurface->instance, pSurface->handle, NULL);
+                pSurface->handle = VK_NULL_HANDLE;
+        }
+#if defined(R_CVULKAN_DEBUG)
+        pSurface->instance = VK_NULL_HANDLE;
+        pSurface->isInitialized = false;
+#endif
+        R_CSTL_TRACE_SCOPE_EXIT ();
+}
+
+R_CVULKAN_API VkSurfaceKHR
+R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
+{
+        if (!pSurface)
+        {
+                return VK_NULL_HANDLE;
+        }
+
+#if defined(R_CVULKAN_DEBUG)
+        if (!pSurface->isInitialized)
+        {
+                return VK_NULL_HANDLE;
+        }
+#endif
+
+        return pSurface->handle;
+}
+
+R_CVULKAN_API VkInstance
+R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
+{
+        if (!pSurface)
+        {
+                return VK_NULL_HANDLE;
+        }
+
+#if defined(R_CVULKAN_DEBUG)
+        if (!pSurface->isInitialized)
+        {
+                return VK_NULL_HANDLE;
+        }
+#endif
+
+        return pSurface->instance;
+}
+
+R_CVULKAN_API int
+R_CVulkan_SurfaceIsInitialized (const struct R_CVulkan_Surface* pSurface)
+{
+        if (!pSurface)
+        {
+                return 0;
+        }
+
+        return R_CVULKAN_IS_INITIALIZED_RETURN (pSurface);
+}

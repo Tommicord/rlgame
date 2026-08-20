@@ -59,6 +59,8 @@ enum R_CVulkan_Error
         R_CVULKAN_ERROR_SURFACE_LOST = -35, /**< Surface lost, needs recreation */
         R_CVULKAN_ERROR_OUT_OF_DATE_KHR = -36, /**< Out of date (window resize) */
         R_CVULKAN_ERROR_FEATURE_NOT_PRESENT = -37, /**< Required feature not present */
+        R_CVULKAN_ERROR_INCOMPATIBLE_DRIVER = -38, /**< Incompatible driver */
+        R_CVULKAN_ERROR_SURFACE_NOT_PRESENT = -39, /**< Surface not present */
         R_CVULKAN_ERROR_UNKNOWN = -99 /**< Unknown error */
 };
 
@@ -101,22 +103,121 @@ typedef VkFenceCreateFlagBits        R_CVulkanFenceCreateFlagBits;
 typedef VkSemaphoreCreateFlags       R_CVulkanSemaphoreCreateFlags;
 
 /**
+ * @brief Error severity levels for categorizing error importance
+ */
+enum R_CVulkan_ErrorSeverity
+{
+        R_CVULKAN_SEVERITY_INFO = 0, /**< Informational message */
+        R_CVULKAN_SEVERITY_WARNING = 1, /**< Warning, operation may continue */
+        R_CVULKAN_SEVERITY_ERROR = 2, /**< Error, operation failed */
+        R_CVULKAN_SEVERITY_CRITICAL = 3 /**< Critical error, must exit */
+};
+
+/**
+ * @brief Error recovery actions for handling errors
+ */
+enum R_CVulkan_ErrorRecovery
+{
+        R_CVULKAN_RECOVERY_NONE = 0, /**< No recovery possible */
+        R_CVULKAN_RECOVERY_RETRY = 1, /**< Retry the operation */
+        R_CVULKAN_RECOVERY_RECREATE = 2, /**< Recreate the resource */
+        R_CVULKAN_RECOVERY_RESIZE = 3, /**< Handle window resize */
+        R_CVULKAN_RECOVERY_EXIT = 4, /**< Exit the application */
+        R_CVULKAN_RECOVERY_FALLBACK = 5 /**< Use fallback path */
+};
+
+/**
+ * @brief Error categories for grouping related errors
+ */
+enum R_CVulkan_ErrorCategory
+{
+        R_CVULKAN_CATEGORY_SUCCESS = 0, /**< Success category */
+        R_CVULKAN_CATEGORY_MEMORY = 1, /**< Memory-related errors */
+        R_CVULKAN_CATEGORY_INITIALIZATION = 2, /**< Initialization errors */
+        R_CVULKAN_CATEGORY_RESOURCE = 3, /**< Resource creation errors */
+        R_CVULKAN_CATEGORY_STATE = 4, /**< State-related errors */
+        R_CVULKAN_CATEGORY_VALIDATION = 5, /**< Validation errors */
+        R_CVULKAN_CATEGORY_RUNTIME = 6, /**< Runtime errors */
+        R_CVULKAN_CATEGORY_UNKNOWN = 7 /**< Unknown category */
+};
+
+/**
  * @brief Get human-readable error message for an R_CVulkan error code
  * @param error The R_CVulkan error code
  * @return Static string describing the error, or "Unknown error" if not recognized
  */
-const char* R_CVulkan_ErrorToString (enum R_CVulkan_Error error);
+R_CVULKAN_API const char* R_CVulkan_ErrorToString (enum R_CVulkan_Error error);
+
+/**
+ * @brief Get error severity level for an R_CVulkan error code
+ * @param error The R_CVulkan error code
+ * @return Error severity level
+ */
+R_CVULKAN_API enum R_CVulkan_ErrorSeverity R_CVulkan_ErrorGetSeverity (enum R_CVulkan_Error error);
+
+/**
+ * @brief Get suggested recovery action for an R_CVulkan error code
+ * @param error The R_CVulkan error code
+ * @return Suggested recovery action
+ */
+R_CVULKAN_API enum R_CVulkan_ErrorRecovery R_CVulkan_ErrorGetRecoveryAction (enum R_CVulkan_Error error);
+
+/**
+ * @brief Get error category for an R_CVulkan error code
+ * @param error The R_CVulkan error code
+ * @return Error category
+ */
+R_CVULKAN_API enum R_CVulkan_ErrorCategory R_CVulkan_ErrorGetCategory (enum R_CVulkan_Error error);
+
+/**
+ * @brief Get human-readable string for error severity
+ * @param severity The error severity level
+ * @return Static string describing the severity
+ */
+R_CVULKAN_API const char* R_CVulkan_ErrorSeverityToString (enum R_CVulkan_ErrorSeverity severity);
+
+/**
+ * @brief Get human-readable string for recovery action
+ * @param recovery The recovery action
+ * @return Static string describing the recovery action
+ */
+R_CVULKAN_API const char* R_CVulkan_ErrorRecoveryToString (enum R_CVulkan_ErrorRecovery recovery);
+
+/**
+ * @brief Get human-readable string for error category
+ * @param category The error category
+ * @return Static string describing the error category
+ */
+R_CVULKAN_API const char* R_CVulkan_ErrorCategoryToString (enum R_CVulkan_ErrorCategory category);
+
+/**
+ * @brief Format error message with context information
+ * @param error The R_CVulkan error code
+ * @param file Source file name (can be NULL)
+ * @param line Source line number (0 if unknown)
+ * @param function Function name (can be NULL)
+ * @param pBuffer Buffer to store formatted message
+ * @param bufferSize Size of buffer
+ * @return Number of characters written (excluding null terminator), or negative on error
+ */
+R_CVULKAN_API int R_CVulkan_ErrorFormatMessage (
+    enum R_CVulkan_Error error,
+    const char*          file,
+    int                  line,
+    const char*          function,
+    char*                pBuffer,
+    size_t               bufferSize);
 
 /**
  * @brief Convert Vulkan result to R_CVulkan errorcode
  * @param result Vulkan result code
  * @return Corresponding R_CVulkan error code
  */
-enum R_CVulkan_Error R_CVulkan_ResultToError (const VkResult result);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ResultToError (const VkResult result);
 
 /**
- * @brief Check if error requires swapchain recreation
- * @param error The R_CVulkan error code
- * @return 1 if error requires swapchain recreation, 0 otherwise
+ * @brief Get human-readable string for Vulkan result code
+ * @param result Vulkan result code
+ * @return Static string describing the Vulkan result
  */
-int R_CVulkan_ShouldRecreateSwapchain (enum R_CVulkan_Error error);
+R_CVULKAN_API const char* R_CVulkan_ResultToString (const VkResult result);
