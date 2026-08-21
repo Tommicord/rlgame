@@ -372,7 +372,6 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @brief Get a typed element at a specific index with bounds checking
  *
  * Reads the element of type Type at the specified index, validating that the index is within bounds.
- * This macro reconstructs the element byte-by-byte from the array.
  *
  * @param pArray Pointer to array.
  * @param Type The type of element to retrieve.
@@ -380,18 +379,21 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param pOutValue Pointer to receive the value.
  *
  * @note This macro performs bounds checking via R_CSTL_ArrayAt.
- * @note The element is reconstructed byte-by-byte from the array data.
+ * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_ArrayTypedAt(pArray, Type, index, pOutValue)                                                  \
         do                                                                                                   \
         {                                                                                                    \
                 Type _temp;                                                                                  \
-                memset (&_temp, 0, sizeof (Type));                                                           \
-                uint8_t* _bytes = (uint8_t*)&_temp;                                                          \
-                size_t   _offset = (index) * sizeof (Type);                                                  \
-                for (size_t _j = 0; _j < sizeof (Type); ++_j)                                                \
+                size_t _offset = (index) * sizeof (Type);                                                  \
+                const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                          \
+                if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                 \
                 {                                                                                            \
-                        R_CSTL_ArrayAt (pArray, _offset + _j, &_bytes[_j]);                                  \
+                        memcpy (&_temp, _pData + _offset, sizeof (Type));                                   \
+                }                                                                                            \
+                else                                                                                         \
+                {                                                                                            \
+                        memset (&_temp, 0, sizeof (Type));                                                   \
                 }                                                                                            \
                 *(pOutValue) = _temp;                                                                        \
         } while (0)
@@ -400,7 +402,6 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @brief Get a typed element at a specific index without bounds checking
  *
  * Reads the element of type Type at the specified index without validating bounds.
- * This macro reconstructs the element byte-by-byte from the array data.
  *
  * @param pArray Pointer to array.
  * @param Type The type of element to retrieve.
@@ -408,19 +409,14 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param pOutValue Pointer to receive the value.
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
- * @note This macro uses R_CSTL_ArrayUncheckedAt for better performance.
- * @note The element is reconstructed byte-by-byte from the array data.
+ * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_ArrayTypedAtUnchecked(pArray, Type, index, pOutValue)                                         \
         do                                                                                                   \
         {                                                                                                    \
                 Type _temp;                                                                                  \
-                memset (&_temp, 0, sizeof (Type));                                                           \
-                uint8_t* _bytes = (uint8_t*)&_temp;                                                          \
-                size_t   _offset = (index) * sizeof (Type);                                                  \
-                for (size_t _j = 0; _j < sizeof (Type); ++_j)                                                \
-                {                                                                                            \
-                        R_CSTL_ArrayUncheckedAt (pArray, _offset + _j, &_bytes[_j]);                         \
-                }                                                                                            \
+                size_t _offset = (index) * sizeof (Type);                                                  \
+                const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                          \
+                memcpy (&_temp, _pData + _offset, sizeof (Type));                                           \
                 *(pOutValue) = _temp;                                                                        \
         } while (0)

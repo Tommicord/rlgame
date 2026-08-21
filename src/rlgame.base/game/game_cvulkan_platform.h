@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(R_DEVMODE)
-#define R_GAME_CVULKAN_DEBUG
+#define R_GAME_DEBUG
 #endif
 
 #if defined(R_CVULKAN_COMPILER_MSVC)
@@ -22,12 +22,12 @@
 #define R_GAME_CVULKAN_API
 #endif
 
-#if defined(R_GAME_CVULKAN_DEBUG)
+#if defined(R_GAME_DEBUG)
 #include <stdbool.h>
 #include <assert.h>
-#define R_GAME_CVULKAN_DEBUG_FIELD       bool isInitialized;
+#define R_GAME_DEBUG_FIELD       bool isInitialized;
 #define R_GAME_CVULKAN_ASSERT(condition) assert (condition)
 #else
-#define R_GAME_CVULKAN_DEBUG_FIELD
+#define R_GAME_DEBUG_FIELD
 #define R_GAME_CVULKAN_ASSERT(condition) ((void)0)
 #endif

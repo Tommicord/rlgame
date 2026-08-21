@@ -73,12 +73,12 @@ R_GameCVulkan_InitializeQueues (
         enum R_CVulkan_Error                err;
         VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
-#if defined(R_GAME_CVULKAN_DEBUG)
+#if defined(R_GAME_DEBUG)
         if (pSurface)
         {
 #endif
                 surface = R_CVulkan_SurfaceGetHandle (pSurface);
-#if defined(R_GAME_CVULKAN_DEBUG)
+#if defined(R_GAME_DEBUG)
         }
 #endif
 
@@ -136,12 +136,12 @@ R_GameCVulkan_InitializeCommandPools (
         enum R_CVulkan_Error                err;
         VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
-#if defined(R_GAME_CVULKAN_DEBUG)
+#if defined(R_GAME_DEBUG)
         if (pSurface)
         {
 #endif
                 surface = R_CVulkan_SurfaceGetHandle (pSurface);
-#if defined(R_GAME_CVULKAN_DEBUG)
+#if defined(R_GAME_DEBUG)
         }
 #endif
         err = R_CVulkan_DeviceFindQueueFamilies (

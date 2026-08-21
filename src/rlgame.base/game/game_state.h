@@ -28,7 +28,7 @@
 struct R_GameState
 {
                 struct R_GameCVulkan_PipelineContext context; /**< Vulkan rendering pipeline context */
-                R_GAME_CVULKAN_DEBUG_FIELD
+                R_GAME_DEBUG_FIELD
 };
 
 /**
