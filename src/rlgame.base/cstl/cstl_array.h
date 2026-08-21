@@ -379,7 +379,6 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param pOutValue Pointer to receive the value.
  *
  * @note This macro performs bounds checking via R_CSTL_ArrayAt.
- * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_ArrayTypedAt(pArray, Type, index, pOutValue)                                                  \
         do                                                                                                   \
@@ -409,14 +408,58 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param pOutValue Pointer to receive the value.
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
- * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
-#define R_CSTL_ArrayTypedAtUnchecked(pArray, Type, index, pOutValue)                                         \
+#define R_CSTL_ArrayTypedUncheckedAt(pArray, Type, index, pOutValue)                                         \
         do                                                                                                   \
         {                                                                                                    \
                 Type _temp;                                                                                  \
                 size_t _offset = (index) * sizeof (Type);                                                  \
                 const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                          \
                 memcpy (&_temp, _pData + _offset, sizeof (Type));                                           \
-                *(pOutValue) = _temp;                                                                        \
+                memcpy (pOutValue, &_temp, sizeof (Type));                                                  \
+        } while (0)
+
+/**
+ * @brief Set a typed element at a specific index with bounds checking
+ *
+ * Writes the element of type Type at the specified index, validating that the index is within bounds.
+ *
+ * @param pArray Pointer to array.
+ * @param Type The type of element to write.
+ * @param index Index of the element to write.
+ * @param pValue Pointer to the value to write.
+ *
+ * @note This macro performs bounds checking before writing.
+ * @note Returns 0 on success, -1 if index is out of bounds.
+ */
+#define R_CSTL_ArrayTypedSetAt(pArray, Type, index, pValue)                                                  \
+        do                                                                                                   \
+        {                                                                                                    \
+                size_t _offset = (index) * sizeof (Type);                                                  \
+                if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                 \
+                {                                                                                            \
+                        uint8_t* _pData = R_CSTL_ArrayData (pArray);                                      \
+                        memcpy (_pData + _offset, (const void*)(pValue), sizeof (Type));                    \
+                }                                                                                            \
+        } while (0)
+
+/**
+ * @brief Set a typed element at a specific index without bounds checking
+ *
+ * Writes the element of type Type at the specified index without validating bounds.
+ *
+ * @param pArray Pointer to array.
+ * @param Type The type of element to write.
+ * @param index Index of the element to write.
+ * @param pValue Pointer to the value to write.
+ *
+ * @warning No bounds checking; undefined behavior if index is invalid.
+ * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
+ */
+#define R_CSTL_ArrayTypedSetAtUnchecked(pArray, Type, index, pValue)                                         \
+        do                                                                                                   \
+        {                                                                                                    \
+                size_t _offset = (index) * sizeof (Type);                                                  \
+                uint8_t* _pData = R_CSTL_ArrayData (pArray);                                              \
+                memcpy (_pData + _offset, (const void*)(pValue), sizeof (Type));                            \
         } while (0)

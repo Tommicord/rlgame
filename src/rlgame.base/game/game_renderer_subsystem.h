@@ -7,57 +7,90 @@
 #include "rlgame.base/game/game_platform.h"
 #include "rlgame.base/game/game_cvulkan_pipeline.h"
 
-typedef void (*const R_GameLifecycleConstruct) (
+typedef void (*R_GameLifecycleConstruct) (
         void*        pDrawable, 
         const char*  pName,
         const void*  pResource, 
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleResume) (
+typedef void (*R_GameLifecycleResume) (
         void*        pDrawable,
         const void*  pResource,
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleBeforeEach) (
+typedef void (*R_GameLifecycleBeforeEach) (
         void*        pDrawable,
         const void*  pResource,
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleAfterEach) (
+typedef void (*R_GameLifecycleAfterEach) (
         void*        pDrawable,
         const void*  pResource,
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleBeforePass) (
+typedef void (*R_GameLifecycleBeforePass) (
         void*        pDrawable, 
         const void*  pResource, 
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecyclePause) (
+typedef void (*R_GameLifecyclePause) (
         void*        pDrawable,
         const void*  pResource,
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleAfterPass) (
+typedef void (*R_GameLifecycleAfterPass) (
         void*        pDrawable, 
         const void*  pResource, 
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleRender) (
+typedef void (*R_GameLifecycleRender) (
         void*        pDrawable, 
         const void*  pResource, 
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleStop) (
+typedef void (*R_GameLifecycleStop) (
         void*        pDrawable, 
         const void*  pResource, 
         const size_t resourceSize);
 
-typedef void (*const R_GameLifecycleOver) (
+typedef void (*R_GameLifecycleOver) (
         void*        pDrawable, 
         const void*  pResource, 
         const size_t resourceSize);
 typedef uint64_t R_GameRendererResourceHandle;
+
+struct R_GameRendererRenderTask
+{
+        uint32_t                        layerIndex;
+        uint32_t                        commandBufferIndex;
+        uint32_t                        frameIndex;
+        int                             completed;
+        R_GAME_ATOMIC_INT32             atomicCompleted;
+};
+
+struct R_GameRendererWorkerThread
+{
+        R_GAME_THREAD_HANDLE            threadHandle;
+        R_GAME_THREAD_ID                threadId;
+        uint32_t                        workerIndex;
+        int                             isRunning;
+        R_GAME_ATOMIC_INT32             atomicIsRunning;
+        struct R_GameRendererSubsystem* pSubsystem;
+};
+
+struct R_GameRendererThreadPool
+{
+        struct R_GameRendererWorkerThread workers[R_GAME_RENDERER_MAX_WORKER_THREADS];
+        uint32_t                        workerCount;
+        R_GAME_MUTEX                    taskMutex;
+        R_GAME_CONDITION_VARIABLE       taskAvailable;
+        R_GAME_CONDITION_VARIABLE       taskComplete;
+        struct R_CSTL_Array*            pTaskQueue;
+        R_GAME_ATOMIC_UINT32            atomicPendingTasks;
+        R_GAME_ATOMIC_UINT32            atomicCompletedTasks;
+        int                             shutdownRequested;
+        R_GAME_ATOMIC_INT32             atomicShutdownRequested;
+};
 
 struct R_GameRendererFrame;
 struct R_GameRendererLayer;
@@ -121,7 +154,7 @@ GAME_API int
 R_GameRenderer_UnregisterResource (
     struct R_GameRendererSubsystem* pSubsystem,
     R_GameRendererResourceHandle     handle);
-GAME_API void*
+GAME_API const void*
 R_GameRenderer_GetResource (
     struct R_GameRendererSubsystem* pSubsystem,
     R_GameRendererResourceHandle     handle);
@@ -162,5 +195,3 @@ GAME_API void
 R_GameRendererLifecycle_RegisterStop (R_GameLifecycleStop callback);
 GAME_API void                          
 R_GameRendererLifecycle_RegisterOver (R_GameLifecycleOver callback);
-GAME_API int                           
-R_GameRenderer_ValidateLifecycle (struct R_GameRenderer* pRenderer);

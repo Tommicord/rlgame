@@ -8,7 +8,7 @@
 #include <vulkan/vulkan.h>
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, int signaled)
+R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, bool signaled)
 {
         R_CVULKAN_ASSERT (pFence != NULL);
         R_CVULKAN_ASSERT (pDevice != NULL);

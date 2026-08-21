@@ -28,7 +28,7 @@ struct R_CVulkan_Fence
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, int signaled);
+R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, bool signaled);
 
 /**
  * @brief Deletes a fence and destroy the Vulkan object

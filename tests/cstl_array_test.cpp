@@ -849,7 +849,7 @@ TEST_F (CstlArrayTest, TypedAtUncheckedMacro)
         ASSERT_NE (nullptr, pArray);
 
         uint32_t value = 0;
-        R_CSTL_ArrayTypedAtUnchecked (pArray, uint32_t, 2, &value);
+        R_CSTL_ArrayTypedUncheckedAt (pArray, uint32_t, 2, &value);
         EXPECT_EQ (300u, value);
 
         R_CSTL_DeleteArray (pArray);

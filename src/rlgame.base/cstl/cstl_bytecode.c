@@ -770,7 +770,7 @@ R_CSTL_BytecodeDecoderCreate (
 }
 
 R_CSTL_API void
-R_CSTL_BytecodeDecoderDestroy (struct R_CSTL_BytecodeDecoder* pDecoder)
+R_CSTL_DeleteBytecodeDecoder (struct R_CSTL_BytecodeDecoder* pDecoder)
 {
         if (!pDecoder) return;
 

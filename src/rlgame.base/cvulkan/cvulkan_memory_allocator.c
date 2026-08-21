@@ -656,13 +656,12 @@ R_CVulkan_MemoryBlockUpdateAllocation (
         outAllocation->size = size;
         outAllocation->buffer = block->buffer;
         outAllocation->memory = block->memory;
-        outAllocation->blockIndex = 0; /* Set by caller */
+        outAllocation->blockIndex = 0;
 
         block->usedSize += size;
 
         if (block->pFreeRegions[regionIndex].size == size + padding)
         {
-                /* Remove this free region */
                 for (uint32_t j = regionIndex; j < block->freeRegionCount - 1; ++j)
                 {
                         block->pFreeRegions[j] = block->pFreeRegions[j + 1];
@@ -671,7 +670,7 @@ R_CVulkan_MemoryBlockUpdateAllocation (
         }
         else
         {
-                /* Shrink the free region */
+                // Shrink the free region
                 block->pFreeRegions[regionIndex].offset = alignedOffset + size;
                 block->pFreeRegions[regionIndex].size -= size + padding;
         }

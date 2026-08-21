@@ -131,8 +131,6 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ResetCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkCommandBufferResetFlags       flags);
 
-/* Command functions */
-
 /**
  * @brief Bind a pipeline
  * @param pCommandBuffer Pointer to command buffer

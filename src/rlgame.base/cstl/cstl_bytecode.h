@@ -136,7 +136,7 @@ R_CSTL_API int R_CSTL_BytecodeDecoderCreate (
     struct R_CSTL_BytecodeDecoder*   pOutDecoder);
 
 /** @brief Destroy a machine code decoder and release resources */
-R_CSTL_API void R_CSTL_BytecodeDecoderDestroy (struct R_CSTL_BytecodeDecoder* pDecoder);
+R_CSTL_API void R_CSTL_DeleteBytecodeDecoder (struct R_CSTL_BytecodeDecoder* pDecoder);
 
 /** @brief Resolve a symbol name from an address */
 R_CSTL_API int R_CSTL_BytecodeResolveSymbol (

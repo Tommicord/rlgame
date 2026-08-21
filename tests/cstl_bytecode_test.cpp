@@ -330,7 +330,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86_64)
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
         EXPECT_EQ (true, decoder.initialized);
         EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86_64, decoder.architecture);
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86)
@@ -339,7 +339,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86)
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86, &decoder));
         EXPECT_EQ (true, decoder.initialized);
         EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86, decoder.architecture);
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeDecoderCreateUnsupportedArchitecture)
@@ -360,7 +360,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateInvalidArguments)
 
 TEST_F (CstlMaccodeTest, BytecodeDecoderDestroyNull)
 {
-        R_CSTL_BytecodeDecoderDestroy (nullptr);
+        R_CSTL_DeleteBytecodeDecoder (nullptr);
         SUCCEED ();
 }
 
@@ -393,7 +393,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolNullTarget)
             R_CSTL_BytecodeGetInstructionTargetSymbol (&decoder, &instruction, buffer, sizeof (buffer)));
         EXPECT_STREQ ("0x0000000000000000", buffer);
 
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
@@ -414,7 +414,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
             R_CSTL_ERROR_INVALID_ARGUMENT,
             R_CSTL_BytecodeGetInstructionTargetSymbol (&decoder, &instruction, nullptr, sizeof (buffer)));
 
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeResolveSymbolInvalidArguments)
@@ -428,7 +428,7 @@ TEST_F (CstlMaccodeTest, BytecodeResolveSymbolInvalidArguments)
             R_CSTL_ERROR_INVALID_ARGUMENT,
             R_CSTL_BytecodeResolveSymbol (&decoder, 0x1000, nullptr));
 
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeGetFunctionInfoInvalidArguments)
@@ -442,7 +442,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetFunctionInfoInvalidArguments)
             R_CSTL_ERROR_INVALID_ARGUMENT,
             R_CSTL_BytecodeGetFunctionInfo (&decoder, 0x1000, nullptr));
 
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
@@ -479,7 +479,7 @@ TEST_F (CstlMaccodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
                 "test",
                 nullptr));
 
-        R_CSTL_BytecodeDecoderDestroy (&decoder);
+        R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
 TEST_F (CstlMaccodeTest, StressTestLargeCodeBuffer)
@@ -989,7 +989,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestProperRegistrationDetection)
                         EXPECT_EQ (1, found) << "ProperRegistrationWrapper should call MockRegisterClass";
                 }
 
-                R_CSTL_BytecodeDecoderDestroy (&decoder);
+                R_CSTL_DeleteBytecodeDecoder (&decoder);
                 R_CSTL_DeleteBytecode (pCode);
         }
         else
@@ -1025,7 +1025,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestMissingRegistrationDetection)
                         EXPECT_EQ (0, found) << "ImproperRegistrationWrapper should not call MockRegisterClass";
                 }
 
-                R_CSTL_BytecodeDecoderDestroy (&decoder);
+                R_CSTL_DeleteBytecodeDecoder (&decoder);
                 R_CSTL_DeleteBytecode (pCode);
         }
         else
@@ -1256,7 +1256,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestFunctionWithMultipleCalls)
                         EXPECT_EQ (1, found) << "MultiCallFunction should call MockRegisterClass";
                 }
 
-                R_CSTL_BytecodeDecoderDestroy (&decoder);
+                R_CSTL_DeleteBytecodeDecoder (&decoder);
                 R_CSTL_DeleteBytecode (pCode);
         }
         else
@@ -1296,7 +1296,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestFunctionCallPatternAnalysis)
                 EXPECT_GE (callCount, 0);
                 EXPECT_GE (jumpCount, 0);
 
-                R_CSTL_BytecodeDecoderDestroy (&decoder);
+                R_CSTL_DeleteBytecodeDecoder (&decoder);
                 R_CSTL_DeleteBytecode (pCode);
         }
         else
