@@ -13,8 +13,8 @@
 
 #ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
 #include <CL/cl.h>
-extern const uint32_t cvulkanDefragmentationCl_size;
-extern const uint32_t cvulkanDefragmentationCl_data[];
+extern const uint32_t cvulkanDefragmentation_size;
+extern const uint32_t cvulkanDefragmentation_data[];
 #endif
 
 #define R_CVULKAN_DEFRAG_DEFAULT_MERGE_FACTOR       3
@@ -175,7 +175,6 @@ R_CVulkan_DefragInitialize (
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
-
         memset (pContext, 0, sizeof (struct R_CVulkan_DefragContext));
 
         pContext->pAllocator = pAllocator;
@@ -225,7 +224,7 @@ R_CVulkan_DefragInitialize (
                 goto r_cvulkan_metadata;
         }
 
-#if defined(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+#if defined(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
         if (pContext->backend == R_CVULKAN_DEFRAG_BACKEND_OPENCL)
         {
                 cl_platform_id platform = NULL;
@@ -512,8 +511,8 @@ R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
         }
         clReleaseCommandQueue (queue);
 
-        const char* source = (const char*)cvulkanDefragmentationCl_data;
-        size_t      sourceSize = cvulkanDefragmentationCl_size * sizeof (uint32_t);
+        const char* source = (const char*)cvulkanDefragmentation_data;
+        size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
         cl_mem buffers[] = {dBlockMetadata};
         size_t bufferSizes[] = {pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata)};
@@ -755,7 +754,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
                     &pContext->pMoves,
                     &pContext->moveCapacity,
                     maxMoves,
-                    sizeof (R_CVulkan_DefragMove));
+                    sizeof (struct R_CVulkan_DefragMove));
                 if (result != R_CVULKAN_OK)
                 {
                         goto cleanup_queue;
@@ -813,8 +812,8 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
                 goto cleanup_buffer_movecount;
         }
 
-        const char* source = (const char*)cvulkanDefragmentationCl_data;
-        size_t      sourceSize = cvulkanDefragmentationCl_size * sizeof (uint32_t);
+        const char* source = (const char*)cvulkanDefragmentation_data;
+        size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
         program = clCreateProgramWithBinary (
             context,
@@ -1252,8 +1251,8 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 goto r_cleanup_buffer_moves;
         }
 
-        const char* source = (const char*)cvulkanDefragmentationCl_data;
-        size_t      sourceSize = cvulkanDefragmentationCl_size * sizeof (uint32_t);
+        const char* source = (const char*)cvulkanDefragmentation_data;
+        size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
         program = clCreateProgramWithBinary (
             context,

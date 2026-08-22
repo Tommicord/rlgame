@@ -1,3 +1,13 @@
+cmake_path(GET ${INPUT_FILE} PARENT_PATH FILE_DIR)
+
+add_custom_target(
+    clean_generated_folder
+    COMMAND ${CMAKE_COMMAND} 
+    -E 
+    rm "{FILE_DIR}"
+    COMMENT "Cleanup old embed sources"
+)
+
 file(READ ${INPUT_FILE} HEX_DATA HEX)
 string(LENGTH "${HEX_DATA}" HEX_LENGTH)
 math(EXPR BYTE_COUNT "${HEX_LENGTH} / 2")
@@ -42,12 +52,10 @@ foreach(WORD IN LISTS WORD_LIST)
   endif()
 endforeach()
     
-set(HEADER_CONTENT "#ifndef ${VARIABLE_NAME}_H\n")
-set(HEADER_CONTENT "${HEADER_CONTENT}#define ${VARIABLE_NAME}_H\n\n")
+set(HEADER_CONTENT "#pragma once\n\n")
 set(HEADER_CONTENT "${HEADER_CONTENT}#include <cstdint>\n\n")
 set(HEADER_CONTENT "${HEADER_CONTENT}extern const uint32_t ${CAMELCASE_RESULT}_size;\n")
 set(HEADER_CONTENT "${HEADER_CONTENT}extern const uint32_t ${CAMELCASE_RESULT}_data[];\n\n")
-set(HEADER_CONTENT "${HEADER_CONTENT}#endif // ${VARIABLE_NAME}_H\n")
 
 file(WRITE ${OUTPUT_H} "${HEADER_CONTENT}")
 

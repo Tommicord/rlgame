@@ -1,18 +1,19 @@
 {
-  "version": 3,
+  "version": 4,
   "configurePresets": [
     {
-      "name": "windows-base",
+      "name": "vcpkg",
+      "displayName": "vcpkg Preset",
       "hidden": true,
       "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "toolset": "host=x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "architecture": "x64"
     },
     {
       "name": "x64-debug",
       "displayName": "Windows x64 Debug",
-      "inherits": "windows-base",
+      "inherits": "vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -20,11 +21,11 @@
     {
       "name": "x64-release",
       "displayName": "Windows x64 Release",
-      "inherits": "windows-base",
+      "inherits": "vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
-    },
+    }
   ],
   "buildPresets": [
     {
@@ -36,6 +37,6 @@
       "name": "x64-release",
       "configurePreset": "x64-release",
       "configuration": "Release"
-    },
+    }
   ]
 }
