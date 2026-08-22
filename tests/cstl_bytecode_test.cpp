@@ -18,7 +18,7 @@ namespace
 
 constexpr size_t kTestHeapSize = 256 * 1024;
 
-class CstlMaccodeTest : public ::testing::Test
+class CstlBytecodeTest : public ::testing::Test
 {
         protected:
                 void
@@ -36,13 +36,13 @@ class CstlMaccodeTest : public ::testing::Test
 
 } // namespace
 
-TEST (CstlMaccodeInitTest, DeleteNullIsSafe)
+TEST (CstlBytecodeInitTest, DeleteNullIsSafe)
 {
         R_CSTL_DeleteBytecode (nullptr);
         SUCCEED ();
 }
 
-TEST_F (CstlMaccodeTest, NewBytecodeView)
+TEST_F (CstlBytecodeTest, NewBytecodeView)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -54,7 +54,7 @@ TEST_F (CstlMaccodeTest, NewBytecodeView)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, NewBytecodeWithData)
+TEST_F (CstlBytecodeTest, NewBytecodeWithData)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -65,7 +65,7 @@ TEST_F (CstlMaccodeTest, NewBytecodeWithData)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, NewBytecodeWithDataZeroSize)
+TEST_F (CstlBytecodeTest, NewBytecodeWithDataZeroSize)
 {
         struct R_CSTL_Bytecode* pCode
             = R_CSTL_NewBytecodeWithData (nullptr, 0, R_CSTL_BYTECODE_ARCH_X86_64);
@@ -74,7 +74,7 @@ TEST_F (CstlMaccodeTest, NewBytecodeWithDataZeroSize)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, NewBytecodeFromFunction)
+TEST_F (CstlBytecodeTest, NewBytecodeFromFunction)
 {
         struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
             (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
@@ -85,14 +85,14 @@ TEST_F (CstlMaccodeTest, NewBytecodeFromFunction)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, NewBytecodeFromFunctionNull)
+TEST_F (CstlBytecodeTest, NewBytecodeFromFunctionNull)
 {
         struct R_CSTL_Bytecode* pCode
             = R_CSTL_NewBytecodeFromFunction (nullptr, 32, R_CSTL_BYTECODE_ARCH_X86_64);
         EXPECT_EQ (nullptr, pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeRead)
+TEST_F (CstlBytecodeTest, BytecodeRead)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -106,7 +106,7 @@ TEST_F (CstlMaccodeTest, BytecodeRead)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeReadOutOfBounds)
+TEST_F (CstlBytecodeTest, BytecodeReadOutOfBounds)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -119,7 +119,7 @@ TEST_F (CstlMaccodeTest, BytecodeReadOutOfBounds)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseNop)
+TEST_F (CstlBytecodeTest, BytecodeParseNop)
 {
         uint8_t                    testData[] = {0x90}; // NOP
         struct R_CSTL_Bytecode* pCode
@@ -134,7 +134,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseNop)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseRet)
+TEST_F (CstlBytecodeTest, BytecodeParseRet)
 {
         uint8_t                    testData[] = {0xC3}; // RET
         struct R_CSTL_Bytecode* pCode
@@ -149,7 +149,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseRet)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeParseInvalidArguments)
 {
         uint8_t                    testData[] = {0x90};
         struct R_CSTL_Bytecode* pCode
@@ -164,7 +164,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseInvalidArguments)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseMultipleInstructions)
+TEST_F (CstlBytecodeTest, BytecodeParseMultipleInstructions)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3}; // NOP, NOP, NOP, RET
         struct R_CSTL_Bytecode* pCode
@@ -183,7 +183,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseMultipleInstructions)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeTokenize)
+TEST_F (CstlBytecodeTest, BytecodeTokenize)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -198,7 +198,7 @@ TEST_F (CstlMaccodeTest, BytecodeTokenize)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeTokenizeInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeTokenizeInvalidArguments)
 {
         uint8_t                    testData[] = {0x90};
         struct R_CSTL_Bytecode* pCode
@@ -218,7 +218,7 @@ TEST_F (CstlMaccodeTest, BytecodeTokenizeInvalidArguments)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseUnsupportedArchitecture)
+TEST_F (CstlBytecodeTest, BytecodeParseUnsupportedArchitecture)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0x90};
         struct R_CSTL_Bytecode* pCode
@@ -235,7 +235,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseUnsupportedArchitecture)
 
 #if defined(R_CSTL_LOG_DEVMODE)
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedCall)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedCall)
 {
         // CALL rel32 (E8 followed by 4-byte displacement)
         uint8_t                    testData[] = {0xE8, 0x00, 0x00, 0x00, 0x00};
@@ -254,7 +254,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedCall)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedJump)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedJump)
 {
         // JMP rel32 (E9 followed by 4-byte displacement)
         uint8_t                    testData[] = {0xE9, 0x00, 0x00, 0x00, 0x00};
@@ -273,7 +273,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedJump)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedShortJump)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedShortJump)
 {
         // Short JMP (EB followed by 1-byte displacement)
         uint8_t                    testData[] = {0xEB, 0x00};
@@ -291,7 +291,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedShortJump)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedNop)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedNop)
 {
         uint8_t                    testData[] = {0x90}; // NOP
         struct R_CSTL_Bytecode* pCode
@@ -309,7 +309,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedNop)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedInvalidArguments)
 {
         uint8_t                    testData[] = {0x90};
         struct R_CSTL_Bytecode* pCode
@@ -324,7 +324,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedInvalidArguments)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86_64)
+TEST_F (CstlBytecodeTest, BytecodeDecoderCreateX86_64)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -333,7 +333,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86_64)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86)
+TEST_F (CstlBytecodeTest, BytecodeDecoderCreateX86)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86, &decoder));
@@ -342,7 +342,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateX86)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeDecoderCreateUnsupportedArchitecture)
+TEST_F (CstlBytecodeTest, BytecodeDecoderCreateUnsupportedArchitecture)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         EXPECT_EQ (
@@ -350,7 +350,7 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateUnsupportedArchitecture)
             R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_ARMV8A, &decoder));
 }
 
-TEST_F (CstlMaccodeTest, BytecodeDecoderCreateInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeDecoderCreateInvalidArguments)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         EXPECT_EQ (
@@ -358,13 +358,13 @@ TEST_F (CstlMaccodeTest, BytecodeDecoderCreateInvalidArguments)
             R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, nullptr));
 }
 
-TEST_F (CstlMaccodeTest, BytecodeDecoderDestroyNull)
+TEST_F (CstlBytecodeTest, BytecodeDecoderDestroyNull)
 {
         R_CSTL_DeleteBytecodeDecoder (nullptr);
         SUCCEED ();
 }
 
-TEST_F (CstlMaccodeTest, BytecodeParseEnhancedUnsupportedArchitecture)
+TEST_F (CstlBytecodeTest, BytecodeParseEnhancedUnsupportedArchitecture)
 {
         uint8_t                    testData[] = {0x90};
         struct R_CSTL_Bytecode* pCode
@@ -379,7 +379,7 @@ TEST_F (CstlMaccodeTest, BytecodeParseEnhancedUnsupportedArchitecture)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolNullTarget)
+TEST_F (CstlBytecodeTest, BytecodeGetInstructionTargetSymbolNullTarget)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -396,7 +396,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolNullTarget)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -417,7 +417,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeResolveSymbolInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeResolveSymbolInvalidArguments)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -431,7 +431,7 @@ TEST_F (CstlMaccodeTest, BytecodeResolveSymbolInvalidArguments)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeGetFunctionInfoInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeGetFunctionInfoInvalidArguments)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -445,7 +445,7 @@ TEST_F (CstlMaccodeTest, BytecodeGetFunctionInfoInvalidArguments)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
+TEST_F (CstlBytecodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
 {
         struct R_CSTL_BytecodeDecoder decoder;
         ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
@@ -482,7 +482,7 @@ TEST_F (CstlMaccodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
         R_CSTL_DeleteBytecodeDecoder (&decoder);
 }
 
-TEST_F (CstlMaccodeTest, StressTestLargeCodeBuffer)
+TEST_F (CstlBytecodeTest, StressTestLargeCodeBuffer)
 {
         constexpr size_t     kLargeBufferSize = 32 * 1024; // 32KB
         std::vector<uint8_t> largeBuffer (kLargeBufferSize, 0x90); // Fill with NOPs
@@ -508,7 +508,7 @@ TEST_F (CstlMaccodeTest, StressTestLargeCodeBuffer)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, StressTestRepeatedParsing)
+TEST_F (CstlBytecodeTest, StressTestRepeatedParsing)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -526,7 +526,7 @@ TEST_F (CstlMaccodeTest, StressTestRepeatedParsing)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, StressTestMixedInstructions)
+TEST_F (CstlBytecodeTest, StressTestMixedInstructions)
 {
         // Create a buffer with various instruction types
         std::vector<uint8_t> mixedCode;
@@ -560,7 +560,7 @@ TEST_F (CstlMaccodeTest, StressTestMixedInstructions)
 }
 
 // Real-world unit tests for complex scenarios
-TEST_F (CstlMaccodeTest, RealWorldTestRexPrefixHandling)
+TEST_F (CstlBytecodeTest, RealWorldTestRexPrefixHandling)
 {
         // MOV RAX, [RAX] with REX.W prefix
         uint8_t                    testData[] = {0x48, 0x8B, 0x00}; // REX.W + MOV RAX, [RAX]
@@ -584,7 +584,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestRexPrefixHandling)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestConditionalJump)
+TEST_F (CstlBytecodeTest, RealWorldTestConditionalJump)
 {
         // JE (Jump if Equal) with 32-bit displacement
         uint8_t                    testData[] = {0x0F, 0x84, 0x10, 0x00, 0x00, 0x00}; // JE rel32
@@ -607,7 +607,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestConditionalJump)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestLoopInstruction)
+TEST_F (CstlBytecodeTest, RealWorldTestLoopInstruction)
 {
         // LOOPNE (Loop if not equal)
         uint8_t                    testData[] = {0xE0, 0x05}; // LOOPNE rel8
@@ -629,7 +629,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestLoopInstruction)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestModRMWithSIB)
+TEST_F (CstlBytecodeTest, RealWorldTestModRMWithSIB)
 {
         // MOV EAX, [RAX + RCX*4 + 0x10]
         uint8_t                    testData[] = {0x8B, 0x44, 0x88, 0x10};
@@ -645,7 +645,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestModRMWithSIB)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestMultiByteOpcode)
+TEST_F (CstlBytecodeTest, RealWorldTestMultiByteOpcode)
 {
         // SSE instruction: MOVAPS XMM0, [RAX], need ModRM byte
         uint8_t                    testData[] = {0x0F, 0x28, 0x00};
@@ -662,7 +662,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestMultiByteOpcode)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestLegacyPrefixes)
+TEST_F (CstlBytecodeTest, RealWorldTestLegacyPrefixes)
 {
         // LOCK prefix with ADD, need ModRM byte
         uint8_t                    testData[] = {0xF0, 0x01, 0x00}; // LOCK ADD [RAX], EAX
@@ -684,7 +684,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestLegacyPrefixes)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestIndirectCall)
+TEST_F (CstlBytecodeTest, RealWorldTestIndirectCall)
 {
         // CALL [RAX]
         uint8_t                    testData[] = {0xFF, 0xD0}; // CALL RAX
@@ -705,7 +705,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestIndirectCall)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, RealWorldTestPushPopSequence)
+TEST_F (CstlBytecodeTest, RealWorldTestPushPopSequence)
 {
         // Push/pop register sequence, need REX byte for R8-R15
         uint8_t                    testData[] = {0x50, 0x51, 0x52, 0x53, 0x58, 0x59, 0x5A, 0x5B};
@@ -729,7 +729,7 @@ TEST_F (CstlMaccodeTest, RealWorldTestPushPopSequence)
 }
 
 // SIMD Path Tests
-TEST_F (CstlMaccodeTest, SimdTestPrefixScanningLargeBuffer)
+TEST_F (CstlBytecodeTest, SimdTestPrefixScanningLargeBuffer)
 {
         // Create a buffer with many prefixes to test SIMD path
         constexpr size_t     kBufferSize = 256;
@@ -766,7 +766,7 @@ TEST_F (CstlMaccodeTest, SimdTestPrefixScanningLargeBuffer)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, SimdTestByteCopyingLargeBuffer)
+TEST_F (CstlBytecodeTest, SimdTestByteCopyingLargeBuffer)
 {
         // Test SIMD byte copying with large buffer
         constexpr size_t     kBufferSize = 64 * 1024; // 64KB
@@ -793,7 +793,7 @@ TEST_F (CstlMaccodeTest, SimdTestByteCopyingLargeBuffer)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, SimdTestMixedPrefixSequence)
+TEST_F (CstlBytecodeTest, SimdTestMixedPrefixSequence)
 {
         // Test SIMD path with various prefix combinations
         uint8_t testData[] = {
@@ -816,7 +816,7 @@ TEST_F (CstlMaccodeTest, SimdTestMixedPrefixSequence)
 }
 
 // Thread Safety Tests
-TEST_F (CstlMaccodeTest, ThreadSafetyTestConcurrentReads)
+TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentReads)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -853,7 +853,7 @@ TEST_F (CstlMaccodeTest, ThreadSafetyTestConcurrentReads)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, ThreadSafetyTestConcurrentParsing)
+TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentParsing)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -890,7 +890,7 @@ TEST_F (CstlMaccodeTest, ThreadSafetyTestConcurrentParsing)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, ThreadSafetyTestMixedOperations)
+TEST_F (CstlBytecodeTest, ThreadSafetyTestMixedOperations)
 {
         uint8_t                    testData[] = {0x90, 0x90, 0x90, 0xC3};
         struct R_CSTL_Bytecode* pCode
@@ -962,7 +962,7 @@ static void MultiCallFunction ()
 
 } // namespace
 
-TEST_F (CstlMaccodeTest, IntegrationTestProperRegistrationDetection)
+TEST_F (CstlBytecodeTest, IntegrationTestProperRegistrationDetection)
 {
         // Test that ProperRegistrationWrapper calls RegisterClass
         struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
@@ -998,7 +998,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestProperRegistrationDetection)
         }
 }
 
-TEST_F (CstlMaccodeTest, IntegrationTestMissingRegistrationDetection)
+TEST_F (CstlBytecodeTest, IntegrationTestMissingRegistrationDetection)
 {
         // Test that ImproperRegistrationWrapper doesn't call RegisterClass
         struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
@@ -1035,7 +1035,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestMissingRegistrationDetection)
 }
 
 // Enhanced Parsing Feature Tests
-TEST_F (CstlMaccodeTest, EnhancedTestRexPrefixVariants)
+TEST_F (CstlBytecodeTest, EnhancedTestRexPrefixVariants)
 {
         // Test various REX prefix combinations
         struct RexTestCase
@@ -1081,7 +1081,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestRexPrefixVariants)
         }
 }
 
-TEST_F (CstlMaccodeTest, EnhancedTestConditionalJumpVariants)
+TEST_F (CstlBytecodeTest, EnhancedTestConditionalJumpVariants)
 {
         // Test various conditional jump instructions
         struct CondJumpTestCase
@@ -1124,7 +1124,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestConditionalJumpVariants)
         }
 }
 
-TEST_F (CstlMaccodeTest, EnhancedTestLoopInstructions)
+TEST_F (CstlBytecodeTest, EnhancedTestLoopInstructions)
 {
         // Test LOOP instruction variants
         struct LoopTestCase
@@ -1158,7 +1158,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestLoopInstructions)
         }
 }
 
-TEST_F (CstlMaccodeTest, EnhancedTestJCXZInstruction)
+TEST_F (CstlBytecodeTest, EnhancedTestJCXZInstruction)
 {
         // Test JCXZ/JECXZ/JRCXZ instruction
         uint8_t testData[] = {0xE3, 0x05}; // JCXZ rel8
@@ -1175,7 +1175,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestJCXZInstruction)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-TEST_F (CstlMaccodeTest, EnhancedTestLegacyPrefixDetection)
+TEST_F (CstlBytecodeTest, EnhancedTestLegacyPrefixDetection)
 {
         // Test detection of various legacy prefixes
         struct LegacyPrefixTestCase
@@ -1210,7 +1210,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestLegacyPrefixDetection)
         }
 }
 
-TEST_F (CstlMaccodeTest, EnhancedTestMultiplePrefixes)
+TEST_F (CstlBytecodeTest, EnhancedTestMultiplePrefixes)
 {
         // Test instruction with multiple prefixes
         uint8_t testData[] = {0xF0, 0x66, 0x48, 0x8B, 0x00}; // LOCK + Operand Size + REX.W + MOV
@@ -1229,7 +1229,7 @@ TEST_F (CstlMaccodeTest, EnhancedTestMultiplePrefixes)
 }
 
 // Additional integration tests for edge cases
-TEST_F (CstlMaccodeTest, IntegrationTestFunctionWithMultipleCalls)
+TEST_F (CstlBytecodeTest, IntegrationTestFunctionWithMultipleCalls)
 {
         // Test function that calls multiple methods
         struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
@@ -1265,7 +1265,7 @@ TEST_F (CstlMaccodeTest, IntegrationTestFunctionWithMultipleCalls)
         }
 }
 
-TEST_F (CstlMaccodeTest, IntegrationTestFunctionCallPatternAnalysis)
+TEST_F (CstlBytecodeTest, IntegrationTestFunctionCallPatternAnalysis)
 {
         // Test analysis of function call patterns
         struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (

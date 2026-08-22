@@ -3,7 +3,6 @@
 #include <vulkan/vulkan.h>
 #include <stdint.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cstl/cstl_string.h"
 
@@ -54,7 +53,7 @@ struct R_CVulkan_Instance
  * - R_CVULKAN_ERROR_EXTENSION_NOT_FOUND: Required extension not available
  * - R_CVULKAN_ERROR_INCOMPATIBLE_DRIVER: Vulkan driver version incompatible
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewInstance (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
     const struct R_CVulkan_InstanceCreateInfo* pCreateInfo);
 

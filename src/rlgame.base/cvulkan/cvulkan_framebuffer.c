@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*                 pFramebuffer,
     const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
@@ -45,7 +45,7 @@ R_CVulkan_NewFramebuffer (
         pFramebuffer->height = pCreateInfo->height;
         pFramebuffer->attachmentCount = pCreateInfo->attachmentCount;
 #if defined(R_CVULKAN_DEBUG)
-        pFramebuffer->isInitialized = false;
+        pFramebuffer->booted = false;
 #endif
 
         VkFramebufferCreateInfo framebufferInfo = {0};
@@ -65,7 +65,7 @@ R_CVulkan_NewFramebuffer (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pFramebuffer->isInitialized = true;
+        pFramebuffer->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -94,7 +94,7 @@ R_CVulkan_DeleteFramebuffer (struct R_CVulkan_Framebuffer* pFramebuffer)
         pFramebuffer->height = 0;
         pFramebuffer->attachmentCount = 0;
 #if defined(R_CVULKAN_DEBUG)
-        pFramebuffer->isInitialized = false;
+        pFramebuffer->booted = false;
 #endif
 }
 
@@ -157,7 +157,7 @@ R_CVulkan_FramebufferIsInitialized (const struct R_CVulkan_Framebuffer* pFramebu
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pFramebuffer != NULL);
-        return pFramebuffer->isInitialized;
+        return pFramebuffer->booted;
 #else
         (void)pFramebuffer;
         return 1;

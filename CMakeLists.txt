@@ -103,6 +103,25 @@ endif ()
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
 
+# Find OpenCL for GPU memory defragmentation (fallback for non-NVIDIA GPUs)
+find_package(OpenCL)
+if(OpenCL_FOUND)
+  message(STATUS "OpenCL found - GPU defragmentation support enabled")
+  add_compile_definitions(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
+else()
+  message(STATUS "OpenCL not found - GPU defragmentation support limited to CUDA")
+endif()
+
+# Find CUDA for NVIDIA GPU memory defragmentation (preferred for NVIDIA GPUs)
+find_package(CUDA)
+if(CUDA_FOUND)
+  message(STATUS "CUDA found - NVIDIA GPU defragmentation support enabled")
+  add_compile_definitions(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+  enable_language(CUDA)
+else()
+  message(STATUS "CUDA not found - NVIDIA GPU defragmentation support disabled")
+endif()
+
 find_program(RENDERDOC_EXE renderdoccmd DOC "RenderDoc command line tool")
 if(RENDERDOC_EXE)
   message(STATUS "RenderDoc found: ${RENDERDOC_EXE}")
@@ -187,6 +206,7 @@ file(GLOB_RECURSE CSTL_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
 file(GLOB_RECURSE CSTL_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
 file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
 file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
+file(GLOB_RECURSE CVULKAN_CUDA_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.cu)
 file(GLOB_RECURSE GAME_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
 file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
 file(GLOB         MAIN_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/*.c)
@@ -202,7 +222,7 @@ endif()
 target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CSTL_BUILDING_DLL)
 set_base_include_directories(rlgame.base.cstl)
 
-add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS})
+add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS} ${CVULKAN_CUDA_SOURCES})
 
 set_common_output_directories(rlgame.base.cvulkan)
 set_base_include_directories(rlgame.base.cvulkan)
@@ -214,6 +234,15 @@ target_link_libraries(
   Vulkan::Vulkan
   rlgame.base.cstl
 )
+
+if(OpenCL_FOUND)
+  target_link_libraries(rlgame.base.cvulkan PUBLIC OpenCL::OpenCL)
+endif()
+
+if(CUDA_FOUND)
+  target_link_libraries(rlgame.base.cvulkan PUBLIC CUDA::CUDA)
+endif()
+
 if (UNIX AND NOT APPLE)
   target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
 endif()
@@ -222,7 +251,7 @@ add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
 
 set_common_output_directories(rlgame.base.game)
 set_base_include_directories(rlgame.base.game)
-target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_GAME_CVULKAN_BUILDING_DLL)
+target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_GAME_BUILDING_DLL)
 
 target_link_libraries(
   rlgame.base.game
@@ -292,6 +321,13 @@ set(SHADERS
   src/rlgame.shader/WorldMeshDelaunay2D.comp
   src/rlgame.shader/WorldMeshGenGeomNoOcclusion.comp
   src/rlgame.shader/WorldOcclusionCull.comp
+)
+
+set(CUDA_FILES
+  src/rlgame.base/cvulkan/cvulkan_defragmentation.cu
+)
+set(OPENCL_FILES
+  src/rlgame.base/cvulkan/cvulkan_defragmentation.cl
 )
 
 enable_testing()
@@ -512,5 +548,110 @@ foreach (SHADER IN LISTS SHADERS)
   list(APPEND EMBEDDED_CFILES "${EMBEDDED_CFILE}")
 endforeach ()
 
+# Embed CUDA files for GPU memory defragmentation
+if(CUDA_FOUND)
+  foreach (CUDA_FILE IN LISTS CUDA_FILES)
+    get_filename_component(
+      CUDA_ABS_PATH
+      "${CUDA_FILE}"
+      ABSOLUTE)
+    get_filename_component(
+      CUDA_NAME
+      "${CUDA_FILE}"
+      NAME)
+    get_filename_component(
+      CUDA_NAME_WE
+      "${CUDA_FILE}"
+      NAME_WE)
+    string(REPLACE "." "_" CUDA_VAR_NAME "${CUDA_NAME_WE}")
+
+    string(RANDOM LENGTH 32 RANDOM_NAME)
+    string(
+      UUID EMBEDDED_UUID
+      NAMESPACE ${UUID_NAMESPACE} 
+      NAME ${RANDOM_NAME} 
+      TYPE SHA1
+      UPPER
+    )
+    
+    set(CUBIN "${CMAKE_CURRENT_BINARY_DIR}/.cuda/${CUDA_NAME_WE}.cubin")
+    set(EMBEDDED_CUDA_HEADER "${CMAKE_CURRENT_BINARY_DIR}/.cuda/${RANDOM_NAME}.h")
+    set(EMBEDDED_CUDA_CFILE "${CMAKE_CURRENT_BINARY_DIR}/.cuda/${RANDOM_NAME}.cpp")
+    
+    add_custom_command(
+      OUTPUT "${CUBIN}"
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.cuda/"
+      COMMAND CUDA::nvcc --cubin -o "${CUBIN}" "${CUDA_ABS_PATH}"
+      DEPENDS "${CUDA_ABS_PATH}"
+      COMMENT "Compiling CUDA file ${CUDA_NAME}"
+      VERBATIM
+    )
+    
+    add_custom_command(
+      OUTPUT "${EMBEDDED_CUDA_HEADER}" "${EMBEDDED_CUDA_CFILE}"
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.cuda/"
+      COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${CUBIN} -DOUTPUT_H=${EMBEDDED_CUDA_HEADER} -DOUTPUT_C=${EMBEDDED_CUDA_CFILE} -DVARIABLE_NAME=${CUDA_VAR_NAME} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedCuda.cmake"
+      DEPENDS "${CUBIN}"
+      COMMENT "Embedding CUDA ${CUDA_NAME}"
+      VERBATIM
+    )
+    
+    list(APPEND CUDA_OUTPUTS "${CUBIN}")
+    list(APPEND EMBEDDED_CUDA_HEADERS "${EMBEDDED_CUDA_HEADER}")
+    list(APPEND EMBEDDED_CUDA_CFILES "${EMBEDDED_CUDA_CFILE}")
+  endforeach ()
+endif()
+
+# Embed OpenCL files for GPU memory defragmentation
+if(OpenCL_FOUND)
+  foreach (OPENCL_FILE IN LISTS OPENCL_FILES)
+    get_filename_component(
+      OPENCL_ABS_PATH
+      "${OPENCL_FILE}"
+      ABSOLUTE)
+    get_filename_component(
+      OPENCL_NAME
+      "${OPENCL_FILE}"
+      NAME)
+    get_filename_component(
+      OPENCL_NAME_WE
+      "${OPENCL_FILE}"
+      NAME_WE)
+    string(REPLACE "." "_" OPENCL_VAR_NAME "${OPENCL_NAME_WE}")
+
+    string(RANDOM LENGTH 32 RANDOM_NAME)
+    string(
+      UUID EMBEDDED_UUID
+      NAMESPACE ${UUID_NAMESPACE} 
+      NAME ${RANDOM_NAME} 
+      TYPE SHA1
+      UPPER
+    )
+    
+    set(EMBEDDED_OPENCL_HEADER "${CMAKE_CURRENT_BINARY_DIR}/.opencl/${RANDOM_NAME}.h")
+    set(EMBEDDED_OPENCL_CFILE "${CMAKE_CURRENT_BINARY_DIR}/.opencl/${RANDOM_NAME}.cpp")
+    
+    add_custom_command(
+      OUTPUT "${EMBEDDED_OPENCL_HEADER}" "${EMBEDDED_OPENCL_CFILE}"
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/.opencl/"
+      COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${OPENCL_ABS_PATH} -DOUTPUT_H=${EMBEDDED_OPENCL_HEADER} -DOUTPUT_C=${EMBEDDED_OPENCL_CFILE} -DVARIABLE_NAME=${OPENCL_VAR_NAME} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedBinary.cmake"
+      DEPENDS "${OPENCL_ABS_PATH}"
+      COMMENT "Embedding OpenCL ${OPENCL_NAME}"
+      VERBATIM
+    )
+    
+    list(APPEND EMBEDDED_OPENCL_HEADERS "${EMBEDDED_OPENCL_HEADER}")
+    list(APPEND EMBEDDED_OPENCL_CFILES "${EMBEDDED_OPENCL_CFILE}")
+  endforeach ()
+endif()
+
 target_sources(rlgame PRIVATE ${EMBEDDED_HEADERS})
 target_sources(rlgame PRIVATE ${EMBEDDED_CFILES})
+if(CUDA_FOUND)
+  target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_HEADERS})
+  target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_CFILES})
+endif()
+if(OpenCL_FOUND)
+  target_sources(rlgame PRIVATE ${EMBEDDED_OPENCL_HEADERS})
+  target_sources(rlgame PRIVATE ${EMBEDDED_OPENCL_CFILES})
+endif()

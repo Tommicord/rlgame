@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pImage);
@@ -52,7 +52,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
         pImage->samples = pCreateInfo->samples;
         pImage->tiling = pCreateInfo->tiling;
 #if defined(R_CVULKAN_DEBUG)
-        pImage->isInitialized = false;
+        pImage->booted = false;
 #endif
 
         VkImageCreateInfo imageInfo = {0};
@@ -74,7 +74,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
                 return R_CVULKAN_ERROR_IMAGE_CREATE_FAILED;
         }
 
-        enum R_CVulkan_Error error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
+        enum R_CVulkanError error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
             pImage->device,
             pCreateInfo->physicalDevice,
             pImage->handle,
@@ -102,7 +102,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
         pImage->size = memRequirements.size;
         pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 #if defined(R_CVULKAN_DEBUG)
-        pImage->isInitialized = true;
+        pImage->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -143,18 +143,18 @@ R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
         pImage->imageType = VK_IMAGE_TYPE_2D;
         pImage->samples = VK_SAMPLE_COUNT_1_BIT;
         pImage->tiling = VK_IMAGE_TILING_OPTIMAL;
-        pImage->isInitialized = false;
+        pImage->booted = false;
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_ImageTransitionLayout (
     struct R_CVulkan_Image*     pImage,
     VkCommandBuffer             commandBuffer,
     VkImageLayout               oldLayout,
     VkImageLayout               newLayout,
-    R_CVulkanPipelineStageFlags srcStageMask,
-    R_CVulkanPipelineStageFlags dstStageMask)
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask)
 {
         R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
@@ -164,7 +164,7 @@ R_CVulkan_ImageTransitionLayout (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!pImage->isInitialized)
+        if (!pImage->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -205,11 +205,11 @@ R_CVulkan_ImageTransitionLayout (
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,
-    R_CVulkanDeviceSize     dataSize,
+    VkDeviceSize     dataSize,
     VkBuffer                buffer,
     VkCommandBuffer         commandBuffer)
 {
@@ -223,7 +223,7 @@ R_CVulkan_ImageCopyData (
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-        if (!pImage->isInitialized)
+        if (!pImage->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -323,7 +323,7 @@ R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImage != NULL);
-        return pImage->isInitialized;
+        return pImage->booted;
 #else
         (void)pImage;
         return 1;

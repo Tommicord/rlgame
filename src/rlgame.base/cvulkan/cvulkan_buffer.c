@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_BufferCreateInfo* pCreateInfo)
 {
         if (!pBuffer || !pCreateInfo || !pCreateInfo->device || pCreateInfo->physicalDevice == VK_NULL_HANDLE)
@@ -37,7 +37,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
         pBuffer->pMapped = NULL;
         pBuffer->isMapped = false;
 #if defined(R_CVULKAN_DEBUG)
-        pBuffer->isInitialized = false;
+        pBuffer->booted = false;
 #endif
 
         VkBufferCreateInfo bufferInfo = {0};
@@ -56,7 +56,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
         vkGetBufferMemoryRequirements (pBuffer->device, pBuffer->handle, &memRequirements);
 
         uint32_t             memoryTypeIndex = 0;
-        enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
+        enum R_CVulkanError error = R_CVulkan_FindMemoryType (
             pCreateInfo->physicalDevice,
             &memRequirements,
             pCreateInfo->properties,
@@ -90,7 +90,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
                 return R_CVULKAN_ERROR_FAILED;
         }
 #if defined(R_CVULKAN_DEBUG)
-        pBuffer->isInitialized = true;
+        pBuffer->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -123,7 +123,7 @@ R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer)
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pBuffer->isInitialized = false;
+        pBuffer->booted = false;
 #endif
         pBuffer->device = VK_NULL_HANDLE;
         pBuffer->size = 0;
@@ -131,16 +131,16 @@ R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer)
         pBuffer->properties = 0;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferMap (
     struct R_CVulkan_Buffer* pBuffer,
-    R_CVulkanDeviceSize      offset,
-    R_CVulkanDeviceSize      size,
+    VkDeviceSize      offset,
+    VkDeviceSize      size,
     void**                   ppOutData)
 {
-        R_CVULKAN_VALIDATE_PTR (pBuffer);
-        R_CVULKAN_VALIDATE_PTR (ppOutData);
-        R_CVULKAN_VALIDATE_INITIALIZED (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (ppOutData);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
 
         if (pBuffer->isMapped)
         {
@@ -158,11 +158,11 @@ R_CVulkan_BufferMap (
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
 {
-        R_CVULKAN_VALIDATE_PTR (pBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
 
         if (!pBuffer->isMapped)
         {
@@ -176,16 +176,16 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferCopyData (
     struct R_CVulkan_Buffer* pBuffer,
-    R_CVulkanDeviceSize      offset,
-    R_CVulkanDeviceSize      size,
+    VkDeviceSize      offset,
+    VkDeviceSize      size,
     const void*              data)
 {
-        R_CVULKAN_VALIDATE_PTR (pBuffer);
-        R_CVULKAN_VALIDATE_PTR (data);
-        R_CVULKAN_VALIDATE_INITIALIZED (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (data);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
 
         if (size == 0)
         {
@@ -193,7 +193,7 @@ R_CVulkan_BufferCopyData (
         }
 
         void*                mapped = NULL;
-        enum R_CVulkan_Error error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);
+        enum R_CVulkanError error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);
         if (error != R_CVULKAN_OK)
         {
                 return error;
@@ -209,14 +209,14 @@ R_CVulkan_BufferCopyData (
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferInvalidate (
     struct R_CVulkan_Buffer* pBuffer,
-    R_CVulkanDeviceSize      offset,
-    R_CVulkanDeviceSize      size)
+    VkDeviceSize      offset,
+    VkDeviceSize      size)
 {
-        R_CVULKAN_VALIDATE_PTR (pBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
 
         VkMappedMemoryRange mappedRange = {0};
         mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -233,11 +233,11 @@ R_CVulkan_BufferInvalidate (
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, R_CVulkanDeviceSize offset, R_CVulkanDeviceSize size)
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, VkDeviceSize offset, VkDeviceSize size)
 {
-        R_CVULKAN_VALIDATE_PTR (pBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
 
         VkMappedMemoryRange mappedRange = {0};
         mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -275,21 +275,21 @@ R_CVulkan_BufferGetDevice (const struct R_CVulkan_Buffer* pBuffer)
         return pBuffer->device;
 }
 
-R_CVULKAN_API R_CVulkanDeviceSize
+R_CVULKAN_API VkDeviceSize
 R_CVulkan_BufferGetSize (const struct R_CVulkan_Buffer* pBuffer)
 {
         R_CVULKAN_VALIDATE_GETTER (pBuffer);
         return pBuffer->size;
 }
 
-R_CVULKAN_API R_CVulkanBufferUsageFlags
+R_CVULKAN_API VkBufferUsageFlags
 R_CVulkan_BufferGetUsage (const struct R_CVulkan_Buffer* pBuffer)
 {
         R_CVULKAN_VALIDATE_GETTER (pBuffer);
         return pBuffer->usage;
 }
 
-R_CVULKAN_API R_CVulkanMemoryPropertyFlags
+R_CVULKAN_API VkMemoryPropertyFlags
 R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer)
 {
         R_CVULKAN_VALIDATE_GETTER (pBuffer);
@@ -315,7 +315,7 @@ R_CVulkan_BufferIsInitialized (const struct R_CVulkan_Buffer* pBuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pBuffer != NULL);
-        return pBuffer->isInitialized;
+        return pBuffer->booted;
 #else
         (void)pBuffer;
         return 1;

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewImageView (
     struct R_CVulkan_ImageView*                 pImageView,
     const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo)
@@ -30,7 +30,7 @@ R_CVulkan_NewImageView (
         pImageView->image = pCreateInfo->image;
         pImageView->format = pCreateInfo->format;
 #if defined(R_CVULKAN_DEBUG)
-        pImageView->isInitialized = false;
+        pImageView->booted = false;
 #endif
 
         VkImageViewCreateInfo viewInfo = {0};
@@ -48,7 +48,7 @@ R_CVulkan_NewImageView (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pImageView->isInitialized = true;
+        pImageView->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -70,7 +70,7 @@ R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* imageView)
                 imageView->handle = VK_NULL_HANDLE;
         }
 #if defined(R_CVULKAN_DEBUG)
-        imageView->isInitialized = false;
+        imageView->booted = false;
 #endif
 }
 
@@ -115,7 +115,7 @@ R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pImageView != NULL);
-        return pImageView->isInitialized;
+        return pImageView->booted;
 #else
         (void)pImageView;
         return 1;

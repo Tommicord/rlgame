@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*                 pSampler,
     const struct R_CVulkan_SamplerCreateInfo* pCreateInfo)
@@ -29,7 +29,7 @@ R_CVulkan_NewSampler (
         pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pSampler->handle = VK_NULL_HANDLE;
-        pSampler->isInitialized = false;
+        pSampler->booted = false;
 #endif
 
         VkSamplerCreateInfo samplerInfo = {0};
@@ -55,7 +55,7 @@ R_CVulkan_NewSampler (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pSampler->isInitialized = true;
+        pSampler->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -79,7 +79,7 @@ R_CVulkan_DeleteSampler (struct R_CVulkan_Sampler* pSampler)
         }
 #if defined(R_CVULKAN_DEBUG)
         pSampler->device = VK_NULL_HANDLE;
-        pSampler->isInitialized = false;
+        pSampler->booted = false;
 #endif
 }
 
@@ -106,7 +106,7 @@ R_CVulkan_SamplerIsInitialized (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pSampler != NULL);
-        return pSampler->isInitialized;
+        return pSampler->booted;
 #else
         (void)pSampler;
         return 1;

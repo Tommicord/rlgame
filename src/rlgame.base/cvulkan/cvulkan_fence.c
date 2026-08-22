@@ -7,7 +7,7 @@
 #include <inttypes.h>
 #include <vulkan/vulkan.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, bool signaled)
 {
         R_CVULKAN_ASSERT (pFence != NULL);
@@ -28,7 +28,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
         pFence->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pFence->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pFence->isInitialized = false;
+        pFence->booted = false;
 #endif
 
         VkFenceCreateInfo fenceInfo = {0};
@@ -42,7 +42,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pFence->isInitialized = true;
+        pFence->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -67,11 +67,11 @@ R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence)
 
 #if defined(R_CVULKAN_DEBUG)
         pFence->device = VK_NULL_HANDLE;
-        pFence->isInitialized = false;
+        pFence->booted = false;
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_FenceWait (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFences,
@@ -105,8 +105,8 @@ R_CVulkan_FenceWait (
         for (uint32_t i = 0; i < fenceCount; ++i)
         {
 #if defined(R_CVULKAN_DEBUG)
-                R_CVULKAN_ASSERT (pFences[i].isInitialized);
-                if (!pFences[i].isInitialized || pFences[i].handle == VK_NULL_HANDLE)
+                R_CVULKAN_ASSERT (pFences[i].booted);
+                if (!pFences[i].booted || pFences[i].handle == VK_NULL_HANDLE)
                 {
                         R_CSTL_HeapFree (nativeFences);
                         return R_CVULKAN_ERROR_NOT_INITIALIZED;
@@ -138,7 +138,7 @@ R_CVulkan_FenceWait (
         }
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_FenceReset (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFences,
@@ -170,8 +170,8 @@ R_CVulkan_FenceReset (
         for (uint32_t i = 0; i < fenceCount; ++i)
         {
 #if defined(R_CVULKAN_DEBUG)
-                R_CVULKAN_ASSERT (pFences[i].isInitialized);
-                if (!pFences[i].isInitialized || pFences[i].handle == VK_NULL_HANDLE)
+                R_CVULKAN_ASSERT (pFences[i].booted);
+                if (!pFences[i].booted || pFences[i].handle == VK_NULL_HANDLE)
                 {
                         R_CSTL_HeapFree (nativeFences);
                         return R_CVULKAN_ERROR_NOT_INITIALIZED;
@@ -195,7 +195,7 @@ R_CVulkan_FenceReset (
         }
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
@@ -216,8 +216,8 @@ R_CVulkan_FenceGetStatus (
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 
-        R_CVULKAN_ASSERT (pFence->isInitialized);
-        if (!pFence->isInitialized || pFence->handle == VK_NULL_HANDLE)
+        R_CVULKAN_ASSERT (pFence->booted);
+        if (!pFence->booted || pFence->handle == VK_NULL_HANDLE)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -264,7 +264,7 @@ R_CVulkan_FenceIsInitialized (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pFence != NULL);
-        return pFence->isInitialized;
+        return pFence->booted;
 #else
         (void)pFence;
         return 1;

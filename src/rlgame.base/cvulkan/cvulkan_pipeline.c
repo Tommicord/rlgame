@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewPipelineLayout (
     struct R_CVulkan_PipelineLayout*                 pLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo)
@@ -29,7 +29,7 @@ R_CVulkan_NewPipelineLayout (
         pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pLayout->handle = VK_NULL_HANDLE;
-        pLayout->isInitialized = false;
+        pLayout->booted = false;
 #endif
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
@@ -47,7 +47,7 @@ R_CVulkan_NewPipelineLayout (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pLayout->isInitialized = true;
+        pLayout->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -70,11 +70,11 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
         }
 #if defined(R_CVULKAN_DEBUG)
         pLayout->device = VK_NULL_HANDLE;
-        pLayout->isInitialized = false;
+        pLayout->booted = false;
 #endif
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
@@ -112,7 +112,7 @@ R_CVulkan_NewGraphicsPipeline (
         pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
-        pPipeline->isInitialized = false;
+        pPipeline->booted = false;
 #endif
 
         VkGraphicsPipelineCreateInfo pipelineInfo = {0};
@@ -146,12 +146,12 @@ R_CVulkan_NewGraphicsPipeline (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pPipeline->isInitialized = true;
+        pPipeline->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewDynamicGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
@@ -193,7 +193,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
-        pPipeline->isInitialized = false;
+        pPipeline->booted = false;
 #endif
 
         VkPipelineRenderingCreateInfoKHR renderingCreateInfo = {0};
@@ -236,12 +236,12 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pPipeline->isInitialized = true;
+        pPipeline->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewComputePipeline (
     struct R_CVulkan_Pipeline*             pPipeline,
     const struct R_CVulkan_Device*         pDevice,
@@ -268,7 +268,7 @@ R_CVulkan_NewComputePipeline (
         pPipeline->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->handle = VK_NULL_HANDLE;
-        pPipeline->isInitialized = false;
+        pPipeline->booted = false;
 #endif
 
         VkComputePipelineCreateInfo pipelineInfo = {0};
@@ -291,7 +291,7 @@ R_CVulkan_NewComputePipeline (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pPipeline->isInitialized = true;
+        pPipeline->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -315,7 +315,7 @@ R_CVulkan_Pipeline_Shutdown (struct R_CVulkan_Pipeline* pPipeline)
         }
 #if defined(R_CVULKAN_DEBUG)
         pPipeline->device = VK_NULL_HANDLE;
-        pPipeline->isInitialized = false;
+        pPipeline->booted = false;
 #endif
 }
 
@@ -341,7 +341,7 @@ int
 R_CVulkan_PipelineLayout_IsInitialized (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return pLayout->isInitialized;
+        return pLayout->booted;
 #else
         (void)pLayout;
         return 1;
@@ -370,7 +370,7 @@ int
 R_CVulkan_Pipeline_IsInitialized (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return pPipeline->isInitialized;
+        return pPipeline->booted;
 #else
         (void)pPipeline;
         return 1;

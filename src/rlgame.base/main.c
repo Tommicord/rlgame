@@ -360,16 +360,18 @@ R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData)
         struct R_MainProvider           provider = {
                       .pExecCallback = pExecCallback,
                       .pAppInfo = pAppInfo,
+                      .pUserData = (void*)pUserData,
                       .stateFlags = R_GAMELOOP_STATE_NONE,
         };
         R_MainProvider_Run (&provider);
 }
-static struct R_GameState g_gameState = {0};
 
 static bool
-R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo)
+R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
 {
-        if (!R_GameState_IsInitialized (&g_gameState))
+        struct R_GameState* pGameState = (struct R_GameState*)pUserData;
+        
+        if (!R_GameState_IsInitialized (pGameState))
         {
                 struct R_GameStateCreateInfo createInfo = {0};
                 createInfo.pApplicationName = pAppInfo->pApplicationName;
@@ -382,7 +384,7 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo)
                 createInfo.hInstance = hInstance;
                 createInfo.hWnd = R_GetWindowHandle ();
 
-                enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameState, &createInfo);
+                enum R_CVulkanError result = R_GameState_Initialize (pGameState, &createInfo);
                 if (result != R_CVULKAN_OK)
                 {
                         return false;
@@ -394,14 +396,14 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo)
 }
 
 static void
-R_GameLoopCleanup (void)
+R_GameLoopCleanup (struct R_GameState* pGameState)
 {
         R_CSTL_TRACE_FUNCTION ();
 
-        if (R_GameState_IsInitialized (&g_gameState))
+        if (R_GameState_IsInitialized (pGameState))
         {
                 R_CSTL_LOG_INFO ("GameLoopCleanup: Cleaning up game state");
-                R_GameState_Cleanup (&g_gameState);
+                R_GameState_Cleanup (pGameState);
         }
         R_CSTL_TRACE_RETURN ();
 }
@@ -480,7 +482,7 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
                 lastTime = currentTime;
 
                 frameCount++;
-                bool shouldContinue = pProvider->pExecCallback (pProvider->pAppInfo);
+                bool shouldContinue = pProvider->pExecCallback (pProvider->pAppInfo, pProvider->pUserData);
                 if (!shouldContinue)
                 {
                         R_CSTL_LOG_INFO ("GameLoop: Callback returned false, initiating shutdown");
@@ -525,8 +527,16 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
 
-        R_APP_LAUNCH (R_GameLoopCallback, info);
+        struct R_GameState gameState = {0};
+        struct R_MainProvider provider = {
+                .pExecCallback = R_GameLoopCallback,
+                .pAppInfo = &info,
+                .pUserData = &gameState,
+                .stateFlags = R_GAMELOOP_STATE_NONE,
+        };
+        R_MainProvider_Run (&provider);
 
+        R_GameLoopCleanup (&gameState);
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();
 
@@ -676,19 +686,18 @@ r_cleanup:
         return NULL;
 }
 
-static struct R_GameState g_gameStateLinux = {0};
-
 static bool
-GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
+GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
 {
         (void)pAppInfo;
+        struct R_GameState* pGameState = (struct R_GameState*)pUserData;
 
-        if (!R_GameState_IsInitialized (&g_gameStateLinux))
+        if (!R_GameState_IsInitialized (pGameState))
         {
                 struct R_GameStateCreateInfo createInfo = {0};
                 createInfo.pApplicationName = pAppInfo->pApplicationName;
 
-                enum R_CVulkan_Error result = R_GameState_Initialize (&g_gameStateLinux, &createInfo);
+                enum R_CVulkanError result = R_GameState_Initialize (pGameState, &createInfo);
                 if (result != R_CVULKAN_OK)
                 {
                         R_CSTL_LOG_ERROR (
@@ -701,21 +710,21 @@ GameLoopCallbackLinux (const struct R_ApplicationInfo* pAppInfo)
         }
 
         // TODO: Add game update and render calls here later
-        // R_GameState_Update (&g_gameStateLinux, deltaTime);
-        // R_GameState_Render (&g_gameStateLinux);
+        // R_GameState_Update (pGameState, deltaTime);
+        // R_GameState_Render (pGameState);
 
         return true;
 }
 
 static void
-GameLoopCleanupLinux (void)
+GameLoopCleanupLinux (struct R_GameState* pGameState)
 {
         R_CSTL_TRACE_FUNCTION ();
 
-        if (R_GameState_IsInitialized (&g_gameStateLinux))
+        if (R_GameState_IsInitialized (pGameState))
         {
                 R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up game state");
-                R_GameState_Cleanup (&g_gameStateLinux);
+                R_GameState_Cleanup (pGameState);
         }
         R_CSTL_TRACE_RETURN ();
 }
@@ -732,9 +741,17 @@ main (int argc, char** argv)
 
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
-        R_APP_LAUNCH (R_GameLoopCallbackLinux, info);
 
-        GameLoopCleanupLinux ();
+        struct R_GameState gameState = {0};
+        struct R_MainProvider provider = {
+                .pExecCallback = GameLoopCallbackLinux,
+                .pAppInfo = &info,
+                .pUserData = &gameState,
+                .stateFlags = R_GAMELOOP_STATE_NONE,
+        };
+        R_MainProvider_Run (&provider);
+
+        GameLoopCleanupLinux (&gameState);
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();
 

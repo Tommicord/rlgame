@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/game/game_cvulkan_pipeline.h"
-#include "rlgame.base/game/game_cvulkan_platform.h"
+#include "rlgame.base/game/game_platform.h"
+#include "rlgame.base/game/game_renderer_subsystem.h"
 
 /**
  * @file game_state.h
@@ -22,12 +22,13 @@
  * @brief Main game state structure
  *
  * This structure holds all game-related state including the Vulkan
- * rendering pipeline and game-specific data. It is designed to be
+ * rendering pipeline, renderer manager, and game-specific data. It is designed to be
  * managed by the main game loop with clear initialization/cleanup phases.
  */
 struct R_GameState
 {
                 struct R_GameCVulkan_PipelineContext context; /**< Vulkan rendering pipeline context */
+                struct R_GameRendererManager*        pRendererManager; /**< Multi-renderer manager */
                 R_GAME_DEBUG_FIELD
 };
 
@@ -61,7 +62,7 @@ struct R_GameStateCreateInfo
  * @param pCreateInfo Game state creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_GAME_CVULKAN_API enum R_CVulkan_Error
+R_GAME_API enum R_CVulkanError
 R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo);
 
 /**
@@ -72,7 +73,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
  *
  * @param pState Pointer to game state to cleanup
  */
-R_GAME_CVULKAN_API void R_GameState_Cleanup (struct R_GameState* pState);
+R_GAME_API void R_GameState_Cleanup (struct R_GameState* pState);
 
 /**
  * @brief Check if the game state is initialized
@@ -80,7 +81,7 @@ R_GAME_CVULKAN_API void R_GameState_Cleanup (struct R_GameState* pState);
  * @param pState Pointer to game state
  * @return 1 if initialized, 0 otherwise
  */
-R_GAME_CVULKAN_API int R_GameState_IsInitialized (const struct R_GameState* pState);
+R_GAME_API int R_GameState_IsInitialized (const struct R_GameState* pState);
 
 /**
  * @brief Get the Vulkan pipeline context
@@ -88,5 +89,25 @@ R_GAME_CVULKAN_API int R_GameState_IsInitialized (const struct R_GameState* pSta
  * @param pState Pointer to game state
  * @return Pointer to Vulkan pipeline context, or NULL if not initialized
  */
-R_GAME_CVULKAN_API struct R_GameCVulkan_PipelineContext*
+R_GAME_API struct R_GameCVulkan_PipelineContext*
 R_GameState_GetVulkanContext (struct R_GameState* pState);
+
+/**
+ * @brief Get the renderer manager
+ *
+ * @param pState Pointer to game state
+ * @return Pointer to renderer manager, or NULL if not initialized
+ */
+R_GAME_API struct R_GameRendererManager*
+R_GameState_GetRendererManager (struct R_GameState* pState);
+
+/**
+ * @brief Render a frame using the renderer manager
+ *
+ * This function composes and presents a frame using all registered
+ * renderer subsystems. It should be called each frame in the game loop.
+ *
+ * @param pState Pointer to game state
+ * @return 0 on success, -1 on error
+ */
+R_GAME_API int R_GameState_RenderFrame (struct R_GameState* pState);

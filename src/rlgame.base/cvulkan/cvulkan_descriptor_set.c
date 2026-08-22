@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewDescriptorSetLayout (
     struct R_CVulkan_DescriptorSetLayout*                 pLayout,
     const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo)
@@ -31,7 +31,7 @@ R_CVulkan_NewDescriptorSetLayout (
         pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
         pLayout->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pLayout->isInitialized = false;
+        pLayout->booted = false;
 #endif
 
         VkDescriptorSetLayoutCreateInfo layoutInfo = {0};
@@ -46,7 +46,7 @@ R_CVulkan_NewDescriptorSetLayout (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pLayout->isInitialized = true;
+        pLayout->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -71,11 +71,11 @@ R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* pLayo
 
         pLayout->device = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pLayout->isInitialized = false;
+        pLayout->booted = false;
 #endif
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewDescriptorPool (
     struct R_CVulkan_DescriptorPool*                 pPool,
     const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo)
@@ -104,7 +104,7 @@ R_CVulkan_NewDescriptorPool (
         pPool->handle = VK_NULL_HANDLE;
         pPool->maxSets = pCreateInfo->maxSets;
 #if defined(R_CVULKAN_DEBUG)
-        pPool->isInitialized = false;
+        pPool->booted = false;
 #endif
 
         VkDescriptorPoolCreateInfo poolInfo = {0};
@@ -121,7 +121,7 @@ R_CVulkan_NewDescriptorPool (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pPool->isInitialized = true;
+        pPool->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -147,11 +147,11 @@ R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pPool)
         pPool->device = VK_NULL_HANDLE;
         pPool->maxSets = 0;
 #if defined(R_CVULKAN_DEBUG)
-        pPool->isInitialized = false;
+        pPool->booted = false;
 #endif
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_DescriptorSetAllocate (
     const struct R_CVulkan_DescriptorPool* pPool,
     const VkDescriptorSetLayout*           pLayouts,
@@ -169,7 +169,7 @@ R_CVulkan_DescriptorSetAllocate (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPool->isInitialized)
+        if (!pPool->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -206,7 +206,7 @@ R_CVulkan_DescriptorSetFree (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pPool->isInitialized)
+        if (!pPool->booted)
         {
                 return;
         }
@@ -270,7 +270,7 @@ R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSet
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pLayout != NULL);
-        return pLayout->isInitialized;
+        return pLayout->booted;
 #else
         (void)pLayout;
         return 1;
@@ -309,7 +309,7 @@ R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pP
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pPool != NULL);
-        return pPool->isInitialized;
+        return pPool->booted;
 #else
         (void)pPool;
         return 1;

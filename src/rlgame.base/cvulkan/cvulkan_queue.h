@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -32,7 +31,7 @@ struct R_CVulkan_Queue
  * @param queueIndex Queue index within family
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewQueue (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewQueue (
     struct R_CVulkan_Queue*        pQueue,
     const struct R_CVulkan_Device* pDevice,
     uint32_t                       queueFamilyIndex,
@@ -57,7 +56,7 @@ R_CVULKAN_API void R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue);
  * @param pFence Optional fence to signal when submission completes
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueueSubmit (
     struct R_CVulkan_Queue*               pQueue,
     const struct R_CVulkan_CommandBuffer* pCommandBuffers,
     uint32_t                              commandBufferCount,
@@ -78,7 +77,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
  * @param waitSemaphoreCount Number of wait semaphores
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueuePresent (
     struct R_CVulkan_Queue*           pQueue,
     const VkSwapchainKHR*             pSwapchains,
     uint32_t                          swapchainCount,
@@ -91,7 +90,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
  * @param queue Pointer to queue
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the raw Vulkan queue handle

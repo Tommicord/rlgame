@@ -60,21 +60,24 @@
 
 #define R_CSTL_LOG_DEVMODE R_DEVMODE
 
-#define R_CSTL_OK                                  0
-#define R_CSTL_ERROR_INVALID_ARGUMENT              -1
-#define R_CSTL_ERROR_OUT_OF_MEMORY                 -2
-#define R_CSTL_ERROR_INVALID_POINTER               -3
-#define R_CSTL_ERROR_BUFFER_TOO_SMALL              -4
-#define R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS           -5
-#define R_CSTL_ERROR_HEAP_NOT_INITIALIZED          -6
-#define R_CSTL_ERROR_HEAP_ALREADY_INITIALIZED      -7
-#define R_CSTL_ERROR_HEAP_CORRUPTION               -8
-#define R_CSTL_ERROR_STRING_OPERATION              -9
-#define R_CSTL_ERROR_LEAK_DETECTED                 -10
-#define R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED    -11
-#define R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED -12
-#define R_CSTL_ERROR_SYMBOL_NOT_FOUND              -13
-#define R_CSTL_ERROR_UNKNOWN                       -99
+enum R_CSTL_Error
+{
+        R_CSTL_OK = 0,
+        R_CSTL_ERROR_INVALID_ARGUMENT = -1,
+        R_CSTL_ERROR_OUT_OF_MEMORY = -2,
+        R_CSTL_ERROR_INVALID_POINTER = -3,
+        R_CSTL_ERROR_BUFFER_TOO_SMALL = -4,
+        R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS = -5,
+        R_CSTL_ERROR_HEAP_NOT_INITIALIZED = -6,
+        R_CSTL_ERROR_HEAP_ALREADY_INITIALIZED = -7,
+        R_CSTL_ERROR_HEAP_CORRUPTION = -8,
+        R_CSTL_ERROR_STRING_OPERATION = -9,
+        R_CSTL_ERROR_LEAK_DETECTED = -10,
+        R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED = -11,
+        R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED = -12,
+        R_CSTL_ERROR_SYMBOL_NOT_FOUND = -13,
+        R_CSTL_ERROR_UNKNOWN = -99
+};
 
 /**
  * @brief Get human-readable error message for an error code

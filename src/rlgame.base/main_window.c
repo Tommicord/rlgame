@@ -82,7 +82,6 @@ R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicati
             hInstance,
             NULL);
         R_WindowCenter (hwnd);
-        R_WindowSetBorderless (hwnd, true);
         if (!hwnd) goto r_fail_init;
         ShowWindow (hwnd, nCmdShow);
         return 1;

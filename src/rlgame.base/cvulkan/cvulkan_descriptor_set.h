@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -66,7 +65,7 @@ struct R_CVulkan_DescriptorSet
  * @param pCreateInfo Descriptor set layout creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDescriptorSetLayout (
     struct R_CVulkan_DescriptorSetLayout*                 layout,
     const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo);
 
@@ -82,7 +81,7 @@ R_CVULKAN_API void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_Descrip
  * @param pCreateInfo Descriptor pool creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDescriptorPool (
     struct R_CVulkan_DescriptorPool*                 pool,
     const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo);
 
@@ -100,7 +99,7 @@ R_CVULKAN_API void R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPo
  * @param outSets Pointer to receive the allocated descriptor sets
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DescriptorSetAllocate (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_DescriptorSetAllocate (
     const struct R_CVulkan_DescriptorPool* pool,
     const VkDescriptorSetLayout*           layouts,
     uint32_t                               layoutCount,

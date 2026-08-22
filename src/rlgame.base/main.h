@@ -96,9 +96,10 @@ struct R_ApplicationInfo
  * This callback is invoked each frame of the game loop.
  *
  * @param pAppInfo Pointer to application information structure
+ * @param pUserData Optional user data pointer (can be NULL)
  * @return true to continue the game loop, false to request shutdown
  */
-typedef bool (*const R_GameCallback) (const struct R_ApplicationInfo* pAppInfo);
+typedef bool (*const R_GameCallback) (const struct R_ApplicationInfo* pAppInfo, void* pUserData);
 
 /**
  * @brief Main game loop provider
@@ -111,6 +112,7 @@ struct R_MainProvider
 {
                 R_GameCallback                  pExecCallback; /**< Pointer to game loop function */
                 const struct R_ApplicationInfo* pAppInfo; /**< Pointer to application info (not owned) */
+                void*                           pUserData; /**< Optional user data pointer (not owned) */
                 volatile uint8_t                stateFlags; /**< Atomic state flags (R_GameLoopStateFlags) */
 };
 

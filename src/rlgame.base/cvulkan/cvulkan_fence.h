@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -27,7 +26,7 @@ struct R_CVulkan_Fence
  * @param signaled Whether the fence should be created in signaled state
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, bool signaled);
 
 /**
@@ -45,7 +44,7 @@ R_CVULKAN_API void R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence);
  * @param timeout Timeout in nanoseconds (UINT64_MAX for infinite wait)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceWait (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_FenceWait (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFences,
     uint32_t                       fenceCount,
@@ -59,7 +58,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceWait (
  * @param fenceCount Number of fences
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_FenceReset (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFences,
     uint32_t                       fenceCount);
@@ -71,7 +70,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
  * @param pOutSignaled Pointer to receive the signaled status (1 = signaled, 0 = unsignaled)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceGetStatus (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
     bool*                          pOutSignaled);

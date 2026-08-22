@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_queue.h"
 #include "rlgame.base/cstl/cstl_array.h"
@@ -80,7 +79,7 @@ struct R_CVulkan_Device
  * - R_CVULKAN_ERROR_PHYSICAL_DEVICE_NOT_FOUND: No suitable physical device found
  * - R_CVULKAN_ERROR_DEVICE_CREATE_FAILED: Failed to create logical device
  */
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
 
 /**
@@ -149,7 +148,7 @@ R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* 
  * @param pOutIndices Pointer to receive queue family indices
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceFindQueueFamilies (
     VkPhysicalDevice                     physicalDevice,
     VkSurfaceKHR                         surface,
     struct R_CVulkan_QueueFamilyIndices* pOutIndices);
@@ -168,3 +167,39 @@ R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndice
  * @return 1 if supported, 0 otherwise
  */
 R_CVULKAN_API int R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice);
+
+/**
+ * @brief Query if a specific extension is supported on the physical device
+ * 
+ * This function dynamically checks if a given Vulkan extension is available
+ * on the physical device, allowing for flexible feature detection.
+ * 
+ * @param pDevice Pointer to device
+ * @param pExtensionName Null-terminated extension name to query
+ * @param pIsSupported Output pointer to receive support status
+ * @return R_CVULKAN_OK on success, error code on failure
+ * 
+ * @note This function queries the physical device's available extensions
+ * @note Common extension names: VK_KHR_DYNAMIC_RENDERING, VK_KHR_SWAPCHAIN, etc.
+ */
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceQueryExtensionSupport (
+    const struct R_CVulkan_Device* pDevice,
+    const char*                   pExtensionName,
+    bool*                         pIsSupported);
+
+/**
+ * @brief Query if a specific feature is supported on the physical device
+ * 
+ * This function dynamically checks if a given Vulkan feature is available
+ * on the physical device using the features2 chain.
+ * 
+ * @param pDevice Pointer to device
+ * @param pFeatureStructure Pointer to feature structure to query (must have sType set)
+ * @return R_CVULKAN_OK on success, error code on failure
+ * 
+ * @note The feature structure must have its sType member set appropriately
+ * @note For example, use VkPhysicalDeviceDynamicRenderingFeaturesKHR for dynamic rendering
+ */
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceQueryFeatureSupport (
+    const struct R_CVulkan_Device* pDevice,
+    void*                          pFeatureStructure);

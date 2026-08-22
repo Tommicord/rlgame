@@ -4,7 +4,6 @@
 #include <inttypes.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -43,7 +42,7 @@ struct R_CVulkan_Framebuffer
  * @param pCreateInfo Framebuffer creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewFramebuffer (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*                 pFramebuffer,
     const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo);
 

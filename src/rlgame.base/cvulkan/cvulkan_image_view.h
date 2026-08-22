@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -39,7 +38,7 @@ struct R_CVulkan_ImageView
  * @param pCreateInfo Image view creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewImageView (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewImageView (
     struct R_CVulkan_ImageView*                 pImageView,
     const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo);
 

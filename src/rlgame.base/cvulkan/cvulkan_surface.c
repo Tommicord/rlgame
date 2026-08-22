@@ -13,7 +13,7 @@
 #include <android/native_window.h>
 #endif
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
     const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo)
@@ -52,7 +52,7 @@ R_CVulkan_NewSurface (
         pSurface->instance = instance;
         pSurface->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pSurface->isInitialized = false;
+        pSurface->booted = false;
 #endif
 
         VkResult result = VK_ERROR_UNKNOWN;
@@ -123,7 +123,7 @@ R_CVulkan_NewSurface (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pSurface->isInitialized = true;
+        pSurface->booted = true;
 #endif
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_OK;
@@ -148,7 +148,7 @@ R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
         }
 #if defined(R_CVULKAN_DEBUG)
         pSurface->instance = VK_NULL_HANDLE;
-        pSurface->isInitialized = false;
+        pSurface->booted = false;
 #endif
         R_CSTL_TRACE_SCOPE_EXIT ();
 }
@@ -162,7 +162,7 @@ R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pSurface->isInitialized)
+        if (!pSurface->booted)
         {
                 return VK_NULL_HANDLE;
         }
@@ -180,7 +180,7 @@ R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pSurface->isInitialized)
+        if (!pSurface->booted)
         {
                 return VK_NULL_HANDLE;
         }

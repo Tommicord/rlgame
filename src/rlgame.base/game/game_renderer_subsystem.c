@@ -12,6 +12,9 @@
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_bytecode.h"
 #include "rlgame.base/cstl/cstl_array.h"
+#include "rlgame.base/cstl/cstl_stack.h"
+#include "rlgame.base/cstl/cstl_trace.h"
+#include "rlgame.base/cstl/cstl_string.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -48,10 +51,10 @@ struct R_GameRendererResource
 {
         uint64_t                handle;
         uint32_t                type;
-        const void*             pResource;
-        uint64_t                size;
-        uint32_t                refCount;
-        const char*             pName;
+        const void*          pResource;
+        uint64_t             size;
+        uint32_t             refCount;
+        char*                pName;
         R_GAME_DEBUG_FIELD
 };
 
@@ -92,7 +95,21 @@ struct R_GameRendererSubsystem
         R_GAME_DEBUG_FIELD
 };
 
-static struct R_GameRendererLifecycle g_lifecycle = {0};
+struct R_GameRendererManager
+{
+        struct R_GameRendererSubsystemEntry subsystems[R_GAME_RENDERER_MAX_SUBSYSTEMS];
+        uint32_t                        subsystemCount;
+        struct R_GameCVulkan_PipelineContext* pPipelineContext;
+        struct R_CVulkan_RenderPass*   pCompositionRenderPass;
+        struct R_CVulkan_Pipeline*     pCompositionPipeline;
+        struct R_CVulkan_Image*        pSwapchainImages[R_GAME_RENDERER_MAX_SWAPCHAIN_IMAGES];
+        struct R_CVulkan_ImageView*    pSwapchainImageViews[R_GAME_RENDERER_MAX_SWAPCHAIN_IMAGES];
+        struct R_CVulkan_Framebuffer*  pSwapchainFramebuffers[R_GAME_RENDERER_MAX_SWAPCHAIN_IMAGES];
+        uint32_t                        swapchainImageCount;
+        uint32_t                        currentSwapchainIndex;
+        R_GAME_MUTEX                    managerMutex;
+        int                             booted;
+};
 static struct R_CSTL_BytecodeDecoder* g_pBytecodeDecoder = NULL;
 
 static int
@@ -113,7 +130,7 @@ R_GameRenderer_InitializeArrays (struct R_GameRendererSubsystem* pSubsystem)
         if (pSubsystem->pFrames == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate frame data");
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pSubsystem->pFrames, 0,
                 sizeof (struct R_GameRendererFrame) * pSubsystem->maxFramesInFlight);
@@ -124,7 +141,7 @@ R_GameRenderer_InitializeArrays (struct R_GameRendererSubsystem* pSubsystem)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate render layer array");
                 R_CSTL_HeapFree (pSubsystem->pFrames);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
         pSubsystem->pResourceArray = R_CSTL_NewArrayWithCapacity (
@@ -134,10 +151,38 @@ R_GameRenderer_InitializeArrays (struct R_GameRendererSubsystem* pSubsystem)
                 R_CSTL_LOG_ERROR ("Failed to allocate resource array");
                 R_CSTL_DeleteArray (pSubsystem->pLayerArray);
                 R_CSTL_HeapFree (pSubsystem->pFrames);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
-        return 0;
+        return R_GAME_OK;
+}
+
+static int
+R_GameRenderer_WaitForFence (
+    struct R_CVulkan_Device* pDevice,
+    struct R_CVulkan_Fence*  pFence,
+    uint64_t                 timeout)
+{
+        enum R_CVulkanError err = R_CVulkan_FenceWait (
+            pDevice,
+            pFence,
+            1,
+            true,
+            timeout);
+        if (err != R_CVULKAN_OK)
+        {
+                R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
+        }
+        return R_GAME_OK;
+}
+
+static int
+R_GameRenderer_AcquireNextImage (
+    struct R_GameCVulkan_PipelineContext* pPipelineContext,
+    uint32_t*                             pImageIndex)
+{
+        return R_GameRenderer_AcquireSwapchainImage (pPipelineContext, pImageIndex);
 }
 
 static void
@@ -241,16 +286,13 @@ R_GameRenderer_RemoveFromArrayByIndex (
 {
         struct R_CSTL_Array* pArray = *ppArray;
         size_t currentCount = R_CSTL_ArrayLength (pArray) / elementSize;
-        if (removeIndex >= currentCount)
-        {
-                return -1;
-        }
+        R_GAME_ASSERT (removeIndex < currentCount);
 
         struct R_CSTL_Array* pNewArray = R_CSTL_NewArrayWithCapacity (
             elementSize * (currentCount - 1));
         if (pNewArray == NULL)
         {
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
         for (size_t i = 0; i < currentCount; ++i)
@@ -268,13 +310,13 @@ R_GameRenderer_RemoveFromArrayByIndex (
                 if (result != R_CSTL_OK)
                 {
                         R_CSTL_DeleteArray (pNewArray);
-                        return -1;
+                        return R_GAME_ERROR_ARRAY_OPERATION_FAILED;
                 }
         }
 
         R_CSTL_DeleteArray (pArray);
         *ppArray = pNewArray;
-        return 0;
+        return R_GAME_OK;
 }
 
 static size_t
@@ -306,7 +348,7 @@ R_GameRenderer_RemoveResourceByHandle (
         size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
         if (index == SIZE_MAX)
         {
-                return -1;
+                return R_GAME_ERROR_RESOURCE_NOT_FOUND;
         }
 
         return R_GameRenderer_RemoveFromArrayByIndex (
@@ -320,7 +362,7 @@ R_GameRenderer_WaitAndResetFence (
     struct R_CVulkan_Device*       pDevice,
     struct R_CVulkan_Fence*        pFence)
 {
-        enum R_CVulkan_Error err = R_CVulkan_FenceWait (
+        enum R_CVulkanError err = R_CVulkan_FenceWait (
             pDevice,
             pFence,
             1,
@@ -328,17 +370,17 @@ R_GameRenderer_WaitAndResetFence (
             UINT64_MAX);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkan_ErrorToString (err));
-                return -1;
+                R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
         err = R_CVulkan_FenceReset (pDevice, pFence, 1);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to reset fence: %s", R_CVulkan_ErrorToString (err));
-                return -1;
+                R_CSTL_LOG_ERROR ("Failed to reset fence: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
 
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -346,7 +388,7 @@ R_GameRenderer_AcquireSwapchainImage (
     struct R_GameCVulkan_PipelineContext* pPipelineContext,
     uint32_t*                             pImageIndex)
 {
-        enum R_CVulkan_Error err = R_CVulkan_SwapchainAcquireNextImage (
+        enum R_CVulkanError err = R_CVulkan_SwapchainAcquireNextImage (
             &pPipelineContext->swapchain,
             UINT64_MAX,
             R_CVulkan_SemaphoreGetHandle (&pPipelineContext->imageAvailableSemaphore),
@@ -354,10 +396,10 @@ R_GameRenderer_AcquireSwapchainImage (
             pImageIndex);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to acquire next image: %s", R_CVulkan_ErrorToString (err));
-                return -1;
+                R_CSTL_LOG_ERROR ("Failed to acquire next image: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -365,13 +407,13 @@ R_GameRenderer_RenderLayer (
     struct R_GameRendererLayer*     pLayer,
     struct R_CVulkan_CommandBuffer* pCmdBuffer)
 {
-        enum R_CVulkan_Error err = R_CVulkan_BeginCommandBuffer (pCmdBuffer, 0, NULL);
+        enum R_CVulkanError err = R_CVulkan_BeginCommandBuffer (pCmdBuffer, 0, NULL);
         if (err != R_CVULKAN_OK)
         {
                 R_CSTL_LOG_ERROR (
                     "Failed to begin command buffer: %s",
-                    R_CVulkan_ErrorToString (err));
-                return -1;
+                    R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
         }
 
         if (pLayer->beforePassCallback != NULL)
@@ -394,11 +436,11 @@ R_GameRenderer_RenderLayer (
         {
                 R_CSTL_LOG_ERROR (
                     "Failed to end command buffer: %s",
-                    R_CVulkan_ErrorToString (err));
-                return -1;
+                    R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
         }
 
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -411,7 +453,7 @@ R_GameRenderer_SubmitCommandBuffers (
     struct R_CVulkan_Fence*               pInFlightFence)
 {
         VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        enum R_CVulkan_Error err = R_CVulkan_QueueSubmit (
+        enum R_CVulkanError err = R_CVulkan_QueueSubmit (
             pGraphicsQueue,
             *ppCommandBuffers,
             commandBufferCount,
@@ -423,20 +465,22 @@ R_GameRenderer_SubmitCommandBuffers (
             pInFlightFence);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to submit command buffers: %s", R_CVulkan_ErrorToString (err));
-                return -1;
+                R_CSTL_LOG_ERROR ("Failed to submit command buffers: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
 R_GameRenderer_PresentImage (
-    struct R_CVulkan_Queue*       pPresentQueue,
-    VkSwapchainKHR               swapchainHandle,
-    uint32_t                    imageIndex,
+    struct R_CVulkan_Queue*      pPresentQueue,
+    struct R_CVulkan_Swapchain   swapchain,
+    uint32_t                     imageIndex,
     struct R_CVulkan_Semaphore*  pRenderFinishedSemaphore)
 {
-        enum R_CVulkan_Error err = R_CVulkan_QueuePresent (
+        VkSwapchainKHR swapchainHandle = R_CVulkan_SwapchainGetHandle (&swapchain);
+
+        enum R_CVulkanError err = R_CVulkan_QueuePresent (
             pPresentQueue,
             &swapchainHandle,
             1,
@@ -445,10 +489,10 @@ R_GameRenderer_PresentImage (
             1);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to present image: %s", R_CVulkan_ErrorToString (err));
-                return -1;
+                R_CSTL_LOG_ERROR ("Failed to present image: %s", R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
-        return 0;
+        return R_GAME_OK;
 }
 
 #if defined(_WIN32)
@@ -484,7 +528,7 @@ R_GameRenderer_WorkerThreadProc (void* pParam)
                         R_GAME_COND_WAIT (&pPool->taskAvailable, &pPool->taskMutex);
                         pendingTasks = R_GAME_ATOMIC_LOAD (&pPool->atomicPendingTasks);
                 }
-                size_t taskCount = R_CSTL_ArrayLength (pPool->pTaskQueue) / sizeof (struct R_GameRendererRenderTask);
+                size_t taskCount = R_CSTL_StackSize (pPool->pTaskQueue) / sizeof (struct R_GameRendererRenderTask);
                 if (taskCount == 0)
                 {
                         R_GAME_MUTEX_UNLOCK (&pPool->taskMutex);
@@ -492,22 +536,7 @@ R_GameRenderer_WorkerThreadProc (void* pParam)
                 }
 
                 struct R_GameRendererRenderTask task;
-                R_CSTL_ArrayTypedUncheckedAt (pPool->pTaskQueue, struct R_GameRendererRenderTask, 0, &task);
-                
-                struct R_CSTL_Array* pNewQueue = R_CSTL_NewArrayWithCapacity (
-                    R_CSTL_ArrayLength (pPool->pTaskQueue) - sizeof (struct R_GameRendererRenderTask));
-                if (pNewQueue != NULL)
-                {
-                        const uint8_t* pOldData = R_CSTL_ArrayData (pPool->pTaskQueue);
-                        size_t oldSize = R_CSTL_ArrayLength (pPool->pTaskQueue);
-                        if (oldSize > sizeof (struct R_GameRendererRenderTask))
-                        {
-                                R_CSTL_ArrayPushData (pNewQueue, pOldData + sizeof (struct R_GameRendererRenderTask), 
-                                    oldSize - sizeof (struct R_GameRendererRenderTask));
-                        }
-                        R_CSTL_DeleteArray (pPool->pTaskQueue);
-                        pPool->pTaskQueue = pNewQueue;
-                }
+                R_CSTL_StackPopData (pPool->pTaskQueue, (uint8_t*)&task, sizeof (struct R_GameRendererRenderTask));
 
                 R_GAME_ATOMIC_DECREMENT (&pPool->atomicPendingTasks);
                 R_GAME_MUTEX_UNLOCK (&pPool->taskMutex);
@@ -522,7 +551,7 @@ R_GameRenderer_WorkerThreadProc (void* pParam)
                 R_CSTL_ArrayTypedUncheckedAt (pFrame->pCommandBufferArray, struct R_CVulkan_CommandBuffer, 
                     task.commandBufferIndex, &cmdBuffer);
 
-                enum R_CVulkan_Error err = R_CVulkan_BeginCommandBuffer (&cmdBuffer, 0, NULL);
+                enum R_CVulkanError err = R_CVulkan_BeginCommandBuffer (&cmdBuffer, 0, NULL);
                 if (err == R_CVULKAN_OK)
                 {
                         if (layer.beforePassCallback != NULL)
@@ -565,7 +594,7 @@ R_GameRenderer_InitializeThreadPool (struct R_GameRendererSubsystem* pSubsystem)
         if (pSubsystem->pThreadPool == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate thread pool");
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pSubsystem->pThreadPool, 0, sizeof (struct R_GameRendererThreadPool));
 
@@ -575,13 +604,13 @@ R_GameRenderer_InitializeThreadPool (struct R_GameRendererSubsystem* pSubsystem)
         R_GAME_COND_INIT (&pPool->taskAvailable);
         R_GAME_COND_INIT (&pPool->taskComplete);
 
-        pPool->pTaskQueue = R_CSTL_NewArrayWithCapacity (
+        pPool->pTaskQueue = R_CSTL_NewStackWithCapacity (
             sizeof (struct R_GameRendererRenderTask) * R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME);
         if (pPool->pTaskQueue == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate task queue");
                 R_CSTL_HeapFree (pSubsystem->pThreadPool);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
         R_GAME_ATOMIC_STORE (&pPool->atomicPendingTasks, 0);
@@ -604,7 +633,7 @@ R_GameRenderer_InitializeThreadPool (struct R_GameRendererSubsystem* pSubsystem)
                 {
                         pPool->workerCount = i;
                         R_GameRenderer_ShutdownThreadPool (pSubsystem);
-                        return -1;
+                        return R_GAME_ERROR_THREAD_CREATE_FAILED;
                 }
 #elif defined(__linux__) || defined(__APPLE__)
                 int result = pthread_create (&pWorker->threadHandle, NULL, R_GameRenderer_WorkerThreadProc, pWorker);
@@ -612,13 +641,13 @@ R_GameRenderer_InitializeThreadPool (struct R_GameRendererSubsystem* pSubsystem)
                 {
                         pPool->workerCount = i;
                         R_GameRenderer_ShutdownThreadPool (pSubsystem);
-                        return -1;
+                        return R_GAME_ERROR_THREAD_CREATE_FAILED;
                 }
                 pWorker->threadId = (pthread_t)pWorker->threadHandle;
 #endif
         }
         R_CSTL_LOG_INFO ("Thread pool initialized with %u workers", workerCount);
-        return 0;
+        return R_GAME_OK;
 }
 
 static void
@@ -654,7 +683,7 @@ R_GameRenderer_ShutdownThreadPool (struct R_GameRendererSubsystem* pSubsystem)
 
         if (pPool->pTaskQueue != NULL)
         {
-                R_CSTL_DeleteArray (pPool->pTaskQueue);
+                R_CSTL_DeleteStack (pPool->pTaskQueue);
         }
 
         R_CSTL_HeapFree (pSubsystem->pThreadPool);
@@ -669,7 +698,7 @@ R_GameRenderer_InitializeBytecodeDecoder (void)
 #if defined(R_GAME_DEBUG)
         if (g_pBytecodeDecoder != NULL)
         {
-                return 0;
+                return R_GAME_OK;
         }
 
         enum R_CSTL_BytecodeArchitecture arch = R_CSTL_BYTECODE_ARCH_X86_64;
@@ -686,7 +715,7 @@ R_GameRenderer_InitializeBytecodeDecoder (void)
         if (g_pBytecodeDecoder == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate bytecode decoder");
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
         int result = R_CSTL_BytecodeDecoderCreate (arch, g_pBytecodeDecoder);
@@ -695,12 +724,12 @@ R_GameRenderer_InitializeBytecodeDecoder (void)
                 R_CSTL_LOG_ERROR ("Failed to create bytecode decoder");
                 R_CSTL_HeapFree (g_pBytecodeDecoder);
                 g_pBytecodeDecoder = NULL;
-                return -1;
+                return R_GAME_ERROR_FAILED;
         }
 
         R_CSTL_LOG_INFO ("Bytecode decoder initialized for validation");
 #endif
-        return 0;
+        return R_GAME_OK;
 }
 
 static void
@@ -765,13 +794,13 @@ R_GameRenderer_InitializeCommandBuffers (
         if (pFrame->pCommandBufferArray == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate command buffer array for frame %u", frameIdx);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
 
         for (uint32_t bufIdx = 0; bufIdx < R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME; ++bufIdx)
         {
                 struct R_CVulkan_CommandBuffer cmdBuffer = {0};
-                enum R_CVulkan_Error err = R_CVulkan_NewCommandBuffer (
+                enum R_CVulkanError err = R_CVulkan_NewCommandBuffer (
                     &cmdBuffer,
                     pDevice,
                     R_CVulkan_CommandPoolGetHandle (pGraphicsPool),
@@ -782,8 +811,8 @@ R_GameRenderer_InitializeCommandBuffers (
                             "Failed to create command buffer %u for frame %u: %s",
                             bufIdx,
                             frameIdx,
-                            R_CVulkan_ErrorToString (err));
-                        return -1;
+                            R_CVulkanErrorToString (err));
+                        return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
                 }
                 
                 int result = R_CSTL_ArrayPushData (
@@ -793,11 +822,11 @@ R_GameRenderer_InitializeCommandBuffers (
                 if (result != R_CSTL_OK)
                 {
                         R_CSTL_LOG_ERROR ("Failed to push command buffer to array");
-                        return -1;
+                        return R_GAME_ERROR_ARRAY_OPERATION_FAILED;
                 }
         }
 
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -811,22 +840,22 @@ R_GameRenderer_InitializeSemaphore (
         if (pFrame->pRenderFinishedSemaphore == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate semaphore for frame %u", frameIdx);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pFrame->pRenderFinishedSemaphore, 0, sizeof (struct R_CVulkan_Semaphore));
 
-        enum R_CVulkan_Error err = R_CVulkan_NewSemaphore (
+        enum R_CVulkanError err = R_CVulkan_NewSemaphore (
             pFrame->pRenderFinishedSemaphore, pDevice, 0, 0);
         if (err != R_CVULKAN_OK)
         {
                 R_CSTL_LOG_ERROR (
                     "Failed to create semaphore for frame %u: %s",
                     frameIdx,
-                    R_CVulkan_ErrorToString (err));
-                return -1;
+                    R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
 
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -840,21 +869,21 @@ R_GameRenderer_InitializeFence (
         if (pFrame->pInFlightFence == NULL)
         {
                 R_CSTL_LOG_ERROR ("Failed to allocate fence for frame %u", frameIdx);
-                return -1;
+                return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pFrame->pInFlightFence, 0, sizeof (struct R_CVulkan_Fence));
 
-        enum R_CVulkan_Error err = R_CVulkan_NewFence (pFrame->pInFlightFence, pDevice, true);
+        enum R_CVulkanError err = R_CVulkan_NewFence (pFrame->pInFlightFence, pDevice, true);
         if (err != R_CVULKAN_OK)
         {
                 R_CSTL_LOG_ERROR (
                     "Failed to create fence for frame %u: %s",
                     frameIdx,
-                    R_CVulkan_ErrorToString (err));
-                return -1;
+                    R_CVulkanErrorToString (err));
+                return R_GAME_ERROR_FAILED;
         }
 
-        return 0;
+        return R_GAME_OK;
 }
 
 static int
@@ -870,30 +899,30 @@ R_GameRenderer_InitializeFrame (
         {
                 struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[frameIdx];
 
-                if (R_GameRenderer_InitializeCommandBuffers (pFrame, frameIdx, pDevice, pGraphicsPool) != 0)
+                if (R_GameRenderer_InitializeCommandBuffers (pFrame, frameIdx, pDevice, pGraphicsPool) != R_GAME_OK)
                 {
-                        return -1;
+                        return R_GAME_ERROR_FAILED;
                 }
 
-                if (R_GameRenderer_InitializeSemaphore (pFrame, frameIdx, pDevice) != 0)
+                if (R_GameRenderer_InitializeSemaphore (pFrame, frameIdx, pDevice) != R_GAME_OK)
                 {
-                        return -1;
+                        return R_GAME_ERROR_FAILED;
                 }
 
-                if (R_GameRenderer_InitializeFence (pFrame, frameIdx, pDevice) != 0)
+                if (R_GameRenderer_InitializeFence (pFrame, frameIdx, pDevice) != R_GAME_OK)
                 {
-                        return -1;
+                        return R_GAME_ERROR_FAILED;
                 }
 
                 pFrame->frameNumber = 0;
                 pFrame->resourceIndex = 0;
 #if defined(R_GAME_DEBUG)
-                pFrame->isInitialized = true;
+                pFrame->booted = true;
 #endif
         }
 
         R_CSTL_LOG_INFO ("Frame data initialized for %u frames", pSubsystem->maxFramesInFlight);
-        return 0;
+        return R_GAME_OK;
 }
 
 static void
@@ -937,7 +966,7 @@ R_GameRenderer_CleanupFrame (struct R_GameRendererSubsystem* pSubsystem)
         pSubsystem->pFrames = NULL;
 }
 
-GAME_API struct R_GameRendererSubsystem*
+R_GAME_API struct R_GameRendererSubsystem*
 R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 {
 #if defined(R_GAME_DEBUG)
@@ -956,7 +985,7 @@ R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 
         if (R_GameRenderer_InitializeBytecodeDecoder () != 0)
         {
-                        R_CSTL_LOG_WARN ("Bytecode decoder initialization failed, validation disabled");
+                R_CSTL_LOG_WARN ("Bytecode decoder initialization failed, validation disabled");
         }
 
         pSubsystem->maxFramesInFlight = R_GAME_RENDERER_MAX_FRAMES_IN_FLIGHT;
@@ -971,7 +1000,6 @@ R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 
         if (R_GameRenderer_InitializeThreadPool (pSubsystem) != 0)
         {
-                R_CSTL_LOG_ERROR ("Failed to initialize thread pool");
                 R_GAME_MUTEX_DESTROY (&pSubsystem->layerArrayMutex);
                 R_GAME_MUTEX_DESTROY (&pSubsystem->resourceArrayMutex);
                 R_GameRenderer_CleanupArrays (pSubsystem);
@@ -980,29 +1008,25 @@ R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem)
         }
 
 #if defined(R_GAME_DEBUG)
-        pSubsystem->isInitialized = true;
+        pSubsystem->booted = true;
 #endif
-
-        R_CSTL_LOG_INFO ("Renderer subsystem created successfully");
         return pSubsystem;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_DeleteSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 {
 #if defined(R_GAME_DEBUG)
         if (pSubsystem == NULL)
         {
-                return -1;
+                return R_GAME_ERROR_NULL_POINTER;
         }
 
-        if (!pSubsystem->isInitialized)
+        if (!pSubsystem->booted)
         {
-                R_CSTL_LOG_WARN ("Deleting uninitialized renderer subsystem");
-                return -1;
+                return R_GAME_ERROR_NOT_INITIALIZED;
         }
 #endif
-
         R_GameRenderer_CleanupFrame (pSubsystem);
         R_GameRenderer_CleanupLayers (pSubsystem);
         R_GameRenderer_CleanupResources (pSubsystem);
@@ -1011,16 +1035,15 @@ R_GameRenderer_DeleteSubsystem (struct R_GameRendererSubsystem* pSubsystem)
         R_GAME_MUTEX_DESTROY (&pSubsystem->resourceArrayMutex);
 
 #if defined(R_GAME_DEBUG)
-        pSubsystem->isInitialized = false;
+        pSubsystem->booted = false;
 #endif
 
         R_CSTL_HeapFree (pSubsystem);
         R_GameRenderer_ShutdownBytecodeDecoder ();
-        R_CSTL_LOG_INFO ("Renderer subsystem deleted successfully");
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SetPipelineContext (
     struct R_GameRendererSubsystem*       pSubsystem,
     struct R_GameCVulkan_PipelineContext* pPipelineContext)
@@ -1029,183 +1052,150 @@ R_GameRenderer_SetPipelineContext (
         if (pSubsystem == NULL || pPipelineContext == NULL)
         {
                 R_CSTL_LOG_ERROR ("Invalid parameters for SetPipelineContext");
-                return -1;
+                return R_GAME_ERROR_INVALID_ARGUMENT;
         }
 
-        if (!pSubsystem->isInitialized)
+        if (!pSubsystem->booted)
         {
                 R_CSTL_LOG_ERROR ("Renderer subsystem not initialized");
-                return -1;
+                return R_GAME_ERROR_NOT_INITIALIZED;
         }
 #endif
 
         if (!R_GameCVulkan_PipelineContextIsInitialized (pPipelineContext))
         {
                 R_CSTL_LOG_ERROR ("Pipeline context is not initialized");
-                return -1;
+                return R_GAME_ERROR_RENDERER_NOT_SET;
         }
 
         pSubsystem->pPipelineContext = pPipelineContext;
 
-        if (R_GameRenderer_InitializeFrame (pSubsystem, pPipelineContext) != 0)
+        if (R_GameRenderer_InitializeFrame (pSubsystem, pPipelineContext) != R_GAME_OK)
         {
                 R_CSTL_LOG_ERROR ("Failed to initialize frame data");
                 pSubsystem->pPipelineContext = NULL;
-                return -1;
+                return R_GAME_ERROR_FRAMEBUFFER_NOT_READY;
         }
 
         R_CSTL_LOG_INFO ("Pipeline context set successfully");
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SubsystemStart (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
 
         if (pSubsystem->pPipelineContext == NULL)
         {
                 R_CSTL_LOG_ERROR ("Pipeline context not set");
-                return -1;
-        }
-
-        if (g_lifecycle.constructCallback != NULL)
-        {
-                g_lifecycle.constructCallback (pSubsystem, "RendererSubsystem", NULL, 0);
+                R_CSTL_TRACE_RETURN ();
+                return R_GAME_ERROR_RENDERER_NOT_SET;
         }
 
         pSubsystem->state = R_GAME_RENDERER_STATE_RUNNING;
-        pSubsystem->frameCounter = 0;
-        R_CSTL_LOG_INFO ("Renderer subsystem started");
-        return 0;
+        R_CSTL_TRACE_POINT ("subsystem_started");
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SubsystemStop (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
 
         R_GameRenderer_WaitForFrame (pSubsystem);
 
-        if (g_lifecycle.stopCallback != NULL)
-        {
-                g_lifecycle.stopCallback (pSubsystem, NULL, 0);
-        }
-
-        if (g_lifecycle.overCallback != NULL)
-        {
-                g_lifecycle.overCallback (pSubsystem, NULL, 0);
-        }
-
         pSubsystem->state = R_GAME_RENDERER_STATE_STOPPED;
-        R_CSTL_LOG_INFO ("Renderer subsystem stopped");
-        return 0;
+        R_CSTL_TRACE_POINT ("subsystem_stopped");
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SubsystemPause (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
 
         if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
         {
-                R_CSTL_LOG_WARN ("Cannot pause renderer: not running");
-                return -1;
-        }
-
-        if (g_lifecycle.pauseCallback != NULL)
-        {
-                g_lifecycle.pauseCallback (pSubsystem, NULL, 0);
+                R_CSTL_LOG_ERROR ("Subsystem not running, cannot pause");
+                R_CSTL_TRACE_RETURN ();
+                return R_GAME_ERROR_INVALID_STATE;
         }
 
         pSubsystem->state = R_GAME_RENDERER_STATE_PAUSED;
-        R_CSTL_LOG_INFO ("Renderer subsystem paused");
-        return 0;
+        R_CSTL_TRACE_POINT ("subsystem_paused");
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SubsystemResume (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
 
         if (pSubsystem->state != R_GAME_RENDERER_STATE_PAUSED)
         {
-                R_CSTL_LOG_WARN ("Cannot resume renderer: not paused");
-                return -1;
-        }
-
-        if (g_lifecycle.resumeCallback != NULL)
-        {
-                g_lifecycle.resumeCallback (pSubsystem, NULL, 0);
+                R_CSTL_LOG_ERROR ("Subsystem not paused, cannot resume");
+                R_CSTL_TRACE_RETURN ();
+                return R_GAME_ERROR_INVALID_STATE;
         }
 
         pSubsystem->state = R_GAME_RENDERER_STATE_RUNNING;
-        R_CSTL_LOG_INFO ("Renderer subsystem resumed");
-        return 0;
+        R_CSTL_TRACE_POINT ("subsystem_resumed");
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
 }
 
-GAME_API uint32_t
-R_GameRenderer_SubsystemGetState (struct R_GameRendererSubsystem* pSubsystem)
-{
-        if (pSubsystem == NULL)
-        {
-                return R_GAME_RENDERER_STATE_ERROR;
-        }
-        return pSubsystem->state;
-}
-
-GAME_API int
+R_GAME_API int
 R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
 
         if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
         {
-                return -1;
+                return R_GAME_ERROR_INVALID_STATE;
         }
 
-        struct R_GameRendererFrame* pCurrentFrame =
-            &pSubsystem->pFrames[pSubsystem->currentFrameIndex];
+        struct R_CVulkan_Device* pDevice = 
+            R_GameCVulkan_PipelineContextGetDevice (pSubsystem->pPipelineContext);
+        struct R_CVulkan_Fence* pFence = 
+            R_GameCVulkan_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
+        uint32_t* pImageIndex = 
+            R_GameCVulkan_PipelineContextGetCurrentFrameIndex (pSubsystem->pPipelineContext);
 
-        if (pCurrentFrame->pInFlightFence != NULL)
+        if (R_GameRenderer_WaitForFence (pDevice, pFence, UINT64_MAX) != R_GAME_OK)
         {
-                struct R_CVulkan_Device* pDevice = 
-                    R_GameCVulkan_PipelineContextGetDevice (pSubsystem->pPipelineContext);
-                
-                if (R_GameRenderer_WaitAndResetFence (pDevice, pCurrentFrame->pInFlightFence) != 0)
-                {
-                        return -1;
-                }
+                return R_GAME_ERROR_FAILED;
         }
 
-        uint32_t imageIndex = 0;
-        if (R_GameRenderer_AcquireSwapchainImage (pSubsystem->pPipelineContext, &imageIndex) != 0)
+        if (R_GameRenderer_AcquireNextImage (pSubsystem->pPipelineContext, pImageIndex) != R_GAME_OK)
         {
-                return -1;
+                return R_GAME_ERROR_FAILED;
         }
 
-        if (g_lifecycle.beforeEachCallback != NULL)
-        {
-                g_lifecycle.beforeEachCallback (pSubsystem, NULL, 0);
-        }
-
-        pCurrentFrame->frameNumber = pSubsystem->frameCounter;
-        return 0;
+        pSubsystem->currentFrameIndex = *pImageIndex;
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
 
         if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
         {
-                return -1;
+                return R_GAME_ERROR_INVALID_STATE;
         }
 
-        struct R_GameRendererFrame* pCurrentFrame =
+        struct R_GameRendererFrame* pCurrentFrame = 
             &pSubsystem->pFrames[pSubsystem->currentFrameIndex];
 
         size_t cmdBufferCount = R_CSTL_ArrayLength (pCurrentFrame->pCommandBufferArray) / 
@@ -1217,8 +1207,8 @@ R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
         size_t currentBufferIndex = 0;
         
         R_GAME_MUTEX_LOCK (&pSubsystem->pThreadPool->taskMutex);
-        R_CSTL_DeleteArray (pSubsystem->pThreadPool->pTaskQueue);
-        pSubsystem->pThreadPool->pTaskQueue = R_CSTL_NewArrayWithCapacity (
+        R_CSTL_DeleteStack (pSubsystem->pThreadPool->pTaskQueue);
+        pSubsystem->pThreadPool->pTaskQueue = R_CSTL_NewStackWithCapacity (
             sizeof (struct R_GameRendererRenderTask) * R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME);
         R_GAME_ATOMIC_STORE (&pSubsystem->pThreadPool->atomicPendingTasks, 0);
         R_GAME_ATOMIC_STORE (&pSubsystem->pThreadPool->atomicCompletedTasks, 0);
@@ -1248,7 +1238,7 @@ R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
                 R_GAME_ATOMIC_STORE (&task.atomicCompleted, 0);
                 
                 R_GAME_MUTEX_LOCK (&pSubsystem->pThreadPool->taskMutex);
-                int result = R_CSTL_ArrayPushData (
+                int result = R_CSTL_StackPushData (
                     pSubsystem->pThreadPool->pTaskQueue,
                     (const uint8_t*)&task,
                     sizeof (struct R_GameRendererRenderTask));
@@ -1258,7 +1248,7 @@ R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
                 if (result != R_CSTL_OK)
                 {
                         R_CSTL_LOG_ERROR ("Failed to add render task to queue");
-                        return -1;
+                        return R_GAME_ERROR_ARRAY_OPERATION_FAILED;
                 }
                 
                 currentBufferIndex++;
@@ -1267,162 +1257,115 @@ R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
         R_GAME_COND_BROADCAST (&pSubsystem->pThreadPool->taskAvailable);
         
         R_GAME_MUTEX_LOCK (&pSubsystem->pThreadPool->taskMutex);
-        uint32_t pendingTasks = R_GAME_ATOMIC_LOAD (&pSubsystem->pThreadPool->atomicPendingTasks);
-        uint32_t completedTasks = R_GAME_ATOMIC_LOAD (&pSubsystem->pThreadPool->atomicCompletedTasks);
-        while (completedTasks < pendingTasks)
+        while (R_GAME_ATOMIC_LOAD (&pSubsystem->pThreadPool->atomicPendingTasks) > 0)
         {
+                R_GAME_MUTEX_UNLOCK (&pSubsystem->pThreadPool->taskMutex);
                 R_GAME_COND_WAIT (&pSubsystem->pThreadPool->taskComplete, &pSubsystem->pThreadPool->taskMutex);
-                completedTasks = R_GAME_ATOMIC_LOAD (&pSubsystem->pThreadPool->atomicCompletedTasks);
+                R_GAME_MUTEX_LOCK (&pSubsystem->pThreadPool->taskMutex);
         }
         R_GAME_MUTEX_UNLOCK (&pSubsystem->pThreadPool->taskMutex);
 
-        if (g_lifecycle.renderCallback != NULL)
-        {
-                g_lifecycle.renderCallback (pSubsystem, NULL, 0);
-        }
-
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_EndFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
 
         if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
         {
-                return -1;
+                return R_GAME_ERROR_INVALID_STATE;
         }
-
-        struct R_GameRendererFrame* pCurrentFrame =
-            &pSubsystem->pFrames[pSubsystem->currentFrameIndex];
-
-        struct R_CVulkan_Queue* pGraphicsQueue =
-            R_GameCVulkan_PipelineContextGetGraphicsQueue (pSubsystem->pPipelineContext);
-        struct R_CVulkan_Queue* pPresentQueue =
-            R_GameCVulkan_PipelineContextGetPresentQueue (pSubsystem->pPipelineContext);
-
-        size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / 
-            sizeof (struct R_GameRendererLayer);
-        
-        struct R_CVulkan_CommandBuffer* commandBuffers[R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME];
-        size_t commandBufferCount = 0;
-        
-        for (size_t layerIdx = 0; layerIdx < layerCount; ++layerIdx)
-        {
-                struct R_GameRendererLayer layer;
-                R_CSTL_ArrayTypedUncheckedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIdx, &layer);
-                
-                if (!(layer.flags & R_GAME_RENDERER_LAYER_FLAG_ENABLED))
-                {
-                        continue;
-                }
-
-                if (commandBufferCount < R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME)
-                {
-                        struct R_CVulkan_CommandBuffer cmdBuffer;
-                        R_CSTL_ArrayTypedUncheckedAt (pCurrentFrame->pCommandBufferArray, struct R_CVulkan_CommandBuffer, commandBufferCount, &cmdBuffer);
-                        
-                        static struct R_CVulkan_CommandBuffer s_cmdBuffers[R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME];
-                        s_cmdBuffers[commandBufferCount] = cmdBuffer;
-                        commandBuffers[commandBufferCount] = &s_cmdBuffers[commandBufferCount];
-                        commandBufferCount++;
-                }
-        }
-
-        if (R_GameRenderer_SubmitCommandBuffers (
-            pGraphicsQueue,
-            commandBuffers,
-            commandBufferCount,
-            &pSubsystem->pPipelineContext->imageAvailableSemaphore,
-            pCurrentFrame->pRenderFinishedSemaphore,
-            pCurrentFrame->pInFlightFence) != 0)
-        {
-                return -1;
-        }
-
-        VkSwapchainKHR swapchainHandle = 
-            R_CVulkan_SwapchainGetHandle (&pSubsystem->pPipelineContext->swapchain);
-        uint32_t imageIndex = 0;
-        
-        if (R_GameRenderer_PresentImage (
-            pPresentQueue,
-            swapchainHandle,
-            imageIndex,
-            pCurrentFrame->pRenderFinishedSemaphore) != 0)
-        {
-                return -1;
-        }
-
-        if (g_lifecycle.afterEachCallback != NULL)
-        {
-                g_lifecycle.afterEachCallback (pSubsystem, NULL, 0);
-        }
-
-        pSubsystem->currentFrameIndex =
-            (pSubsystem->currentFrameIndex + 1) % pSubsystem->maxFramesInFlight;
-        pSubsystem->frameCounter++;
-
-        return 0;
-}
-
-GAME_API int
-R_GameRenderer_WaitForFrame (struct R_GameRendererSubsystem* pSubsystem)
-{
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
-        R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
 
         struct R_CVulkan_Device* pDevice = 
             R_GameCVulkan_PipelineContextGetDevice (pSubsystem->pPipelineContext);
+        struct R_CVulkan_Queue* pQueue = 
+            R_GameCVulkan_PipelineContextGetGraphicsQueue (pSubsystem->pPipelineContext);
+        struct R_CVulkan_Semaphore* pSignalSemaphore = 
+            R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (pSubsystem->pPipelineContext);
+        struct R_CVulkan_Semaphore* pWaitSemaphore = 
+            R_GameCVulkan_PipelineContextGetImageAvailableSemaphore (pSubsystem->pPipelineContext);
+        struct R_CVulkan_Fence* pFence = 
+            R_GameCVulkan_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
+        uint32_t imageIndex = pSubsystem->currentFrameIndex;
 
-        for (uint32_t i = 0; i < pSubsystem->maxFramesInFlight; ++i)
+        struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[imageIndex];
+        size_t cmdBufferCount = R_CSTL_ArrayLength (pFrame->pCommandBufferArray) / 
+            sizeof (struct R_CVulkan_CommandBuffer);
+
+        if (cmdBufferCount > 0)
         {
-                struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[i];
-                if (pFrame->pInFlightFence != NULL)
+                struct R_CVulkan_CommandBuffer* pCmdBuffers = (struct R_CVulkan_CommandBuffer*)
+                    R_CSTL_ArrayData (pFrame->pCommandBufferArray);
+                if (R_GameRenderer_SubmitCommandBuffers (
+                    pQueue, &pCmdBuffers, cmdBufferCount, 
+                    pWaitSemaphore, pSignalSemaphore, pFence) != R_GAME_OK)
                 {
-                        R_CVulkan_FenceWait (pDevice, pFrame->pInFlightFence, 1, true, UINT64_MAX);
+                        return R_GAME_ERROR_FAILED;
                 }
         }
-        return 0;
+
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
+R_GameRenderer_WaitForFrame (struct R_GameRendererSubsystem* pSubsystem)
+{
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
+
+        struct R_GameCVulkan_PipelineContext* pPipelineContext = pSubsystem->pPipelineContext;
+        struct R_CVulkan_Queue* pQueue = 
+            R_GameCVulkan_PipelineContextGetPresentQueue (pPipelineContext);
+        struct R_CVulkan_Semaphore* pSignalSemaphore = 
+            R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (pPipelineContext);
+        uint32_t imageIndex = pSubsystem->currentFrameIndex;
+
+        struct R_CVulkan_Swapchain swapchain = pPipelineContext->swapchain;
+        if (R_GameRenderer_PresentImage (pQueue, swapchain, imageIndex, pSignalSemaphore) != R_GAME_OK)
+        {
+                return R_GAME_ERROR_FAILED;
+        }
+
+        pSubsystem->currentFrameIndex = (pSubsystem->currentFrameIndex + 1) % pSubsystem->maxFramesInFlight;
+        return R_GAME_OK;
+}
+
+R_GAME_API int
 R_GameRenderer_AddLayer (
     struct R_GameRendererSubsystem* pSubsystem,
-    const char*                      pName,
+    const char*                     pName,
     uint32_t                        priority,
     uint32_t                        flags,
     const void*                     pUserData)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
         R_GAME_VALIDATE_PARAM (pName);
 
         size_t currentLayerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / 
             sizeof (struct R_GameRendererLayer);
         if (currentLayerCount >= R_GAME_RENDERER_MAX_LAYERS)
         {
-                R_CSTL_LOG_ERROR ("Maximum number of layers reached");
-                return -1;
+                return R_GAME_ERROR_MAX_RESOURCES_REACHED;
         }
-
         struct R_GameRendererLayer newLayer = {0};
-        newLayer.pName = R_GameRenderer_AllocateNameCopy (pName);
-        if (newLayer.pName == NULL)
-        {
-                R_CSTL_LOG_ERROR ("Failed to allocate layer name");
-                return -1;
-        }
         newLayer.priority = priority;
-        newLayer.flags = flags | R_GAME_RENDERER_LAYER_FLAG_ENABLED;
-        newLayer.pUserData = pUserData;
-        newLayer.renderCallback = NULL;
-        newLayer.beforePassCallback = NULL;
-        newLayer.afterPassCallback = NULL;
-
-#if defined(R_GAME_DEBUG)
-        newLayer.isInitialized = true;
-#endif
+        newLayer.flags = flags;
+        newLayer.pUserData = (void*)pUserData;
+        
+        if (pName != NULL)
+        {
+                size_t nameLen = strlen (pName);
+                newLayer.pName = (char*)R_CSTL_HeapAlloc (nameLen + 1);
+                if (newLayer.pName == NULL)
+                {
+                        R_CSTL_LOG_ERROR ("Failed to allocate layer name");
+                        return R_GAME_ERROR_OUT_OF_MEMORY;
+                }
+                memcpy (newLayer.pName, pName, nameLen + 1);
+        }
 
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
         int result = R_CSTL_ArrayPushData (
@@ -1430,100 +1373,71 @@ R_GameRenderer_AddLayer (
             (const uint8_t*)&newLayer,
             sizeof (struct R_GameRendererLayer));
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
-        
+
         if (result != R_CSTL_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to push layer to array");
-                R_CSTL_HeapFree (newLayer.pName);
-                return -1;
+                if (newLayer.pName != NULL)
+                {
+                        R_CSTL_HeapFree (newLayer.pName);
+                }
+                return R_GAME_ERROR_ARRAY_OPERATION_FAILED;
         }
 
-        R_CSTL_LOG_INFO ("Added render layer: %s (priority: %u)", pName, priority);
-        return (int)(R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer) - 1);
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_RemoveLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / 
             sizeof (struct R_GameRendererLayer);
-        if (layerIndex >= layerCount)
-        {
-                R_CSTL_LOG_ERROR ("Invalid layer index: %u", layerIndex);
-                return -1;
-        }
+        R_GAME_ASSERT (layerIndex < layerCount);
 
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
         struct R_GameRendererLayer layer;
         R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
-
         if (layer.pName != NULL)
         {
                 R_CSTL_HeapFree (layer.pName);
         }
-        
-        if (R_GameRenderer_RemoveFromArrayByIndex (
-            &pSubsystem->pLayerArray,
-            sizeof (struct R_GameRendererLayer),
-            layerIndex) != 0)
-        {
-                R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
-                R_CSTL_LOG_ERROR ("Failed to remove layer from array");
-                return -1;
-        }
+        R_GameRenderer_RemoveFromArrayByIndex (&pSubsystem->pLayerArray, sizeof (struct R_GameRendererLayer), layerIndex);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
-        R_CSTL_LOG_INFO ("Removed render layer at index %u", layerIndex);
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SetLayerEnabled (
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        layerIndex,
     int                             enabled)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / 
             sizeof (struct R_GameRendererLayer);
-        if (layerIndex >= layerCount)
-        {
-                R_CSTL_LOG_ERROR ("Invalid layer index: %u", layerIndex);
-                return -1;
-        }
+        R_GAME_ASSERT (layerIndex < layerCount);
 
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
         struct R_GameRendererLayer layer;
         R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
-        
         if (enabled)
-        {
                 layer.flags |= R_GAME_RENDERER_LAYER_FLAG_ENABLED;
-        }
         else
-        {
                 layer.flags &= ~R_GAME_RENDERER_LAYER_FLAG_ENABLED;
-        }
-
         R_CSTL_ArrayTypedSetAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API struct R_GameRendererLayer*
+R_GAME_API struct R_GameRendererLayer*
 R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem != NULL);
+        R_GAME_VALIDATE_PARAM (pSubsystem != NULL);
         size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / 
             sizeof (struct R_GameRendererLayer);
-#if defined(R_GAME_DEBUG)
-        if (layerIndex >= layerCount)
-        {
-                return NULL;
-        }
-#endif
+        R_GAME_ASSERT (layerIndex < layerCount);
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
         const uint8_t* pLayerData = R_CSTL_ArrayData (pSubsystem->pLayerArray);
         static struct R_GameRendererLayer s_layer;
@@ -1532,10 +1446,10 @@ R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t la
         return &s_layer;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_SortLayers (struct R_GameRendererSubsystem* pSubsystem)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
         int result = R_CSTL_ArraySort (
             pSubsystem->pLayerArray,
@@ -1543,18 +1457,10 @@ R_GameRenderer_SortLayers (struct R_GameRendererSubsystem* pSubsystem)
             R_GameRenderer_CompareLayers,
             NULL);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
-        
-        if (result != R_CSTL_OK)
-        {
-                R_CSTL_LOG_ERROR ("Failed to sort layers");
-                return -1;
-        }
-
-        R_CSTL_LOG_INFO ("Render layers sorted by priority");
-        return 0;
+        return result;
 }
 
-GAME_API uint64_t
+R_GAME_API uint64_t
 R_GameRenderer_RegisterResource (
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        type,
@@ -1562,7 +1468,7 @@ R_GameRenderer_RegisterResource (
     uint64_t                        size,
     const char*                     pName)
 {
-        R_GAME_VALIDATE_SUBSYSTEM_INITIALIZED (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
         R_GAME_VALIDATE_PARAM (pResource);
 
         size_t currentResourceCount = R_CSTL_ArrayLength (pSubsystem->pResourceArray) / 
@@ -1574,17 +1480,24 @@ R_GameRenderer_RegisterResource (
         }
 
         struct R_GameRendererResource newResource = {0};
-        newResource.handle = pSubsystem->nextResourceHandle++;
         newResource.type = type;
         newResource.pResource = pResource;
         newResource.size = size;
-        newResource.refCount = 1;
-
-        newResource.pName = R_GameRenderer_AllocateNameCopy (pName);
-
-#if defined(R_GAME_DEBUG)
-        newResource.isInitialized = true;
-#endif
+        newResource.handle = ++pSubsystem->nextResourceHandle;
+        if (newResource.handle == 0)
+        {
+                newResource.handle = ++pSubsystem->nextResourceHandle;
+        }
+        if (pName != NULL)
+        {
+                size_t nameLen = strlen (pName);
+                newResource.pName = (char*)R_CSTL_HeapAlloc (nameLen + 1);
+                if (newResource.pName == NULL)
+                {
+                        return 0;
+                }
+                memcpy (newResource.pName, pName, nameLen + 1);
+        }
 
         R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
         int result = R_CSTL_ArrayPushData (
@@ -1592,234 +1505,349 @@ R_GameRenderer_RegisterResource (
             (const uint8_t*)&newResource,
             sizeof (struct R_GameRendererResource));
         R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
-        
+
         if (result != R_CSTL_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to push resource to array");
                 if (newResource.pName != NULL)
                 {
                         R_CSTL_HeapFree ((void*)newResource.pName);
                 }
                 return 0;
         }
-
-        R_CSTL_LOG_INFO (
-            "Registered resource: %s (handle: %" PRIu64 ", type: %u)",
-            pName ? pName : "unnamed",
-            newResource.handle,
-            type);
-
         return newResource.handle;
 }
 
-GAME_API int
+R_GAME_API int
 R_GameRenderer_UnregisterResource (
     struct R_GameRendererSubsystem* pSubsystem,
     uint64_t                        handle)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (handle != 0);
         size_t foundIndex = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
         if (foundIndex == SIZE_MAX)
         {
-                R_CSTL_LOG_WARN ("Resource not found: %llu", handle);
-                return -1;
+                return R_GAME_ERROR_RESOURCE_NOT_FOUND;
         }
 
         R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
         struct R_GameRendererResource resource;
         R_CSTL_ArrayTypedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, foundIndex, &resource);
-        
         if (resource.pName != NULL)
         {
                 R_CSTL_HeapFree ((void*)resource.pName);
         }
-
-        if (R_GameRenderer_RemoveFromArrayByIndex (
-            &pSubsystem->pResourceArray,
-            sizeof (struct R_GameRendererResource),
-            foundIndex) != 0)
-        {
-                R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
-                R_CSTL_LOG_ERROR ("Failed to remove resource from array");
-                return -1;
-        }
+        R_GameRenderer_RemoveFromArrayByIndex (&pSubsystem->pResourceArray, sizeof (struct R_GameRendererResource), foundIndex);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
 
-        R_CSTL_LOG_INFO ("Unregistered resource: %llu", handle);
-        return 0;
+        return R_GAME_OK;
 }
 
-GAME_API const void*
+R_GAME_API const void*
 R_GameRenderer_GetResource (
     struct R_GameRendererSubsystem* pSubsystem,
     uint64_t                        handle)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem != NULL);
+        R_GAME_VALIDATE_PARAM (pSubsystem != NULL);
         R_GAME_VALIDATE_PARAM (handle != 0);
         size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
         if (index == SIZE_MAX)
         {
                 return NULL;
         }
+
         R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
         struct R_GameRendererResource resource;
-        R_CSTL_ArrayTypedUncheckedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
+        R_CSTL_ArrayTypedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
-        return resource.pResource;
+
+        return (void*)resource.pResource;
 }
 
-GAME_API int
-R_GameRenderer_AddResourceRef (
+R_GAME_API uint32_t
+R_GameRenderer_GetResourceType (
     struct R_GameRendererSubsystem* pSubsystem,
     uint64_t                        handle)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (handle != 0);
 
         size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
         if (index == SIZE_MAX)
         {
-                return -1;
+                return 0;
         }
 
         R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
         struct R_GameRendererResource resource;
-        R_CSTL_ArrayTypedUncheckedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
-        resource.refCount++;
-        R_CSTL_ArrayTypedSetAtUnchecked (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
+        R_CSTL_ArrayTypedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
-        return 0;
+
+        return resource.type;
 }
 
-GAME_API int
-R_GameRenderer_ReleaseResourceRef (
+R_GAME_API uint64_t
+R_GameRenderer_GetResourceSize (
     struct R_GameRendererSubsystem* pSubsystem,
     uint64_t                        handle)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (handle != 0);
 
         size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
         if (index == SIZE_MAX)
         {
-                return -1;
+                return 0;
         }
 
         R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
         struct R_GameRendererResource resource;
-        R_CSTL_ArrayTypedUncheckedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
-        if (resource.refCount > 0)
-        {
-                resource.refCount--;
-                R_CSTL_ArrayTypedSetAtUnchecked (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
-        }
+        R_CSTL_ArrayTypedAt (pSubsystem->pResourceArray, struct R_GameRendererResource, index, &resource);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
-        return 0;
+
+        return resource.size;
 }
 
-GAME_API struct R_CVulkan_CommandBuffer*
-R_GameRenderer_GetCommandBuffer (
+R_GAME_API int
+R_GameRenderer_SetFrameResource (
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        frameIndex,
     uint32_t                        bufferIndex)
 {
-        R_GAME_VALIDATE_SUBSYSTEM (pSubsystem != NULL);
-
-        if (frameIndex >= pSubsystem->maxFramesInFlight)
-        {
-                R_CSTL_LOG_ERROR ("Invalid frame index: %u", frameIndex);
-                return NULL;
-        }
+        R_GAME_VALIDATE_PARAM (pSubsystem != NULL);
+        R_GAME_ASSERT (frameIndex < pSubsystem->maxFramesInFlight);
 
         struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[frameIndex];
-        
-        size_t cmdBufferCount = R_CSTL_ArrayLength (pFrame->pCommandBufferArray) / 
-            sizeof (struct R_CVulkan_CommandBuffer);
-        if (bufferIndex >= cmdBufferCount)
+        pFrame->resourceIndex = bufferIndex;
+        return R_GAME_OK;
+}
+
+R_GAME_API struct R_GameRendererManager*
+R_GameRenderer_NewManager (struct R_GameCVulkan_PipelineContext* pPipelineContext)
+{
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM (pPipelineContext);
+
+        struct R_GameRendererManager* pManager = (struct R_GameRendererManager*)
+            R_CSTL_HeapAlloc (sizeof (struct R_GameRendererManager));
+        if (pManager == NULL)
         {
-                R_CSTL_LOG_ERROR ("Invalid buffer index: %u", bufferIndex);
+                R_CSTL_TRACE_RETURN ();
                 return NULL;
         }
 
-        struct R_CVulkan_CommandBuffer cmdBuffer;
-        R_CSTL_ArrayTypedAt (pFrame->pCommandBufferArray, struct R_CVulkan_CommandBuffer, bufferIndex, &cmdBuffer);
-        
-        static struct R_CVulkan_CommandBuffer s_cmdBuffer;
-        s_cmdBuffer = cmdBuffer;
-        return &s_cmdBuffer;
+        memset (pManager, 0, sizeof (struct R_GameRendererManager));
+        pManager->pPipelineContext = pPipelineContext;
+        pManager->subsystemCount = 0;
+        pManager->swapchainImageCount = 0;
+        pManager->currentSwapchainIndex = 0;
+        pManager->booted = 0;
+
+        R_GAME_MUTEX_INIT (&pManager->managerMutex);
+
+        pManager->booted = 1;
+        R_CSTL_TRACE_POINT ("manager_created");
+        R_CSTL_TRACE_RETURN ();
+        return pManager;
 }
 
-GAME_API void
-R_GameRendererLifecycle_RegisterRenderer (const void* pRenderer)
+R_GAME_API int
+R_GameRenderer_DeleteManager (struct R_GameRendererManager* pManager)
 {
-        g_lifecycle.pRenderer = pRenderer;
-}
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
 
-GAME_API void
-R_GameRendererLifecycle_RegisterConstruct (R_GameLifecycleConstruct callback)
-{
-        g_lifecycle.constructCallback = callback;
-        if (callback != NULL)
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
         {
-                R_GameRenderer_ValidateCallbackFunction ((R_CSTL_BytecodeFunction)callback, "construct");
+                struct R_GameRendererSubsystemEntry* pEntry = &pManager->subsystems[i];
+                if (pEntry->pSubsystem != NULL)
+                {
+                        R_GameRenderer_DeleteSubsystem (pEntry->pSubsystem);
+                }
         }
+
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        R_GAME_MUTEX_DESTROY (&pManager->managerMutex);
+
+        R_CSTL_HeapFree (pManager);
+        R_CSTL_TRACE_POINT ("manager_deleted");
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
 }
 
-GAME_API void
-R_GameRendererLifecycle_RegisterResume (R_GameLifecycleResume callback)
+R_GAME_API int
+R_GameRenderer_AddSubsystem (
+    struct R_GameRendererManager* pManager,
+    struct R_GameRendererSubsystem* pSubsystem,
+    uint32_t priority,
+    uint32_t flags,
+    float blendFactor)
 {
-        g_lifecycle.resumeCallback = callback;
-}
+        R_CSTL_TRACE_FUNCTION_CTX ("priority=%u, blend=%f", priority, blendFactor);
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
 
-GAME_API void
-R_GameRendererLifecycle_RegisterPause (R_GameLifecyclePause callback)
-{
-        g_lifecycle.pauseCallback = callback;
-}
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
-GAME_API void
-R_GameRendererLifecycle_RegisterBeforeEach (R_GameLifecycleBeforeEach callback)
-{
-        g_lifecycle.beforeEachCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterAfterEach (R_GameLifecycleAfterEach callback)
-{
-        g_lifecycle.afterEachCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterBeforePass (R_GameLifecycleBeforePass callback)
-{
-        g_lifecycle.beforePassCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterAfterPass (R_GameLifecycleAfterPass callback)
-{
-        g_lifecycle.afterPassCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterRender (R_GameLifecycleRender callback)
-{
-        g_lifecycle.renderCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterStop (R_GameLifecycleStop callback)
-{
-        g_lifecycle.stopCallback = callback;
-}
-
-GAME_API void
-R_GameRendererLifecycle_RegisterOver (R_GameLifecycleOver callback)
-{
-        g_lifecycle.overCallback = callback;
-        if (callback != NULL)
+        if (pManager->subsystemCount >= R_GAME_RENDERER_MAX_SUBSYSTEMS)
         {
-                R_GameRenderer_ValidateCallbackFunction ((R_CSTL_BytecodeFunction)callback, "over");
+                R_CSTL_LOG_ERROR ("Maximum number of subsystems reached");
+                R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+                R_CSTL_TRACE_RETURN ();
+                return R_GAME_ERROR_MAX_RESOURCES_REACHED;
         }
+
+        struct R_GameRendererSubsystemEntry* pEntry = &pManager->subsystems[pManager->subsystemCount];
+        pEntry->pSubsystem = pSubsystem;
+        pEntry->priority = priority;
+        pEntry->flags = flags;
+        pEntry->isVisible = 1;
+        pEntry->blendFactor = blendFactor;
+        memset (&pEntry->renderTarget, 0, sizeof (struct R_GameRendererRenderTarget));
+
+        pManager->subsystemCount++;
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_RemoveSubsystem (
+    struct R_GameRendererManager* pManager,
+    struct R_GameRendererSubsystem* pSubsystem)
+{
+        R_CSTL_TRACE_FUNCTION ();
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        uint32_t foundIndex = UINT32_MAX;
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
+        {
+                if (pManager->subsystems[i].pSubsystem == pSubsystem)
+                {
+                        foundIndex = i;
+                        break;
+                }
+        }
+        if (foundIndex == UINT32_MAX)
+        {
+                R_CSTL_LOG_WARN ("Subsystem not found in manager");
+                R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+                return R_GAME_ERROR_SUBSYSTEM_NOT_FOUND;
+        }
+
+        for (uint32_t i = foundIndex; i < pManager->subsystemCount - 1; ++i)
+        {
+                pManager->subsystems[i] = pManager->subsystems[i + 1];
+        }
+        pManager->subsystemCount--;
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_SetSubsystemVisible (
+    struct R_GameRendererManager* pManager,
+    struct R_GameRendererSubsystem* pSubsystem,
+    int visible)
+{
+        R_CSTL_TRACE_FUNCTION_CTX ("visible=%d", visible);
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
+        {
+                if (pManager->subsystems[i].pSubsystem == pSubsystem)
+                {
+                        pManager->subsystems[i].isVisible = visible ? 1 : 0;
+                        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+                        R_CSTL_TRACE_RETURN ();
+                        return R_GAME_OK;
+                }
+        }
+
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_ERROR_SUBSYSTEM_NOT_FOUND;
+}
+
+R_GAME_API int
+R_GameRenderer_SetSubsystemBlendFactor (
+    struct R_GameRendererManager* pManager,
+    struct R_GameRendererSubsystem* pSubsystem,
+    float blendFactor)
+{
+        R_CSTL_TRACE_FUNCTION_CTX ("blendFactor=%f", blendFactor);
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
+        {
+                if (pManager->subsystems[i].pSubsystem == pSubsystem)
+                {
+                        pManager->subsystems[i].blendFactor = blendFactor;
+                        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+                        R_CSTL_TRACE_RETURN ();
+                        return R_GAME_OK;
+                }
+        }
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        R_CSTL_TRACE_RETURN ();
+        return R_GAME_ERROR_SUBSYSTEM_NOT_FOUND;
+}
+
+R_GAME_API int
+R_GameRenderer_ComposeFrame (struct R_GameRendererManager* pManager)
+{
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
+        {
+                struct R_GameRendererSubsystemEntry* pEntry = &pManager->subsystems[i];
+                if (pEntry->pSubsystem != NULL && pEntry->isVisible)
+                {
+                        R_GameRenderer_BeginFrame (pEntry->pSubsystem);
+                        R_GameRenderer_RenderFrame (pEntry->pSubsystem);
+                        R_GameRenderer_EndFrame (pEntry->pSubsystem);
+                }
+        }
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_PresentFrame (struct R_GameRendererManager* pManager)
+{
+        R_GAME_VALIDATE_PARAM (pManager);
+        R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+
+        R_GAME_MUTEX_LOCK (&pManager->managerMutex);
+
+        for (uint32_t i = 0; i < pManager->subsystemCount; ++i)
+        {
+                struct R_GameRendererSubsystemEntry* pEntry = &pManager->subsystems[i];
+                if (pEntry->pSubsystem != NULL && pEntry->isVisible)
+                {
+                        R_GameRenderer_WaitForFrame (pEntry->pSubsystem);
+                }
+        }
+        R_GAME_MUTEX_UNLOCK (&pManager->managerMutex);
+        return R_GAME_OK;
 }

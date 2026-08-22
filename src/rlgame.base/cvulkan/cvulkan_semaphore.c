@@ -2,7 +2,7 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_device.h"
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSemaphore (
     struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
@@ -26,7 +26,7 @@ R_CVulkan_NewSemaphore (
         pSemaphore->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         pSemaphore->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pSemaphore->isInitialized = false;
+        pSemaphore->booted = false;
 #endif
 
         VkSemaphoreCreateInfo semaphoreInfo = {0};
@@ -48,7 +48,7 @@ R_CVulkan_NewSemaphore (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pSemaphore->isInitialized = true;
+        pSemaphore->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -71,15 +71,15 @@ R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore)
 #if defined(R_CVULKAN_DEBUG)
         pSemaphore->handle = VK_NULL_HANDLE;
         pSemaphore->device = VK_NULL_HANDLE;
-        pSemaphore->isInitialized = false;
+        pSemaphore->booted = false;
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
+        R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore)
         {
@@ -87,8 +87,8 @@ R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t valu
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
-        if (!pSemaphore->isInitialized)
+        R_CVULKAN_ASSERT (pSemaphore->booted);
+        if (!pSemaphore->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -107,11 +107,11 @@ R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t valu
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value, uint64_t timeout)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
+        R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore)
         {
@@ -119,8 +119,8 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
-        if (!pSemaphore->isInitialized)
+        R_CVULKAN_ASSERT (pSemaphore->booted);
+        if (!pSemaphore->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -141,12 +141,12 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
         return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue)
 {
         R_CVULKAN_ASSERT (pSemaphore != NULL);
         R_CVULKAN_ASSERT (pOutValue != NULL);
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
+        R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore || !pOutValue)
         {
@@ -154,8 +154,8 @@ R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* p
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore->isInitialized);
-        if (!pSemaphore->isInitialized)
+        R_CVULKAN_ASSERT (pSemaphore->booted);
+        if (!pSemaphore->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -192,7 +192,7 @@ R_CVulkan_SemaphoreIsInitialized (const struct R_CVulkan_Semaphore* pSemaphore)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pSemaphore != NULL);
-        return pSemaphore->isInitialized;
+        return pSemaphore->booted;
 #else
         (void)pSemaphore;
         return 1;

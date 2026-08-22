@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewRenderPass (
     struct R_CVulkan_RenderPass*                 pRenderPass,
     const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo)
@@ -38,7 +38,7 @@ R_CVulkan_NewRenderPass (
         pRenderPass->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         pRenderPass->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pRenderPass->isInitialized = false;
+        pRenderPass->booted = false;
 #endif
 
         VkRenderPassCreateInfo renderPassInfo = {0};
@@ -58,7 +58,7 @@ R_CVulkan_NewRenderPass (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pRenderPass->isInitialized = true;
+        pRenderPass->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -83,7 +83,7 @@ R_CVulkan_DeleteRenderPass (struct R_CVulkan_RenderPass* pRenderPass)
 
         pRenderPass->device = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-        pRenderPass->isInitialized = false;
+        pRenderPass->booted = false;
 #endif
 }
 
@@ -109,7 +109,7 @@ R_CVULKAN_API int
 R_CVulkan_RenderPass_IsInitialized (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return pRenderPass->isInitialized;
+        return pRenderPass->booted;
 #else
         (void)pRenderPass;
         return 1;

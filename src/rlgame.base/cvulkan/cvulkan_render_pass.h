@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -38,7 +37,7 @@ struct R_CVulkan_RenderPass
  * @param pCreateInfo Render pass creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewRenderPass (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewRenderPass (
     struct R_CVulkan_RenderPass*                 pRenderPass,
     const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo);
 

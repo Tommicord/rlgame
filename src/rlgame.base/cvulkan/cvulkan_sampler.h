@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -46,7 +45,7 @@ struct R_CVulkan_Sampler
  * @param pCreateInfo Sampler creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSampler (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*                 pSampler,
     const struct R_CVulkan_SamplerCreateInfo* pCreateInfo);
 

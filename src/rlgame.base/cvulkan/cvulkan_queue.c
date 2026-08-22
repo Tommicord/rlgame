@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewQueue (
     struct R_CVulkan_Queue*        pQueue,
     const struct R_CVulkan_Device* pDevice,
@@ -35,7 +35,7 @@ R_CVulkan_NewQueue (
         pQueue->queueFamilyIndex = queueFamilyIndex;
         pQueue->queueIndex = queueIndex;
 #if defined(R_CVULKAN_DEBUG)
-        pQueue->isInitialized = false;
+        pQueue->booted = false;
 #endif
         vkGetDeviceQueue (pQueue->device, queueFamilyIndex, queueIndex, &pQueue->handle);
 
@@ -45,7 +45,7 @@ R_CVulkan_NewQueue (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pQueue->isInitialized = true;
+        pQueue->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -65,13 +65,13 @@ R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue)
         pQueue->device = VK_NULL_HANDLE;
         pQueue->queueFamilyIndex = 0;
         pQueue->queueIndex = 0;
-        pQueue->isInitialized = false;
+        pQueue->booted = false;
 #else
         (void)pQueue;
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_QueueSubmit (
     struct R_CVulkan_Queue*               pQueue,
     const struct R_CVulkan_CommandBuffer* pCommandBuffers,
@@ -221,7 +221,7 @@ R_CVulkan_QueueSubmit (
         }
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_QueuePresent (
     struct R_CVulkan_Queue*           pQueue,
     const VkSwapchainKHR*             pSwapchains,
@@ -289,7 +289,7 @@ R_CVulkan_QueuePresent (
         }
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue)
 {
         R_CVULKAN_ASSERT (pQueue != NULL);
@@ -353,7 +353,7 @@ R_CVulkan_QueueIsInitialized (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pQueue != NULL);
-        return pQueue->isInitialized;
+        return pQueue->booted;
 #else
         (void)pQueue;
         return 1;

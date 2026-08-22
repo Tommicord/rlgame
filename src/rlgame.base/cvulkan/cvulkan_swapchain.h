@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -68,7 +67,7 @@ struct R_CVulkan_Swapchain
  * - R_CVULKAN_ERROR_SWAPCHAIN_CREATE_FAILED: Failed to create swapchain
  * - R_CVULKAN_ERROR_OUT_OF_MEMORY: Memory allocation failed
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSwapchain (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSwapchain (
     struct R_CVulkan_Swapchain*                 pSwapchain,
     const struct R_CVulkan_SwapchainCreateInfo* pCreateInfo);
 
@@ -126,7 +125,7 @@ R_CVULKAN_API uint32_t R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_
  * - R_CVULKAN_ERROR_SWAPCHAIN_OUT_OF_DATE: Swapchain needs recreation
  * - R_CVULKAN_ERROR_SWAPCHAIN_SUBOPTIMAL: Swapchain is suboptimal
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SwapchainAcquireNextImage (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_SwapchainAcquireNextImage (
     struct R_CVulkan_Swapchain* pSwapchain,
     uint64_t                    timeout,
     VkSemaphore                 semaphore,

@@ -1,22 +1,23 @@
 #include "rlgame.base/game/game_state.h"
+#include "rlgame.base/game/game_renderer_subsystem.h"
+#include "rlgame.base/game/game_platform.h"
 #include "rlgame.base/cstl/cstl_log.h"
 #include "rlgame.base/cvulkan/cvulkan_surface.h"
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 
 #include <string.h>
 
-R_GAME_CVULKAN_API enum R_CVulkan_Error
+R_GAME_API enum R_GameError
 R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo)
 {
 #if defined(R_CVULKAN_DEBUG)
         if (!pState || !pCreateInfo)
         {
-                return R_CVULKAN_ERROR_NULL_POINTER;
+                return R_GAME_ERROR_NULL_POINTER;
         }
 #endif
         memset (pState, 0, sizeof (*pState));
 #if defined(R_CVULKAN_DEBUG)
-        pState->isInitialized = false;
+        pState->booted = false;
 #endif
 
         struct R_GameCVulkan_PipelineContextCreateInfo pipelineCreateInfo = {0};
@@ -34,49 +35,62 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         pipelineCreateInfo.pNSWindow = pCreateInfo->pNSWindow;
 #endif
 
-        enum R_CVulkan_Error result
+        enum R_GameError result
             = R_GameCVulkan_NewPipelineContext (&pState->context, &pipelineCreateInfo);
-        if (result != R_CVULKAN_OK)
+        if (result != R_GAME_OK)
         {
                 R_CSTL_LOG_ERROR (
                     "GameState: Failed to initialize Vulkan pipeline context (error: %s)",
-                    R_CVulkan_ErrorToString (result));
+                    R_GameErrorToString (result));
                 return result;
         }
 
+        pState->pRendererManager = R_GameRenderer_NewManager (&pState->context);
+        if (pState->pRendererManager == NULL)
+        {
+                R_CSTL_LOG_ERROR ("GameState: Failed to create renderer manager");
+                R_GameCVulkan_PipelineContextDelete (&pState->context);
+                return R_GAME_ERROR_INITIALIZATION_FAILED;
+        }
+
 #if defined(R_CVULKAN_DEBUG)
-        pState->isInitialized = true;
+        pState->booted = true;
 #endif
         R_CSTL_LOG_INFO ("GameState: Initialized successfully");
-        return R_CVULKAN_OK;
-}
+        return R_GAME_OK;
 
-R_GAME_CVULKAN_API void
+}
+R_GAME_API void
 R_GameState_Cleanup (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_GAME_CVULKAN_ASSERT (pState != NULL);
-        if (!pState->isInitialized)
+        if (!pState->booted)
         {
                 return;
         }
 #endif
+        if (pState->pRendererManager != NULL)
+        {
+                R_GameRenderer_DeleteManager (pState->pRendererManager);
+                pState->pRendererManager = NULL;
+        }
         R_GameCVulkan_PipelineContextDelete (&pState->context);
         memset (pState, 0, sizeof (*pState));
 }
 
-R_GAME_CVULKAN_API int
+R_GAME_API int
 R_GameState_IsInitialized (const struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_GAME_CVULKAN_ASSERT (pState != NULL);
-        return pState->isInitialized;
+        return pState->booted;
 #else
         return R_GameCVulkan_PipelineContextIsInitialized (&pState->context);
 #endif
 }
 
-R_GAME_CVULKAN_API struct R_GameCVulkan_PipelineContext*
+R_GAME_API struct R_GameCVulkan_PipelineContext*
 R_GameState_GetVulkanContext (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
@@ -85,4 +99,43 @@ R_GameState_GetVulkanContext (struct R_GameState* pState)
 #else
         return &pState->context;
 #endif
+}
+
+R_GAME_API struct R_GameRendererManager*
+R_GameState_GetRendererManager (struct R_GameState* pState)
+{
+#if defined(R_CVULKAN_DEBUG)
+        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        return pState->pRendererManager;
+#else
+        return pState->pRendererManager;
+#endif
+}
+
+R_GAME_API int
+R_GameState_RenderFrame (struct R_GameState* pState)
+{
+#if defined(R_CVULKAN_DEBUG)
+        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        if (!pState->booted)
+        {
+                return R_GAME_ERROR_NOT_INITIALIZED;
+        }
+#endif
+        if (pState->pRendererManager == NULL)
+        {
+                return R_GAME_ERROR_NOT_INITIALIZED;
+        }
+
+        if (R_GameRenderer_ComposeFrame (pState->pRendererManager) != R_GAME_OK)
+        {
+                return R_GAME_ERROR_FAILED;
+        }
+
+        if (R_GameRenderer_PresentFrame (pState->pRendererManager) != R_GAME_OK)
+        {
+                return R_GAME_ERROR_FAILED;
+        }
+
+        return R_GAME_OK;
 }

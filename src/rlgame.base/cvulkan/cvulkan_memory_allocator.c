@@ -1,5 +1,6 @@
 #include "rlgame.base/cvulkan/cvulkan_memory_allocator.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
+#include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <string.h>
@@ -9,7 +10,7 @@
 #define R_CVULKAN_DEFAULT_MIN_BLOCK_SIZE (256 * 1024) /* 256 KB */
 #define R_CVULKAN_DEFAULT_MAX_BLOCK_SIZE (256 * 1024 * 1024) /* 256MB */
 
-static enum R_CVulkan_Error R_CVulkan_NewMemoryBlock (
+static enum R_CVulkanError R_CVulkan_NewMemoryBlock (
     struct R_CVulkan_MemoryBlock* block,
     VkDevice                      device,
     VkPhysicalDevice              physicalDevice,
@@ -50,9 +51,9 @@ static void R_CVulkan_MemoryBlockInitializeFields (
     VkBufferUsageFlags            usage,
     VkMemoryPropertyFlags         properties);
 
-static enum R_CVulkan_Error R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block);
+static enum R_CVulkanError R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block);
 
-static enum R_CVulkan_Error R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block);
+static enum R_CVulkanError R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block);
 
 static int R_CVulkan_MemoryBlockFindSuitableRegion (
     struct R_CVulkan_MemoryBlock* block,
@@ -77,7 +78,7 @@ R_CVulkan_MemoryBlockTryMergeWithPrevious (struct R_CVulkan_MemoryBlock* block, 
 
 static void R_CVulkan_MemoryBlockRemoveFreeRegion (struct R_CVulkan_MemoryBlock* block, uint32_t regionIndex);
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewMemoryAllocator (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     VkDevice                          device,
@@ -136,7 +137,7 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_MemoryAllocatorAllocate (
     struct R_CVulkan_MemoryAllocator*            pAllocator,
     const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
@@ -192,7 +193,7 @@ R_CVulkan_MemoryAllocatorAllocate (
         }
         memset (newBlock, 0, sizeof (struct R_CVulkan_MemoryBlock));
 
-        enum R_CVulkan_Error result = R_CVulkan_NewMemoryBlock (
+        enum R_CVulkanError result = R_CVulkan_NewMemoryBlock (
             newBlock,
             pAllocator->device,
             pAllocator->physicalDevice,
@@ -263,7 +264,7 @@ R_CVulkan_MemoryAllocatorFree (
         }
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_FindMemoryType (
     VkPhysicalDevice            physicalDevice,
     const VkMemoryRequirements* memRequirements,
@@ -295,7 +296,7 @@ R_CVulkan_FindMemoryType (
         return R_CVULKAN_ERROR_FAILED;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_CopyDataToMemory (
     VkDevice       device,
     VkDeviceMemory bufferMemory,
@@ -391,7 +392,7 @@ R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pA
         return total;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_MemoryAllocatorAllocateImageMemory (
     VkDevice              device,
     VkPhysicalDevice      physicalDevice,
@@ -413,7 +414,7 @@ R_CVulkan_MemoryAllocatorAllocateImageMemory (
         vkGetImageMemoryRequirements (device, image, &memRequirements);
 
         uint32_t             memoryTypeIndex = 0;
-        enum R_CVulkan_Error error
+        enum R_CVulkanError error
             = R_CVulkan_FindMemoryType (physicalDevice, &memRequirements, properties, &memoryTypeIndex);
         if (error != R_CVULKAN_OK)
         {
@@ -448,7 +449,167 @@ R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, VkDeviceMemory memory
         vkFreeMemory (device, memory, NULL);
 }
 
-static enum R_CVulkan_Error
+static enum R_CVulkanError
+R_CVulkan_MemoryAllocatorValidateDefragContext (
+    const struct R_CVulkan_MemoryAllocator* pAllocator,
+    const struct R_CVulkan_DefragContext*  pContext);
+
+static enum R_CVulkanError
+R_CVulkan_MemoryAllocatorCreateDefragContext (
+    struct R_CVulkan_MemoryAllocator*     pAllocator,
+    const struct R_CVulkan_DefragConfig*   pConfig,
+    struct R_CVulkan_DefragContext**      ppContext);
+
+static void
+R_CVulkan_MemoryAllocatorDestroyDefragContext (
+    struct R_CVulkan_DefragContext* pContext);
+
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_MemoryAllocatorBeginDefragmentation (
+    struct R_CVulkan_MemoryAllocator*     pAllocator,
+    struct R_CVulkan_DefragContext**      ppContext,
+    const struct R_CVulkan_DefragConfig*   pConfig)
+{
+        enum R_CVulkanError result = R_CVULKAN_OK;
+
+        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (ppContext != NULL);
+
+        if (!pAllocator || !ppContext)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        result = R_CVulkan_MemoryAllocatorCreateDefragContext (pAllocator, pConfig, ppContext);
+        if (result != R_CVULKAN_OK)
+        {
+                return result;
+        }
+
+        result = R_CVulkan_DefragBegin (*ppContext);
+        if (result != R_CVULKAN_OK)
+        {
+                R_CVulkan_MemoryAllocatorDestroyDefragContext (*ppContext);
+                *ppContext = NULL;
+                return result;
+        }
+
+        return R_CVULKAN_OK;
+}
+
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_MemoryAllocatorExecuteDefragPass (
+    struct R_CVulkan_MemoryAllocator* pAllocator,
+    struct R_CVulkan_DefragContext*    pContext,
+    VkCommandBuffer                    commandBuffer)
+{
+        enum R_CVulkanError result = R_CVULKAN_OK;
+
+        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pContext != NULL);
+
+        if (!pAllocator || !pContext)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        result = R_CVulkan_MemoryAllocatorValidateDefragContext (pAllocator, pContext);
+        if (result != R_CVULKAN_OK)
+        {
+                return result;
+        }
+
+        result = R_CVulkan_DefragExecutePass (pContext, commandBuffer);
+        return result;
+}
+
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_MemoryAllocatorEndDefragmentation (
+    struct R_CVulkan_MemoryAllocator* pAllocator,
+    struct R_CVulkan_DefragContext*  pContext,
+    struct R_CVulkan_DefragStats*     pStats)
+{
+        enum R_CVulkanError result = R_CVULKAN_OK;
+
+        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pContext != NULL);
+
+        if (!pAllocator || !pContext)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        result = R_CVulkan_MemoryAllocatorValidateDefragContext (pAllocator, pContext);
+        if (result != R_CVULKAN_OK)
+        {
+                return result;
+        }
+
+        result = R_CVulkan_DefragEnd (pContext, pStats);
+        R_CVulkan_MemoryAllocatorDestroyDefragContext (pContext);
+
+        return result;
+}
+
+static enum R_CVulkanError
+R_CVulkan_MemoryAllocatorValidateDefragContext (
+    const struct R_CVulkan_MemoryAllocator* pAllocator,
+    const struct R_CVulkan_DefragContext*  pContext)
+{
+        if (!pAllocator || !pContext)
+        {
+                return R_CVULKAN_ERROR_NULL_POINTER;
+        }
+
+        if (pContext->pAllocator != pAllocator)
+        {
+                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_MemoryAllocatorCreateDefragContext (
+    struct R_CVulkan_MemoryAllocator*     pAllocator,
+    const struct R_CVulkan_DefragConfig*   pConfig,
+    struct R_CVulkan_DefragContext**      ppContext)
+{
+        enum R_CVulkanError result = R_CVULKAN_OK;
+        struct R_CVulkan_DefragContext* pContext = NULL;
+
+        pContext = (struct R_CVulkan_DefragContext*)R_CSTL_HeapAlloc (
+            sizeof (struct R_CVulkan_DefragContext));
+        if (!pContext)
+        {
+                return R_CVULKAN_ERROR_OUT_OF_MEMORY;
+        }
+
+        result = R_CVulkan_DefragInitialize (pContext, pAllocator, pConfig);
+        if (result != R_CVULKAN_OK)
+        {
+                R_CSTL_HeapFree (pContext);
+                return result;
+        }
+
+        *ppContext = pContext;
+        return R_CVULKAN_OK;
+}
+
+static void
+R_CVulkan_MemoryAllocatorDestroyDefragContext (
+    struct R_CVulkan_DefragContext* pContext)
+{
+        if (!pContext)
+        {
+                return;
+        }
+
+        R_CVulkan_DefragCleanup (pContext);
+        R_CSTL_HeapFree (pContext);
+}
+
+static enum R_CVulkanError
 R_CVulkan_NewMemoryBlock (
     struct R_CVulkan_MemoryBlock* block,
     VkDevice                      device,
@@ -459,7 +620,7 @@ R_CVulkan_NewMemoryBlock (
 {
         R_CVulkan_MemoryBlockInitializeFields (block, device, physicalDevice, size, usage, properties);
 
-        enum R_CVulkan_Error error = R_CVulkan_MemoryBlockCreateBuffer (block);
+        enum R_CVulkanError error = R_CVulkan_MemoryBlockCreateBuffer (block);
         if (error != R_CVULKAN_OK)
         {
                 return error;
@@ -499,7 +660,7 @@ R_CVulkan_MemoryBlockInitializeFields (
         block->freeRegionCapacity = 0;
 }
 
-static enum R_CVulkan_Error
+static enum R_CVulkanError
 R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block)
 {
         VkBufferCreateInfo bufferInfo = {0};
@@ -516,14 +677,14 @@ R_CVulkan_MemoryBlockCreateBuffer (struct R_CVulkan_MemoryBlock* block)
         return R_CVULKAN_OK;
 }
 
-static enum R_CVulkan_Error
+static enum R_CVulkanError
 R_CVulkan_MemoryBlockAllocateAndBindMemory (struct R_CVulkan_MemoryBlock* block)
 {
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements (block->device, block->buffer, &memRequirements);
 
         uint32_t             memoryTypeIndex = 0;
-        enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
+        enum R_CVulkanError error = R_CVulkan_FindMemoryType (
             block->physicalDevice,
             &memRequirements,
             block->properties,

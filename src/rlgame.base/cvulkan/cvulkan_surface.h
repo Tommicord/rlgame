@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Instance;
@@ -61,7 +60,7 @@ struct R_CVulkan_Surface
  * - R_CVULKAN_ERROR_NOT_INITIALIZED: Instance not initialized
  * - R_CVULKAN_ERROR_SURFACE_CREATE_FAILED: Failed to create surface (check window handles)
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSurface (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
     const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo);
 

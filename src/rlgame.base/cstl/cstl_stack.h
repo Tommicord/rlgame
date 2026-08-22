@@ -259,7 +259,6 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  * @param pOutValue Pointer to receive the value.
  *
  * @note This macro performs bounds checking.
- * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_StackTypedAt(pStack, Type, position, pOutValue)                                             \
         do                                                                                                   \
@@ -291,7 +290,6 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  * @param pOutValue Pointer to receive the value.
  *
  * @warning No bounds checking; undefined behavior if position is invalid.
- * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_StackTypedAtUnchecked(pStack, Type, position, pOutValue)                                    \
         do                                                                                                   \

@@ -8,7 +8,7 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_NewCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     const struct R_CVulkan_Device*  pDevice,
@@ -34,8 +34,8 @@ R_CVulkan_NewCommandBuffer (
         pCommandBuffer->pool = pool;
         pCommandBuffer->device = device;
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isRecording = 0;
-        pCommandBuffer->isInitialized = false;
+        pCommandBuffer->record = 0;
+        pCommandBuffer->booted = false;
 #endif
 
         VkCommandBufferAllocateInfo allocInfo = {0};
@@ -51,7 +51,7 @@ R_CVulkan_NewCommandBuffer (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isInitialized = true;
+        pCommandBuffer->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -78,23 +78,23 @@ R_CVulkan_DeleteCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
                 pCommandBuffer->handle = VK_NULL_HANDLE;
         }
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isRecording = 0;
-        pCommandBuffer->isInitialized = false;
+        pCommandBuffer->record = 0;
+        pCommandBuffer->booted = false;
 #endif
         pCommandBuffer->pool = VK_NULL_HANDLE;
         pCommandBuffer->device = VK_NULL_HANDLE;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_BeginCommandBuffer (
     struct R_CVulkan_CommandBuffer*       pCommandBuffer,
     VkCommandBufferUsageFlags             flags,
     const VkCommandBufferInheritanceInfo* pInheritanceInfo)
 {
-        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pCommandBuffer);
 #if defined(R_CVULKAN_DEBUG)
-        if (pCommandBuffer->isRecording)
+        if (pCommandBuffer->record)
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
@@ -111,18 +111,18 @@ R_CVulkan_BeginCommandBuffer (
                 return R_CVulkan_ResultToError (result);
         }
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isRecording = true;
+        pCommandBuffer->record = true;
 #endif
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
-        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pCommandBuffer);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pCommandBuffer->isRecording)
+        if (!pCommandBuffer->record)
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
@@ -133,28 +133,28 @@ R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
                 return R_CVulkan_ResultToError (result);
         }
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isRecording = false;
+        pCommandBuffer->record = false;
 #endif
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_ResetCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer, VkCommandBufferResetFlags flags)
 {
-        R_CVULKAN_VALIDATE_PTR (pCommandBuffer);
-        R_CVULKAN_VALIDATE_INITIALIZED (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM (pCommandBuffer);
+        R_CVULKAN_VALIDATE_PARAM_BOOTED (pCommandBuffer);
         VkResult result = vkResetCommandBuffer (pCommandBuffer->handle, flags);
         if (result != VK_SUCCESS)
         {
                 return R_CVulkan_ResultToError (result);
         }
 #if defined(R_CVULKAN_DEBUG)
-        pCommandBuffer->isRecording = false;
+        pCommandBuffer->record = false;
 #endif
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBindPipeline (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineBindPoint             pipelineBindPoint,
@@ -165,7 +165,7 @@ R_CVulkan_CommandBufferBindPipeline (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBindVertexBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        firstBinding,
@@ -178,7 +178,7 @@ R_CVulkan_CommandBufferBindVertexBuffer (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBindIndexBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        buffer,
@@ -190,7 +190,7 @@ R_CVulkan_CommandBufferBindIndexBuffer (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBindDescriptorSets (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineBindPoint             pipelineBindPoint,
@@ -214,7 +214,7 @@ R_CVulkan_CommandBufferBindDescriptorSets (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferDraw (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        vertexCount,
@@ -227,7 +227,7 @@ R_CVulkan_CommandBufferDraw (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferDrawIndexed (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        indexCount,
@@ -247,7 +247,7 @@ R_CVulkan_CommandBufferDrawIndexed (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_SetViewport (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        firstViewport,
@@ -259,7 +259,7 @@ R_CVulkan_CommandBuffer_SetViewport (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferSetScissor (
     const struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                              firstScissor,
@@ -271,7 +271,7 @@ R_CVulkan_CommandBufferSetScissor (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferSetBlendConstants (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     const float                     blendConstants[4])
@@ -281,7 +281,7 @@ R_CVulkan_CommandBufferSetBlendConstants (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_SetDepthBounds (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     float                           minDepth,
@@ -292,7 +292,7 @@ R_CVulkan_CommandBuffer_SetDepthBounds (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_SetStencilCompareMask (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
@@ -303,7 +303,7 @@ R_CVulkan_CommandBuffer_SetStencilCompareMask (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_SetStencilWriteMask (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
@@ -314,7 +314,7 @@ R_CVulkan_CommandBuffer_SetStencilWriteMask (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferSetStencilReference (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
@@ -325,7 +325,7 @@ R_CVulkan_CommandBufferSetStencilReference (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferCopyBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        srcBuffer,
@@ -337,7 +337,7 @@ R_CVulkan_CommandBufferCopyBuffer (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferCopyBufferToImage (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        srcBuffer,
@@ -350,7 +350,7 @@ R_CVulkan_CommandBufferCopyBufferToImage (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_CopyImageToBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkImage                         srcImage,
@@ -364,12 +364,12 @@ R_CVulkan_CommandBuffer_CopyImageToBuffer (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferPipelineBarrier (
     struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo)
 {
-        R_CVULKAN_VALIDATE_PTR (pBarrierInfo);
+        R_CVULKAN_VALIDATE_PARAM (pBarrierInfo);
         R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         vkCmdPipelineBarrier (
             pCommandBuffer->handle,
@@ -385,12 +385,12 @@ R_CVulkan_CommandBufferPipelineBarrier (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBeginRenderPass (
     struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo)
 {
-        R_CVULKAN_VALIDATE_PTR (pRenderPassInfo);
+        R_CVULKAN_VALIDATE_PARAM (pRenderPassInfo);
         R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         VkRenderPassBeginInfo beginInfo = {0};
         beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -404,7 +404,7 @@ R_CVulkan_CommandBufferBeginRenderPass (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
         R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
@@ -412,12 +412,12 @@ R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBu
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferBeginRendering (
     struct R_CVulkan_CommandBuffer*              pCommandBuffer,
     const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo)
 {
-        R_CVULKAN_VALIDATE_PTR (pRenderingInfo);
+        R_CVULKAN_VALIDATE_PARAM (pRenderingInfo);
         R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
         VkRenderingAttachmentInfoKHR* pColorAttachments = NULL;
         if (pRenderingInfo->colorAttachmentCount > 0)
@@ -498,7 +498,7 @@ R_CVulkan_CommandBufferBeginRendering (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
         R_CVULKAN_VALIDATE_COMMAND_BUFFER (pCommandBuffer);
@@ -506,7 +506,7 @@ R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuf
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferNextSubpass (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkSubpassContents               contents)
@@ -516,7 +516,7 @@ R_CVulkan_CommandBufferNextSubpass (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferPushConstants (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineLayout                layout,
@@ -530,7 +530,7 @@ R_CVulkan_CommandBufferPushConstants (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBuffer_Dispatch (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        groupCountX,
@@ -542,7 +542,7 @@ R_CVulkan_CommandBuffer_Dispatch (
         return R_CVULKAN_OK;
 }
 
-enum R_CVulkan_Error
+enum R_CVulkanError
 R_CVulkan_CommandBufferDispatchIndirect (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        buffer,
@@ -578,7 +578,7 @@ int
 R_CVulkan_CommandBufferIsRecording (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return pCommandBuffer->isRecording;
+        return pCommandBuffer->record;
 #else
         return false;
 #endif
@@ -588,7 +588,7 @@ int
 R_CVulkan_CommandBufferIsInitialized (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
-        return pCommandBuffer->isInitialized;
+        return pCommandBuffer->booted;
 #else
         return true;
 #endif

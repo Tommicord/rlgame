@@ -9,7 +9,7 @@
 #include <inttypes.h>
 #include <vulkan/vulkan.h>
 
-static enum R_CVulkan_Error
+static enum R_CVulkanError
 R_CVulkan_ChooseSwapSurfaceFormat (
     const VkSurfaceFormatKHR* pAvailableFormats,
     uint32_t                  formatCount,
@@ -37,7 +37,7 @@ R_CVulkan_ChooseSwapSurfaceFormat (
         return R_CVULKAN_OK;
 }
 
-static enum R_CVulkan_Error
+static enum R_CVulkanError
 R_CVulkan_ChooseSwapPresentMode (
     const VkPresentModeKHR* pAvailableModes,
     uint32_t                modeCount,
@@ -91,7 +91,7 @@ R_CVulkan_ChooseSwapExtent (const VkSurfaceCapabilitiesKHR* pCapabilities, VkExt
         return actualExtent;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSwapchain (
     struct R_CVulkan_Swapchain*                 pSwapchain,
     const struct R_CVulkan_SwapchainCreateInfo* pCreateInfo)
@@ -121,7 +121,7 @@ R_CVulkan_NewSwapchain (
         pSwapchain->extent.height = 0;
         pSwapchain->imageCount = 0;
 #if defined(R_CVULKAN_DEBUG)
-        pSwapchain->isInitialized = false;
+        pSwapchain->booted = false;
 #endif
 
         VkPhysicalDevice physicalDevice = R_CVulkan_DeviceGetPhysicalDevice (pCreateInfo->pDevice);
@@ -162,7 +162,7 @@ R_CVulkan_NewSwapchain (
         }
         else
         {
-                enum R_CVulkan_Error err
+                enum R_CVulkanError err
                     = R_CVulkan_ChooseSwapSurfaceFormat (pFormats, formatCount, &surfaceFormat);
                 if (err != R_CVULKAN_OK)
                 {
@@ -174,7 +174,7 @@ R_CVulkan_NewSwapchain (
         VkPresentModeKHR presentMode;
         presentMode = pCreateInfo->presentMode;
 
-        enum R_CVulkan_Error err
+        enum R_CVulkanError err
             = R_CVulkan_ChooseSwapPresentMode (pPresentModes, presentModeCount, &presentMode);
         if (err != R_CVULKAN_OK)
         {
@@ -214,7 +214,7 @@ R_CVulkan_NewSwapchain (
             = pCreateInfo->imageUsage != 0 ? pCreateInfo->imageUsage : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         struct R_CVulkan_QueueFamilyIndices indices;
-        enum R_CVulkan_Error err1 = R_CVulkan_DeviceFindQueueFamilies (physicalDevice, surface, &indices);
+        enum R_CVulkanError err1 = R_CVulkan_DeviceFindQueueFamilies (physicalDevice, surface, &indices);
         if (err1 != R_CVULKAN_OK)
         {
                 R_CSTL_HeapFree (pFormats);
@@ -257,7 +257,7 @@ R_CVulkan_NewSwapchain (
         pSwapchain->extent = extent;
 
 #if defined(R_CVULKAN_DEBUG)
-        pSwapchain->isInitialized = true;
+        pSwapchain->booted = true;
 #endif
         return R_CVULKAN_OK;
 }
@@ -281,7 +281,7 @@ R_CVulkan_DeleteSwapchain (struct R_CVulkan_Swapchain* pSwapchain)
         pSwapchain->extent.width = 0;
         pSwapchain->extent.height = 0;
         pSwapchain->imageCount = 0;
-        pSwapchain->isInitialized = false;
+        pSwapchain->booted = false;
 #else
         if (pSwapchain->handle != VK_NULL_HANDLE)
         {
@@ -336,7 +336,7 @@ R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_Swapchain* pSwapchain)
         return pSwapchain->imageCount;
 }
 
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SwapchainAcquireNextImage (
     struct R_CVulkan_Swapchain* pSwapchain,
     uint64_t                    timeout,
@@ -389,7 +389,7 @@ R_CVulkan_SwapchainIsInitialized (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pSwapchain != NULL);
-        return pSwapchain->isInitialized;
+        return pSwapchain->booted;
 #else
         (void)pSwapchain;
         return pSwapchain->handle != VK_NULL_HANDLE ? 1 : 0;

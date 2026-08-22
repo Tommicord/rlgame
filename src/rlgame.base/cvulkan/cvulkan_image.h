@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <vulkan/vulkan.h>
 
-#include "rlgame.base/cvulkan/cvulkan_common.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 struct R_CVulkan_Device;
@@ -22,8 +21,8 @@ struct R_CVulkan_ImageCreateInfo
                 uint32_t                       arrayLayers; /**< Number of array layers */
                 VkFormat                       format; /**< Image format */
                 VkImageTiling                  tiling; /**< Image tiling mode */
-                R_CVulkanImageUsageFlags       usage; /**< Image usage flags */
-                R_CVulkanMemoryPropertyFlags   properties; /**< Memory property flags */
+                VkImageUsageFlags       usage; /**< Image usage flags */
+                VkMemoryPropertyFlags   properties; /**< Memory property flags */
                 VkSampleCountFlagBits          samples; /**< Number of samples */
 };
 
@@ -35,14 +34,14 @@ struct R_CVulkan_Image
                 VkImage                      handle; /**< Raw Vulkan image handle */
                 VkDeviceMemory               memory; /**< Device memory handle */
                 VkDevice                     device; /**< Associated device */
-                R_CVulkanDeviceSize          size; /**< Image size in bytes */
+                VkDeviceSize          size; /**< Image size in bytes */
                 uint32_t                     width; /**< Image width */
                 uint32_t                     height; /**< Image height */
                 uint32_t                     mipLevels; /**< Number of mip levels */
                 uint32_t                     arrayLayers; /**< Number of array layers */
                 VkFormat                     format; /**< Image format */
-                R_CVulkanImageUsageFlags     usage; /**< Image usage flags */
-                R_CVulkanMemoryPropertyFlags properties; /**< Memory property flags */
+                VkImageUsageFlags     usage; /**< Image usage flags */
+                VkMemoryPropertyFlags properties; /**< Memory property flags */
                 VkImageLayout                currentLayout; /**< Current image layout */
                 VkImageType                  imageType; /**< Image type (1D, 2D, 3D) */
                 VkSampleCountFlagBits        samples; /**< Number of samples */
@@ -56,7 +55,7 @@ struct R_CVulkan_Image
  * @param pCreateInfo Image creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error
+R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo);
 
 /**
@@ -75,13 +74,13 @@ R_CVULKAN_API void R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage);
  * @param dstStageMask Destination pipeline stage mask
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageTransitionLayout (
     struct R_CVulkan_Image*     pImage,
     VkCommandBuffer             commandBuffer,
     VkImageLayout               oldLayout,
     VkImageLayout               newLayout,
-    R_CVulkanPipelineStageFlags srcStageMask,
-    R_CVulkanPipelineStageFlags dstStageMask);
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask);
 
 /**
  * @brief Copy data to image memory
@@ -92,10 +91,10 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
  * @param commandBuffer Command buffer to record the copy on (raw handle)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageCopyData (
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,
-    R_CVulkanDeviceSize     dataSize,
+    VkDeviceSize     dataSize,
     VkBuffer                buffer,
     VkCommandBuffer         commandBuffer);
 
