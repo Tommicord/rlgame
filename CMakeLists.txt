@@ -324,10 +324,10 @@ set(SHADERS
 )
 
 set(CUDA_FILES
-  src/rlgame.base/cvulkan/cvulkan_defragmentation.cu
+  src/rlgame.cssources/cvulkan_defragmentation.cu
 )
 set(OPENCL_FILES
-  src/rlgame.base/cvulkan/cvulkan_defragmentation.cl
+  src/rlgame.cssources/cvulkan_defragmentation.cl
 )
 
 enable_testing()
