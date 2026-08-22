@@ -1,12 +1,19 @@
 find_package(Vulkan REQUIRED COMPONENTS glslc)
 
-# OpenCL for GPU memory defragmentation (fallback for non-NVIDIA GPUs)
-find_package(OpenCL)
+# vcpkg integration: use vcpkg toolchain to install OpenCL automatically
+# Run: cmake --preset default (or release) to use vcpkg toolchain
+find_package(OpenCL QUIET)
 if(OpenCL_FOUND)
   message(STATUS "OpenCL found - GPU defragmentation support enabled")
+  message(STATUS "  OpenCL include dirs: ${OpenCL_INCLUDE_DIRS}")
+  message(STATUS "  OpenCL libraries: ${OpenCL_LIBRARIES}")
   add_compile_definitions(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
 else()
   message(STATUS "OpenCL not found - GPU defragmentation support limited to CUDA")
+  message(STATUS "  To enable OpenCL via vcpkg:")
+  message(STATUS "    1. Install vcpkg: https://github.com/microsoft/vcpkg")
+  message(STATUS "    2. Run: vcpkg install opencl:x64-windows")
+  message(STATUS "    3. Configure with: cmake --preset default")
 endif()
 
 # CUDA for NVIDIA GPU memory defragmentation (preferred for NVIDIA GPUs)
