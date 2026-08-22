@@ -277,7 +277,7 @@ R_CVulkan_BuildInstanceExtensions (
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 
-        bool                 hasPortability = false;
+        bool                hasPortability = false;
         enum R_CVulkanError err = R_CVulkan_CheckExtensionAvailability (
             VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
             VK_NULL_HANDLE,
@@ -449,9 +449,7 @@ R_CVulkan_NewInstance (
         result = R_CVulkan_BuildInstanceExtensions (&pExtensions, hasValidationFeatures, enableHeadlessMode);
         if (result != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR (
-                    "Failed to build instance extensions: %s",
-                    R_CVulkanErrorToString (result));
+                R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", R_CVulkanErrorToString (result));
                 goto cvulkan_cleanup;
         }
 

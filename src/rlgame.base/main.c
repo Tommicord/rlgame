@@ -370,7 +370,7 @@ static bool
 R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
 {
         struct R_GameState* pGameState = (struct R_GameState*)pUserData;
-        
+
         if (!R_GameState_IsInitialized (pGameState))
         {
                 struct R_GameStateCreateInfo createInfo = {0};
@@ -527,12 +527,12 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
 
-        struct R_GameState gameState = {0};
+        struct R_GameState    gameState = {0};
         struct R_MainProvider provider = {
-                .pExecCallback = R_GameLoopCallback,
-                .pAppInfo = &info,
-                .pUserData = &gameState,
-                .stateFlags = R_GAMELOOP_STATE_NONE,
+            .pExecCallback = R_GameLoopCallback,
+            .pAppInfo = &info,
+            .pUserData = &gameState,
+            .stateFlags = R_GAMELOOP_STATE_NONE,
         };
         R_MainProvider_Run (&provider);
 
@@ -742,12 +742,12 @@ main (int argc, char** argv)
         R_APP_LOG_HEAP_STATS ();
         R_APP_LOG_INFO (info);
 
-        struct R_GameState gameState = {0};
+        struct R_GameState    gameState = {0};
         struct R_MainProvider provider = {
-                .pExecCallback = GameLoopCallbackLinux,
-                .pAppInfo = &info,
-                .pUserData = &gameState,
-                .stateFlags = R_GAMELOOP_STATE_NONE,
+            .pExecCallback = GameLoopCallbackLinux,
+            .pAppInfo = &info,
+            .pUserData = &gameState,
+            .stateFlags = R_GAMELOOP_STATE_NONE,
         };
         R_MainProvider_Run (&provider);
 

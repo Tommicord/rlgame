@@ -71,7 +71,7 @@ R_GameCVulkan_InitializeQueues (
     struct R_CVulkan_Surface*             pSurface)
 {
         struct R_CVulkan_QueueFamilyIndices indices;
-        enum R_CVulkanError                err;
+        enum R_CVulkanError                 err;
         VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -134,7 +134,7 @@ R_GameCVulkan_InitializeCommandPools (
     struct R_CVulkan_Surface*             pSurface)
 {
         struct R_CVulkan_QueueFamilyIndices indices;
-        enum R_CVulkanError                err;
+        enum R_CVulkanError                 err;
         VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -161,9 +161,7 @@ R_GameCVulkan_InitializeCommandPools (
             0);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR (
-                    "Failed to create graphics command pool: %s",
-                    R_CVulkanErrorToString (err));
+                R_CSTL_LOG_ERROR ("Failed to create graphics command pool: %s", R_CVulkanErrorToString (err));
                 return err;
         }
 
@@ -185,9 +183,7 @@ R_GameCVulkan_InitializeCommandPools (
             0);
         if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR (
-                    "Failed to create transfer command pool: %s",
-                    R_CVulkanErrorToString (err));
+                R_CSTL_LOG_ERROR ("Failed to create transfer command pool: %s", R_CVulkanErrorToString (err));
                 return err;
         }
 
@@ -329,15 +325,13 @@ R_GameCVulkan_NewPipelineContext (
                 enum R_CVulkanError err = R_CVulkan_NewDevice (&pContext->device, &deviceCreateInfo);
                 if (err != R_CVULKAN_OK)
                 {
-                        R_CSTL_LOG_ERROR (
-                            "Failed to create Vulkan device: %s",
-                            R_CVulkanErrorToString (err));
+                        R_CSTL_LOG_ERROR ("Failed to create Vulkan device: %s", R_CVulkanErrorToString (err));
                         goto r_cleanup;
                 }
         }
 
         {
-                enum R_CVulkanError err; 
+                enum R_CVulkanError err;
                 err = R_GameCVulkan_InitializeQueues (pContext, pContext->pSurface);
                 if (err != R_CVULKAN_OK)
                 {
@@ -371,12 +365,13 @@ R_GameCVulkan_NewPipelineContext (
         swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         swapchainCreateInfo.clipped = VK_TRUE;
         swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-
-        err = R_CVulkan_NewSwapchain (&pContext->swapchain, &swapchainCreateInfo);
-        if (err != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("Failed to create swapchain: %s", R_CVulkanErrorToString (err));
-                goto r_cleanup;
+                enum R_CVulkanError err = R_CVulkan_NewSwapchain (&pContext->swapchain, &swapchainCreateInfo);
+                if (err != R_CVULKAN_OK)
+                {
+                        R_CSTL_LOG_ERROR ("Failed to create swapchain: %s", R_CVulkanErrorToString (err));
+                        goto r_cleanup;
+                }
         }
 #endif
         pContext->pFramebuffers = NULL;

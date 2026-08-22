@@ -50,7 +50,7 @@
 #define R_CVULKAN_DEBUG_FIELD                 bool booted;
 #define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) ((pObj)->booted)
 
-#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                          \
+#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
         do                                                                                                   \
         {                                                                                                    \
                 R_CVULKAN_ASSERT (ptr != NULL);                                                              \
@@ -60,12 +60,12 @@
                 }                                                                                            \
         } while (0)
 
-#define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)                                                                  \
+#define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)                                                                 \
         do                                                                                                   \
         {                                                                                                    \
                 R_CVULKAN_ASSERT ((obj) != NULL);                                                            \
-                R_CVULKAN_ASSERT ((obj)->booted);                                                     \
-                if (!(obj) || !(obj)->booted)                                                         \
+                R_CVULKAN_ASSERT ((obj)->booted);                                                            \
+                if (!(obj) || !(obj)->booted)                                                                \
                 {                                                                                            \
                         return R_CVULKAN_ERROR_NOT_INITIALIZED;                                              \
                 }                                                                                            \
@@ -75,9 +75,9 @@
         do                                                                                                   \
         {                                                                                                    \
                 R_CVULKAN_ASSERT ((cmdBuf) != NULL);                                                         \
-                R_CVULKAN_ASSERT ((cmdBuf)->booted);                                                  \
-                R_CVULKAN_ASSERT ((cmdBuf)->record);                                                    \
-                if (!(cmdBuf) || !(cmdBuf)->booted || !(cmdBuf)->record)                         \
+                R_CVULKAN_ASSERT ((cmdBuf)->booted);                                                         \
+                R_CVULKAN_ASSERT ((cmdBuf)->record);                                                         \
+                if (!(cmdBuf) || !(cmdBuf)->booted || !(cmdBuf)->record)                                     \
                 {                                                                                            \
                         return R_CVULKAN_ERROR_NOT_INITIALIZED;                                              \
                 }                                                                                            \
@@ -92,7 +92,7 @@
 #else
 #define R_CVULKAN_DEBUG_FIELD
 #define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) (1)
-#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                          \
+#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
         do                                                                                                   \
         {                                                                                                    \
                 if (!(ptr))                                                                                  \
@@ -151,6 +151,7 @@ enum R_CVulkanError
         R_CVULKAN_ERROR_FEATURE_NOT_PRESENT = -37, /**< Required feature not present */
         R_CVULKAN_ERROR_INCOMPATIBLE_DRIVER = -38, /**< Incompatible driver */
         R_CVULKAN_ERROR_SURFACE_NOT_PRESENT = -39, /**< Surface not present */
+        R_CVULKAN_ERROR_INCOMPLETE = -40, /**< Incomplete operation */
         R_CVULKAN_ERROR_UNKNOWN = -99 /**< Unknown error */
 };
 

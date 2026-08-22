@@ -16,9 +16,9 @@ struct R_CVulkan_BufferCreateInfo
 {
                 const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
                 VkPhysicalDevice               physicalDevice; /**< Physical device */
-                VkDeviceSize            size; /**< Buffer size in bytes */
-                VkBufferUsageFlags      usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags   properties; /**< Memory property flags */
+                VkDeviceSize                   size; /**< Buffer size in bytes */
+                VkBufferUsageFlags             usage; /**< Buffer usage flags */
+                VkMemoryPropertyFlags          properties; /**< Memory property flags */
 };
 
 /**
@@ -26,14 +26,14 @@ struct R_CVulkan_BufferCreateInfo
  */
 struct R_CVulkan_Buffer
 {
-                VkBuffer                     handle; /**< Raw Vulkan buffer handle */
-                VkDeviceMemory               memory; /**< Device memory handle */
-                VkDevice                     device; /**< Associated device */
+                VkBuffer              handle; /**< Raw Vulkan buffer handle */
+                VkDeviceMemory        memory; /**< Device memory handle */
+                VkDevice              device; /**< Associated device */
                 VkDeviceSize          size; /**< Buffer size in bytes */
                 VkBufferUsageFlags    usage; /**< Buffer usage flags */
                 VkMemoryPropertyFlags properties; /**< Memory property flags */
-                void*                        pMapped; /**< Mapped memory pointer (if mapped) */
-                bool                         isMapped; /**< Whether memory is currently mapped */
+                void*                 pMapped; /**< Mapped memory pointer (if mapped) */
+                bool                  isMapped; /**< Whether memory is currently mapped */
                 R_CVULKAN_DEBUG_FIELD
 };
 
@@ -62,8 +62,8 @@ R_CVULKAN_API void R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer);
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferMap (
     struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size,
+    VkDeviceSize             offset,
+    VkDeviceSize             size,
     void**                   ppOutData);
 
 /**
@@ -83,8 +83,8 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferCopyData (
     struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size,
+    VkDeviceSize             offset,
+    VkDeviceSize             size,
     const void*              data);
 
 /**
@@ -94,10 +94,8 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferCopyData (
  * @param size Size in bytes
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferInvalidate (
-    struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size);
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_BufferInvalidate (struct R_CVulkan_Buffer* pBuffer, VkDeviceSize offset, VkDeviceSize size);
 
 /**
  * @brief Flush buffer memory ranges (for host-coherent memory)
@@ -106,10 +104,8 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferInvalidate (
  * @param size Size in bytes
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_BufferFlush (
-    struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size);
+R_CVULKAN_API enum R_CVulkanError
+R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, VkDeviceSize offset, VkDeviceSize size);
 
 /**
  * @brief Get the raw Vulkan buffer handle
@@ -151,8 +147,7 @@ R_CVULKAN_API VkBufferUsageFlags R_CVulkan_BufferGetUsage (const struct R_CVulka
  * @param pBuffer Pointer to buffer
  * @return Memory property flags, or 0 if not initialized
  */
-R_CVULKAN_API VkMemoryPropertyFlags
-R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkMemoryPropertyFlags R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the mapped memory pointer

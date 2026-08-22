@@ -203,9 +203,9 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, Vk
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorBeginDefragmentation (
-    struct R_CVulkan_MemoryAllocator*     pAllocator,
-    struct R_CVulkan_DefragContext**      ppContext,
-    const struct R_CVulkan_DefragConfig*   pConfig);
+    struct R_CVulkan_MemoryAllocator*    pAllocator,
+    struct R_CVulkan_DefragContext**     ppContext,
+    const struct R_CVulkan_DefragConfig* pConfig);
 
 /**
  * @brief Execute a defragmentation pass
@@ -216,8 +216,8 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorBeginDefragmentation 
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorExecuteDefragPass (
     struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct R_CVulkan_DefragContext*    pContext,
-    VkCommandBuffer                    commandBuffer);
+    struct R_CVulkan_DefragContext*   pContext,
+    VkCommandBuffer                   commandBuffer);
 
 /**
  * @brief End defragmentation and cleanup
@@ -228,5 +228,5 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorExecuteDefragPass (
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorEndDefragmentation (
     struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct R_CVulkan_DefragContext*  pContext,
+    struct R_CVulkan_DefragContext*   pContext,
     struct R_CVulkan_DefragStats*     pStats);

@@ -21,8 +21,8 @@ struct R_CVulkan_ImageCreateInfo
                 uint32_t                       arrayLayers; /**< Number of array layers */
                 VkFormat                       format; /**< Image format */
                 VkImageTiling                  tiling; /**< Image tiling mode */
-                VkImageUsageFlags       usage; /**< Image usage flags */
-                VkMemoryPropertyFlags   properties; /**< Memory property flags */
+                VkImageUsageFlags              usage; /**< Image usage flags */
+                VkMemoryPropertyFlags          properties; /**< Memory property flags */
                 VkSampleCountFlagBits          samples; /**< Number of samples */
 };
 
@@ -31,21 +31,21 @@ struct R_CVulkan_ImageCreateInfo
  */
 struct R_CVulkan_Image
 {
-                VkImage                      handle; /**< Raw Vulkan image handle */
-                VkDeviceMemory               memory; /**< Device memory handle */
-                VkDevice                     device; /**< Associated device */
+                VkImage               handle; /**< Raw Vulkan image handle */
+                VkDeviceMemory        memory; /**< Device memory handle */
+                VkDevice              device; /**< Associated device */
                 VkDeviceSize          size; /**< Image size in bytes */
-                uint32_t                     width; /**< Image width */
-                uint32_t                     height; /**< Image height */
-                uint32_t                     mipLevels; /**< Number of mip levels */
-                uint32_t                     arrayLayers; /**< Number of array layers */
-                VkFormat                     format; /**< Image format */
+                uint32_t              width; /**< Image width */
+                uint32_t              height; /**< Image height */
+                uint32_t              mipLevels; /**< Number of mip levels */
+                uint32_t              arrayLayers; /**< Number of array layers */
+                VkFormat              format; /**< Image format */
                 VkImageUsageFlags     usage; /**< Image usage flags */
                 VkMemoryPropertyFlags properties; /**< Memory property flags */
-                VkImageLayout                currentLayout; /**< Current image layout */
-                VkImageType                  imageType; /**< Image type (1D, 2D, 3D) */
-                VkSampleCountFlagBits        samples; /**< Number of samples */
-                VkImageTiling                tiling; /**< Image tiling mode */
+                VkImageLayout         currentLayout; /**< Current image layout */
+                VkImageType           imageType; /**< Image type (1D, 2D, 3D) */
+                VkSampleCountFlagBits samples; /**< Number of samples */
+                VkImageTiling         tiling; /**< Image tiling mode */
                 R_CVULKAN_DEBUG_FIELD
 } R_CVulkan_Image;
 
@@ -75,12 +75,12 @@ R_CVULKAN_API void R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage);
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageTransitionLayout (
-    struct R_CVulkan_Image*     pImage,
-    VkCommandBuffer             commandBuffer,
-    VkImageLayout               oldLayout,
-    VkImageLayout               newLayout,
-    VkPipelineStageFlags srcStageMask,
-    VkPipelineStageFlags dstStageMask);
+    struct R_CVulkan_Image* pImage,
+    VkCommandBuffer         commandBuffer,
+    VkImageLayout           oldLayout,
+    VkImageLayout           newLayout,
+    VkPipelineStageFlags    srcStageMask,
+    VkPipelineStageFlags    dstStageMask);
 
 /**
  * @brief Copy data to image memory
@@ -94,7 +94,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageTransitionLayout (
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,
-    VkDeviceSize     dataSize,
+    VkDeviceSize            dataSize,
     VkBuffer                buffer,
     VkCommandBuffer         commandBuffer);
 

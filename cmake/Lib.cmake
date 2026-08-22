@@ -1,0 +1,122 @@
+file(GLOB_RECURSE CSTL_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
+file(GLOB_RECURSE CSTL_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
+file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
+file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
+file(GLOB_RECURSE CVULKAN_CUDA_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.cu)
+file(GLOB_RECURSE GAME_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
+file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
+file(GLOB         MAIN_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/*.c)
+file(GLOB         MAIN_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/*.h)
+list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
+
+# CSTL library
+add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
+
+if (WIN32)
+  target_link_libraries(rlgame.base.cstl PUBLIC dbghelp)
+endif()
+
+target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CSTL_BUILDING_DLL)
+set_base_include_directories(rlgame.base.cstl)
+
+# CVulkan library
+add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS} ${CVULKAN_CUDA_SOURCES})
+
+set_common_output_directories(rlgame.base.cvulkan)
+set_base_include_directories(rlgame.base.cvulkan)
+target_compile_definitions(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CVULKAN_BUILDING_DLL)
+
+target_link_libraries(
+  rlgame.base.cvulkan
+  PUBLIC
+  Vulkan::Vulkan
+  rlgame.base.cstl
+)
+
+if(OpenCL_FOUND)
+  target_link_libraries(rlgame.base.cvulkan PUBLIC OpenCL::OpenCL)
+endif()
+
+if(CUDA_FOUND)
+  target_link_libraries(rlgame.base.cvulkan PUBLIC CUDA::CUDA)
+endif()
+
+if (UNIX AND NOT APPLE)
+  target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
+endif()
+
+# Game library
+add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
+
+set_common_output_directories(rlgame.base.game)
+set_base_include_directories(rlgame.base.game)
+target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_GAME_BUILDING_DLL)
+
+target_link_libraries(
+  rlgame.base.game
+  PUBLIC
+  rlgame.base.cvulkan
+  rlgame.base.cstl
+)
+
+# Entry library
+add_library(
+  rlgame.base.entry SHARED ${MAIN_SOURCES} ${MAIN_HEADERS}
+)
+set_common_output_directories(rlgame.base.entry)
+set_base_include_directories(rlgame.base.entry)
+target_compile_definitions(rlgame.base.entry PUBLIC R_ENTRY_BUILDING_DLL)
+target_link_libraries(rlgame.base.entry PUBLIC rlgame.base.cstl)
+
+# MoltenVK for macOS
+if (APPLE)
+  find_package(MoltenVK QUIET)
+  if (MoltenVK_FOUND)
+    target_link_libraries(rlgame.base.game PUBLIC MoltenVK::MoltenVK)
+    target_compile_definitions(rlgame.base.game PUBLIC VK_USE_PLATFORM_METAL_EXT)
+  endif()
+endif()
+
+# Main executable
+set(MAIN_SOURCE src/rlgame.base/main.c)
+if(NOT WIN32)
+  add_executable(rlgame ${MAIN_SOURCES} ${MAIN_HEADERS})
+else()
+  add_executable(rlgame WIN32 ${MAIN_SOURCE})
+endif()
+
+link_base_libraries(rlgame)
+
+# Platform-specific linking for main executable
+if (UNIX AND NOT APPLE)
+  find_package(X11 REQUIRED)
+  target_link_libraries(rlgame PRIVATE X11::X11 dl)
+  if(WAYLAND_FOUND)
+    target_link_libraries(rlgame PRIVATE ${WAYLAND_LIBRARIES})
+    target_include_directories(rlgame PRIVATE ${WAYLAND_INCLUDE_DIRS})
+    target_compile_options(rlgame PRIVATE ${WAYLAND_CFLAGS_OTHER})
+  endif()
+elseif (APPLE)
+  find_library(COCOA_LIBRARY Cocoa)
+  find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
+  find_library(FOUNDATION_LIBRARY Foundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+  target_link_libraries(rlgame PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY} ${FOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY})
+elseif (ANDROID)
+  target_link_libraries(rlgame PRIVATE android log)
+elseif (IOS)
+  target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
+endif ()
+
+# Debug configuration for main executable
+target_compile_definitions(
+  rlgame
+  PRIVATE
+  ${EXTERN_IMPL}
+)
+
+target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+if (NOT MSVC)
+  target_compile_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address;-fno-omit-frame-pointer>)
+  target_link_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+endif()

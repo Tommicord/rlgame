@@ -149,12 +149,12 @@ R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_ImageTransitionLayout (
-    struct R_CVulkan_Image*     pImage,
-    VkCommandBuffer             commandBuffer,
-    VkImageLayout               oldLayout,
-    VkImageLayout               newLayout,
-    VkPipelineStageFlags srcStageMask,
-    VkPipelineStageFlags dstStageMask)
+    struct R_CVulkan_Image* pImage,
+    VkCommandBuffer         commandBuffer,
+    VkImageLayout           oldLayout,
+    VkImageLayout           newLayout,
+    VkPipelineStageFlags    srcStageMask,
+    VkPipelineStageFlags    dstStageMask)
 {
         R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
@@ -209,7 +209,7 @@ R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,
-    VkDeviceSize     dataSize,
+    VkDeviceSize            dataSize,
     VkBuffer                buffer,
     VkCommandBuffer         commandBuffer)
 {

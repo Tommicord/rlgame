@@ -32,9 +32,9 @@
 
 struct R_CSTL_Stack
 {
-        uint8_t* pData;
-        size_t   size;
-        size_t   capacity;
+                uint8_t* pData;
+                size_t   size;
+                size_t   capacity;
 };
 
 R_CSTL_API_ATTR static int

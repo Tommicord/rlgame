@@ -4,10 +4,10 @@
 
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewCommandPool (
-    struct R_CVulkan_CommandPool*   pCommandPool,
-    const struct R_CVulkan_Device*  pDevice,
-    uint32_t                        queueFamilyIndex,
-    VkCommandPoolCreateFlags flags)
+    struct R_CVulkan_CommandPool*  pCommandPool,
+    const struct R_CVulkan_Device* pDevice,
+    uint32_t                       queueFamilyIndex,
+    VkCommandPoolCreateFlags       flags)
 {
         R_CVULKAN_ASSERT (pCommandPool != NULL);
         R_CVULKAN_ASSERT (pDevice != NULL);

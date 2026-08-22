@@ -35,8 +35,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         pipelineCreateInfo.pNSWindow = pCreateInfo->pNSWindow;
 #endif
 
-        enum R_GameError result
-            = R_GameCVulkan_NewPipelineContext (&pState->context, &pipelineCreateInfo);
+        enum R_GameError result = R_GameCVulkan_NewPipelineContext (&pState->context, &pipelineCreateInfo);
         if (result != R_GAME_OK)
         {
                 R_CSTL_LOG_ERROR (
@@ -58,7 +57,6 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
 #endif
         R_CSTL_LOG_INFO ("GameState: Initialized successfully");
         return R_GAME_OK;
-
 }
 R_GAME_API void
 R_GameState_Cleanup (struct R_GameState* pState)

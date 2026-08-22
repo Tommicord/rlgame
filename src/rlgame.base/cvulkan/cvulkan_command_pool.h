@@ -28,10 +28,10 @@ struct R_CVulkan_CommandPool
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewCommandPool (
-    struct R_CVulkan_CommandPool*   pCommandPool,
-    const struct R_CVulkan_Device*  pDevice,
-    uint32_t                        queueFamilyIndex,
-    VkCommandPoolCreateFlags flags);
+    struct R_CVulkan_CommandPool*  pCommandPool,
+    const struct R_CVulkan_Device* pDevice,
+    uint32_t                       queueFamilyIndex,
+    VkCommandPoolCreateFlags       flags);
 
 /**
  * @brief Deletes a command pool and destroy the Vulkan object

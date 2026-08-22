@@ -55,7 +55,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements (pBuffer->device, pBuffer->handle, &memRequirements);
 
-        uint32_t             memoryTypeIndex = 0;
+        uint32_t            memoryTypeIndex = 0;
         enum R_CVulkanError error = R_CVulkan_FindMemoryType (
             pCreateInfo->physicalDevice,
             &memRequirements,
@@ -134,8 +134,8 @@ R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer)
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferMap (
     struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size,
+    VkDeviceSize             offset,
+    VkDeviceSize             size,
     void**                   ppOutData)
 {
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
@@ -179,8 +179,8 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_BufferCopyData (
     struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size,
+    VkDeviceSize             offset,
+    VkDeviceSize             size,
     const void*              data)
 {
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
@@ -192,7 +192,7 @@ R_CVulkan_BufferCopyData (
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        void*                mapped = NULL;
+        void*               mapped = NULL;
         enum R_CVulkanError error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);
         if (error != R_CVULKAN_OK)
         {
@@ -210,10 +210,7 @@ R_CVulkan_BufferCopyData (
 }
 
 R_CVULKAN_API enum R_CVulkanError
-R_CVulkan_BufferInvalidate (
-    struct R_CVulkan_Buffer* pBuffer,
-    VkDeviceSize      offset,
-    VkDeviceSize      size)
+R_CVulkan_BufferInvalidate (struct R_CVulkan_Buffer* pBuffer, VkDeviceSize offset, VkDeviceSize size)
 {
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
         R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);

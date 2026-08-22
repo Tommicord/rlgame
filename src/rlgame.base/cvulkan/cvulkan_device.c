@@ -151,7 +151,7 @@ R_CVulkan_BuildDeviceExtensions (struct R_CSTL_Array** ppExtensions, VkPhysicalD
 
         for (uint32_t i = 0; i < g_optionalDeviceExtensionCount; ++i)
         {
-                bool                 isAvailable = false;
+                bool                isAvailable = false;
                 enum R_CVulkanError err = R_CVulkan_CheckExtensionAvailability (
                     g_optionalDeviceExtensions[i],
                     physicalDevice,
@@ -663,8 +663,8 @@ R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDev
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_DeviceQueryExtensionSupport (
     const struct R_CVulkan_Device* pDevice,
-    const char*                   pExtensionName,
-    bool*                         pIsSupported)
+    const char*                    pExtensionName,
+    bool*                          pIsSupported)
 {
         R_CVULKAN_ASSERT (pDevice != NULL);
         R_CVULKAN_ASSERT (pExtensionName != NULL);
@@ -685,7 +685,8 @@ R_CVulkan_DeviceQueryExtensionSupport (
         *pIsSupported = false;
 
         uint32_t extensionCount = 0;
-        VkResult result = vkEnumerateDeviceExtensionProperties (pDevice->physicalDevice, NULL, &extensionCount, NULL);
+        VkResult result
+            = vkEnumerateDeviceExtensionProperties (pDevice->physicalDevice, NULL, &extensionCount, NULL);
         if (result != VK_SUCCESS)
         {
                 return R_CVulkan_ResultToError (result);
@@ -728,9 +729,7 @@ R_CVulkan_DeviceQueryExtensionSupport (
 }
 
 R_CVULKAN_API enum R_CVulkanError
-R_CVulkan_DeviceQueryFeatureSupport (
-    const struct R_CVulkan_Device* pDevice,
-    void*                          pFeatureStructure)
+R_CVulkan_DeviceQueryFeatureSupport (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure)
 {
         R_CVULKAN_ASSERT (pDevice != NULL);
         R_CVULKAN_ASSERT (pFeatureStructure != NULL);
