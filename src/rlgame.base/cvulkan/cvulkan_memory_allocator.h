@@ -7,6 +7,9 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 
+struct R_CVulkan_MemValState;
+struct R_CVulkan_MemValStats;
+
 /**
  * @brief Suballocation representing an allocation within a memory block
  */
@@ -58,6 +61,7 @@ struct R_CVulkan_MemoryAllocator
                 uint32_t                       blockCapacity; /**< Capacity of blocks array */
                 VkDeviceSize                   minBlockSize; /**< Minimum block size (default: 256KB) */
                 VkDeviceSize defaultMaxBlockSize; /**< Default maximum block size (default: 256MB) */
+                struct R_CVulkan_MemValState* pMemVal; /**< Per-allocator memory validation state */
 };
 
 /**
@@ -173,6 +177,16 @@ R_CVULKAN_API VkDeviceSize
 R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
+ * @brief Get allocator health and memory validation statistics.
+ * @param pAllocator Pointer to allocator
+ * @param pStats Pointer to receive statistics
+ * @return R_CVULKAN_OK on success, error code otherwise
+ */
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorGetHealth (
+    const struct R_CVulkan_MemoryAllocator* pAllocator,
+    struct R_CVulkan_MemValStats*           pStats);
+
+/**
  * @brief Allocate memory for an image
  * @param device Vulkan device
  * @param physicalDevice Physical device
@@ -230,3 +244,13 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorEndDefragmentation (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     struct R_CVulkan_DefragContext*   pContext,
     struct R_CVulkan_DefragStats*     pStats);
+
+/**
+ * @brief Run one pending validator-requested defragmentation cycle.
+ * @param pAllocator Pointer to allocator
+ * @param commandBuffer Command buffer used by the defragmentation backend
+ * @return R_CVULKAN_OK when no defragmentation is needed or it completed
+ */
+R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemoryAllocatorProcessDefragmentation (
+    struct R_CVulkan_MemoryAllocator* pAllocator,
+    VkCommandBuffer                   commandBuffer);
