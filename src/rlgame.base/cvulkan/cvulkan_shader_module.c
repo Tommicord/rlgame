@@ -98,7 +98,7 @@ R_CVULKAN_API VkShaderModule
 R_CVulkan_ShaderModuleGetHandle (const struct R_CVulkan_ShaderModule* pShaderModule)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pShaderModule != NULL);
+        R_CVULKAN_ASSERT (pShaderModule );
 #endif
         return pShaderModule->handle;
 }
@@ -107,7 +107,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_ShaderModuleGetDevice (const struct R_CVulkan_ShaderModule* pShaderModule)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pShaderModule != NULL);
+        R_CVULKAN_ASSERT (pShaderModule );
 #endif
         return pShaderModule->device;
 }
@@ -116,7 +116,7 @@ R_CVULKAN_API size_t
 R_CVulkan_ShaderModuleGetCodeSize (const struct R_CVulkan_ShaderModule* pShaderModule)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pShaderModule != NULL);
+        R_CVULKAN_ASSERT (pShaderModule );
 #endif
         return pShaderModule->codeSize;
 }
@@ -125,7 +125,7 @@ R_CVULKAN_API int
 R_CVulkan_ShaderModuleIsInitialized (const struct R_CVulkan_ShaderModule* pShaderModule)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pShaderModule != NULL);
+        R_CVULKAN_ASSERT (pShaderModule );
         return pShaderModule->booted;
 #else
         return true;

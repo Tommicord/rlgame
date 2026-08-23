@@ -364,7 +364,7 @@ static R_CSTL_LogState g_log = {0};
 static void
 R_CSTL_LogHeapRelease (char* buf)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!buf) return;
 #endif
         R_CSTL_HeapUnregisterAllocation (&g_log, buf);
@@ -374,7 +374,7 @@ R_CSTL_LogHeapRelease (char* buf)
 static int
 R_CSTL_LogFormatMessage (char* buffer, size_t bufferSize, const char* fmt, va_list args)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!buffer || bufferSize == 0 || !fmt) return -1;
 #endif
         int result = vsnprintf (buffer, bufferSize, fmt, args);
@@ -490,7 +490,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 static void
 R_CSTL_LogDestroyEntry (R_CSTL_LogEntry* entry)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!entry) return;
 #endif
         R_CSTL_HeapUnregisterAllocation (&g_log, entry);
@@ -573,7 +573,7 @@ R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
 static void
 R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!entry || !entry->message) return;
 #endif
         const char* level = R_CSTL_LogLevelName (entry->level);
@@ -617,7 +617,7 @@ R_CSTL_LogNotifyFlushWaitersLocked (void)
 static int
 R_CSTL_LogEnqueueEntry (R_CSTL_LogEntry* entry)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!entry) return -1;
 #endif
         R_CSTL_LogMutexLock (&g_log.mutex);
@@ -821,7 +821,7 @@ R_CSTL_LogFlush (void)
 void
 R_CSTL_LogSetMinLevel (enum R_CSTL_LogLevel level)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (level < R_CSTL_LOG_LEVEL_TRACE) goto cstl_fail;
         if (level >= _COUNT) goto cstl_fail;
 #endif
@@ -846,7 +846,7 @@ void
 R_CSTL_LogWriteV (enum R_CSTL_LogLevel level, const char* fmt, va_list args)
 {
         if (!g_log.initialized) return;
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         if (!fmt) goto cstl_fail;
         if (level < R_CSTL_LOG_LEVEL_TRACE || level >= _COUNT) goto cstl_fail;
         if ((int)level < (int)R_CSTL_LogGetMinLevel ()) goto cstl_fail;

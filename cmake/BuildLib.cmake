@@ -12,7 +12,31 @@ if (UNIX AND NOT APPLE)
   list(FILTER MAIN_SOURCES EXCLUDE REGEX "main_window\\.c$")
 endif()
 
-# CSTL library
+# GPU backend detection: Try CUDA first, fallback to OpenCL
+set(GPU_BACKEND_MACRO "")
+
+# Try CUDA first
+find_package(CUDA QUIET)
+if(CUDA_FOUND)
+  set(GPU_BACKEND_MACRO "R_CUDA")
+  message(STATUS "GPU backend: CUDA detected and enabled")
+else()
+  # Fallback to OpenCL
+  find_package(OpenCL QUIET)
+  if(OpenCL_FOUND)
+    set(GPU_BACKEND_MACRO "R_OPENCL")
+    message(STATUS "GPU backend: OpenCL detected and enabled (CUDA not available)")
+  else()
+    message(STATUS "GPU backend: Neither CUDA nor OpenCL detected, using CPU fallback")
+  endif()
+endif()
+
+function(apply_gpu_backend TARGET)
+  if(GPU_BACKEND_MACRO)
+    target_compile_definitions(${TARGET} PRIVATE ${GPU_BACKEND_MACRO})
+  endif()
+endfunction()
+
 add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
 
 if (WIN32)
@@ -21,13 +45,13 @@ endif()
 
 target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CSTL_BUILDING_DLL)
 set_base_include_directories(rlgame.base.cstl)
-
-# CVulkan library
+apply_gpu_backend(rlgame.base.cstl)
 add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS} ${CVULKAN_CUDA_SOURCES})
 
 set_common_output_directories(rlgame.base.cvulkan)
 set_base_include_directories(rlgame.base.cvulkan)
 target_compile_definitions(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CVULKAN_BUILDING_DLL)
+apply_gpu_backend(rlgame.base.cvulkan)
 
 target_link_libraries(
   rlgame.base.cvulkan
@@ -48,12 +72,11 @@ if (UNIX AND NOT APPLE)
   target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
 endif()
 
-# Game library
 add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
-
 set_common_output_directories(rlgame.base.game)
 set_base_include_directories(rlgame.base.game)
 target_compile_definitions(rlgame.base.game PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_GAME_BUILDING_DLL)
+apply_gpu_backend(rlgame.base.game)
 
 target_link_libraries(
   rlgame.base.game
@@ -62,7 +85,6 @@ target_link_libraries(
   rlgame.base.cstl
 )
 
-# Entry library
 add_library(
   rlgame.base.entry SHARED ${MAIN_SOURCES} ${MAIN_HEADERS}
 )
@@ -70,19 +92,18 @@ set_common_output_directories(rlgame.base.entry)
 set_base_include_directories(rlgame.base.entry)
 target_compile_definitions(rlgame.base.entry PUBLIC R_ENTRY_BUILDING_DLL)
 target_link_libraries(rlgame.base.entry PUBLIC rlgame.base.cstl)
+apply_gpu_backend(rlgame.base.entry)
 
-# MoltenVK for macOS
 if (APPLE)
-  find_package(MoltenVK QUIET)
+  find_package(MoltenVK REQUIRED)
   if (MoltenVK_FOUND)
     target_link_libraries(rlgame.base.game PUBLIC MoltenVK::MoltenVK)
     target_compile_definitions(rlgame.base.game PUBLIC VK_USE_PLATFORM_METAL_EXT)
   endif()
 endif()
 
-# Main executable
-option(RLGAME_BUILD_APP "Build the rlgame executable" ON)
-if(RLGAME_BUILD_APP)
+option(RL_BUILD "Build the rlgame executable" ON)
+if(RL_BUILD)
   set(MAIN_SOURCE src/rlgame.base/main.c)
   if(NOT WIN32)
     add_executable(rlgame ${MAIN_SOURCE} ${MAIN_SOURCES} ${MAIN_HEADERS})
@@ -93,8 +114,7 @@ if(RLGAME_BUILD_APP)
   link_base_libraries(rlgame)
 endif()
 
-# Platform-specific linking for main executable
-if (RLGAME_BUILD_APP AND UNIX AND NOT APPLE)
+if (RL_BUILD AND UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
   target_link_libraries(rlgame PRIVATE X11::X11 dl)
   if(WAYLAND_FOUND)
@@ -102,20 +122,19 @@ if (RLGAME_BUILD_APP AND UNIX AND NOT APPLE)
     target_include_directories(rlgame PRIVATE ${WAYLAND_INCLUDE_DIRS})
     target_compile_options(rlgame PRIVATE ${WAYLAND_CFLAGS_OTHER})
   endif()
-elseif (RLGAME_BUILD_APP AND APPLE)
+elseif (RL_BUILD AND APPLE)
   find_library(COCOA_LIBRARY Cocoa)
   find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   target_link_libraries(rlgame PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY} ${FOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY})
-elseif (RLGAME_BUILD_APP AND ANDROID)
+elseif (RL_BUILD AND ANDROID)
   target_link_libraries(rlgame PRIVATE android log)
-elseif (RLGAME_BUILD_APP AND IOS)
+elseif (RL_BUILD AND IOS)
   target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
 endif ()
 
-# Debug configuration for main executable
-if(RLGAME_BUILD_APP)
+if(RL_BUILD)
   target_compile_definitions(
     rlgame
     PRIVATE
@@ -123,6 +142,7 @@ if(RLGAME_BUILD_APP)
   )
 
   target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+  apply_gpu_backend(rlgame)
   if (NOT MSVC)
     target_compile_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address;-fno-omit-frame-pointer>)
     target_link_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)

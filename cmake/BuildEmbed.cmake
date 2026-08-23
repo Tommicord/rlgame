@@ -92,6 +92,7 @@ set(CUDA_FILES
 
 set(OPENCL_FILES
   src/rlgame.cssources/cvulkan_defragmentation.cl
+  src/rlgame.cssources/cvulkan_memval.cl
 )
 
 set(SPV_OUTPUTS "")

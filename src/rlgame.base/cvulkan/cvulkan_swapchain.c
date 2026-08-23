@@ -295,7 +295,7 @@ R_CVULKAN_API VkSwapchainKHR
 R_CVulkan_SwapchainGetHandle (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
 #endif
         return pSwapchain->handle;
 }
@@ -304,7 +304,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_SwapchainGetDevice (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
 #endif
         return pSwapchain->device;
 }
@@ -313,7 +313,7 @@ R_CVULKAN_API VkFormat
 R_CVulkan_SwapchainGetImageFormat (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
 #endif
         return pSwapchain->imageFormat;
 }
@@ -322,7 +322,7 @@ R_CVULKAN_API VkExtent2D
 R_CVulkan_SwapchainGetExtent (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
 #endif
         return pSwapchain->extent;
 }
@@ -331,7 +331,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
 #endif
         return pSwapchain->imageCount;
 }
@@ -388,7 +388,7 @@ R_CVULKAN_API int
 R_CVulkan_SwapchainIsInitialized (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSwapchain != NULL);
+        R_CVULKAN_ASSERT (pSwapchain );
         return pSwapchain->booted;
 #else
         (void)pSwapchain;

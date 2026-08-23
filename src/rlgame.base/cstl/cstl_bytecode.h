@@ -126,7 +126,7 @@ R_CSTL_API size_t         R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* p
 R_CSTL_API enum R_CSTL_BytecodeArchitecture
 R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
 
 /** @brief Create a machine code decoder for symbol resolution */
 R_CSTL_API int R_CSTL_BytecodeDecoderCreate (

@@ -105,7 +105,7 @@ R_CVulkan_DestroyDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT d
 
         PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)
             vkGetInstanceProcAddr (instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (func != NULL)
+        if (func )
         {
                 func (instance, debugMessenger, NULL);
         }
@@ -226,7 +226,7 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
         {
                 const char* ext = NULL;
                 R_CSTL_ArrayTypedAt (pExtensions, const char*, i, &ext);
-                if (ext != NULL)
+                if (ext )
                 {
                         R_CSTL_LOG_DEBUG ("  - %s", ext);
                 }
@@ -337,7 +337,7 @@ R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
     const struct R_CVulkan_InstanceCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (pCreateInfo != NULL);
+        R_CVULKAN_ASSERT (pCreateInfo );
         R_CSTL_TRACE_SCOPE_CTX (
             "app=%s, headless=%d, layers=%d",
             R_CSTL_StringData (pCreateInfo->pApplicationName),
@@ -454,13 +454,13 @@ R_CVulkan_NewInstance (
         }
 
         const char* pApplicationName = "Unknown Application";
-        if (pCreateInfo->pApplicationName != NULL)
+        if (pCreateInfo->pApplicationName )
         {
                 pApplicationName = R_CSTL_StringData (pCreateInfo->pApplicationName);
         }
 
         const char* pEngineName = "No Engine";
-        if (pCreateInfo->pEngineName != NULL)
+        if (pCreateInfo->pEngineName )
         {
                 pEngineName = R_CSTL_StringData (pCreateInfo->pEngineName);
         }
@@ -609,7 +609,7 @@ R_CVULKAN_API VkInstance
 R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pInstance != NULL);
+        R_CVULKAN_ASSERT (pInstance );
 #endif
         return pInstance->handle;
 }
@@ -618,7 +618,7 @@ R_CVULKAN_API int
 R_CVulkan_InstanceIsInitialized (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pInstance != NULL);
+        R_CVULKAN_ASSERT (pInstance );
         return pInstance->booted;
 #else
         (void)pInstance;

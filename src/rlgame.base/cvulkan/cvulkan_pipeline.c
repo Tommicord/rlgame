@@ -323,7 +323,7 @@ VkPipelineLayout
 R_CVulkan_PipelineLayout_GetHandle (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout != NULL);
+        R_CVULKAN_ASSERT (pLayout );
 #endif
         return pLayout->handle;
 }
@@ -332,7 +332,7 @@ VkDevice
 R_CVulkan_PipelineLayout_GetDevice (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout != NULL);
+        R_CVULKAN_ASSERT (pLayout );
 #endif
         return pLayout->device;
 }
@@ -352,7 +352,7 @@ VkPipeline
 R_CVulkan_Pipeline_GetHandle (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPipeline != NULL);
+        R_CVULKAN_ASSERT (pPipeline );
 #endif
         return pPipeline->handle;
 }
@@ -361,7 +361,7 @@ VkDevice
 R_CVulkan_Pipeline_GetDevice (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPipeline != NULL);
+        R_CVULKAN_ASSERT (pPipeline );
 #endif
         return pPipeline->device;
 }

@@ -292,7 +292,7 @@ R_CVulkan_QueuePresent (
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue)
 {
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pQueue || !R_CVulkan_QueueIsInitialized (pQueue))
@@ -316,7 +316,7 @@ R_CVULKAN_API VkQueue
 R_CVulkan_QueueGetHandle (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
 #endif
         return pQueue->handle;
 }
@@ -325,7 +325,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_QueueGetDevice (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
 #endif
         return pQueue->device;
 }
@@ -334,7 +334,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_QueueGetFamilyIndex (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
 #endif
         return pQueue->queueFamilyIndex;
 }
@@ -343,7 +343,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_QueueGetIndex (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
 #endif
         return pQueue->queueIndex;
 }
@@ -352,7 +352,7 @@ R_CVULKAN_API int
 R_CVulkan_QueueIsInitialized (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pQueue != NULL);
+        R_CVULKAN_ASSERT (pQueue );
         return pQueue->booted;
 #else
         (void)pQueue;

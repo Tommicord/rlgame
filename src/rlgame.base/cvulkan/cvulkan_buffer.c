@@ -311,7 +311,7 @@ R_CVULKAN_API int
 R_CVulkan_BufferIsInitialized (const struct R_CVulkan_Buffer* pBuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pBuffer != NULL);
+        R_CVULKAN_ASSERT (pBuffer );
         return pBuffer->booted;
 #else
         (void)pBuffer;

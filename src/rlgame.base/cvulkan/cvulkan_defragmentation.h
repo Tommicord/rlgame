@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <inttypes.h>
 
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
@@ -87,8 +88,7 @@ struct R_CVulkan_DefragContext
                 uint32_t moveCapacity;
 
                 void* pBackendContext;
-
-                int isInitialized;
+                bool  booted;
 };
 
 /**

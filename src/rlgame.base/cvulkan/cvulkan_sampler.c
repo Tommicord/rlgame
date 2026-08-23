@@ -87,7 +87,7 @@ R_CVULKAN_API VkSampler
 R_CVulkan_SamplerGetHandle (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSampler != NULL);
+        R_CVULKAN_ASSERT (pSampler );
 #endif
         return pSampler->handle;
 }
@@ -96,7 +96,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_SamplerGetDevice (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSampler != NULL);
+        R_CVULKAN_ASSERT (pSampler );
 #endif
         return pSampler->device;
 }
@@ -105,7 +105,7 @@ R_CVULKAN_API int
 R_CVulkan_SamplerIsInitialized (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSampler != NULL);
+        R_CVULKAN_ASSERT (pSampler );
         return pSampler->booted;
 #else
         (void)pSampler;

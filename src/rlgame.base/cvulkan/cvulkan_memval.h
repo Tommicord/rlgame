@@ -6,6 +6,17 @@
 
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
+/**
+ * @brief Backend type for GPU memory validation
+ */
+enum R_CVulkan_MemValBackend
+{
+        R_CVULKAN_MEMVAL_BACKEND_NONE = 0,
+        R_CVULKAN_MEMVAL_BACKEND_CUDA,
+        R_CVULKAN_MEMVAL_BACKEND_OPENCL,
+        R_CVULKAN_MEMVAL_BACKEND_CPU
+};
+
 struct R_CVulkan_MemoryAllocator;
 struct R_CVulkan_Suballocation;
 
@@ -21,15 +32,15 @@ struct R_CVulkan_MemValStats
 	uint64_t totalBlocksReleased;
 	uint64_t activeBlocks;
 	uint64_t freeRegionCount;
-	float    lastFragmentationLevel;
-	float    maxFragmentationLevel;
+	uint16_t lastFragmentationLevel;  // Q8.8 fixed-point (0-256 represents 0.0-1.0)
+	uint16_t maxFragmentationLevel;   // Q8.8 fixed-point (0-256 represents 0.0-1.0)
 	int      defragmentationPending;
 	uint64_t failedAllocations;
 	uint64_t fragmentedAllocationFailures;
 	uint64_t alignedRegions;
 	uint64_t misalignedRegions;
-	float    health;
-	float    defragmentationThreshold;
+	uint16_t health;                  // Q8.8 fixed-point (0-256 represents 0.0-1.0)
+	uint16_t defragmentationThreshold; // Q8.8 fixed-point (0-256 represents 0.0-1.0)
 };
 
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemValInitialize(struct R_CVulkan_MemoryAllocator* pAllocator);

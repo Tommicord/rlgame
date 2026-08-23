@@ -7,11 +7,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef R_CVULKAN_DEFRAG_CUDA_ENABLED
+#ifdef R_CUDA
 #include <cuda_runtime.h>
 #endif
 
-#ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
+#ifdef R_OPENCL
 #include <CL/cl.h>
 extern const uint32_t cvulkanDefragmentation_size;
 extern const uint32_t cvulkanDefragmentation_data[];
@@ -20,7 +20,7 @@ extern const uint32_t cvulkanDefragmentation_data[];
 #define R_CVULKAN_DEFRAG_DEFAULT_MERGE_FACTOR       3
 #define R_CVULKAN_DEFRAG_DEFAULT_MAX_BYTES_PER_PASS (64 * 1024 * 1024)
 #define R_CVULKAN_DEFRAG_DEFAULT_MAX_PASSES         10
-#define R_CVULKAN_DEFRAG_FRAGMENTATION_THRESHOLD    0.3f
+#define R_CVULKAN_DEFRAG_FRAGMENTATION_THRESHOLD    0.325f
 
 enum R_CVulkan_DefragBackend;
 struct R_CVulkan_DefragBlockMetadata;
@@ -29,7 +29,7 @@ struct R_CVulkan_DefragConfig;
 struct R_CVulkan_DefragContext;
 struct R_CVulkan_DefragStats;
 
-#if defined(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+#if defined(R_CUDA)
 extern cudaError_t R_CVulkan_DefragLaunchAnalyzeBlocks (
     void*        blockMetadata,
     uint32_t     blockCount,
@@ -90,7 +90,7 @@ static enum R_CVulkanError R_CVulkan_DefragEnsureCapacity (
     uint32_t  requiredCount,
     uint32_t  elementSize);
 
-#ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
+#ifdef R_OPENCL
 static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
     cl_context    context,
     cl_device_id  device,
@@ -140,7 +140,7 @@ R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend)
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
-#if defined(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+#if defined(R_CUDA)
         int         deviceCount = 0;
         cudaError_t cudaError = cudaGetDeviceCount (&deviceCount);
         if (cudaError == cudaSuccess && deviceCount > 0)
@@ -150,7 +150,7 @@ R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend)
                 R_CSTL_TRACE_RETURN ();
                 return R_CVULKAN_OK;
         }
-#elif defined(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
+#elif defined(R_OPENCL)
         cl_uint platformCount = 0;
         cl_int  clError = clGetPlatformIDs (0, NULL, &platformCount);
         if (clError == CL_SUCCESS && platformCount > 0)
@@ -231,7 +231,7 @@ R_CVulkan_DefragInitialize (
                 goto r_cvulkan_metadata;
         }
 
-#if defined(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
+#if defined(R_OPENCL)
         if (pContext->backend == R_CVULKAN_DEFRAG_BACKEND_OPENCL)
         {
                 cl_platform_id platform = NULL;
@@ -264,7 +264,7 @@ R_CVulkan_DefragInitialize (
                         }
                 }
         }
-#elif defined(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+#elif defined(R_CUDA)
         if (pContext->backend == R_CVULKAN_DEFRAG_BACKEND_CUDA)
         {
                 cudaError_t cudaError = cudaSetDevice (0);
@@ -274,8 +274,7 @@ R_CVulkan_DefragInitialize (
                 }
         }
 #endif
-
-        pContext->isInitialized = 1;
+        pContext->booted = true;
         R_CSTL_LOG_INFO ("Defrag context initialized successfully");
         R_CSTL_TRACE_RETURN ();
         return R_CVULKAN_OK;
@@ -306,7 +305,7 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
                 return;
         }
 
-#if defined(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
+#if defined(R_OPENCL)
         if (pContext->backend == R_CVULKAN_DEFRAG_BACKEND_OPENCL && pContext->pBackendContext)
         {
                 clReleaseContext ((cl_context)pContext->pBackendContext);
@@ -326,7 +325,7 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
                 pContext->pMoves = NULL;
         }
 
-        pContext->isInitialized = 0;
+        pContext->booted = false;
         R_CSTL_TRACE_RETURN ();
 }
 
@@ -383,7 +382,7 @@ R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
 static enum R_CVulkanError
 R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
 {
-#if defined(R_CVULKAN_DEFRAG_CUDA_ENABLED)
+#if defined(R_CUDA)
         enum R_CVulkanError result = R_CVULKAN_OK;
         cudaError_t         cudaError = cudaSuccess;
         void*               dBlockMetadata = NULL;
@@ -460,7 +459,7 @@ r_cvulkan_cleanup:
 static enum R_CVulkanError
 R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
-#ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
+#ifdef R_OPENCL
         enum R_CVulkanError result = R_CVULKAN_OK;
         cl_int              error = CL_SUCCESS;
         cl_context          context = (cl_context)pContext->pBackendContext;
@@ -563,7 +562,6 @@ R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
 {
         struct R_CVulkan_DefragBlockMetadata* metadataArray
             = (struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata;
-
         R_CSTL_TRACE_FUNCTION ();
         R_CSTL_LOG_INFO ("Analyzing %u blocks using CPU backend", pContext->blockMetadataCount);
 
@@ -597,7 +595,7 @@ R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
 static enum R_CVulkanError
 R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
 {
-#ifdef R_CVULKAN_DEFRAG_CUDA_ENABLED
+#ifdef R_CUDA
         enum R_CVulkanError result = R_CVULKAN_OK;
         cudaError_t         cudaError = cudaSuccess;
         void*               dBlockMetadata = NULL;
@@ -724,7 +722,7 @@ cleanup:
 static enum R_CVulkanError
 R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
-#if defined(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
+#if defined(R_OPENCL)
         enum R_CVulkanError result = R_CVULKAN_OK;
         cl_int              error = CL_SUCCESS;
         cl_context          context = (cl_context)pContext->pBackendContext;
@@ -743,7 +741,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL get context info failed: %d", error);
-                goto cleanup;
+                goto r_cleanup;
         }
 
         queue = clCreateCommandQueue (context, device, 0, &error);
@@ -751,7 +749,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL create command queue failed: %d", error);
-                goto cleanup;
+                goto r_cleanup;
         }
 
         uint32_t maxMoves = pContext->blockMetadataCount;
@@ -764,7 +762,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
                     sizeof (struct R_CVulkan_DefragMove));
                 if (result != R_CVULKAN_OK)
                 {
-                        goto cleanup_queue;
+                        goto r_cleanup_queue;
                 }
         }
 
@@ -778,7 +776,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 R_CSTL_LOG_ERROR ("OpenCL create buffer failed: %d", error);
-                goto cleanup_queue;
+                goto r_cleanup_queue;
         }
 
         dMoves = clCreateBuffer (
@@ -791,7 +789,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 R_CSTL_LOG_ERROR ("OpenCL create buffer failed: %d", error);
-                goto cleanup_buffer_metadata;
+                goto r_cleanup_buffer_metadata;
         }
 
         dMoveCount = clCreateBuffer (context, CL_MEM_READ_WRITE, sizeof (uint32_t), NULL, &error);
@@ -799,7 +797,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 R_CSTL_LOG_ERROR ("OpenCL create buffer failed: %d", error);
-                goto cleanup_buffer_moves;
+                goto r_cleanup_buffer_moves;
         }
 
         error = clEnqueueWriteBuffer (
@@ -816,13 +814,13 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL write buffer failed: %d", error);
-                goto cleanup_buffer_movecount;
+                goto r_cleanup_buffer_movecount;
         }
 
         const void* pBinaryData = (const void*)cvulkanDefragmentation_data;
         size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-        result = R_CVulkan_DefragOpenCLCreateProgramAndKernel(
+        result = R_CVulkan_DefragCreateProgram(
             context,
             device,
             pBinaryData,
@@ -832,7 +830,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
             &kernel);
         if (result != R_CVULKAN_OK)
         {
-                goto cleanup_buffer_movecount;
+                goto r_cleanup_buffer_movecount;
         }
 
         error = clSetKernelArg (kernel, 0, sizeof (cl_mem), &dBlockMetadata);
@@ -845,7 +843,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL set kernel args failed: %d", error);
-                goto cleanup_kernel;
+                goto r_cleanup_kernel;
         }
 
         size_t globalWorkSize = pContext->blockMetadataCount;
@@ -854,7 +852,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL enqueue kernel failed: %d", error);
-                goto cleanup_kernel;
+                goto r_cleanup_kernel;
         }
 
         error = clFinish (queue);
@@ -862,7 +860,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL finish failed: %d", error);
-                goto cleanup_kernel;
+                goto r_cleanup_kernel;
         }
 
         error = clEnqueueReadBuffer (
@@ -879,7 +877,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         {
                 result = R_CVULKAN_ERROR_FAILED;
                 R_CSTL_LOG_ERROR ("OpenCL read buffer failed: %d", error);
-                goto cleanup_kernel;
+                goto r_cleanup_kernel;
         }
 
         if (pContext->moveCount > 0)
@@ -898,44 +896,26 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
                 {
                         result = R_CVULKAN_ERROR_FAILED;
                         R_CSTL_LOG_ERROR ("OpenCL read buffer failed: %d", error);
-                        goto cleanup_kernel;
+                        goto r_cleanup_kernel;
                 }
         }
 
         R_CSTL_LOG_INFO ("OpenCL move plan created: %u moves planned", pContext->moveCount);
         R_CSTL_TRACE_RETURN ();
 
-cleanup_kernel:
-        if (kernel)
-        {
-                clReleaseKernel (kernel);
-        }
-cleanup_program:
-        if (program)
-        {
-                clReleaseProgram (program);
-        }
-cleanup_buffer_movecount:
-        if (dMoveCount)
-        {
-                clReleaseMemObject (dMoveCount);
-        }
-cleanup_buffer_moves:
-        if (dMoves)
-        {
-                clReleaseMemObject (dMoves);
-        }
-cleanup_buffer_metadata:
-        if (dBlockMetadata)
-        {
-                clReleaseMemObject (dBlockMetadata);
-        }
-cleanup_queue:
-        if (queue)
-        {
-                clReleaseCommandQueue (queue);
-        }
-cleanup:
+r_cleanup_kernel:
+        clReleaseKernel (kernel);
+r_cleanup_program:
+        clReleaseProgram (program);
+r_cleanup_buffer_movecount:
+        clReleaseMemObject (dMoveCount);
+r_cleanup_buffer_moves:
+        clReleaseMemObject (dMoves);
+r_cleanup_buffer_metadata:
+        clReleaseMemObject (dBlockMetadata);
+r_cleanup_queue:
+        clReleaseCommandQueue (queue);
+r_cleanup:
         return result;
 #else
         return R_CVULKAN_ERROR_FAILED;
@@ -1052,7 +1032,7 @@ R_CVulkan_DefragExecuteMovesCPU (struct R_CVulkan_DefragContext* pContext, VkCom
 static enum R_CVulkanError
 R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
 {
-#ifdef R_CVULKAN_DEFRAG_CUDA_ENABLED
+#ifdef R_CUDA
         enum R_CVulkanError result = R_CVULKAN_OK;
         cudaError_t         cudaError = cudaSuccess;
         void*               dBlockMetadata = NULL;
@@ -1151,7 +1131,7 @@ r_cleanup:
 static enum R_CVulkanError
 R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
-#ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
+#ifdef R_OPENCL
         enum R_CVulkanError result = R_CVULKAN_OK;
         cl_int              error = CL_SUCCESS;
         cl_context          context = (cl_context)pContext->pBackendContext;
@@ -1442,7 +1422,7 @@ R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
         return R_CVULKAN_OK;
 }
 
-#ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
+#ifdef R_OPENCL
 static enum R_CVulkanError
 R_CVulkan_DefragOpenCLExecuteKernel (
     cl_context    context,
@@ -1554,6 +1534,57 @@ r_cleanup:
 }
 #endif
 
+#ifdef R_OPENCL
+static enum R_CVulkanError
+R_CVulkan_DefragCreateProgram(
+    cl_context   context,
+    cl_device_id device,
+    const void*  pBinaryData,
+    size_t       binarySize,
+    const char*  kernelName,
+    cl_program*  outProgram,
+    cl_kernel*   outKernel)
+{
+        enum R_CVulkanError result = R_CVULKAN_OK;
+        cl_int              error = CL_SUCCESS;
+        cl_program          program = NULL;
+        cl_kernel           kernel = NULL;
+
+        program = clCreateProgramWithIL (context, pBinaryData, binarySize, &error);
+        if (error != CL_SUCCESS || !program)
+        {
+                result = R_CVULKAN_ERROR_FAILED;
+                R_CSTL_LOG_ERROR ("OpenCL create program failed: %d", error);
+                goto r_cleanup;
+        }
+
+        error = clBuildProgram (program, 1, &device, NULL, NULL, NULL);
+        if (error != CL_SUCCESS)
+        {
+                result = R_CVULKAN_ERROR_FAILED;
+                R_CSTL_LOG_ERROR ("OpenCL build program failed: %d", error);
+                goto r_cleanup_program;
+        }
+
+        kernel = clCreateKernel (program, kernelName, &error);
+        if (error != CL_SUCCESS || !kernel)
+        {
+                result = R_CVULKAN_ERROR_FAILED;
+                R_CSTL_LOG_ERROR ("OpenCL create kernel failed: %d", error);
+                goto r_cleanup_program;
+        }
+
+        *outProgram = program;
+        *outKernel = kernel;
+        return R_CVULKAN_OK;
+
+r_cleanup_program:
+        clReleaseProgram (program);
+r_cleanup:
+        return result;
+}
+#endif
+
 static enum R_CVulkanError
 R_CVulkan_DefragEnsureCapacity (
     void**    ppBuffer,
@@ -1591,7 +1622,7 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
 
         R_CSTL_TRACE_FUNCTION ();
 
-        if (!pContext || !pContext->isInitialized)
+        if (!pContext || !pContext->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -1644,7 +1675,7 @@ R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommand
 
         R_CSTL_TRACE_FUNCTION ();
 
-        if (!pContext || !pContext->isInitialized)
+        if (!pContext || !pContext->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -1749,7 +1780,7 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
 {
         R_CSTL_TRACE_FUNCTION ();
 
-        if (!pContext || !pContext->isInitialized)
+        if (!pContext || !pContext->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
@@ -1772,12 +1803,12 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
 
                 R_CSTL_LOG_INFO (
                     "Defrag statistics: passes=%u, moves=%u, bytesMoved=%" PRIu64
-                    ", fragBefore=%.2f%%, fragAfter=%.2f%%",
+                    ", fragBefore=%.4f%%, fragAfter=%.4f%%",
                     pStats->passesCompleted,
                     pStats->totalMoves,
                     pStats->totalBytesMoved,
-                    pStats->fragmentationBefore * 100.0f,
-                    pStats->fragmentationAfter * 100.0f);
+                    pStats->fragmentationBefore,
+                    pStats->fragmentationAfter);
         }
         else
         {

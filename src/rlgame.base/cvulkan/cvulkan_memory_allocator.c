@@ -3,6 +3,7 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
+#include "rlgame.base/cstl/cstl_log.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -85,7 +86,7 @@ R_CVulkan_NewMemoryAllocator (
     VkDevice                          device,
     VkPhysicalDevice                  physicalDevice)
 {
-        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
         R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
 
@@ -122,7 +123,7 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
                 return;
         }
 #endif
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks );
         for (uint32_t i = 0; i < pAllocator->blockCount; ++i)
         {
                 if (pAllocator->ppBlocks[i])
@@ -154,9 +155,9 @@ R_CVulkan_MemoryAllocatorAllocate (
     const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
     struct R_CVulkan_Suballocation*              outAllocation)
 {
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pAllocInfo != NULL);
-        R_CVULKAN_ASSERT (outAllocation != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (pAllocInfo );
+        R_CVULKAN_ASSERT (outAllocation );
         R_CVULKAN_ASSERT (pAllocInfo->size > 0);
 #if defined(R_CVULKAN_DEBUG)
         if (!pAllocator || !pAllocInfo || !outAllocation)
@@ -265,8 +266,8 @@ R_CVulkan_MemoryAllocatorFree (
     struct R_CVulkan_MemoryAllocator*     pAllocator,
     const struct R_CVulkan_Suballocation* allocation)
 {
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (allocation != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (allocation );
 
         if (!pAllocator || !allocation)
         {
@@ -294,8 +295,8 @@ R_CVulkan_FindMemoryType (
     uint32_t*                   outTypeIndex)
 {
         R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (memRequirements != NULL);
-        R_CVULKAN_ASSERT (outTypeIndex != NULL);
+        R_CVULKAN_ASSERT (memRequirements );
+        R_CVULKAN_ASSERT (outTypeIndex );
 
         if (!physicalDevice || !memRequirements || !outTypeIndex)
         {
@@ -328,7 +329,7 @@ R_CVulkan_CopyDataToMemory (
 {
         R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (bufferMemory != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (data != NULL);
+        R_CVULKAN_ASSERT (data );
         R_CVULKAN_ASSERT (size > 0);
 
         if (!data || size == 0)
@@ -352,7 +353,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_MemoryAllocatorGetDevice (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
 #endif
         return pAllocator->device;
 }
@@ -361,7 +362,7 @@ R_CVULKAN_API VkPhysicalDevice
 R_CVulkan_MemoryAllocatorGetPhysicalDevice (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pAllocator != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
 #endif
         return pAllocator->physicalDevice;
 }
@@ -370,8 +371,8 @@ R_CVULKAN_API VkDeviceSize
 R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks );
 #else
         if (!pAllocator)
         {
@@ -394,8 +395,8 @@ R_CVULKAN_API VkDeviceSize
 R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (pAllocator->blockCount == 0 || pAllocator->ppBlocks );
 #else
         if (!pAllocator)
         {
@@ -433,7 +434,7 @@ R_CVulkan_MemoryAllocatorAllocateImageMemory (
         R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (image != VK_NULL_HANDLE);
-        R_CVULKAN_ASSERT (outMemory != NULL);
+        R_CVULKAN_ASSERT (outMemory );
 
         if (!device || physicalDevice == VK_NULL_HANDLE || image == VK_NULL_HANDLE || !outMemory)
         {
@@ -470,12 +471,6 @@ R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, VkDeviceMemory memory
 {
         R_CVULKAN_ASSERT (device != VK_NULL_HANDLE);
         R_CVULKAN_ASSERT (memory != VK_NULL_HANDLE);
-
-        if (!device || memory == VK_NULL_HANDLE)
-        {
-                return;
-        }
-
         vkFreeMemory (device, memory, NULL);
 }
 
@@ -498,8 +493,8 @@ R_CVulkan_MemoryAllocatorBeginDefragmentation (
 {
         enum R_CVulkanError result = R_CVULKAN_OK;
 
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (ppContext != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (ppContext );
 
         if (!pAllocator || !ppContext)
         {
@@ -531,8 +526,8 @@ R_CVulkan_MemoryAllocatorExecuteDefragPass (
 {
         enum R_CVulkanError result = R_CVULKAN_OK;
 
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (pContext );
 
         if (!pAllocator || !pContext)
         {
@@ -557,8 +552,8 @@ R_CVulkan_MemoryAllocatorEndDefragmentation (
 {
         enum R_CVulkanError result = R_CVULKAN_OK;
 
-        R_CVULKAN_ASSERT (pAllocator != NULL);
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pAllocator );
+        R_CVULKAN_ASSERT (pContext );
 
         if (!pAllocator || !pContext)
         {

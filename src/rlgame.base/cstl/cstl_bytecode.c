@@ -213,7 +213,7 @@ R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
 #endif
 }
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -247,9 +247,8 @@ R_CSTL_BytecodeArchitectureIsValid (enum R_CSTL_BytecodeArchitecture architectur
 static struct R_CSTL_Bytecode*
 R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_BytecodeArchitecture architecture)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         assert (R_CSTL_BytecodeArchitectureIsValid (architecture) || "Invalid architecture");
-        assert ((pCode != NULL) == (sizeBytes != 0) || "Invalid code pointer/size combination");
 #endif
 
         if ((!pCode && sizeBytes != 0) || !R_CSTL_BytecodeArchitectureIsValid (architecture)) return NULL;
@@ -257,8 +256,8 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
         struct R_CSTL_Bytecode* pBytecode = (struct R_CSTL_Bytecode*)R_CSTL_HeapAlloc (sizeof (*pBytecode));
         if (!pBytecode) return NULL;
 
-#if defined(R_CSTL_LOG_DEVMODE)
-        assert (pBytecode != NULL);
+#if defined(R_LOG)
+        assert (pBytecode );
 #endif
 
         pBytecode->pCode = pCode;
@@ -269,8 +268,8 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
 
         if (R_CSTL_MutexInit (&pBytecode->mutex) == R_CSTL_OK) pBytecode->mutexInitialized = true;
 
-#if defined(R_CSTL_LOG_DEVMODE)
-        assert (pBytecode->pCode != NULL || sizeBytes == 0);
+#if defined(R_LOG)
+        assert (pBytecode->pCode  || sizeBytes == 0);
         assert (pBytecode->size == sizeBytes);
 #endif
 
@@ -328,9 +327,9 @@ R_CSTL_BytecodeRead (
     uint8_t*                      pOutBytes,
     size_t                        sizeBytes)
 {
-#if defined(R_CSTL_LOG_DEVMODE)
-        assert (pBytecode != NULL || "Machine code pointer is null");
-        assert (pBytecode->pCode != NULL || pBytecode->size == 0);
+#if defined(R_LOG)
+        assert (pBytecode  || "Machine code pointer is null");
+        assert (pBytecode->pCode  || pBytecode->size == 0);
         assert (offset <= pBytecode->size || "Offset exceeds code size");
         assert (sizeBytes <= pBytecode->size - offset || "Read size exceeds available bytes");
 #endif
@@ -429,7 +428,7 @@ R_CSTL_BytecodeParseX86 (
         return R_CSTL_OK;
 }
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
 
 static int
 R_CSTL_BytecodeParseX86Enhanced (
@@ -636,7 +635,7 @@ R_CSTL_BytecodeParseX86Enhanced (
 
 #endif
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 
@@ -906,7 +905,7 @@ R_CSTL_BytecodeFunctionContainsSymbol (
                             sizeof (symbolBuffer));
                         if (result == R_CSTL_OK)
                         {
-                                if (strstr (symbolBuffer, pSymbolName) != NULL)
+                                if (strstr (symbolBuffer, pSymbolName) )
                                 {
                                         found = 1;
                                         break;

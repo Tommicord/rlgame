@@ -28,11 +28,8 @@ add_compile_definitions(_R_CHUNK_VULKAN_BACKEND)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(R_DEVMODE R_CSTL_TRACE_ENABLED)
-  message(STATUS "Development mode enabled")
-  message(STATUS "Trace logging enabled")
 endif ()
 
-# Compiler detection
 if (MSVC)
   add_compile_definitions(R_COMPILER_MSVC)
   message(STATUS "Compiler: MSVC detected")
@@ -46,7 +43,6 @@ else ()
   message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif ()
 
-# Architecture and SIMD detection
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm|ARM|aarch64|AARCH64")
   message(STATUS "Target architecture ARM; NEON SIMD enabled")
   add_compile_definitions(R_SIMD_ARM_NEON)

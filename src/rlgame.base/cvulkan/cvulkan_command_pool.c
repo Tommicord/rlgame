@@ -9,8 +9,8 @@ R_CVulkan_NewCommandPool (
     uint32_t                       queueFamilyIndex,
     VkCommandPoolCreateFlags       flags)
 {
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
-        R_CVULKAN_ASSERT (pDevice != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
+        R_CVULKAN_ASSERT (pDevice );
 
         if (!pCommandPool || !pDevice)
         {
@@ -52,7 +52,7 @@ R_CVulkan_NewCommandPool (
 R_CVULKAN_API void
 R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool)
 {
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pCommandPool)
@@ -77,7 +77,7 @@ R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool)
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkCommandPoolResetFlags flags)
 {
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 
         if (!pCommandPool)
         {
@@ -104,7 +104,7 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkComman
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
 {
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 
         if (!pCommandPool)
         {
@@ -126,7 +126,7 @@ R_CVULKAN_API VkCommandPool
 R_CVulkan_CommandPoolGetHandle (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 #endif
         return pCommandPool->handle;
 }
@@ -135,7 +135,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 #endif
         return pCommandPool->device;
 }
@@ -144,7 +144,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_CommandPoolGetQueueFamilyIndex (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
 #endif
         return pCommandPool->queueFamilyIndex;
 }
@@ -153,7 +153,7 @@ R_CVULKAN_API int
 R_CVulkan_CommandPoolIsInitialized (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pCommandPool != NULL);
+        R_CVULKAN_ASSERT (pCommandPool );
         return pCommandPool->booted;
 #else
         (void)pCommandPool;

@@ -58,7 +58,7 @@
 #define R_CSTL_RESTRICT
 #endif
 
-#define R_CSTL_LOG_DEVMODE R_DEVMODE
+#define R_LOG R_DEVMODE
 
 enum R_CSTL_Error
 {

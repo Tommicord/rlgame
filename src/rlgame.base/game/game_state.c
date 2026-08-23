@@ -62,13 +62,13 @@ R_GAME_API void
 R_GameState_Cleanup (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        R_GAME_CVULKAN_ASSERT (pState );
         if (!pState->booted)
         {
                 return;
         }
 #endif
-        if (pState->pRendererManager != NULL)
+        if (pState->pRendererManager )
         {
                 R_GameRenderer_DeleteManager (pState->pRendererManager);
                 pState->pRendererManager = NULL;
@@ -81,7 +81,7 @@ R_GAME_API int
 R_GameState_IsInitialized (const struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        R_GAME_CVULKAN_ASSERT (pState );
         return pState->booted;
 #else
         return R_GameCVulkan_PipelineContextIsInitialized (&pState->context);
@@ -92,7 +92,7 @@ R_GAME_API struct R_GameCVulkan_PipelineContext*
 R_GameState_GetVulkanContext (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        R_GAME_CVULKAN_ASSERT (pState );
         return &pState->context;
 #else
         return &pState->context;
@@ -103,7 +103,7 @@ R_GAME_API struct R_GameRendererManager*
 R_GameState_GetRendererManager (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        R_GAME_CVULKAN_ASSERT (pState );
         return pState->pRendererManager;
 #else
         return pState->pRendererManager;
@@ -114,7 +114,7 @@ R_GAME_API int
 R_GameState_RenderFrame (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_GAME_CVULKAN_ASSERT (pState != NULL);
+        R_GAME_CVULKAN_ASSERT (pState );
         if (!pState->booted)
         {
                 return R_GAME_ERROR_NOT_INITIALIZED;

@@ -251,7 +251,7 @@ VkDescriptorSetLayout
 R_CVulkan_DescriptorSetLayoutGetHandle (const struct R_CVulkan_DescriptorSetLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout != NULL);
+        R_CVULKAN_ASSERT (pLayout );
 #endif
         return pLayout->handle;
 }
@@ -260,7 +260,7 @@ VkDevice
 R_CVulkan_DescriptorSetLayoutGetDevice (const struct R_CVulkan_DescriptorSetLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout != NULL);
+        R_CVULKAN_ASSERT (pLayout );
 #endif
         return pLayout->device;
 }
@@ -269,7 +269,7 @@ int
 R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSetLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout != NULL);
+        R_CVULKAN_ASSERT (pLayout );
         return pLayout->booted;
 #else
         (void)pLayout;
@@ -281,7 +281,7 @@ VkDescriptorPool
 R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPool != NULL);
+        R_CVULKAN_ASSERT (pPool );
 #endif
         return pPool->handle;
 }
@@ -290,7 +290,7 @@ VkDevice
 R_CVulkan_DescriptorPoolGetDevice (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPool != NULL);
+        R_CVULKAN_ASSERT (pPool );
 #endif
         return pPool->device;
 }
@@ -299,7 +299,7 @@ uint32_t
 R_CVulkan_DescriptorPoolGetMaxSets (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPool != NULL);
+        R_CVULKAN_ASSERT (pPool );
 #endif
         return pPool->maxSets;
 }
@@ -308,7 +308,7 @@ int
 R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pPool)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPool != NULL);
+        R_CVULKAN_ASSERT (pPool );
         return pPool->booted;
 #else
         (void)pPool;

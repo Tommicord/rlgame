@@ -32,7 +32,7 @@ R_GameCVulkan_GetWindowExtent (const struct R_GameCVulkan_PipelineContextCreateI
         VkExtent2D extent = {0, 0};
 
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
-        if (pCreateInfo->hWnd != NULL)
+        if (pCreateInfo->hWnd )
         {
                 RECT rect;
                 if (GetClientRect (pCreateInfo->hWnd, &rect))
@@ -42,7 +42,7 @@ R_GameCVulkan_GetWindowExtent (const struct R_GameCVulkan_PipelineContextCreateI
                 }
         }
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        if (pCreateInfo->pDisplay != NULL && pCreateInfo->window != 0)
+        if (pCreateInfo->pDisplay  && pCreateInfo->window != 0)
         {
                 XWindowAttributes windowAttributes;
                 if (XGetWindowAttributes (pCreateInfo->pDisplay, pCreateInfo->window, &windowAttributes))
@@ -52,7 +52,7 @@ R_GameCVulkan_GetWindowExtent (const struct R_GameCVulkan_PipelineContextCreateI
                 }
         }
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
-        if (pCreateInfo->pWindow != NULL)
+        if (pCreateInfo->pWindow )
         {
                 extent.width = ANativeWindow_getWidth (pCreateInfo->pWindow);
                 extent.height = ANativeWindow_getHeight (pCreateInfo->pWindow);
@@ -240,7 +240,7 @@ R_GameCVulkan_CleanupPartialInitialization (struct R_GameCVulkan_PipelineContext
         R_CVulkan_DeleteCommandPool (&pContext->graphicsCommandPool);
         R_CVulkan_DeleteCommandPool (&pContext->computeCommandPool);
         R_CVulkan_DeleteCommandPool (&pContext->transferCommandPool);
-        if (pContext->pSurface != NULL)
+        if (pContext->pSurface )
         {
                 R_CVulkan_DeleteSurface (pContext->pSurface);
                 R_CSTL_HeapFree (pContext->pSurface);
@@ -254,8 +254,8 @@ R_GameCVulkan_NewPipelineContext (
     struct R_GameCVulkan_PipelineContext*                 pContext,
     const struct R_GameCVulkan_PipelineContextCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (pContext != NULL);
-        R_CVULKAN_ASSERT (pCreateInfo != NULL);
+        R_CVULKAN_ASSERT (pContext );
+        R_CVULKAN_ASSERT (pCreateInfo );
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pContext || !pCreateInfo)
@@ -384,7 +384,7 @@ R_GameCVulkan_NewPipelineContext (
         return R_GAME_OK;
 
 r_cleanup:
-        if (pContext->pSurface != NULL)
+        if (pContext->pSurface )
         {
                 R_CVulkan_DeleteSurface (pContext->pSurface);
                 R_CSTL_HeapFree (pContext->pSurface);
@@ -407,7 +407,7 @@ R_GameCVulkan_PipelineContextDelete (struct R_GameCVulkan_PipelineContext* pCont
                 return;
         }
 #endif
-        if (pContext->pFramebuffers != NULL)
+        if (pContext->pFramebuffers )
         {
                 for (uint32_t i = 0; i < pContext->framebufferCount; ++i)
                 {
@@ -434,7 +434,7 @@ R_GameCVulkan_PipelineContextDelete (struct R_GameCVulkan_PipelineContext* pCont
         R_CVulkan_DeleteCommandPool (&pContext->computeCommandPool);
         R_CVulkan_DeleteCommandPool (&pContext->transferCommandPool);
 
-        if (pContext->pSurface != NULL)
+        if (pContext->pSurface )
         {
                 R_CVulkan_DeleteSurface (pContext->pSurface);
                 R_CSTL_HeapFree (pContext->pSurface);
@@ -453,7 +453,7 @@ R_GAME_API struct R_CVulkan_Queue*
 R_GameCVulkan_PipelineContextGetGraphicsQueue (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->graphicsQueue;
 }
@@ -462,7 +462,7 @@ R_GAME_API struct R_CVulkan_Queue*
 R_GameCVulkan_PipelineContextGetComputeQueue (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->computeQueue;
 }
@@ -471,7 +471,7 @@ R_GAME_API struct R_CVulkan_Queue*
 R_GameCVulkan_PipelineContextGetTransferQueue (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->transferQueue;
 }
@@ -480,7 +480,7 @@ R_GAME_API struct R_CVulkan_Queue*
 R_GameCVulkan_PipelineContextGetPresentQueue (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->presentQueue;
 }
@@ -489,7 +489,7 @@ R_GAME_API struct R_CVulkan_CommandPool*
 R_GameCVulkan_PipelineContextGetGraphicsCommandPool (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->graphicsCommandPool;
 }
@@ -498,7 +498,7 @@ R_GAME_API struct R_CVulkan_CommandPool*
 R_GameCVulkan_PipelineContextGetComputeCommandPool (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->computeCommandPool;
 }
@@ -507,7 +507,7 @@ R_GAME_API struct R_CVulkan_CommandPool*
 R_GameCVulkan_PipelineContextGetTransferCommandPool (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->transferCommandPool;
 }
@@ -516,7 +516,7 @@ R_GAME_API struct R_CVulkan_Device*
 R_GameCVulkan_PipelineContextGetDevice (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->device;
 }
@@ -525,7 +525,7 @@ R_GAME_API int
 R_GameCVulkan_PipelineContextIsInitialized (const struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
         return pContext->booted;
 #else
         (void)pContext;
@@ -537,7 +537,7 @@ R_GAME_API struct R_CVulkan_Semaphore*
 R_GameCVulkan_PipelineContextGetImageAvailableSemaphore (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->imageAvailableSemaphore;
 }
@@ -546,7 +546,7 @@ R_GAME_API struct R_CVulkan_Semaphore*
 R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->renderFinishedSemaphore;
 }
@@ -555,7 +555,7 @@ R_GAME_API struct R_CVulkan_Fence*
 R_GameCVulkan_PipelineContextGetInFlightFence (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->inFlightFence;
 }
@@ -564,7 +564,7 @@ R_GAME_API uint32_t*
 R_GameCVulkan_PipelineContextGetCurrentFrameIndex (struct R_GameCVulkan_PipelineContext* pContext)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pContext != NULL);
+        R_CVULKAN_ASSERT (pContext );
 #endif
         return &pContext->currentFrameIndex;
 }

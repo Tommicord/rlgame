@@ -91,7 +91,7 @@ R_CVULKAN_API VkRenderPass
 R_CVulkan_RenderPass_GetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pRenderPass != NULL);
+        R_CVULKAN_ASSERT (pRenderPass );
 #endif
         return pRenderPass->handle;
 }
@@ -100,7 +100,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_RenderPass_GetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pRenderPass != NULL);
+        R_CVULKAN_ASSERT (pRenderPass );
 #endif
         return pRenderPass->device;
 }

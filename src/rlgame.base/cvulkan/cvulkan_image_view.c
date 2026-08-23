@@ -78,7 +78,7 @@ VkImageView
 R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImageView != NULL);
+        R_CVULKAN_ASSERT (pImageView );
 #endif
         return pImageView->handle;
 }
@@ -87,7 +87,7 @@ VkDevice
 R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImageView != NULL);
+        R_CVULKAN_ASSERT (pImageView );
 #endif
         return pImageView->device;
 }
@@ -96,7 +96,7 @@ VkImage
 R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImageView != NULL);
+        R_CVULKAN_ASSERT (pImageView );
 #endif
         return pImageView->image;
 }
@@ -105,7 +105,7 @@ VkFormat
 R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImageView != NULL);
+        R_CVULKAN_ASSERT (pImageView );
 #endif
         return pImageView->format;
 }
@@ -114,7 +114,7 @@ int
 R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImageView != NULL);
+        R_CVULKAN_ASSERT (pImageView );
         return pImageView->booted;
 #else
         (void)pImageView;

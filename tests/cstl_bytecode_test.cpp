@@ -233,7 +233,7 @@ TEST_F (CstlBytecodeTest, BytecodeParseUnsupportedArchitecture)
         R_CSTL_DeleteBytecode (pCode);
 }
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedCall)
 {
@@ -573,7 +573,7 @@ TEST_F (CstlBytecodeTest, RealWorldTestRexPrefixHandling)
         EXPECT_EQ (3u, instruction.size);
         EXPECT_EQ (0x8Bu, instruction.opcode);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         struct R_CSTL_BytecodeInstruction instructionEnhanced;
         ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
         EXPECT_EQ (1, instructionEnhanced.hasRex);
@@ -597,7 +597,7 @@ TEST_F (CstlBytecodeTest, RealWorldTestConditionalJump)
         // Parser currently returns 3 bytes for two-byte opcodes without ModRM
         EXPECT_EQ (3u, instruction.size);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         struct R_CSTL_BytecodeInstruction instructionEnhanced;
         ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
         // Conditional jump detection may need parser enhancement
@@ -619,7 +619,7 @@ TEST_F (CstlBytecodeTest, RealWorldTestLoopInstruction)
         ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
         EXPECT_EQ (2u, instruction.size);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         struct R_CSTL_BytecodeInstruction instructionEnhanced;
         ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
         EXPECT_EQ (1, instructionEnhanced.isJump);
@@ -675,7 +675,7 @@ TEST_F (CstlBytecodeTest, RealWorldTestLegacyPrefixes)
         EXPECT_EQ (3u, instruction.size);
         EXPECT_EQ (0x01u, instruction.opcode);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         struct R_CSTL_BytecodeInstruction instructionEnhanced;
         ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
         EXPECT_NE (0u, instructionEnhanced.legacyPrefixes);
@@ -696,7 +696,7 @@ TEST_F (CstlBytecodeTest, RealWorldTestIndirectCall)
         ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
         EXPECT_EQ (2u, instruction.size);
 
-#if defined(R_CSTL_LOG_DEVMODE)
+#if defined(R_LOG)
         struct R_CSTL_BytecodeInstruction instructionEnhanced;
         ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
         EXPECT_EQ (1, instructionEnhanced.isCall);

@@ -53,7 +53,7 @@
 #define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
         do                                                                                                   \
         {                                                                                                    \
-                R_CVULKAN_ASSERT (ptr != NULL);                                                              \
+                R_CVULKAN_ASSERT (ptr );                                                              \
                 if (!(ptr))                                                                                  \
                 {                                                                                            \
                         return R_CVULKAN_ERROR_NULL_POINTER;                                                 \
@@ -63,7 +63,7 @@
 #define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)                                                                 \
         do                                                                                                   \
         {                                                                                                    \
-                R_CVULKAN_ASSERT ((obj) != NULL);                                                            \
+                R_CVULKAN_ASSERT ((obj) );                                                            \
                 R_CVULKAN_ASSERT ((obj)->booted);                                                            \
                 if (!(obj) || !(obj)->booted)                                                                \
                 {                                                                                            \
@@ -74,7 +74,7 @@
 #define R_CVULKAN_VALIDATE_COMMAND_BUFFER(cmdBuf)                                                            \
         do                                                                                                   \
         {                                                                                                    \
-                R_CVULKAN_ASSERT ((cmdBuf) != NULL);                                                         \
+                R_CVULKAN_ASSERT ((cmdBuf) );                                                         \
                 R_CVULKAN_ASSERT ((cmdBuf)->booted);                                                         \
                 R_CVULKAN_ASSERT ((cmdBuf)->record);                                                         \
                 if (!(cmdBuf) || !(cmdBuf)->booted || !(cmdBuf)->record)                                     \
@@ -86,7 +86,7 @@
 #define R_CVULKAN_VALIDATE_GETTER(ptr)                                                                       \
         do                                                                                                   \
         {                                                                                                    \
-                R_CVULKAN_ASSERT ((ptr) != NULL);                                                            \
+                R_CVULKAN_ASSERT ((ptr) );                                                            \
         } while (0)
 
 #else

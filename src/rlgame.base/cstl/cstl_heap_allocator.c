@@ -215,7 +215,7 @@ R_CSTL_HeapIsReady (void)
         /* Prevent Release/LTO from treating g_heap.initialized as always zero when
          * heap functions are inlined into callers in other translation units. */
         R_CSTL_HEAP_COMPILER_BARRIER ();
-        const int ready = (g_heap.initialized != 0 && g_heap.pHeapBase != NULL);
+        const int ready = (g_heap.initialized != 0 && g_heap.pHeapBase );
         R_CSTL_HEAP_COMPILER_BARRIER ();
         return ready;
 }
