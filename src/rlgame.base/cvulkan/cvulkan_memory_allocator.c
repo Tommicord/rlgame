@@ -1,4 +1,5 @@
 #include "rlgame.base/cvulkan/cvulkan_memory_allocator.h"
+#include "rlgame.base/cvulkan/cvulkan_memval.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
@@ -101,6 +102,12 @@ R_CVulkan_NewMemoryAllocator (
         pAllocator->minBlockSize = R_CVULKAN_DEFAULT_MIN_BLOCK_SIZE;
         pAllocator->defaultMaxBlockSize = R_CVULKAN_DEFAULT_MAX_BLOCK_SIZE;
 
+        /* initialize memval subsystem for this allocator */
+        if (R_CVulkan_MemValInitialize(pAllocator) != R_CVULKAN_OK)
+        {
+                R_CSTL_LOG_WARN("MemVal: failed to initialize memory validator thread");
+        }
+
         return R_CVULKAN_OK;
 }
 
@@ -135,6 +142,9 @@ R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator)
         pAllocator->device = VK_NULL_HANDLE;
         pAllocator->physicalDevice = VK_NULL_HANDLE;
 #endif
+
+        /* shutdown memval subsystem */
+        R_CVulkan_MemValShutdown();
 }
 
 R_CVULKAN_API enum R_CVulkanError

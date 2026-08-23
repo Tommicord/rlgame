@@ -91,7 +91,7 @@ static enum R_CVulkanError R_CVulkan_DefragEnsureCapacity (
     uint32_t  elementSize);
 
 #ifdef R_CVULKAN_DEFRAG_OPENCL_ENABLED
-static enum R_CVulkanError R_CVulkan_DefragOpenCLExecuteKernel (
+static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -103,6 +103,16 @@ static enum R_CVulkanError R_CVulkan_DefragOpenCLExecuteKernel (
     const size_t* pArgSizes,
     uint32_t      argCount,
     size_t        globalWorkSize);
+
+// Helper: create program from IL, build it and create kernel
+static enum R_CVulkanError R_CVulkan_DefragCreateProgram(
+    cl_context   context,
+    cl_device_id device,
+    const void*  pBinaryData,
+    size_t       binarySize,
+    const char*  kernelName,
+    cl_program*  outProgram,
+    cl_kernel*   outKernel);
 #endif
 
 R_CVULKAN_API void
@@ -114,7 +124,6 @@ R_CVulkan_DefragSetDefaultConfig (struct R_CVulkan_DefragConfig* pConfig)
         {
                 return;
         }
-
         pConfig->mergeFactor = R_CVULKAN_DEFRAG_DEFAULT_MERGE_FACTOR;
         pConfig->maxBytesPerPass = R_CVULKAN_DEFRAG_DEFAULT_MAX_BYTES_PER_PASS;
         pConfig->maxPasses = R_CVULKAN_DEFRAG_DEFAULT_MAX_PASSES;
@@ -812,38 +821,20 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
                 goto cleanup_buffer_movecount;
         }
 
-        const char* source = (const char*)cvulkanDefragmentation_data;
-        size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
+        const void* pBinaryData = (const void*)cvulkanDefragmentation_data;
+        size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-        program = clCreateProgramWithBinary (
+        result = R_CVulkan_DefragOpenCLCreateProgramAndKernel(
             context,
-            1,
-            &device,
-            &sourceSize,
-            (const unsigned char**)&source,
-            NULL,
-            &error);
-        if (error != CL_SUCCESS || !program)
+            device,
+            pBinaryData,
+            binarySize,
+            "R_CVulkan_DefragCreateMovePlanKernel",
+            &program,
+            &kernel);
+        if (result != R_CVULKAN_OK)
         {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create program with binary failed: %d", error);
                 goto cleanup_buffer_movecount;
-        }
-
-        error = clBuildProgram (program, 1, &device, NULL, NULL, NULL);
-        if (error != CL_SUCCESS)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL build program failed: %d", error);
-                goto cleanup_program;
-        }
-
-        kernel = clCreateKernel (program, "R_CVulkan_DefragCreateMovePlanKernel", &error);
-        if (error != CL_SUCCESS || !kernel)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create kernel failed: %d", error);
-                goto cleanup_program;
         }
 
         error = clSetKernelArg (kernel, 0, sizeof (cl_mem), &dBlockMetadata);
@@ -1182,7 +1173,6 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 R_CSTL_LOG_ERROR ("OpenCL get context info failed: %d", error);
                 goto r_cleanup;
         }
-
         queue = clCreateCommandQueue (context, device, 0, &error);
         if (error != CL_SUCCESS || !queue)
         {
@@ -1190,7 +1180,6 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 R_CSTL_LOG_ERROR ("OpenCL create command queue failed: %d", error);
                 goto r_cleanup;
         }
-
         dBlockMetadata = clCreateBuffer (
             context,
             CL_MEM_READ_WRITE,
@@ -1203,7 +1192,6 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 R_CSTL_LOG_ERROR ("OpenCL create buffer failed: %d", error);
                 goto r_cleanup_queue;
         }
-
         dMoves = clCreateBuffer (
             context,
             CL_MEM_READ_WRITE,
@@ -1216,7 +1204,6 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 R_CSTL_LOG_ERROR ("OpenCL create buffer failed: %d", error);
                 goto r_cleanup_buffer_metadata;
         }
-
         error = clEnqueueWriteBuffer (
             queue,
             dBlockMetadata,
@@ -1251,38 +1238,20 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
                 goto r_cleanup_buffer_moves;
         }
 
-        const char* source = (const char*)cvulkanDefragmentation_data;
-        size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
+        const char* pBinaryData = (const void*)cvulkanDefragmentation_data;
+        size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-        program = clCreateProgramWithBinary (
+        result = R_CVulkan_DefragCreateProgram(
             context,
-            1,
-            &device,
-            &sourceSize,
-            (const unsigned char**)&source,
-            NULL,
-            &error);
-        if (error != CL_SUCCESS || !program)
+            device,
+            pBinaryData,
+            binarySize,
+            "R_CVulkan_DefragUpdateMetadataKernel",
+            &program,
+            &kernel);
+        if (result != R_CVULKAN_OK)
         {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create program with binary failed: %d", error);
                 goto r_cleanup_buffer_moves;
-        }
-
-        error = clBuildProgram (program, 1, &device, NULL, NULL, NULL);
-        if (error != CL_SUCCESS)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL build program failed: %d", error);
-                goto r_cleanup_program;
-        }
-
-        kernel = clCreateKernel (program, "R_CVulkan_DefragUpdateMetadataKernel", &error);
-        if (error != CL_SUCCESS || !kernel)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create kernel failed: %d", error);
-                goto r_cleanup_program;
         }
 
         error = clSetKernelArg (kernel, 0, sizeof (cl_mem), &dBlockMetadata);
@@ -1504,35 +1473,17 @@ R_CVulkan_DefragOpenCLExecuteKernel (
                 goto r_cleanup;
         }
 
-        program = clCreateProgramWithBinary (
+        result = R_CVulkan_DefragCreateProgram(
             context,
-            1,
-            &device,
-            &binarySize,
-            (const unsigned char**)&pBinaryData,
-            NULL,
-            &error);
-        if (error != CL_SUCCESS || !program)
+            device,
+            pBinaryData,
+            binarySize,
+            kernelName,
+            &program,
+            &kernel);
+        if (result != R_CVULKAN_OK)
         {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create program with binary failed: %d", error);
                 goto r_cleanup_queue;
-        }
-
-        error = clBuildProgram (program, 1, &device, NULL, NULL, NULL);
-        if (error != CL_SUCCESS)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL build program failed: %d", error);
-                goto r_cleanup_program;
-        }
-
-        kernel = clCreateKernel (program, kernelName, &error);
-        if (error != CL_SUCCESS || !kernel)
-        {
-                result = R_CVULKAN_ERROR_FAILED;
-                R_CSTL_LOG_ERROR ("OpenCL create kernel failed: %d", error);
-                goto r_cleanup_program;
         }
 
         for (uint32_t i = 0; i < argCount; ++i)

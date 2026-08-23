@@ -1,13 +1,3 @@
-cmake_path(GET ${INPUT_FILE} PARENT_PATH FILE_DIR)
-
-add_custom_target(
-    clean_generated_folder
-    COMMAND ${CMAKE_COMMAND} 
-    -E 
-    rm "{FILE_DIR}"
-    COMMENT "Cleanup old embed sources"
-)
-
 file(READ ${INPUT_FILE} HEX_DATA HEX)
 string(LENGTH "${HEX_DATA}" HEX_LENGTH)
 math(EXPR BYTE_COUNT "${HEX_LENGTH} / 2")
@@ -29,6 +19,7 @@ foreach(WORD IN LISTS WORD_LIST)
         break()
       endif()
     endforeach()
+
   endif()
     
   if(IS_FIRST_WORD)
@@ -53,14 +44,17 @@ foreach(WORD IN LISTS WORD_LIST)
 endforeach()
     
 set(HEADER_CONTENT "#pragma once\n\n")
-set(HEADER_CONTENT "${HEADER_CONTENT}#include <cstdint>\n\n")
+set(HEADER_CONTENT "${HEADER_CONTENT}#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
+set(HEADER_CONTENT "${HEADER_CONTENT}#include <stdint.h>\n\n")
 set(HEADER_CONTENT "${HEADER_CONTENT}extern const uint32_t ${CAMELCASE_RESULT}_size;\n")
 set(HEADER_CONTENT "${HEADER_CONTENT}extern const uint32_t ${CAMELCASE_RESULT}_data[];\n\n")
+set(HEADER_CONTENT "${HEADER_CONTENT}#ifdef __cplusplus\n} /* extern \"C\" */\n#endif\n\n")
 
 file(WRITE ${OUTPUT_H} "${HEADER_CONTENT}")
 
 get_filename_component(OUTPUT_H_FILENAME ${OUTPUT_H} NAME)
-set(CFILE_CONTENT "#include \"${OUTPUT_H_FILENAME}\"\n\n")
+set(CFILE_CONTENT "#include <stdint.h>\n#include \"${OUTPUT_H_FILENAME}\"\n\n")
+set(CFILE_CONTENT "${CFILE_CONTENT}#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
 set(CFILE_CONTENT "${CFILE_CONTENT}const uint32_t ${CAMELCASE_RESULT}_size = ${UINT32_COUNT};\n\n")
 set(CFILE_CONTENT "${CFILE_CONTENT}const uint32_t ${CAMELCASE_RESULT}_data[] = {\n")
 
@@ -87,5 +81,6 @@ if(NOT "${LINE}" STREQUAL "")
 endif()
 
 set(CFILE_CONTENT "${CFILE_CONTENT}};\n\n")
+set(CFILE_CONTENT "${CFILE_CONTENT}#ifdef __cplusplus\n} /* extern \"C\" */\n#endif\n")
 
 file(WRITE ${OUTPUT_C} "${CFILE_CONTENT}")

@@ -29,7 +29,7 @@ struct R_CVulkan_DefragMove
 };
 
 /**
- * @brief CUDA kernel for block analysis - calculates fill levels and identifies candidates
+ * @brief CUDA kernel for block analysis, calculates fill levels and identifies candidates
  * @param blockMetadata Array of block metadata
  * @param blockCount Number of blocks
  * @param mergeFactor Target merge factor n
@@ -59,7 +59,7 @@ __global__ void R_CVulkan_DefragAnalyzeBlocksKernel (
 }
 
 /**
- * @brief CUDA kernel for creating move plan - merges source blocks into target blocks
+ * @brief CUDA kernel for creating move plan, merges source blocks into target blocks
  * @param blockMetadata Array of block metadata
  * @param moves Array of move operations
  * @param moveCount Number of moves (output)
