@@ -5,7 +5,7 @@
       "name": "vcpkg",
       "displayName": "vcpkg Preset",
       "hidden": true,
-      "generator": "Visual Studio 18 2026",
+      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "architecture": "x64"
@@ -25,6 +25,48 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "ninja-vcpkg",
+      "displayName": "Ninja vcpkg Preset",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "inherits": "ninja-vcpkg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "ninja-vcpkg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "inherits": "ninja-vcpkg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "RLGAME_BUILD_APP": "OFF"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release",
+      "inherits": "ninja-vcpkg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "RLGAME_BUILD_APP": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -37,6 +79,22 @@
       "name": "x64-release",
       "configurePreset": "x64-release",
       "configuration": "Release"
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release"
     }
   ]
 }

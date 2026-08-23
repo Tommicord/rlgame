@@ -103,8 +103,6 @@ static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
     const size_t* pArgSizes,
     uint32_t      argCount,
     size_t        globalWorkSize);
-
-// Helper: create program from IL, build it and create kernel
 static enum R_CVulkanError R_CVulkan_DefragCreateProgram(
     cl_context   context,
     cl_device_id device,

@@ -1,0 +1,38 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="/opt/vcpkg:/opt/vcpkg/downloads/tools/ninja/1.12.1-linux/ninja:${PATH}"
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        build-essential \
+        ca-certificates \
+        clang \
+        clang-format \
+        clang-tidy \
+        cmake \
+        curl \
+        gdb \
+        git \
+        glslc \
+        libvulkan-dev \
+        libx11-dev \
+        ninja-build \
+        pkg-config \
+        python3 \
+        valgrind \
+        vulkan-tools \
+        zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" \
+    && "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+
+WORKDIR /workspace
+
+COPY vcpkg.json ./
+RUN "$VCPKG_ROOT/vcpkg" install --triplet x64-linux
+
+COPY . .
+
+CMD ["bash"]

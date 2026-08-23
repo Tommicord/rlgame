@@ -8,6 +8,9 @@ file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
 file(GLOB         MAIN_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/*.c)
 file(GLOB         MAIN_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/*.h)
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
+if (UNIX AND NOT APPLE)
+  list(FILTER MAIN_SOURCES EXCLUDE REGEX "main_window\\.c$")
+endif()
 
 # CSTL library
 add_library(rlgame.base.cstl SHARED ${CSTL_SOURCES} ${CSTL_HEADERS})
@@ -78,17 +81,20 @@ if (APPLE)
 endif()
 
 # Main executable
-set(MAIN_SOURCE src/rlgame.base/main.c)
-if(NOT WIN32)
-  add_executable(rlgame ${MAIN_SOURCES} ${MAIN_HEADERS})
-else()
-  add_executable(rlgame WIN32 ${MAIN_SOURCE})
+option(RLGAME_BUILD_APP "Build the rlgame executable" ON)
+if(RLGAME_BUILD_APP)
+  set(MAIN_SOURCE src/rlgame.base/main.c)
+  if(NOT WIN32)
+    add_executable(rlgame ${MAIN_SOURCE} ${MAIN_SOURCES} ${MAIN_HEADERS})
+  else()
+    add_executable(rlgame WIN32 ${MAIN_SOURCE})
+  endif()
+
+  link_base_libraries(rlgame)
 endif()
 
-link_base_libraries(rlgame)
-
 # Platform-specific linking for main executable
-if (UNIX AND NOT APPLE)
+if (RLGAME_BUILD_APP AND UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
   target_link_libraries(rlgame PRIVATE X11::X11 dl)
   if(WAYLAND_FOUND)
@@ -96,27 +102,29 @@ if (UNIX AND NOT APPLE)
     target_include_directories(rlgame PRIVATE ${WAYLAND_INCLUDE_DIRS})
     target_compile_options(rlgame PRIVATE ${WAYLAND_CFLAGS_OTHER})
   endif()
-elseif (APPLE)
+elseif (RLGAME_BUILD_APP AND APPLE)
   find_library(COCOA_LIBRARY Cocoa)
   find_library(APPLICATIONSERVICES_LIBRARY ApplicationServices)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   target_link_libraries(rlgame PRIVATE ${COCOA_LIBRARY} ${APPLICATIONSERVICES_LIBRARY} ${FOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY})
-elseif (ANDROID)
+elseif (RLGAME_BUILD_APP AND ANDROID)
   target_link_libraries(rlgame PRIVATE android log)
-elseif (IOS)
+elseif (RLGAME_BUILD_APP AND IOS)
   target_link_libraries(rlgame PRIVATE "-framework UIKit" "-framework Foundation" "-framework CoreFoundation")
 endif ()
 
 # Debug configuration for main executable
-target_compile_definitions(
-  rlgame
-  PRIVATE
-  ${EXTERN_IMPL}
-)
+if(RLGAME_BUILD_APP)
+  target_compile_definitions(
+    rlgame
+    PRIVATE
+    ${EXTERN_IMPL}
+  )
 
-target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
-if (NOT MSVC)
-  target_compile_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address;-fno-omit-frame-pointer>)
-  target_link_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+  target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
+  if (NOT MSVC)
+    target_compile_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address;-fno-omit-frame-pointer>)
+    target_link_options(rlgame PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+  endif()
 endif()

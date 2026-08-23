@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            preset: linux-debug
+            ctest-config: ''
+          - name: Windows
+            os: windows-latest
+            preset: x64-debug
+            ctest-config: '-C Debug'
+          - name: macOS
+            os: macos-latest
+            preset: macos-debug
+            ctest-config: ''
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libvulkan-dev \
+            libx11-dev \
+            glslc \
+            ninja-build \
+            pkg-config
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install ninja
+
+      - name: Set up vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgJsonGlob: '${{ github.workspace }}/vcpkg.json'
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        shell: bash
+        run: ctest --test-dir build/${{ matrix.preset }} ${{ matrix.ctest-config }} --output-on-failure

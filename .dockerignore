@@ -1,0 +1,11 @@
+.git
+.github
+build
+build*/
+.cache
+.ccache
+.vcpkg
+vcpkg
+cmake-build-*
+out
+*.log

@@ -5,8 +5,6 @@ find_package(Vulkan REQUIRED COMPONENTS glslc)
 find_package(OpenCL CONFIG QUIET)
 if(OpenCL_FOUND)
   message(STATUS "OpenCL found - GPU parallel computing enabled")
-  message(STATUS "  OpenCL include dirs: ${OpenCL_INCLUDE_DIRS}")
-  message(STATUS "  OpenCL libraries: ${OpenCL_LIBRARIES}")
   add_compile_definitions(R_CVULKAN_DEFRAG_OPENCL_ENABLED)
 else()
   message(STATUS "OpenCL not found - GPU parallel computing support limited to CUDA")
@@ -23,6 +21,7 @@ if(CUDA_FOUND)
   enable_language(CUDA)
 else()
   message(STATUS "CUDA not found - NVIDIA GPU parallel computing support disabled")
+  set(CVULKAN_CUDA_SOURCES)
 endif()
 
 # RenderDoc (optional)
@@ -52,5 +51,10 @@ FetchContent_MakeAvailable(googlebenchmark)
 # Google Test
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(deps/gtest)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.14.0
+)
+FetchContent_MakeAvailable(googletest)
 include(GoogleTest)

@@ -1,0 +1,48 @@
+FROM ubuntu:24.04 AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV VCPKG_ROOT=/opt/vcpkg
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        build-essential \
+        ca-certificates \
+        cmake \
+        curl \
+        git \
+        glslc \
+        libvulkan-dev \
+        libx11-dev \
+        ninja-build \
+        pkg-config \
+        zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" \
+    && "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+
+WORKDIR /src
+COPY vcpkg.json ./
+RUN "$VCPKG_ROOT/vcpkg" install --triplet x64-linux
+COPY . .
+
+RUN cmake -S . -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+    && cmake --build build --parallel
+
+FROM ubuntu:24.04 AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LD_LIBRARY_PATH=/opt/rlgame
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        libvulkan1 \
+        libx11-6 \
+        libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/rlgame
+COPY --from=build /src/build/Release/ ./
+
+ENTRYPOINT ["/opt/rlgame/rlgame"]
