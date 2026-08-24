@@ -23,9 +23,8 @@ static const uint32_t g_validationLayerCount = 0;
 static const char*    g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_deviceExtensions);
 
-static enum R_CVulkanError R_CVulkan_BuildInstanceExtensions (
-    struct R_CSTL_Array** ppExtensions,
-    bool                  hasValidationFeatures);
+static enum R_CVulkanError
+R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures);
 
 static enum R_CVulkanError R_CVulkan_CheckExtensionAvailability (
     const char*      pExtensionName,
@@ -51,7 +50,7 @@ R_CVulkan_DebugCallback (
         (void)messageType;
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-                R_CSTL_LOG_WARN("[Vulkan Validation] %s", pCallbackData->pMessage);
+                R_CSTL_LOG_WARN ("[Vulkan Validation] %s", pCallbackData->pMessage);
         }
         return VK_FALSE;
 }
@@ -104,7 +103,7 @@ R_CVulkan_DestroyDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT d
 
         PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)
             vkGetInstanceProcAddr (instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (func )
+        if (func)
         {
                 func (instance, debugMessenger, NULL);
         }
@@ -225,7 +224,7 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
         {
                 const char* ext = NULL;
                 R_CSTL_ArrayTypedAt (pExtensions, const char*, i, &ext);
-                if (ext )
+                if (ext)
                 {
                         R_CSTL_LOG_DEBUG ("  - %s", ext);
                 }
@@ -263,9 +262,7 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
 }
 
 static enum R_CVulkanError
-R_CVulkan_BuildInstanceExtensions (
-    struct R_CSTL_Array** ppExtensions,
-    bool                  hasValidationFeatures)
+R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures)
 {
         R_CVULKAN_ASSERT (ppExtensions);
 
@@ -330,10 +327,8 @@ R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
     const struct R_CVulkan_InstanceCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (pCreateInfo );
-        R_CSTL_TRACE_SCOPE_CTX (
-            "app=%s",
-            R_CSTL_StringData (pCreateInfo->pApplicationName))
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CSTL_TRACE_SCOPE_CTX ("app=%s", R_CSTL_StringData (pCreateInfo->pApplicationName))
         R_CVULKAN_ASSERT (pInstance);
         R_CVULKAN_ASSERT (pCreateInfo);
 
@@ -354,8 +349,8 @@ R_CVulkan_NewInstance (
         if (!validationLayersSupported)
         {
                 R_CSTL_LOG_ERROR (
-                        "Validation layers not available. Install Vulkan SDK with "
-                        "validation layers.");
+                    "Validation layers not available. Install Vulkan SDK with "
+                    "validation layers.");
                 result = R_CVULKAN_ERROR_LAYER_NOT_FOUND;
                 goto cvulkan_cleanup;
         }
@@ -364,18 +359,18 @@ R_CVulkan_NewInstance (
         bool hasGpuAssisted = false;
 #if defined(R_CVULKAN_DEBUG)
         result = R_CVulkan_CheckExtensionAvailability (
-                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
-                VK_NULL_HANDLE,
-                &hasValidationFeatures);
+            VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
+            VK_NULL_HANDLE,
+            &hasValidationFeatures);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
         }
 
         result = R_CVulkan_CheckExtensionAvailability (
-                VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-                VK_NULL_HANDLE,
-                &hasGpuAssisted);
+            VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+            VK_NULL_HANDLE,
+            &hasGpuAssisted);
         if (result != R_CVULKAN_OK)
         {
                 goto cvulkan_cleanup;
@@ -488,9 +483,7 @@ R_CVulkan_NewInstance (
         result = R_CVulkan_SetupDebugMessenger (pInstance->handle, &pInstance->debugMessenger);
         if (result != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR (
-                        "Failed to setup debug messenger: %s",
-                        R_CVulkanErrorToString (result));
+                R_CSTL_LOG_ERROR ("Failed to setup debug messenger: %s", R_CVulkanErrorToString (result));
                 goto cvulkan_cleanup;
         }
 #endif
@@ -528,7 +521,7 @@ R_CVULKAN_API VkInstance
 R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pInstance );
+        R_CVULKAN_ASSERT (pInstance);
 #endif
         return pInstance->handle;
 }
@@ -537,7 +530,7 @@ R_CVULKAN_API int
 R_CVulkan_InstanceIsInitialized (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pInstance );
+        R_CVULKAN_ASSERT (pInstance);
         return pInstance->booted;
 #else
         (void)pInstance;

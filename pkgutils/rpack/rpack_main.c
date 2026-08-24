@@ -9,16 +9,16 @@
 #include <string.h>
 
 static void
-R_RPack_PrintHelp (const char* pProgramName)
+R_Pack_PrintHelp (const char* pProgramName)
 {
         printf ("Usage\n");
         printf ("  %s [options] -o OUTPUT.rpack INPUT1 [INPUT2 ...]\n\n", pProgramName);
-        
+
         printf ("Description\n");
         printf ("  RPACK is a texture packing tool that combines multiple images into a single\n");
         printf ("  atlas texture with optimized layout. It generates a RPACK file containing\n");
         printf ("  the atlas image and metadata for texture coordinates.\n\n");
-        
+
         printf ("Options\n");
         printf ("  -o, --output FILE           = Output RPACK file path (required).\n");
         printf ("  -w, --width SIZE            = Maximum atlas width in pixels (default: 4096).\n");
@@ -39,26 +39,25 @@ R_RPack_PrintHelp (const char* pProgramName)
         printf ("  --max-textures COUNT        = Maximum number of textures to pack (default: unlimited).\n");
         printf ("  --help                      = Print this help message and exit.\n");
         printf ("  --version                   = Print version information and exit.\n\n");
-        
+
         printf ("Examples\n");
         printf ("  %s -o textures.rpack texture1.png texture2.png\n", pProgramName);
         printf ("  %s -o atlas.rpack -w 2048 -h 2048 *.png\n", pProgramName);
         printf ("  %s -o output.rpack -c -t 0.05 image1.png image2.png\n", pProgramName);
         printf ("  %s -o output.rpack -j 4 --power-of-two --rotate *.png\n", pProgramName);
         printf ("  %s -o game_assets.rpack -v -p 2 -b 1 sprites/*.png\n\n", pProgramName);
-
 }
 
 static int
-R_RPack_ParseArguments (
-    int                          argc,
-    char**                       argv,
-    struct R_RPackEncoderConfig* pConfig,
-    char**                       ppOutputPath,
-    struct R_CSTL_Array**        ppInputPaths,
-    int*                         pEnableColors,
-    int*                         pVerbose,
-    int*                         pQuiet)
+R_Pack_ParseArguments (
+    int                         argc,
+    char**                      argv,
+    struct R_PackEncoderConfig* pConfig,
+    char**                      ppOutputPath,
+    struct R_CSTL_Array**       ppInputPaths,
+    int*                        pEnableColors,
+    int*                        pVerbose,
+    int*                        pQuiet)
 {
         *ppOutputPath = NULL;
         *ppInputPaths = R_CSTL_NewArray ();
@@ -87,7 +86,7 @@ R_RPack_ParseArguments (
         {
                 if (strcmp (argv[i], "--help") == 0 || strcmp (argv[i], "-h") == 0)
                 {
-                        R_RPack_PrintHelp (argv[0]);
+                        R_Pack_PrintHelp (argv[0]);
                         return 1;
                 }
                 else if (strcmp (argv[i], "-o") == 0 || strcmp (argv[i], "--output") == 0)
@@ -139,7 +138,9 @@ R_RPack_ParseArguments (
                 {
                         if (i + 1 >= argc)
                         {
-                                fprintf (stderr, "\033[1;31mError: --threshold requires an argument\033[0m\n");
+                                fprintf (
+                                    stderr,
+                                    "\033[1;31mError: --threshold requires an argument\033[0m\n");
                                 return -1;
                         }
                         if (pConfig)
@@ -201,7 +202,9 @@ R_RPack_ParseArguments (
                 {
                         if (i + 1 >= argc)
                         {
-                                fprintf (stderr, "\033[1;31mError: --alpha-threshold requires an argument\033[0m\n");
+                                fprintf (
+                                    stderr,
+                                    "\033[1;31mError: --alpha-threshold requires an argument\033[0m\n");
                                 return -1;
                         }
                         if (pConfig)
@@ -213,7 +216,9 @@ R_RPack_ParseArguments (
                 {
                         if (i + 1 >= argc)
                         {
-                                fprintf (stderr, "\033[1;31mError: --max-textures requires an argument\033[0m\n");
+                                fprintf (
+                                    stderr,
+                                    "\033[1;31mError: --max-textures requires an argument\033[0m\n");
                                 return -1;
                         }
                         if (pConfig)
@@ -234,7 +239,7 @@ R_RPack_ParseArguments (
                 else
                 {
                         size_t len = strlen (argv[i]) + 1;
-                        int result = R_CSTL_ArrayPushData (*ppInputPaths, (const uint8_t*)argv[i], len);
+                        int    result = R_CSTL_ArrayPushData (*ppInputPaths, (const uint8_t*)argv[i], len);
                         if (result != R_CSTL_OK)
                         {
                                 fprintf (stderr, "\033[1;31mError: Out of memory\033[0m\n");
@@ -256,25 +261,20 @@ R_RPack_ParseArguments (
 }
 
 static int
-R_RPack_LoadRawImage (
-    const char*                pPath,
-    struct R_RPackInputImage*   pImage,
-    uint8_t**                  ppPixelBuffer)
+R_Pack_LoadImgAsset (const char* pPath, struct R_PackInputImage* pImage, uint8_t** ppPixelBuffer)
 {
         (void)pPath;
         (void)pImage;
         (void)ppPixelBuffer;
 
-        fprintf (
-            stderr,
-            "\033[1;33mWarning: Image loading from file not yet implemented\033[0m\n");
+        fprintf (stderr, "\033[1;33mWarning: Image loading from file not yet implemented\033[0m\n");
         fprintf (stderr, "\033[1;33mThis is a placeholder for runtime validation\033[0m\n");
 
         return -1;
 }
 
 static int
-R_RPack_InitializeLogging (int enableColors)
+R_Pack_InitializeLogging (int enableColors)
 {
         if (R_CSTL_LogInit () != 0)
         {
@@ -288,10 +288,10 @@ R_RPack_InitializeLogging (int enableColors)
         return 0;
 }
 
-static struct R_RPackEncoder*
-R_RPack_CreateEncoder (const struct R_RPackEncoderConfig* pConfig)
+static struct R_PackEncoder*
+R_Pack_CreateEncoder (const struct R_PackEncoderConfig* pConfig)
 {
-        struct R_RPackEncoder* pEncoder = R_RPack_NewEncoder (pConfig);
+        struct R_PackEncoder* pEncoder = R_Pack_NewEncoder (pConfig);
         if (!pEncoder)
         {
                 R_CSTL_LOG_ERROR ("Failed to create encoder");
@@ -300,39 +300,34 @@ R_RPack_CreateEncoder (const struct R_RPackEncoderConfig* pConfig)
 }
 
 static uint32_t
-R_RPack_ProcessInputImages (
-    struct R_RPackEncoder* pEncoder,
-    const struct R_CSTL_Array* pInputPaths)
+R_Pack_EncodeInputImages (struct R_PackEncoder* pEncoder, const struct R_CSTL_Array* pInputPaths)
 {
         uint32_t successCount = 0;
-        size_t inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof(char*);
-        size_t offset = 0;
-        
+        size_t   inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof (char*);
+        size_t   offset = 0;
+
         for (size_t i = 0; i < inputCount; ++i)
         {
                 char* pPath = NULL;
                 R_CSTL_ArrayTypedAt (pInputPaths, char*, offset, &pPath);
                 offset += strlen (pPath) + 1;
-                
+
                 R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
 
-                uint8_t* pPixelBuffer = NULL;
-                struct R_RPackInputImage image = {0};
+                uint8_t*                pPixelBuffer = NULL;
+                struct R_PackInputImage image = {0};
 
-                int loadResult = R_RPack_LoadRawImage (pPath, &image, &pPixelBuffer);
+                int loadResult = R_Pack_LoadImgAsset (pPath, &image, &pPixelBuffer);
                 if (loadResult < 0)
                 {
                         R_CSTL_LOG_ERROR ("Failed to load image: %s", pPath);
                         continue;
                 }
 
-                enum R_RPackError err = R_RPack_EncoderAddImage (pEncoder, &image);
+                enum R_PackError err = R_Pack_EncoderAddImage (pEncoder, &image);
                 if (err != R_RPACK_OK)
                 {
-                        R_CSTL_LOG_ERROR (
-                            "Failed to add image '%s': %s",
-                            pPath,
-                            R_RPackErrorToString (err));
+                        R_CSTL_LOG_ERROR ("Failed to add image '%s': %s", pPath, R_PackErrorToString (err));
                         if (pPixelBuffer)
                         {
                                 R_CSTL_HeapFree (pPixelBuffer);
@@ -346,16 +341,14 @@ R_RPack_ProcessInputImages (
                         R_CSTL_HeapFree (pPixelBuffer);
                 }
         }
-        
+
         return successCount;
 }
 
 static int
-R_RPack_EncodeAndWrite (
-    struct R_RPackEncoder* pEncoder,
-    const char* pOutputPath)
+R_Pack_EncodeAndWrite (struct R_PackEncoder* pEncoder, const char* pOutputPath)
 {
-        uint64_t requiredSize = R_RPack_EncoderGetRequiredSize (pEncoder);
+        uint64_t requiredSize = R_Pack_EncoderGetRequiredSize (pEncoder);
         R_CSTL_LOG_INFO ("Required output size: %llu bytes", (unsigned long long)requiredSize);
 
         uint8_t* pOutputBuffer = (uint8_t*)R_CSTL_HeapAlloc (requiredSize);
@@ -365,12 +358,12 @@ R_RPack_EncodeAndWrite (
                 return -1;
         }
 
-        uint64_t bytesWritten = 0;
-        enum R_RPackError encodeErr =
-            R_RPack_EncoderEncode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
+        uint64_t         bytesWritten = 0;
+        enum R_PackError encodeErr
+            = R_Pack_EncoderEncode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
         if (encodeErr != R_RPACK_OK)
         {
-                R_CSTL_LOG_ERROR ("Encoding failed: %s", R_RPackErrorToString (encodeErr));
+                R_CSTL_LOG_ERROR ("Encoding failed: %s", R_PackErrorToString (encodeErr));
                 R_CSTL_HeapFree (pOutputBuffer);
                 return -1;
         }
@@ -392,20 +385,21 @@ R_RPack_EncodeAndWrite (
                 R_CSTL_HeapFree (pOutputBuffer);
                 return -1;
         }
-        
-        R_CSTL_LOG_INFO ("Successfully wrote %llu bytes to %s", (unsigned long long)bytesWritten, pOutputPath);
+
+        R_CSTL_LOG_INFO (
+            "Successfully wrote %llu bytes to %s",
+            (unsigned long long)bytesWritten,
+            pOutputPath);
         R_CSTL_HeapFree (pOutputBuffer);
         return 0;
 }
 
 static void
-R_RPack_CleanupResources (
-    struct R_RPackEncoder* pEncoder,
-    struct R_CSTL_Array* pInputPaths)
+R_Pack_CleanupResources (struct R_PackEncoder* pEncoder, struct R_CSTL_Array* pInputPaths)
 {
         if (pEncoder)
         {
-                R_RPack_DeleteEncoder (pEncoder);
+                R_Pack_DeleteEncoder (pEncoder);
         }
         if (pInputPaths)
         {
@@ -417,25 +411,30 @@ R_RPack_CleanupResources (
 int
 main (int argc, char** argv)
 {
-        if (argc == 1) {
-                R_RPack_PrintHelp (argv[0]);
+        if (argc == 1)
+        {
+                R_Pack_PrintHelp (argv[0]);
                 return EXIT_SUCCESS;
         }
-        
-        struct R_RPackEncoderConfig config = {0};
-        char*                       pOutputPath = NULL;
-        struct R_CSTL_Array*        pInputPaths = NULL;
-        int                         enableColors = 0;
-        struct R_RPackEncoder*      pEncoder = NULL;
-        int                         result = EXIT_FAILURE;
 
-        int parseResult = R_RPack_ParseArguments (
+        struct R_PackEncoderConfig config = {0};
+        char*                      pOutputPath = NULL;
+        struct R_CSTL_Array*       pInputPaths = NULL;
+        int                        enableColors = 0;
+        struct R_PackEncoder*      pEncoder = NULL;
+        int                        verbose = 0;
+        int                        quiet = 0;
+        int                        result = EXIT_FAILURE;
+
+        int parseResult = R_Pack_ParseArguments (
             argc,
             argv,
             &config,
             &pOutputPath,
             &pInputPaths,
-            &enableColors);
+            &enableColors,
+            &verbose,
+            &quiet);
         if (parseResult == 1)
         {
                 return EXIT_SUCCESS;
@@ -444,27 +443,27 @@ main (int argc, char** argv)
         {
                 return EXIT_FAILURE;
         }
-        if (R_RPack_InitializeLogging (enableColors) != 0)
+        if (R_Pack_InitializeLogging (enableColors) != 0)
         {
                 return EXIT_FAILURE;
         }
         R_CSTL_LOG_INFO ("RPACK: Packing assets");
 
-        pEncoder = R_RPack_CreateEncoder (&config);
+        pEncoder = R_Pack_CreateEncoder (&config);
         if (!pEncoder)
         {
                 goto r_cleanup_logging;
         }
-        uint32_t successCount = R_RPack_ProcessInputImages (pEncoder, pInputPaths);
+        uint32_t successCount = R_Pack_EncodeInputImages (pEncoder, pInputPaths);
         if (successCount == 0)
         {
                 R_CSTL_LOG_ERROR ("No images were successfully processed");
                 goto r_cleanup_encoder;
         }
-        size_t inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof(char*);
+        size_t inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof (char*);
         R_CSTL_LOG_INFO ("Successfully processed %u/%zu images", successCount, inputCount);
 
-        if (R_RPack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
+        if (R_Pack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
         {
                 goto r_cleanup_encoder;
         }
@@ -473,7 +472,7 @@ main (int argc, char** argv)
 r_cleanup_encoder:
         if (pEncoder)
         {
-                R_RPack_DeleteEncoder (pEncoder);
+                R_Pack_DeleteEncoder (pEncoder);
         }
 
 r_cleanup_logging:

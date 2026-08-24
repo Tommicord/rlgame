@@ -183,7 +183,7 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
         if (!pBytecode) return NULL;
 
 #if defined(R_LOG)
-        R_CSTL_ASSERT (pBytecode );
+        R_CSTL_ASSERT (pBytecode);
 #endif
 
         pBytecode->pCode = pCode;
@@ -833,7 +833,7 @@ R_CSTL_BytecodeFunctionContainsSymbol (
                             sizeof (symbolBuffer));
                         if (result == R_CSTL_OK)
                         {
-                                if (strstr (symbolBuffer, pSymbolName) )
+                                if (strstr (symbolBuffer, pSymbolName))
                                 {
                                         found = 1;
                                         break;
@@ -937,7 +937,7 @@ R_CSTL_API const uint8_t*
 R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
-        R_CSTL_ASSERT(pBytecode)
+        R_CSTL_ASSERT (pBytecode)
 #endif
         return pBytecode->pCode;
 }
@@ -946,7 +946,7 @@ R_CSTL_API size_t
 R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
-        R_CSTL_ASSERT(pBytecode)
+        R_CSTL_ASSERT (pBytecode)
 #endif
         return pBytecode->size;
 }
@@ -955,7 +955,7 @@ R_CSTL_API enum R_CSTL_BytecodeArchitecture
 R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
-        R_CSTL_ASSERT(pBytecode)
+        R_CSTL_ASSERT (pBytecode)
 #endif
         return pBytecode->architecture;
 }

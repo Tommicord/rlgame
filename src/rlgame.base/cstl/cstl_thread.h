@@ -250,8 +250,8 @@ R_CSTL_API int R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition);
  */
 struct R_CSTL_MutexLockGuard
 {
-        struct R_CSTL_Mutex* pMutex;
-        int                    locked;
+                struct R_CSTL_Mutex* pMutex;
+                int                  locked;
 };
 
 /**

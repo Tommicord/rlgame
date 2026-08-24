@@ -105,8 +105,8 @@ R_GAME_API int      R_GameRenderer_SubsystemResume (struct R_GameRendererSubsyst
 R_GAME_API uint32_t R_GameRenderer_SubsystemGetState (struct R_GameRendererSubsystem* pSubsystem);
 
 R_GAME_API int R_GameRenderer_SetPipelineContext (
-    struct R_GameRendererSubsystem*       pSubsystem,
-    struct R_Game_PipelineContext* pPipelineContext);
+    struct R_GameRendererSubsystem* pSubsystem,
+    struct R_Game_PipelineContext*  pPipelineContext);
 
 R_GAME_API int R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem);
 R_GAME_API int R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem);
@@ -120,7 +120,8 @@ R_GAME_API int R_GameRenderer_AddLayer (
     uint32_t                        flags,
     void*                           pUserData);
 R_GAME_API int R_GameRenderer_RemoveLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex);
-R_GAME_API int R_GameRenderer_SetLayerEnabled (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex, int enabled);
+R_GAME_API int
+R_GameRenderer_SetLayerEnabled (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex, int enabled);
 R_GAME_API struct R_GameRendererLayer*
                R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex);
 R_GAME_API int R_GameRenderer_SortLayers (struct R_GameRendererSubsystem* pSubsystem);

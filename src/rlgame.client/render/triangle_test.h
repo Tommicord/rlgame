@@ -13,11 +13,11 @@
  */
 struct R_TriangleTest_Context
 {
-        struct R_Game_PipelineContext pipelineContext;
-        struct R_CVulkan_PipelineLayout*     pipelineLayout;
-        struct R_CVulkan_Pipeline*           graphicsPipeline;
-        struct R_GameRendererSubsystem*      pRendererSubsystem;
-        uint32_t                             layerIndex;
+                struct R_Game_PipelineContext    pipelineContext;
+                struct R_CVulkan_PipelineLayout* pipelineLayout;
+                struct R_CVulkan_Pipeline*       graphicsPipeline;
+                struct R_GameRendererSubsystem*  pRendererSubsystem;
+                uint32_t                         layerIndex;
 };
 
 /**
@@ -37,8 +37,8 @@ R_RENDER_API enum R_GameError R_TriangleTestInitialize (
  * @return R_GAME_OK on success, error code otherwise
  */
 R_RENDER_API enum R_GameError R_TriangleTestRegisterWithRenderer (
-    struct R_TriangleTest_Context*      pContext,
-    struct R_GameRendererSubsystem*     pSubsystem);
+    struct R_TriangleTest_Context*  pContext,
+    struct R_GameRendererSubsystem* pSubsystem);
 
 /**
  * @brief Render a frame
@@ -59,10 +59,8 @@ R_RENDER_API void R_TriangleTestCleanup (struct R_TriangleTest_Context* pContext
  * @param pResource Pointer to resource (command buffer)
  * @param resourceSize Size of resource
  */
-R_RENDER_API void R_TriangleTestRenderCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize);
+R_RENDER_API void
+R_TriangleTestRenderCallback (void* pUserData, const void* pResource, const size_t resourceSize);
 
 /**
  * @brief Callback for beginning the render pass
@@ -70,10 +68,8 @@ R_RENDER_API void R_TriangleTestRenderCallback (
  * @param pResource Pointer to resource (command buffer)
  * @param resourceSize Size of resource
  */
-R_RENDER_API void R_TriangleTestBeforePassCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize);
+R_RENDER_API void
+R_TriangleTestBeforePassCallback (void* pUserData, const void* pResource, const size_t resourceSize);
 
 /**
  * @brief Callback for ending the render pass
@@ -81,7 +77,5 @@ R_RENDER_API void R_TriangleTestBeforePassCallback (
  * @param pResource Pointer to resource (command buffer)
  * @param resourceSize Size of resource
  */
-R_RENDER_API void R_TriangleTestAfterPassCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize);
+R_RENDER_API void
+R_TriangleTestAfterPassCallback (void* pUserData, const void* pResource, const size_t resourceSize);

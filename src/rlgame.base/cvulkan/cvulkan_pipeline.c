@@ -22,7 +22,9 @@ R_CVulkan_NewPipelineLayout (
                 R_CSTL_LOG_ERROR ("R_CVulkan_NewPipelineLayout: NULL pointer detected");
                 R_CSTL_LOG_ERROR ("  pLayout: %p", (void*)pLayout);
                 R_CSTL_LOG_ERROR ("  pCreateInfo: %p", (void*)pCreateInfo);
-                R_CSTL_LOG_ERROR ("  pCreateInfo->pDevice: %p", (void*)(pCreateInfo ? pCreateInfo->pDevice : NULL));
+                R_CSTL_LOG_ERROR (
+                    "  pCreateInfo->pDevice: %p",
+                    (void*)(pCreateInfo ? pCreateInfo->pDevice : NULL));
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 
@@ -35,11 +37,12 @@ R_CVulkan_NewPipelineLayout (
 
         VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-        
+
 #if defined(R_CVULKAN_DEBUG)
         if (logicalDevice == VK_NULL_HANDLE)
         {
-                R_CSTL_LOG_ERROR ("R_CVulkan_NewPipelineLayout: Failed to get logical device from device wrapper");
+                R_CSTL_LOG_ERROR (
+                    "R_CVulkan_NewPipelineLayout: Failed to get logical device from device wrapper");
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
@@ -128,7 +131,7 @@ R_CVulkan_NewGraphicsPipeline (
 #endif
         VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-        
+
 #if defined(R_CVULKAN_DEBUG)
         if (logicalDevice == VK_NULL_HANDLE)
         {
@@ -203,7 +206,9 @@ R_CVulkan_NewDynamicGraphicsPipeline (
                 R_CSTL_LOG_ERROR ("R_CVulkan_NewDynamicGraphicsPipeline: NULL pointer detected");
                 R_CSTL_LOG_ERROR ("  - pPipeline: %p", (void*)pPipeline);
                 R_CSTL_LOG_ERROR ("  - pCreateInfo: %p", (void*)pCreateInfo);
-                R_CSTL_LOG_ERROR ("  - pCreateInfo->pDevice: %p", (void*)(pCreateInfo ? pCreateInfo->pDevice : NULL));
+                R_CSTL_LOG_ERROR (
+                    "  - pCreateInfo->pDevice: %p",
+                    (void*)(pCreateInfo ? pCreateInfo->pDevice : NULL));
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
         if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE)
@@ -231,39 +236,44 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         }
         if (!R_CVulkan_DeviceIsDynamicRenderingSupported (pCreateInfo->pDevice))
         {
-                R_CSTL_LOG_WARN ("R_CVulkan_NewDynamicGraphicsPipeline: Dynamic rendering not supported by device");
+                R_CSTL_LOG_WARN (
+                    "R_CVulkan_NewDynamicGraphicsPipeline: Dynamic rendering not supported by device");
                 R_CSTL_LOG_WARN ("  Falling back to traditional render pass approach using DYR support");
-                
+
                 struct R_CVulkan_DYRRenderPass dyrRenderPass;
                 memset (&dyrRenderPass, 0, sizeof (dyrRenderPass));
-                
+
                 struct R_CVulkan_DYRRenderPassCreateInfo dyrCreateInfo = {0};
                 dyrCreateInfo.pDevice = pCreateInfo->pDevice;
                 dyrCreateInfo.colorAttachmentCount = pCreateInfo->colorAttachmentCount;
                 dyrCreateInfo.pColorAttachmentFormats = pCreateInfo->pColorAttachmentFormats;
                 dyrCreateInfo.depthAttachmentFormat = pCreateInfo->depthAttachmentFormat;
                 dyrCreateInfo.stencilAttachmentFormat = pCreateInfo->stencilAttachmentFormat;
-                
-                enum R_CVulkanError dyrResult = R_CVulkan_DYRCreateRenderPass (&dyrRenderPass, &dyrCreateInfo);
+
+                enum R_CVulkanError dyrResult
+                    = R_CVulkan_DYRCreateRenderPass (&dyrRenderPass, &dyrCreateInfo);
                 if (dyrResult != R_CVULKAN_OK)
                 {
-                        R_CSTL_LOG_ERROR ("R_CVulkan_NewDynamicGraphicsPipeline: Failed to create fallback render pass: %d", dyrResult);
+                        R_CSTL_LOG_ERROR (
+                            "R_CVulkan_NewDynamicGraphicsPipeline: Failed to create fallback render pass: %d",
+                            dyrResult);
                         return dyrResult;
                 }
-                
+
                 struct R_CVulkan_GraphicsPipelineCreateInfo fallbackCreateInfo = *pCreateInfo;
                 fallbackCreateInfo.pRenderPass = R_CVulkan_DYRRenderPassGetHandle (&dyrRenderPass);
-                
-                enum R_CVulkanError pipelineResult = R_CVulkan_NewGraphicsPipeline (pPipeline, &fallbackCreateInfo);
-                
+
+                enum R_CVulkanError pipelineResult
+                    = R_CVulkan_NewGraphicsPipeline (pPipeline, &fallbackCreateInfo);
+
                 R_CVulkan_DYRDeleteRenderPass (&dyrRenderPass);
-                
+
                 return pipelineResult;
         }
 #endif
         VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-        
+
 #if defined(R_CVULKAN_DEBUG)
         if (logicalDevice == VK_NULL_HANDLE)
         {
@@ -355,7 +365,7 @@ R_CVulkan_NewComputePipeline (
 #endif
         VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pDevice);
         R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-        
+
 #if defined(R_CVULKAN_DEBUG)
         if (logicalDevice == VK_NULL_HANDLE)
         {
@@ -395,7 +405,7 @@ R_CVulkan_NewComputePipeline (
 }
 
 void
-R_CVulkan_DeletePipeline(struct R_CVulkan_Pipeline* pPipeline)
+R_CVulkan_DeletePipeline (struct R_CVulkan_Pipeline* pPipeline)
 {
         R_CVULKAN_ASSERT (pPipeline);
 
@@ -421,7 +431,7 @@ VkPipelineLayout
 R_CVulkan_PipelineLayoutGetHandle (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout );
+        R_CVULKAN_ASSERT (pLayout);
 #endif
         return pLayout->handle;
 }
@@ -430,7 +440,7 @@ VkDevice
 R_CVulkan_PipelineLayoutGetDevice (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pLayout );
+        R_CVULKAN_ASSERT (pLayout);
 #endif
         return pLayout->device;
 }
@@ -450,7 +460,7 @@ VkPipeline
 R_CVulkan_PipelineGetHandle (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPipeline );
+        R_CVULKAN_ASSERT (pPipeline);
 #endif
         return pPipeline->handle;
 }
@@ -459,7 +469,7 @@ VkDevice
 R_CVulkan_PipelineGetDevice (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pPipeline );
+        R_CVULKAN_ASSERT (pPipeline);
 #endif
         return pPipeline->device;
 }

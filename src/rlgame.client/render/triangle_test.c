@@ -60,24 +60,37 @@ R_TriangleTestInitialize (
         memset (&vertexShader, 0, sizeof (vertexShader));
         memset (&fragmentShader, 0, sizeof (fragmentShader));
 
-        enum R_CVulkanError vertResult = R_CVulkan_NewShaderModule (&vertexShader, pDevice, testTriangleVert_data, testTriangleVert_size);
+        enum R_CVulkanError vertResult = R_CVulkan_NewShaderModule (
+            &vertexShader,
+            pDevice,
+            testTriangleVert_data,
+            testTriangleVert_size);
         if (vertResult != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to create vertex shader module: %d", vertResult);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_Initialize: Failed to create vertex shader module: %d",
+                    vertResult);
                 R_Game_PipelineContextDelete (&pContext->pipelineContext);
                 return R_GAME_ERROR_INITIALIZATION_FAILED;
         }
 
-        enum R_CVulkanError fragResult = R_CVulkan_NewShaderModule (&fragmentShader, pDevice, testTriangleFrag_data, testTriangleFrag_size);
+        enum R_CVulkanError fragResult = R_CVulkan_NewShaderModule (
+            &fragmentShader,
+            pDevice,
+            testTriangleFrag_data,
+            testTriangleFrag_size);
         if (fragResult != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to create fragment shader module: %d", fragResult);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_Initialize: Failed to create fragment shader module: %d",
+                    fragResult);
                 R_CVulkan_DeleteShaderModule (&vertexShader);
                 R_Game_PipelineContextDelete (&pContext->pipelineContext);
                 return R_GAME_ERROR_INITIALIZATION_FAILED;
         }
 
-        pContext->pipelineLayout = (struct R_CVulkan_PipelineLayout*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_PipelineLayout));
+        pContext->pipelineLayout
+            = (struct R_CVulkan_PipelineLayout*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_PipelineLayout));
         if (!pContext->pipelineLayout)
         {
                 R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to allocate pipeline layout");
@@ -87,17 +100,26 @@ R_TriangleTestInitialize (
                 return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pContext->pipelineLayout, 0, sizeof (struct R_CVulkan_PipelineLayout));
-        R_CSTL_LOG_INFO ("TriangleTest_Initialize: pipelineLayout allocated at %p", (void*)pContext->pipelineLayout);
-        R_CSTL_HeapRegisterAllocation (pContext, pContext->pipelineLayout, sizeof (struct R_CVulkan_PipelineLayout), R_CSTL_HEAP_NAME (struct R_CVulkan_PipelineLayout));
+        R_CSTL_LOG_INFO (
+            "TriangleTest_Initialize: pipelineLayout allocated at %p",
+            (void*)pContext->pipelineLayout);
+        R_CSTL_HeapRegisterAllocation (
+            pContext,
+            pContext->pipelineLayout,
+            sizeof (struct R_CVulkan_PipelineLayout),
+            R_CSTL_HEAP_NAME (struct R_CVulkan_PipelineLayout));
 
         struct R_CVulkan_PipelineLayoutCreateInfo layoutCreateInfo = {0};
         layoutCreateInfo.pDevice = pDevice;
 
         R_CSTL_LOG_INFO ("TriangleTest_Initialize: Creating pipeline layout with device %p", (void*)pDevice);
-        enum R_CVulkanError layoutResult = R_CVulkan_NewPipelineLayout (pContext->pipelineLayout, &layoutCreateInfo);
+        enum R_CVulkanError layoutResult
+            = R_CVulkan_NewPipelineLayout (pContext->pipelineLayout, &layoutCreateInfo);
         if (layoutResult != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to create pipeline layout: %d", layoutResult);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_Initialize: Failed to create pipeline layout: %d",
+                    layoutResult);
                 R_CSTL_HeapUnregisterAllocation (pContext, pContext->pipelineLayout);
                 R_CSTL_HeapFree (pContext->pipelineLayout);
                 pContext->pipelineLayout = NULL;
@@ -142,8 +164,8 @@ R_TriangleTestInitialize (
         multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {0};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
+                                              | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_FALSE;
 
         VkPipelineColorBlendStateCreateInfo colorBlending = {0};
@@ -180,7 +202,8 @@ R_TriangleTestInitialize (
         pipelineCreateInfo.depthAttachmentFormat = VK_FORMAT_UNDEFINED;
         pipelineCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
-        pContext->graphicsPipeline = (struct R_CVulkan_Pipeline*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_Pipeline));
+        pContext->graphicsPipeline
+            = (struct R_CVulkan_Pipeline*)R_CSTL_HeapAlloc (sizeof (struct R_CVulkan_Pipeline));
         if (!pContext->graphicsPipeline)
         {
                 R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to allocate graphics pipeline");
@@ -194,12 +217,19 @@ R_TriangleTestInitialize (
                 return R_GAME_ERROR_OUT_OF_MEMORY;
         }
         memset (pContext->graphicsPipeline, 0, sizeof (struct R_CVulkan_Pipeline));
-        R_CSTL_HeapRegisterAllocation (pContext, pContext->graphicsPipeline, sizeof (struct R_CVulkan_Pipeline), R_CSTL_HEAP_NAME (struct R_CVulkan_Pipeline));
+        R_CSTL_HeapRegisterAllocation (
+            pContext,
+            pContext->graphicsPipeline,
+            sizeof (struct R_CVulkan_Pipeline),
+            R_CSTL_HEAP_NAME (struct R_CVulkan_Pipeline));
 
-        enum R_CVulkanError pipelineResult = R_CVulkan_NewDynamicGraphicsPipeline (pContext->graphicsPipeline, &pipelineCreateInfo);
+        enum R_CVulkanError pipelineResult
+            = R_CVulkan_NewDynamicGraphicsPipeline (pContext->graphicsPipeline, &pipelineCreateInfo);
         if (pipelineResult != R_CVULKAN_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_Initialize: Failed to create graphics pipeline: %d", pipelineResult);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_Initialize: Failed to create graphics pipeline: %d",
+                    pipelineResult);
                 R_CSTL_HeapUnregisterAllocation (pContext, pContext->graphicsPipeline);
                 R_CSTL_HeapFree (pContext->graphicsPipeline);
                 pContext->graphicsPipeline = NULL;
@@ -222,8 +252,8 @@ R_TriangleTestInitialize (
 
 enum R_GameError
 R_TriangleTestRegisterWithRenderer (
-    struct R_TriangleTest_Context*      pContext,
-    struct R_GameRendererSubsystem*     pSubsystem)
+    struct R_TriangleTest_Context*  pContext,
+    struct R_GameRendererSubsystem* pSubsystem)
 {
         R_RENDER_ASSERT (pContext);
         R_RENDER_ASSERT (pSubsystem);
@@ -236,7 +266,12 @@ R_TriangleTestRegisterWithRenderer (
 
         pContext->pRendererSubsystem = pSubsystem;
 
-        enum R_GameError result = R_GameRenderer_AddLayer (pSubsystem, "TriangleTest", 0, R_GAME_RENDERER_LAYER_FLAG_ENABLED, pContext);
+        enum R_GameError result = R_GameRenderer_AddLayer (
+            pSubsystem,
+            "TriangleTest",
+            0,
+            R_GAME_RENDERER_LAYER_FLAG_ENABLED,
+            pContext);
         if (result != R_GAME_OK)
         {
                 R_CSTL_LOG_ERROR ("TriangleTest_RegisterWithRenderer: Failed to add layer: %d", result);
@@ -244,28 +279,43 @@ R_TriangleTestRegisterWithRenderer (
                 return result;
         }
 
-        result = R_GameRenderer_SetLayerRenderCallback (pSubsystem, pContext->layerIndex, R_TriangleTestRenderCallback);
+        result = R_GameRenderer_SetLayerRenderCallback (
+            pSubsystem,
+            pContext->layerIndex,
+            R_TriangleTestRenderCallback);
         if (result != R_GAME_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_RegisterWithRenderer: Failed to set render callback: %d", result);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_RegisterWithRenderer: Failed to set render callback: %d",
+                    result);
                 R_GameRenderer_RemoveLayer (pSubsystem, pContext->layerIndex);
                 pContext->pRendererSubsystem = NULL;
                 return result;
         }
 
-        result = R_GameRenderer_SetLayerBeforePassCallback (pSubsystem, pContext->layerIndex, R_TriangleTestBeforePassCallback);
+        result = R_GameRenderer_SetLayerBeforePassCallback (
+            pSubsystem,
+            pContext->layerIndex,
+            R_TriangleTestBeforePassCallback);
         if (result != R_GAME_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_RegisterWithRenderer: Failed to set before pass callback: %d", result);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_RegisterWithRenderer: Failed to set before pass callback: %d",
+                    result);
                 R_GameRenderer_RemoveLayer (pSubsystem, pContext->layerIndex);
                 pContext->pRendererSubsystem = NULL;
                 return result;
         }
 
-        result = R_GameRenderer_SetLayerAfterPassCallback (pSubsystem, pContext->layerIndex, R_TriangleTestAfterPassCallback);
+        result = R_GameRenderer_SetLayerAfterPassCallback (
+            pSubsystem,
+            pContext->layerIndex,
+            R_TriangleTestAfterPassCallback);
         if (result != R_GAME_OK)
         {
-                R_CSTL_LOG_ERROR ("TriangleTest_RegisterWithRenderer: Failed to set after pass callback: %d", result);
+                R_CSTL_LOG_ERROR (
+                    "TriangleTest_RegisterWithRenderer: Failed to set after pass callback: %d",
+                    result);
                 R_GameRenderer_RemoveLayer (pSubsystem, pContext->layerIndex);
                 pContext->pRendererSubsystem = NULL;
                 return result;
@@ -324,10 +374,7 @@ R_TriangleTestRenderFrame (struct R_TriangleTest_Context* pContext)
 }
 
 R_RENDER_API void
-R_TriangleTestBeforePassCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize)
+R_TriangleTestBeforePassCallback (void* pUserData, const void* pResource, const size_t resourceSize)
 {
         R_CSTL_LOG_INFO ("TriangleTestBeforePassCallback: Called");
         R_RENDER_ASSERT (pUserData);
@@ -338,12 +385,12 @@ R_TriangleTestBeforePassCallback (
                 R_CSTL_LOG_ERROR ("TriangleTestBeforePassCallback: Invalid parameters");
                 return;
         }
-        struct R_TriangleTest_Context* pContext = (struct R_TriangleTest_Context*)pUserData;
+        struct R_TriangleTest_Context*  pContext = (struct R_TriangleTest_Context*)pUserData;
         struct R_CVulkan_CommandBuffer* pCommandBuffer = (struct R_CVulkan_CommandBuffer*)pResource;
 
         struct R_Game_PipelineContext* pPipelineContext = &pContext->pipelineContext;
-        uint32_t currentFrameIndex = pContext->pipelineContext.currentFrameIndex;
-        
+        uint32_t                       currentFrameIndex = pContext->pipelineContext.currentFrameIndex;
+
         VkClearValue clearValue = {0};
         clearValue.color.float32[0] = 0.0f;
         clearValue.color.float32[1] = 0.0f;
@@ -357,7 +404,8 @@ R_TriangleTestBeforePassCallback (
 
         struct R_CVulkan_RenderPassBeginInfo renderPassInfo = {0};
         renderPassInfo.renderPass = R_CVulkan_RenderPassGetHandle (&pPipelineContext->renderPass);
-        renderPassInfo.framebuffer = R_CVulkan_FramebufferGetHandle (&pPipelineContext->pFramebuffers[currentFrameIndex]);
+        renderPassInfo.framebuffer
+            = R_CVulkan_FramebufferGetHandle (&pPipelineContext->pFramebuffers[currentFrameIndex]);
         renderPassInfo.pRenderArea = &renderArea;
         renderPassInfo.contents = VK_SUBPASS_CONTENTS_INLINE;
         renderPassInfo.clearValueCount = 1;
@@ -375,10 +423,7 @@ R_TriangleTestBeforePassCallback (
 }
 
 R_RENDER_API void
-R_TriangleTestRenderCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize)
+R_TriangleTestRenderCallback (void* pUserData, const void* pResource, const size_t resourceSize)
 {
         R_CSTL_LOG_INFO ("TriangleTestRenderCallback: Called");
         R_RENDER_ASSERT (pUserData);
@@ -390,7 +435,7 @@ R_TriangleTestRenderCallback (
                 return;
         }
 
-        struct R_TriangleTest_Context* pContext = (struct R_TriangleTest_Context*)pUserData;
+        struct R_TriangleTest_Context*  pContext = (struct R_TriangleTest_Context*)pUserData;
         struct R_CVulkan_CommandBuffer* pCommandBuffer = (struct R_CVulkan_CommandBuffer*)pResource;
 
         if (!pContext->graphicsPipeline)
@@ -409,19 +454,20 @@ R_TriangleTestRenderCallback (
         scissor.extent.width = 800;
         scissor.extent.height = 600;
 
-        R_CSTL_LOG_DEBUG ("TriangleTestRenderCallback: Setting viewport and scissor, binding pipeline, drawing");
+        R_CSTL_LOG_DEBUG (
+            "TriangleTestRenderCallback: Setting viewport and scissor, binding pipeline, drawing");
         R_CVulkan_CommandBufferSetViewport (pCommandBuffer, 0, 1, &viewport);
         R_CVulkan_CommandBufferSetScissor (pCommandBuffer, 0, 1, &scissor);
-        R_CVulkan_CommandBufferBindPipeline (pCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, R_CVulkan_PipelineGetHandle (pContext->graphicsPipeline));
+        R_CVulkan_CommandBufferBindPipeline (
+            pCommandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            R_CVulkan_PipelineGetHandle (pContext->graphicsPipeline));
         R_CVulkan_CommandBufferDraw (pCommandBuffer, 3, 1, 0, 0);
         R_CSTL_LOG_DEBUG ("TriangleTestRenderCallback: Draw command issued");
 }
 
 R_RENDER_API void
-R_TriangleTestAfterPassCallback (
-    void*        pUserData,
-    const void*  pResource,
-    const size_t resourceSize)
+R_TriangleTestAfterPassCallback (void* pUserData, const void* pResource, const size_t resourceSize)
 {
         R_CSTL_LOG_INFO ("TriangleTestAfterPassCallback: Called");
         R_RENDER_ASSERT (pUserData);

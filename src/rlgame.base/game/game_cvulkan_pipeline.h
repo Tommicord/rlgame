@@ -154,8 +154,7 @@ R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pCo
  * @param pContext Pointer to the pipeline context
  * @return Pointer to the device
  */
-R_GAME_API struct R_CVulkan_Device*
-R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
+R_GAME_API struct R_CVulkan_Device* R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Check if the context is initialized
@@ -163,8 +162,7 @@ R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
  * @param pContext Pointer to the pipeline context
  * @return 1 if initialized, 0 otherwise
  */
-R_GAME_API int
-R_Game_PipelineContextIsInitialized (const struct R_Game_PipelineContext* pContext);
+R_GAME_API int R_Game_PipelineContextIsInitialized (const struct R_Game_PipelineContext* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
 R_Game_PipelineContextGetImageAvailableSemaphore (struct R_Game_PipelineContext* pContext);
@@ -175,5 +173,4 @@ R_Game_PipelineContextGetRenderFinishedSemaphore (struct R_Game_PipelineContext*
 R_GAME_API struct R_CVulkan_Fence*
 R_Game_PipelineContextGetInFlightFence (struct R_Game_PipelineContext* pContext);
 
-R_GAME_API uint32_t*
-R_Game_PipelineContextGetCurrentFrameIndex (struct R_Game_PipelineContext* pContext);
+R_GAME_API uint32_t* R_Game_PipelineContextGetCurrentFrameIndex (struct R_Game_PipelineContext* pContext);

@@ -3,7 +3,8 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 
-extern "C" {
+extern "C"
+{
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 }
 

@@ -103,7 +103,7 @@ static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
     const size_t* pArgSizes,
     uint32_t      argCount,
     size_t        globalWorkSize);
-static enum R_CVulkanError R_CVulkan_DefragCreateProgram(
+static enum R_CVulkanError R_CVulkan_DefragCreateProgram (
     cl_context   context,
     cl_device_id device,
     const void*  pBinaryData,
@@ -820,7 +820,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         const void* pBinaryData = (const void*)cvulkanDefragmentation_data;
         size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-        result = R_CVulkan_DefragCreateProgram(
+        result = R_CVulkan_DefragCreateProgram (
             context,
             device,
             pBinaryData,
@@ -1219,7 +1219,7 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
         const char* pBinaryData = (const void*)cvulkanDefragmentation_data;
         size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-        result = R_CVulkan_DefragCreateProgram(
+        result = R_CVulkan_DefragCreateProgram (
             context,
             device,
             pBinaryData,
@@ -1451,7 +1451,7 @@ R_CVulkan_DefragOpenCLExecuteKernel (
                 goto r_cleanup;
         }
 
-        result = R_CVulkan_DefragCreateProgram(
+        result = R_CVulkan_DefragCreateProgram (
             context,
             device,
             pBinaryData,
@@ -1536,7 +1536,7 @@ r_cleanup:
 
 #ifdef R_OPENCL
 static enum R_CVulkanError
-R_CVulkan_DefragCreateProgram(
+R_CVulkan_DefragCreateProgram (
     cl_context   context,
     cl_device_id device,
     const void*  pBinaryData,

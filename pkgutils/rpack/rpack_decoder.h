@@ -9,14 +9,14 @@
 /**
  * @brief Decoder state
  */
-struct R_RPackDecoder
+struct R_PackDecoder
 {
-        struct R_RPackHeader*       pHeader;
-        struct R_RPackHashEntry*    pHashTable;
-        struct R_RPackColorEntry*   pColorTable;
-        struct R_RPackPixelIndexEntry* pPixelIndexTable;
-        const uint8_t*              pData;
-        uint64_t                    dataSize;
+                struct R_PackHeader*          pHeader;
+                struct R_PackHashEntry*       pHashTable;
+                struct R_PackColorEntry*      pColorTable;
+                struct R_PackPixelIndexEntry* pPixelIndexTable;
+                const uint8_t*                pData;
+                uint64_t                      dataSize;
 };
 
 /**
@@ -25,13 +25,13 @@ struct R_RPackDecoder
  * @param dataSize Size of file data
  * @return Decoder instance or NULL on failure
  */
-R_RPACK_API struct R_RPackDecoder* R_RPack_NewDecoder (const uint8_t* pData, uint64_t dataSize);
+R_RPACK_API struct R_PackDecoder* R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize);
 
 /**
  * @brief Destroy decoder instance
  * @param decoder Decoder instance to destroy
  */
-R_RPACK_API void R_RPack_DeleteDecoder (struct R_RPackDecoder* pDecoder);
+R_RPACK_API void R_Pack_DeleteDecoder (struct R_PackDecoder* pDecoder);
 
 /**
  * @brief Find texture by name
@@ -39,9 +39,8 @@ R_RPACK_API void R_RPack_DeleteDecoder (struct R_RPackDecoder* pDecoder);
  * @param name Texture name
  * @return Hash entry or NULL if not found
  */
-R_RPACK_API const struct R_RPackHashEntry* R_RPack_DecoderFindTexture (
-    const struct R_RPackDecoder* pDecoder,
-    const char*                  pName);
+R_RPACK_API const struct R_PackHashEntry*
+R_Pack_DecoderFindTexture (const struct R_PackDecoder* pDecoder, const char* pName);
 
 /**
  * @brief Decode texture to RGBA buffer
@@ -52,12 +51,12 @@ R_RPACK_API const struct R_RPackHashEntry* R_RPack_DecoderFindTexture (
  * @param bytesWritten Number of bytes written
  * @return R_RPACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_RPackError R_RPack_DecoderDecodeTexture (
-    const struct R_RPackDecoder* pDecoder,
-    const char*                  pName,
-    uint8_t*                     pOutputBuffer,
-    uint64_t                     outputBufferSize,
-    uint64_t*                    pBytesWritten);
+R_RPACK_API enum R_PackError R_Pack_DecoderDecodeTexture (
+    const struct R_PackDecoder* pDecoder,
+    const char*                 pName,
+    uint8_t*                    pOutputBuffer,
+    uint64_t                    outputBufferSize,
+    uint64_t*                   pBytesWritten);
 
 /**
  * @brief Decode multiple textures to RGBA buffer
@@ -69,13 +68,13 @@ R_RPACK_API enum R_RPackError R_RPack_DecoderDecodeTexture (
  * @param bytesWritten Number of bytes written
  * @return R_RPACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_RPackError R_RPack_DecoderDecodeTextures (
-    const struct R_RPackDecoder* pDecoder,
-    const char**                 pNames,
-    uint32_t                     nameCount,
-    uint8_t*                     pOutputBuffer,
-    uint64_t                     outputBufferSize,
-    uint64_t*                    pBytesWritten);
+R_RPACK_API enum R_PackError R_Pack_DecoderDecodeTextures (
+    const struct R_PackDecoder* pDecoder,
+    const char**                pNames,
+    uint32_t                    nameCount,
+    uint8_t*                    pOutputBuffer,
+    uint64_t                    outputBufferSize,
+    uint64_t*                   pBytesWritten);
 
 /**
  * @brief Get required buffer size for decoding texture
@@ -83,9 +82,7 @@ R_RPACK_API enum R_RPackError R_RPack_DecoderDecodeTextures (
  * @param name Texture name
  * @return Required buffer size in bytes (width * height * 4)
  */
-R_RPACK_API uint64_t R_RPack_DecoderGetTextureSize (
-    const struct R_RPackDecoder* pDecoder,
-    const char*                  pName);
+R_RPACK_API uint64_t R_Pack_DecoderGetTextureSize (const struct R_PackDecoder* pDecoder, const char* pName);
 
 /**
  * @brief Get required buffer size for decoding multiple textures
@@ -94,10 +91,8 @@ R_RPACK_API uint64_t R_RPack_DecoderGetTextureSize (
  * @param nameCount Number of texture names
  * @return Required buffer size in bytes
  */
-R_RPACK_API uint64_t R_RPack_DecoderGetTexturesSize (
-    const struct R_RPackDecoder* pDecoder,
-    const char**                 pNames,
-    uint32_t                     nameCount);
+R_RPACK_API uint64_t
+R_Pack_DecoderGetTexturesSize (const struct R_PackDecoder* pDecoder, const char** pNames, uint32_t nameCount);
 
 /**
  * @brief Get texture dimensions
@@ -107,18 +102,18 @@ R_RPACK_API uint64_t R_RPack_DecoderGetTexturesSize (
  * @param height Output height
  * @return R_RPACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_RPackError R_RPack_DecoderGetTextureDimensions (
-    const struct R_RPackDecoder* pDecoder,
-    const char*                  pName,
-    uint32_t*                    pWidth,
-    uint32_t*                    pHeight);
+R_RPACK_API enum R_PackError R_Pack_DecoderGetTextureDimensions (
+    const struct R_PackDecoder* pDecoder,
+    const char*                 pName,
+    uint32_t*                   pWidth,
+    uint32_t*                   pHeight);
 
 /**
  * @brief Get number of textures in RPACK file
  * @param decoder Decoder instance
  * @return Number of textures
  */
-R_RPACK_API uint32_t R_RPack_DecoderGetTextureCount (const struct R_RPackDecoder* pDecoder);
+R_RPACK_API uint32_t R_Pack_DecoderGetTextureCount (const struct R_PackDecoder* pDecoder);
 
 /**
  * @brief Validate RPACK file data
@@ -126,4 +121,4 @@ R_RPACK_API uint32_t R_RPack_DecoderGetTextureCount (const struct R_RPackDecoder
  * @param dataSize Size of file data
  * @return 1 if valid, 0 otherwise
  */
-R_RPACK_API int R_RPack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize);
+R_RPACK_API int R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize);

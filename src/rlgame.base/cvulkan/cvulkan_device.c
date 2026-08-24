@@ -53,7 +53,9 @@ R_CVulkan_CheckExtensionAvailability (
             = (VkExtensionProperties*)R_CSTL_HeapAlloc (extensionCount * sizeof (VkExtensionProperties));
         if (extensions == NULL)
         {
-                R_CSTL_LOG_ERROR ("R_CVulkan_CheckExtensionAvailability: Failed to allocate memory for extension properties");
+                R_CSTL_LOG_ERROR (
+                    "R_CVulkan_CheckExtensionAvailability: Failed to allocate memory for extension "
+                    "properties");
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 
@@ -65,14 +67,18 @@ R_CVulkan_CheckExtensionAvailability (
                 if (strcmp (extensions[i].extensionName, pExtensionName) == 0)
                 {
                         *pIsAvailable = true;
-                        R_CSTL_LOG_DEBUG ("R_CVulkan_CheckExtensionAvailability: Found extension '%s'", pExtensionName);
+                        R_CSTL_LOG_DEBUG (
+                            "R_CVulkan_CheckExtensionAvailability: Found extension '%s'",
+                            pExtensionName);
                         break;
                 }
         }
         bool available = *pIsAvailable;
         if (!available)
         {
-                R_CSTL_LOG_WARN ("R_CVulkan_CheckExtensionAvailability: Extension '%s' not available", pExtensionName);
+                R_CSTL_LOG_WARN (
+                    "R_CVulkan_CheckExtensionAvailability: Extension '%s' not available",
+                    pExtensionName);
         }
 
         R_CSTL_HeapFree (extensions);
@@ -129,7 +135,7 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
         {
                 const char* ext = NULL;
                 R_CSTL_ArrayTypedAt (pExtensions, const char*, i, &ext);
-                if (ext )
+                if (ext)
                 {
                         R_CSTL_LOG_DEBUG ("  - %s", ext);
                 }
@@ -335,7 +341,7 @@ R_CVulkan_CreateLogicalDevice (struct R_CVulkan_Device* pDevice, VkSurfaceKHR su
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (pCreateInfo );
+        R_CVULKAN_ASSERT (pCreateInfo);
 
         R_CSTL_TRACE_SCOPE_CTX ("instance=%p surface=%p", pCreateInfo->pInstance, pCreateInfo->pSurface);
 
@@ -373,7 +379,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
 
 #if !defined(R_CVULKAN_HEADLESS)
         VkSurfaceKHR surface = VK_NULL_HANDLE;
-        if (pCreateInfo->pSurface )
+        if (pCreateInfo->pSurface)
         {
                 surface = R_CVulkan_SurfaceGetHandle (pCreateInfo->pSurface);
                 if (surface == VK_NULL_HANDLE)
@@ -485,7 +491,7 @@ R_CVULKAN_API const struct R_CVulkan_Instance*
 R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return pDevice->pInstance;
 }
@@ -494,7 +500,7 @@ R_CVULKAN_API VkPhysicalDevice
 R_CVulkan_DeviceGetPhysicalDevice (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return pDevice->physicalDevice;
 }
@@ -503,7 +509,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_DeviceGetLogicalDevice (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return pDevice->logicalDevice;
 }
@@ -512,7 +518,7 @@ R_CVULKAN_API struct R_CVulkan_Queue*
 R_CVulkan_DeviceGetGraphicsQueue (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return (struct R_CVulkan_Queue*)&pDevice->graphicsQueue;
 }
@@ -521,7 +527,7 @@ R_CVULKAN_API struct R_CVulkan_Queue*
 R_CVulkan_DeviceGetPresentQueue (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return (struct R_CVulkan_Queue*)&pDevice->presentQueue;
 }
@@ -530,7 +536,7 @@ R_CVULKAN_API VkSurfaceKHR
 R_CVulkan_DeviceGetSurface (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
 #endif
         return pDevice->surface;
 }
@@ -539,7 +545,7 @@ R_CVULKAN_API int
 R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
         return pDevice->booted;
 #else
         (void)pDevice;
@@ -637,7 +643,7 @@ R_CVULKAN_API int
 R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndices* pIndices)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pIndices );
+        R_CVULKAN_ASSERT (pIndices);
 #endif
         return pIndices->hasGraphicsFamily && pIndices->hasPresentFamily && pIndices->hasComputeFamily
                && pIndices->hasTransferFamily;
@@ -647,7 +653,7 @@ R_CVULKAN_API int
 R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pDevice);
         if (!pDevice)
         {
                 return 0;
@@ -675,9 +681,9 @@ R_CVulkan_DeviceQueryExtensionSupport (
     const char*                    pExtensionName,
     bool*                          pIsSupported)
 {
-        R_CVULKAN_ASSERT (pDevice );
-        R_CVULKAN_ASSERT (pExtensionName );
-        R_CVULKAN_ASSERT (pIsSupported );
+        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pExtensionName);
+        R_CVULKAN_ASSERT (pIsSupported);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pDevice || !pExtensionName || !pIsSupported)
@@ -740,8 +746,8 @@ R_CVulkan_DeviceQueryExtensionSupport (
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_DeviceQueryFeatureSupport (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure)
 {
-        R_CVULKAN_ASSERT (pDevice );
-        R_CVULKAN_ASSERT (pFeatureStructure );
+        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pFeatureStructure);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pDevice || !pFeatureStructure)

@@ -11,8 +11,8 @@
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Device* pDevice, bool signaled)
 {
-        R_CVULKAN_ASSERT (pFence );
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pFence);
+        R_CVULKAN_ASSERT (pDevice);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!R_CVulkan_DeviceIsInitialized (pDevice))
@@ -46,7 +46,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
 R_CVULKAN_API void
 R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence)
 {
-        R_CVULKAN_ASSERT (pFence );
+        R_CVULKAN_ASSERT (pFence);
 
         vkDestroyFence (pFence->device, pFence->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
@@ -63,8 +63,8 @@ R_CVulkan_FenceWait (
     int                            waitAll,
     uint64_t                       timeout)
 {
-        R_CVULKAN_ASSERT (pDevice );
-        R_CVULKAN_ASSERT (pFences );
+        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pFences);
         R_CVULKAN_ASSERT (fenceCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
@@ -105,7 +105,7 @@ R_CVulkan_FenceWait (
             nativeFences,
             waitAll ? VK_TRUE : VK_FALSE,
             timeout);
-        R_CSTL_HeapFree(nativeFences);
+        R_CSTL_HeapFree (nativeFences);
 
         if (result == VK_SUCCESS)
         {
@@ -127,8 +127,8 @@ R_CVulkan_FenceReset (
     const struct R_CVulkan_Fence*  pFences,
     uint32_t                       fenceCount)
 {
-        R_CVULKAN_ASSERT (pDevice );
-        R_CVULKAN_ASSERT (pFences );
+        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pFences);
         R_CVULKAN_ASSERT (fenceCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
@@ -184,9 +184,9 @@ R_CVulkan_FenceGetStatus (
     const struct R_CVulkan_Fence*  pFence,
     bool*                          pOutSignaled)
 {
-        R_CVULKAN_ASSERT (pDevice );
-        R_CVULKAN_ASSERT (pFence );
-        R_CVULKAN_ASSERT (pOutSignaled );
+        R_CVULKAN_ASSERT (pDevice);
+        R_CVULKAN_ASSERT (pFence);
+        R_CVULKAN_ASSERT (pOutSignaled);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pDevice || !pFence || !pOutSignaled)
@@ -228,7 +228,7 @@ R_CVULKAN_API VkFence
 R_CVulkan_FenceGetHandle (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pFence );
+        R_CVULKAN_ASSERT (pFence);
 #endif
         return pFence->handle;
 }
@@ -237,7 +237,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_FenceGetDevice (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pFence );
+        R_CVULKAN_ASSERT (pFence);
 #endif
         return pFence->device;
 }
@@ -246,7 +246,7 @@ R_CVULKAN_API int
 R_CVulkan_FenceIsInitialized (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pFence );
+        R_CVULKAN_ASSERT (pFence);
         return pFence->booted;
 #else
         (void)pFence;

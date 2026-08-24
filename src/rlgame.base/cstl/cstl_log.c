@@ -576,7 +576,7 @@ R_CSTL_LogColorsSupported (void)
 {
 #if defined(_WIN32)
         HANDLE hConsole = GetStdHandle (STD_OUTPUT_HANDLE);
-        DWORD mode = 0;
+        DWORD  mode = 0;
         if (GetConsoleMode (hConsole, &mode))
         {
                 mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
@@ -596,19 +596,19 @@ R_CSTL_LogGetColorCode (enum R_CSTL_LogLevel level)
 {
         switch (level)
         {
-                case R_CSTL_LOG_LEVEL_TRACE:
-                        return "\033[36m";
-                case R_CSTL_LOG_LEVEL_DEBUG:
-                        return "\033[37m";
-                case R_CSTL_LOG_LEVEL_INFO:
-                        return "\033[32m";
-                case R_CSTL_LOG_LEVEL_WARN:
-                        return "\033[33m";
-                case R_CSTL_LOG_LEVEL_ERROR:
-                case R_CSTL_LOG_LEVEL_FATAL:
-                        return "\033[31";
-                default:
-                        return "\033[0m";
+        case R_CSTL_LOG_LEVEL_TRACE:
+                return "\033[36m";
+        case R_CSTL_LOG_LEVEL_DEBUG:
+                return "\033[37m";
+        case R_CSTL_LOG_LEVEL_INFO:
+                return "\033[32m";
+        case R_CSTL_LOG_LEVEL_WARN:
+                return "\033[33m";
+        case R_CSTL_LOG_LEVEL_ERROR:
+        case R_CSTL_LOG_LEVEL_FATAL:
+                return "\033[31";
+        default:
+                return "\033[0m";
         }
 }
 
@@ -619,17 +619,17 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
         if (!entry || !entry->message) return;
 #endif
         const char* level = R_CSTL_LogLevelName (entry->level);
-        
+
         uint32_t flags = R_CSTL_LogGetFlags ();
-        int colorsEnabled = (flags & R_CSTL_LOG_FLAG_ENABLE_COLORS) && R_CSTL_LogColorsSupported ();
-        int disableTags = flags & R_CSTL_LOG_FLAG_DISABLE_TAGS;
-        
+        int      colorsEnabled = (flags & R_CSTL_LOG_FLAG_ENABLE_COLORS) && R_CSTL_LogColorsSupported ();
+        int      disableTags = flags & R_CSTL_LOG_FLAG_DISABLE_TAGS;
+
         if (colorsEnabled)
         {
                 const char* colorCode = R_CSTL_LogGetColorCode (entry->level);
                 fprintf (stderr, "%s", colorCode);
         }
-        
+
         if (disableTags)
         {
                 fprintf (stderr, "%s", entry->message);
@@ -644,18 +644,18 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
                     level,
                     entry->message);
         }
-        
+
         if (entry->message[0] != 0x00)
         {
                 size_t len = strlen (entry->message);
                 if (entry->message[len - 1] != '\n') fputc ('\n', stderr);
         }
-        
+
         if (colorsEnabled)
         {
                 fprintf (stderr, "\033[0m");
         }
-        
+
         if (entry->backtrace) fputs (entry->backtrace, stderr);
         fflush (stderr);
 

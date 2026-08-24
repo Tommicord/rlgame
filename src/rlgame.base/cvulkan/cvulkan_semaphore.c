@@ -9,8 +9,8 @@ R_CVulkan_NewSemaphore (
     int                            timelineSemaphore,
     uint64_t                       initialValue)
 {
-        R_CVULKAN_ASSERT (pSemaphore );
-        R_CVULKAN_ASSERT (pDevice );
+        R_CVULKAN_ASSERT (pSemaphore);
+        R_CVULKAN_ASSERT (pDevice);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pSemaphore || !pDevice)
@@ -56,7 +56,7 @@ R_CVulkan_NewSemaphore (
 R_CVULKAN_API void
 R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore)
 {
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
 
 #if defined(R_CVULKAN_DEBUG)
         if (!pSemaphore)
@@ -78,7 +78,7 @@ R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemaphore)
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value)
 {
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
         R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore)
@@ -110,7 +110,7 @@ R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t valu
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value, uint64_t timeout)
 {
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
         R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore)
@@ -144,8 +144,8 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue)
 {
-        R_CVULKAN_ASSERT (pSemaphore );
-        R_CVULKAN_ASSERT (pOutValue );
+        R_CVULKAN_ASSERT (pSemaphore);
+        R_CVULKAN_ASSERT (pOutValue);
         R_CVULKAN_ASSERT (pSemaphore->booted);
 
         if (!pSemaphore || !pOutValue)
@@ -173,7 +173,7 @@ R_CVULKAN_API VkSemaphore
 R_CVulkan_SemaphoreGetHandle (const struct R_CVulkan_Semaphore* pSemaphore)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
 #endif
         return pSemaphore->handle;
 }
@@ -182,7 +182,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_SemaphoreGetDevice (const struct R_CVulkan_Semaphore* pSemaphore)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
 #endif
         return pSemaphore->device;
 }
@@ -191,7 +191,7 @@ R_CVULKAN_API int
 R_CVulkan_SemaphoreIsInitialized (const struct R_CVulkan_Semaphore* pSemaphore)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pSemaphore );
+        R_CVULKAN_ASSERT (pSemaphore);
         return pSemaphore->booted;
 #else
         (void)pSemaphore;

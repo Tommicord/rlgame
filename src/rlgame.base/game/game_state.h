@@ -28,7 +28,7 @@
 struct R_GameState
 {
                 struct R_Game_PipelineContext context; /**< Vulkan rendering pipeline context */
-                struct R_GameRendererManager*        pRendererManager; /**< Multi-renderer manager */
+                struct R_GameRendererManager* pRendererManager; /**< Multi-renderer manager */
                 R_GAME_DEBUG_FIELD
 };
 

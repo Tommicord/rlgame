@@ -213,7 +213,7 @@ R_CVULKAN_API VkImage
 R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->handle;
 }
@@ -222,7 +222,7 @@ R_CVULKAN_API VkDeviceMemory
 R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->memory;
 }
@@ -231,7 +231,7 @@ R_CVULKAN_API VkDevice
 R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->device;
 }
@@ -240,7 +240,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->width;
 }
@@ -249,7 +249,7 @@ R_CVULKAN_API uint32_t
 R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->height;
 }
@@ -258,7 +258,7 @@ R_CVULKAN_API VkFormat
 R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->format;
 }
@@ -267,7 +267,7 @@ R_CVULKAN_API VkImageLayout
 R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
 #endif
         return pImage->currentLayout;
 }
@@ -276,7 +276,7 @@ R_CVULKAN_API int
 R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pImage );
+        R_CVULKAN_ASSERT (pImage);
         return pImage->booted;
 #else
         (void)pImage;

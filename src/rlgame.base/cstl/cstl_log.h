@@ -18,7 +18,7 @@ enum R_CSTL_LogLevel
 };
 
 #define R_CSTL_LOG_FLAG_ENABLE_COLORS 0x01
-#define R_CSTL_LOG_FLAG_DISABLE_TAGS 0x02
+#define R_CSTL_LOG_FLAG_DISABLE_TAGS  0x02
 #define R_CSTL_LOG_FLAG_PRIVATE_TRACE 0x04
 
 // Requires R_CSTL_HeapInit() before calling. Returns 0 on success.
@@ -39,7 +39,7 @@ R_CSTL_API uint64_t R_CSTL_LogGetDroppedCount (void);
 R_CSTL_API const char* R_CSTL_LogLevelName (enum R_CSTL_LogLevel level);
 
 // Configure log flags
-R_CSTL_API void R_CSTL_LogSetFlags (uint32_t flags);
+R_CSTL_API void     R_CSTL_LogSetFlags (uint32_t flags);
 R_CSTL_API uint32_t R_CSTL_LogGetFlags (void);
 
 R_CSTL_API void R_CSTL_LogWrite (enum R_CSTL_LogLevel level, const char* fmt, ...);

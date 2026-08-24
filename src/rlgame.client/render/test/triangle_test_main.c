@@ -20,11 +20,11 @@ WindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
         switch (uMsg)
         {
-                case WM_DESTROY:
-                        PostQuitMessage (0);
-                        return 0;
-                default:
-                        return DefWindowProc (hWnd, uMsg, wParam, lParam);
+        case WM_DESTROY:
+                PostQuitMessage (0);
+                return 0;
+        default:
+                return DefWindowProc (hWnd, uMsg, wParam, lParam);
         }
 }
 #endif
@@ -97,7 +97,7 @@ main (int argc, char** argv)
                 return 1;
         }
 
-        int screen = DefaultScreen (pDisplay);
+        int    screen = DefaultScreen (pDisplay);
         Window root = RootWindow (pDisplay, screen);
 
         XSetWindowAttributes swa = {0};
@@ -214,8 +214,8 @@ main (int argc, char** argv)
                 R_CSTL_HeapShutdown ();
                 return 1;
         }
-        bool running = true;
-        int frameCount = 0;
+        bool      running = true;
+        int       frameCount = 0;
         const int maxFrames = 1000; // Run for 100 frames then exit
 
         while (running && frameCount < maxFrames)

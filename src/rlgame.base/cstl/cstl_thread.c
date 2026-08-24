@@ -25,8 +25,8 @@
 
 struct R_CSTL_Thread
 {
-        HANDLE handle;
-        DWORD  threadId;
+                HANDLE handle;
+                DWORD  threadId;
 };
 
 typedef DWORD (WINAPI* Win32ThreadFunc) (LPVOID lpParam);
@@ -36,8 +36,8 @@ Win32ThreadEntry (LPVOID lpParam)
 {
         struct
         {
-                R_CSTL_ThreadFunc pFunc;
-                void*             pData;
+                        R_CSTL_ThreadFunc pFunc;
+                        void*             pData;
         }* pParams = lpParam;
 
         R_CSTL_ThreadFunc pFunc = pParams->pFunc;
@@ -60,8 +60,8 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 #endif
         struct
         {
-                R_CSTL_ThreadFunc pFunc;
-                void*             pData;
+                        R_CSTL_ThreadFunc pFunc;
+                        void*             pData;
         }* pParams = R_CSTL_HeapAlloc (sizeof (*pParams));
 
 #if R_CSTL_THREAD_DEBUG
@@ -81,8 +81,11 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
                 R_CSTL_HeapFree (pParams);
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pThread, pThread, sizeof (struct R_CSTL_Thread),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Thread));
+        R_CSTL_HeapRegisterAllocation (
+            pThread,
+            pThread,
+            sizeof (struct R_CSTL_Thread),
+            R_CSTL_HEAP_NAME (R_CSTL_Thread));
 #endif
 
         pThread->handle = CreateThread (NULL, 0, Win32ThreadEntry, pParams, 0, &pThread->threadId);
@@ -153,22 +156,22 @@ R_CSTL_ThreadSleep (uint32_t milliseconds)
 
 struct R_CSTL_Thread
 {
-        pthread_t thread;
-        int       joined;
+                pthread_t thread;
+                int       joined;
 };
 
 struct ThreadParams
 {
-        R_CSTL_ThreadFunc pFunc;
-        void*             pData;
+                R_CSTL_ThreadFunc pFunc;
+                void*             pData;
 };
 
 static void*
 PthreadThreadEntry (void* arg)
 {
         struct ThreadParams* pParams = arg;
-        R_CSTL_ThreadFunc    pFunc  = pParams->pFunc;
-        void*                pData  = pParams->pData;
+        R_CSTL_ThreadFunc    pFunc = pParams->pFunc;
+        void*                pData = pParams->pData;
 
         R_CSTL_HeapFree (pParams);
 
@@ -204,8 +207,11 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
                 R_CSTL_HeapFree (pParams);
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pThread, pThread, sizeof (struct R_CSTL_Thread),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Thread));
+        R_CSTL_HeapRegisterAllocation (
+            pThread,
+            pThread,
+            sizeof (struct R_CSTL_Thread),
+            R_CSTL_HEAP_NAME (R_CSTL_Thread));
 #endif
 
         pThread->joined = 0;
@@ -284,7 +290,7 @@ R_CSTL_ThreadSleep (uint32_t milliseconds)
 
 struct R_CSTL_Mutex
 {
-        CRITICAL_SECTION cs;
+                CRITICAL_SECTION cs;
 };
 
 struct R_CSTL_Mutex*
@@ -296,8 +302,11 @@ R_CSTL_NewMutex (void)
         {
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pMutex, pMutex, sizeof (struct R_CSTL_Mutex),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+        R_CSTL_HeapRegisterAllocation (
+            pMutex,
+            pMutex,
+            sizeof (struct R_CSTL_Mutex),
+            R_CSTL_HEAP_NAME (R_CSTL_Mutex));
 #endif
         InitializeCriticalSection (&pMutex->cs);
         return pMutex;
@@ -340,7 +349,7 @@ R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
         }
 #endif
         BOOL result = TryEnterCriticalSection (&pMutex->cs);
-        *pOutLocked  = result ? true : false;
+        *pOutLocked = result ? true : false;
         return R_CSTL_OK;
 }
 
@@ -361,7 +370,7 @@ R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 
 struct R_CSTL_Mutex
 {
-        pthread_mutex_t mutex;
+                pthread_mutex_t mutex;
 };
 
 struct R_CSTL_Mutex*
@@ -373,8 +382,11 @@ R_CSTL_NewMutex (void)
         {
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pMutex, pMutex, sizeof (struct R_CSTL_Mutex),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+        R_CSTL_HeapRegisterAllocation (
+            pMutex,
+            pMutex,
+            sizeof (struct R_CSTL_Mutex),
+            R_CSTL_HEAP_NAME (R_CSTL_Mutex));
 #endif
         int result = pthread_mutex_init (&pMutex->mutex, NULL);
 #if R_CSTL_THREAD_DEBUG
@@ -478,7 +490,7 @@ R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 
 struct R_CSTL_Condition
 {
-        CONDITION_VARIABLE cv;
+                CONDITION_VARIABLE cv;
 };
 
 struct R_CSTL_Condition*
@@ -490,8 +502,11 @@ R_CSTL_ConditionCreate (void)
         {
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pCondition, pCondition, sizeof (struct R_CSTL_Condition),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Condition));
+        R_CSTL_HeapRegisterAllocation (
+            pCondition,
+            pCondition,
+            sizeof (struct R_CSTL_Condition),
+            R_CSTL_HEAP_NAME (R_CSTL_Condition));
 #endif
         InitializeConditionVariable (&pCondition->cv);
         return pCondition;
@@ -563,7 +578,7 @@ R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
 
 struct R_CSTL_Condition
 {
-        pthread_cond_t cond;
+                pthread_cond_t cond;
 };
 
 struct R_CSTL_Condition*
@@ -575,8 +590,11 @@ R_CSTL_ConditionCreate (void)
         {
                 return NULL;
         }
-        R_CSTL_HeapRegisterAllocation (pCondition, pCondition, sizeof (struct R_CSTL_Condition),
-                                        R_CSTL_HEAP_NAME (R_CSTL_Condition));
+        R_CSTL_HeapRegisterAllocation (
+            pCondition,
+            pCondition,
+            sizeof (struct R_CSTL_Condition),
+            R_CSTL_HEAP_NAME (R_CSTL_Condition));
 #endif
         int result = pthread_cond_init (&pCondition->cond, NULL);
 #if R_CSTL_THREAD_DEBUG

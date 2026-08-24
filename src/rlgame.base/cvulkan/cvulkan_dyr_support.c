@@ -9,7 +9,7 @@
 
 enum R_CVulkanError
 R_CVulkan_DYRCreateRenderPass (
-    struct R_CVulkan_DYRRenderPass*                pDYRRenderPass,
+    struct R_CVulkan_DYRRenderPass*                 pDYRRenderPass,
     const struct R_CVulkan_DYRRenderPassCreateInfo* pCreateInfo)
 {
         R_CVULKAN_ASSERT (pDYRRenderPass);
@@ -50,29 +50,31 @@ R_CVulkan_DYRCreateRenderPass (
                 depthAttachmentIndex = pCreateInfo->colorAttachmentCount;
         }
 
-        if (pCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED 
+        if (pCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED
             && pCreateInfo->stencilAttachmentFormat != pCreateInfo->depthAttachmentFormat)
         {
                 totalAttachmentCount++;
                 stencilAttachmentIndex = totalAttachmentCount - 1;
         }
 
-        size_t attachmentsSize = sizeof (VkAttachmentDescription) * totalAttachmentCount;
+        size_t                   attachmentsSize = sizeof (VkAttachmentDescription) * totalAttachmentCount;
         VkAttachmentDescription* pAttachments = (VkAttachmentDescription*)R_CSTL_HeapAlloc (attachmentsSize);
         if (!pAttachments)
         {
-                R_CSTL_LOG_ERROR ("R_CVulkan_DYRCreateRenderPass: Failed to allocate attachment descriptions");
+                R_CSTL_LOG_ERROR (
+                    "R_CVulkan_DYRCreateRenderPass: Failed to allocate attachment descriptions");
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 #if defined(R_CVULKAN_DEBUG)
         memset (pAttachments, 0, sizeof (VkAttachmentDescription) * totalAttachmentCount);
 #endif
-        size_t colorAttachmentRefsSize = 
-            sizeof (VkAttachmentReference) * pCreateInfo->colorAttachmentCount;
-        VkAttachmentReference* pColorAttachmentRefs = (VkAttachmentReference*)R_CSTL_HeapAlloc (colorAttachmentRefsSize);
+        size_t colorAttachmentRefsSize = sizeof (VkAttachmentReference) * pCreateInfo->colorAttachmentCount;
+        VkAttachmentReference* pColorAttachmentRefs
+            = (VkAttachmentReference*)R_CSTL_HeapAlloc (colorAttachmentRefsSize);
         if (!pColorAttachmentRefs)
         {
-                R_CSTL_LOG_ERROR ("R_CVulkan_DYRCreateRenderPass: Failed to allocate color attachment references");
+                R_CSTL_LOG_ERROR (
+                    "R_CVulkan_DYRCreateRenderPass: Failed to allocate color attachment references");
                 error = R_CVULKAN_ERROR_OUT_OF_MEMORY;
                 goto r_cleanup_attachments;
         }
@@ -104,14 +106,15 @@ R_CVulkan_DYRCreateRenderPass (
                 pAttachments[depthAttachmentIndex].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 pAttachments[depthAttachmentIndex].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 pAttachments[depthAttachmentIndex].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                pAttachments[depthAttachmentIndex].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                pAttachments[depthAttachmentIndex].finalLayout
+                    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
                 depthAttachmentRef.attachment = depthAttachmentIndex;
                 depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         }
 
         VkAttachmentReference stencilAttachmentRef = {0};
-        if (pCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED 
+        if (pCreateInfo->stencilAttachmentFormat != VK_FORMAT_UNDEFINED
             && pCreateInfo->stencilAttachmentFormat != pCreateInfo->depthAttachmentFormat)
         {
                 pAttachments[stencilAttachmentIndex].format = pCreateInfo->stencilAttachmentFormat;
@@ -121,7 +124,8 @@ R_CVulkan_DYRCreateRenderPass (
                 pAttachments[stencilAttachmentIndex].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 pAttachments[stencilAttachmentIndex].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 pAttachments[stencilAttachmentIndex].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                pAttachments[stencilAttachmentIndex].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                pAttachments[stencilAttachmentIndex].finalLayout
+                    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
                 stencilAttachmentRef.attachment = stencilAttachmentIndex;
                 stencilAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -131,9 +135,8 @@ R_CVulkan_DYRCreateRenderPass (
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = pCreateInfo->colorAttachmentCount;
         subpass.pColorAttachments = pColorAttachmentRefs;
-        subpass.pDepthStencilAttachment = (pCreateInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED) 
-                ? &depthAttachmentRef 
-                : NULL;
+        subpass.pDepthStencilAttachment
+            = (pCreateInfo->depthAttachmentFormat != VK_FORMAT_UNDEFINED) ? &depthAttachmentRef : NULL;
 
         VkRenderPassCreateInfo renderPassInfo = {0};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -153,10 +156,12 @@ R_CVulkan_DYRCreateRenderPass (
         pDYRRenderPass->booted = true;
         R_CSTL_LOG_INFO ("R_CVulkan_DYRCreateRenderPass: Render pass created");
         R_CSTL_LOG_INFO ("  - Color attachments: %u", pCreateInfo->colorAttachmentCount);
-        R_CSTL_LOG_INFO ("  - Depth attachment: %s", 
-                R_CVulkan_FormatToString(pCreateInfo->depthAttachmentFormat));
-        R_CSTL_LOG_INFO ("  - Stencil attachment: %s", 
-                R_CVulkan_FormatToString(pCreateInfo->stencilAttachmentFormat));
+        R_CSTL_LOG_INFO (
+            "  - Depth attachment: %s",
+            R_CVulkan_FormatToString (pCreateInfo->depthAttachmentFormat));
+        R_CSTL_LOG_INFO (
+            "  - Stencil attachment: %s",
+            R_CVulkan_FormatToString (pCreateInfo->stencilAttachmentFormat));
 #endif
         error = R_CVULKAN_OK;
 r_cleanup:
@@ -208,4 +213,3 @@ R_CVulkan_DYRRenderPassIsInitialized (const struct R_CVulkan_DYRRenderPass* pDYR
         return 1;
 #endif
 }
-
