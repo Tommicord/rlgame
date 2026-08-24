@@ -39,7 +39,7 @@
 typedef CRITICAL_SECTION R_CSTL_HeapMutex;
 
 static void
-R_CSTL_HeapMutexInit (R_CSTL_HeapMutex* m)
+R_CSTL_HeapNewMutex (R_CSTL_HeapMutex* m)
 {
         if (m) InitializeCriticalSection (m);
 }
@@ -101,7 +101,7 @@ R_CSTL_PlatformHeapUnmap (void* pData, size_t mappedSize)
 typedef pthread_mutex_t R_CSTL_HeapMutex;
 
 static void
-R_CSTL_HeapMutexInit (R_CSTL_HeapMutex* m)
+R_CSTL_HeapNewMutex (R_CSTL_HeapMutex* m)
 {
         if (m) pthread_mutex_init (m, NULL);
 }
@@ -655,7 +655,7 @@ R_CSTL_HeapInit (size_t heap_size_bytes)
                 return -1;
         }
 
-        R_CSTL_HeapMutexInit (&g_heap.mutex);
+        R_CSTL_HeapNewMutex (&g_heap.mutex);
         R_CSTL_HeapMutexLock (&g_heap.mutex);
         R_CSTL_PushFreeLocked (g_heap.maxOrder, 0);
         R_CSTL_HeapMutexUnlock (&g_heap.mutex);

@@ -36,7 +36,6 @@
 #define R_CSTL_API_ATTR inline
 #endif
 
-// Branch prediction hints
 #if defined(_MSC_VER)
 #define R_CSTL_LIKELY(x)   (x)
 #define R_CSTL_UNLIKELY(x) (x)
@@ -58,7 +57,10 @@
 #define R_CSTL_RESTRICT
 #endif
 
-#define R_LOG R_DEVMODE
+#if defined(R_DEVMODE)
+#define R_LOG
+#define R_CSTL_DEBUG
+#endif
 
 enum R_CSTL_Error
 {
@@ -76,6 +78,16 @@ enum R_CSTL_Error
         R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED = -11,
         R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED = -12,
         R_CSTL_ERROR_SYMBOL_NOT_FOUND = -13,
+        R_CSTL_ERROR_THREAD_CREATE_FAILED = -14,
+        R_CSTL_ERROR_THREAD_JOIN_FAILED = -15,
+        R_CSTL_ERROR_MUTEX_INIT_FAILED = -16,
+        R_CSTL_ERROR_MUTEX_DESTROY_FAILED = -17,
+        R_CSTL_ERROR_MUTEX_LOCK_FAILED = -18,
+        R_CSTL_ERROR_MUTEX_UNLOCK_FAILED = -19,
+        R_CSTL_ERROR_CONDITION_INIT_FAILED = -20,
+        R_CSTL_ERROR_CONDITION_DESTROY_FAILED = -21,
+        R_CSTL_ERROR_CONDITION_WAIT_FAILED = -22,
+        R_CSTL_ERROR_CONDITION_SIGNAL_FAILED = -23,
         R_CSTL_ERROR_UNKNOWN = -99
 };
 

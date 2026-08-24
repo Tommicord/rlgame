@@ -1,25 +1,9 @@
 #include "rlgame.base/cstl/cstl_bytecode.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
+#include "rlgame.base/cstl/cstl_thread.h"
 
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
-
-#if defined(R_SIMD_SSE) || defined(R_SIMD_AVX2)
-#include <immintrin.h>
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-#define R_CSTL_MUTEX_WINDOWS
-#elif defined(__linux__)
-#define R_CSTL_MUTEX_PTHREAD
-#endif
-
-#ifdef R_CSTL_MUTEX_WINDOWS
-#include <windows.h>
-#elif defined(R_CSTL_MUTEX_PTHREAD)
-#include <pthread.h>
-#endif
 
 #define R_CSTL_X86_OPCODE_ESCAPE          0x0F
 #define R_CSTL_X86_OPCODE_THREEBYTE_38    0x38
@@ -35,19 +19,9 @@
 #define R_CSTL_X86_COND_JUMP_MAX          0x8F
 #define R_CSTL_X86_MAX_INSTRUCTION_LENGTH 15
 
-struct R_CSTL_Mutex
-{
-#ifdef R_CSTL_MUTEX_WINDOWS
-                CRITICAL_SECTION handle;
-#elif defined(R_CSTL_MUTEX_PTHREAD)
-                pthread_mutex_t handle;
+#if defined(R_SIMD_SSE) || defined(R_SIMD_AVX2)
+#include <immintrin.h>
 #endif
-};
-
-R_CSTL_API int  R_CSTL_MutexInit (struct R_CSTL_Mutex* pMutex);
-R_CSTL_API void R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex);
-R_CSTL_API void R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex);
-R_CSTL_API void R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex);
 
 static inline size_t
 R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
@@ -165,54 +139,6 @@ R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
         memcpy (dst, src, size);
 }
 
-R_CSTL_API int
-R_CSTL_MutexInit (struct R_CSTL_Mutex* pMutex)
-{
-        if (!pMutex) return R_CSTL_ERROR_INVALID_ARGUMENT;
-#if defined(_WIN32) || defined(_WIN64)
-        InitializeCriticalSection (&pMutex->handle);
-        return R_CSTL_OK;
-#elif defined(__linux__)
-        if (pthread_mutex_init (&pMutex->handle, NULL) != 0) return R_CSTL_ERROR_UNKNOWN;
-        return R_CSTL_OK;
-#else
-        return R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED;
-#endif
-}
-
-R_CSTL_API void
-R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
-{
-        if (!pMutex) return;
-#if defined(_WIN32) || defined(_WIN64)
-        EnterCriticalSection (&pMutex->handle);
-#elif defined(__linux__)
-        pthread_mutex_lock (&pMutex->handle);
-#endif
-}
-
-R_CSTL_API void
-R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
-{
-        if (!pMutex) return;
-#if defined(_WIN32) || defined(_WIN64)
-        LeaveCriticalSection (&pMutex->handle);
-#elif defined(__linux__)
-        pthread_mutex_unlock (&pMutex->handle);
-#endif
-}
-
-R_CSTL_API void
-R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
-{
-        if (!pMutex) return;
-#if defined(_WIN32) || defined(_WIN64)
-        DeleteCriticalSection (&pMutex->handle);
-#elif defined(__linux__)
-        pthread_mutex_destroy (&pMutex->handle);
-#endif
-}
-
 #if defined(R_LOG)
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
@@ -234,7 +160,7 @@ struct R_CSTL_Bytecode
                 uint8_t*                         pOwnedCode;
                 size_t                           size;
                 enum R_CSTL_BytecodeArchitecture architecture;
-                struct R_CSTL_Mutex              mutex;
+                struct R_CSTL_Mutex*             pMutex;
                 bool                             mutexInitialized;
 };
 
@@ -248,7 +174,7 @@ static struct R_CSTL_Bytecode*
 R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_BytecodeArchitecture architecture)
 {
 #if defined(R_LOG)
-        assert (R_CSTL_BytecodeArchitectureIsValid (architecture) || "Invalid architecture");
+        R_CSTL_ASSERT (R_CSTL_BytecodeArchitectureIsValid (architecture) || "Invalid architecture");
 #endif
 
         if ((!pCode && sizeBytes != 0) || !R_CSTL_BytecodeArchitectureIsValid (architecture)) return NULL;
@@ -257,20 +183,22 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
         if (!pBytecode) return NULL;
 
 #if defined(R_LOG)
-        assert (pBytecode );
+        R_CSTL_ASSERT (pBytecode );
 #endif
 
         pBytecode->pCode = pCode;
         pBytecode->pOwnedCode = NULL;
         pBytecode->size = sizeBytes;
         pBytecode->architecture = architecture;
+        pBytecode->pMutex = NULL;
         pBytecode->mutexInitialized = false;
 
-        if (R_CSTL_MutexInit (&pBytecode->mutex) == R_CSTL_OK) pBytecode->mutexInitialized = true;
+        pBytecode->pMutex = R_CSTL_NewMutex ();
+        if (pBytecode->pMutex) pBytecode->mutexInitialized = true;
 
 #if defined(R_LOG)
-        assert (pBytecode->pCode  || sizeBytes == 0);
-        assert (pBytecode->size == sizeBytes);
+        R_CSTL_ASSERT (pBytecode->pCode || sizeBytes == 0);
+        R_CSTL_ASSERT (pBytecode->size == sizeBytes);
 #endif
 
         return pBytecode;
@@ -315,7 +243,7 @@ R_CSTL_API void
 R_CSTL_DeleteBytecode (struct R_CSTL_Bytecode* pBytecode)
 {
         if (!pBytecode) return;
-        if (pBytecode->mutexInitialized) R_CSTL_MutexDestroy (&pBytecode->mutex);
+        if (pBytecode->mutexInitialized && pBytecode->pMutex) R_CSTL_MutexDestroy (pBytecode->pMutex);
         if (pBytecode->pOwnedCode) R_CSTL_HeapFree (pBytecode->pOwnedCode);
         R_CSTL_HeapFree (pBytecode);
 }
@@ -328,19 +256,19 @@ R_CSTL_BytecodeRead (
     size_t                        sizeBytes)
 {
 #if defined(R_LOG)
-        assert (pBytecode  || "Machine code pointer is null");
-        assert (pBytecode->pCode  || pBytecode->size == 0);
-        assert (offset <= pBytecode->size || "Offset exceeds code size");
-        assert (sizeBytes <= pBytecode->size - offset || "Read size exceeds available bytes");
+        R_CSTL_ASSERT (pBytecode);
+        R_CSTL_ASSERT (pBytecode->pCode || pBytecode->size == 0);
+        R_CSTL_ASSERT (offset <= pBytecode->size);
+        R_CSTL_ASSERT (sizeBytes <= pBytecode->size - offset);
 #endif
 
         if (!pBytecode || (!pOutBytes && sizeBytes != 0)) return R_CSTL_ERROR_INVALID_ARGUMENT;
         if (offset > pBytecode->size || sizeBytes > pBytecode->size - offset)
                 return R_CSTL_ERROR_BUFFER_TOO_SMALL;
 
-        R_CSTL_MutexLock ((struct R_CSTL_Mutex*)&pBytecode->mutex);
+        R_CSTL_MutexLock (pBytecode->pMutex);
         if (sizeBytes) memcpy (pOutBytes, pBytecode->pCode + offset, sizeBytes);
-        R_CSTL_MutexUnlock ((struct R_CSTL_Mutex*)&pBytecode->mutex);
+        R_CSTL_MutexUnlock (pBytecode->pMutex);
 
         return R_CSTL_OK;
 }
@@ -1008,17 +936,26 @@ R_CSTL_BytecodeTokenize (
 R_CSTL_API const uint8_t*
 R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode)
 {
-        return pBytecode ? pBytecode->pCode : NULL;
+#if defined(R_CSTL_DEBUG)
+        R_CSTL_ASSERT(pBytecode)
+#endif
+        return pBytecode->pCode;
 }
 
 R_CSTL_API size_t
 R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
 {
-        return pBytecode ? pBytecode->size : 0;
+#if defined(R_CSTL_DEBUG)
+        R_CSTL_ASSERT(pBytecode)
+#endif
+        return pBytecode->size;
 }
 
 R_CSTL_API enum R_CSTL_BytecodeArchitecture
 R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode)
 {
-        return pBytecode ? pBytecode->architecture : R_CSTL_BYTECODE_ARCH_X86;
+#if defined(R_CSTL_DEBUG)
+        R_CSTL_ASSERT(pBytecode)
+#endif
+        return pBytecode->architecture;
 }

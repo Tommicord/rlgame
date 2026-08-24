@@ -23,7 +23,7 @@ extern "C" cudaError_t R_CVulkan_MemValLaunchAnalyzeBlocks (
     uint32_t totalRegionCount,
     void* stats,
     void* stream);
-extern "C" cudaError_t R_CVulkan_MemValLaunchCalculateHealth (
+extern "C" cudaError_t R_CVulkan_MemValLaunchGetHealth (
     const void* stats,
     void* lastFragmentationLevel,
     void* health,
@@ -41,7 +41,7 @@ extern cl_int R_CVulkan_MemValOpenCLLaunchAnalyzeBlocks (
     cl_mem blockRegionOffsets,
     uint32_t totalRegionCount,
     cl_mem stats);
-extern cl_int R_CVulkan_MemValOpenCLLaunchCalculateHealth (
+extern cl_int R_CVulkan_MemValOpenCLLaunchGetHealth (
     cl_command_queue queue,
     cl_mem stats,
     cl_mem lastFragmentationLevel,
@@ -384,7 +384,7 @@ R_CVulkan_MemValRefreshHealthCUDA (struct R_CVulkan_MemoryAllocator* pAllocator)
         cudaError = cudaDeviceSynchronize ();
         if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
-        cudaError = R_CVulkan_MemValLaunchCalculateHealth (
+        cudaError = R_CVulkan_MemValLaunchGetHealth (
             dStats,
             dLastFragmentationLevel,
             dHealth,
@@ -621,7 +621,7 @@ R_CVulkan_MemValRefreshHealthOpenCL (struct R_CVulkan_MemoryAllocator* pAllocato
         result = R_CVulkan_MemValExecuteKernel (
             context,
             device,
-            "R_CVulkan_MemValCalculateHealthKernel",
+            "R_CVulkan_MemValGetHealthKernel",
             binaryData,
             binarySize,
             healthBuffers,

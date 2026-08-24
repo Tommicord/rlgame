@@ -9,10 +9,13 @@ file(GLOB         CLIENT_RENDER_SOURCES CONFIGURE_DEPENDS src/rlgame.client/rend
 file(GLOB         CLIENT_RENDER_HEADERS CONFIGURE_DEPENDS src/rlgame.client/render/*.h)
 file(GLOB         MAIN_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/*.c)
 file(GLOB         MAIN_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/*.h)
+file(GLOB         RPACK_SOURCES         CONFIGURE_DEPENDS pkgutils/rpack/*.c)
+file(GLOB         RPACK_HEADERS         CONFIGURE_DEPENDS pkgutils/rpack/*.h)
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 if (UNIX AND NOT APPLE)
   list(FILTER MAIN_SOURCES EXCLUDE REGEX "main_window\\.c$")
 endif()
+list(FILTER RPACK_SOURCES EXCLUDE REGEX "rpack_main\\.c$")
 
 # GPU backend detection: Try CUDA first, fallback to OpenCL
 set(GPU_BACKEND_MACRO "")
@@ -84,6 +87,18 @@ target_link_libraries(
   rlgame.base.cstl
 )
 
+add_library(rlgame.base.rpack SHARED ${RPACK_SOURCES} ${RPACK_HEADERS})
+set_common_output_directories(rlgame.base.rpack)
+set_base_include_directories(rlgame.base.rpack)
+target_compile_definitions(rlgame.base.rpack PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_RPACK_BUILDING_DLL)
+
+
+target_link_libraries(
+  rlgame.base.rpack
+  PUBLIC
+  rlgame.base.cstl
+)
+
 add_library(rlgame.client.render SHARED ${CLIENT_RENDER_SOURCES} ${CLIENT_RENDER_HEADERS})
 set_common_output_directories(rlgame.client.render)
 set_base_include_directories(rlgame.client.render)
@@ -133,6 +148,12 @@ if (RL_BUILD AND CMAKE_BUILD_TYPE STREQUAL "Debug")
   set_common_output_directories(triangle_test)
   link_base_libraries(triangle_test)
 endif()
+
+add_executable(rlgame_rpack pkgutils/rpack/rpack_main.c)
+target_include_directories(rlgame_rpack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set_common_output_directories(rlgame_rpack)
+target_link_libraries(rlgame_rpack PRIVATE rlgame.base.rpack)
+apply_gpu_backend(rlgame_rpack)
 
 if (RL_BUILD AND UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)

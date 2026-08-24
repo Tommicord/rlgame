@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+struct R_CSTL_Mutex;
+
 enum R_CSTL_BytecodeArchitecture
 {
         R_CSTL_BYTECODE_ARCH_X86 = 0,

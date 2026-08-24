@@ -61,7 +61,7 @@ typedef struct R_CSTL_LogAtomic
 } R_CSTL_LogAtomics;
 
 static void
-R_CSTL_LogMutexInit (R_CSTL_LogMutex* m)
+R_CSTL_LogNewMutex (R_CSTL_LogMutex* m)
 {
         if (m) InitializeCriticalSection (m);
 }
@@ -174,7 +174,7 @@ typedef struct R_CSTL_LogAtomics
 } R_CSTL_LogAtomics;
 
 static void
-R_CSTL_LogMutexInit (R_CSTL_LogMutex* m)
+R_CSTL_LogNewMutex (R_CSTL_LogMutex* m)
 {
         if (m) pthread_mutex_init (m, NULL);
 }
@@ -350,6 +350,7 @@ typedef struct R_CSTL_LogState
                 R_CSTL_LogCond    cond;
                 R_CSTL_LogCond    flushCond;
                 R_CSTL_LogAtomics atomics;
+                uint32_t          flags;
 #if defined(_WIN32)
                 HANDLE consumerThread;
                 bool   symInitialized;
@@ -570,6 +571,47 @@ R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
 }
 #endif
 
+static int
+R_CSTL_LogColorsSupported (void)
+{
+#if defined(_WIN32)
+        HANDLE hConsole = GetStdHandle (STD_OUTPUT_HANDLE);
+        DWORD mode = 0;
+        if (GetConsoleMode (hConsole, &mode))
+        {
+                mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                if (SetConsoleMode (hConsole, mode))
+                {
+                        return 1;
+                }
+        }
+        return 0;
+#else
+        return isatty (STDERR_FILENO) ? 1 : 0;
+#endif
+}
+
+static const char*
+R_CSTL_LogGetColorCode (enum R_CSTL_LogLevel level)
+{
+        switch (level)
+        {
+                case R_CSTL_LOG_LEVEL_TRACE:
+                        return "\033[36m";
+                case R_CSTL_LOG_LEVEL_DEBUG:
+                        return "\033[37m";
+                case R_CSTL_LOG_LEVEL_INFO:
+                        return "\033[32m";
+                case R_CSTL_LOG_LEVEL_WARN:
+                        return "\033[33m";
+                case R_CSTL_LOG_LEVEL_ERROR:
+                case R_CSTL_LOG_LEVEL_FATAL:
+                        return "\033[31";
+                default:
+                        return "\033[0m";
+        }
+}
+
 static void
 R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
 {
@@ -577,18 +619,43 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
         if (!entry || !entry->message) return;
 #endif
         const char* level = R_CSTL_LogLevelName (entry->level);
-        fprintf (
-            stderr,
-            "[%s][tid=%" PRIu32 "][%-5s] %s",
-            entry->timestamp,
-            entry->threadId,
-            level,
-            entry->message);
+        
+        uint32_t flags = R_CSTL_LogGetFlags ();
+        int colorsEnabled = (flags & R_CSTL_LOG_FLAG_ENABLE_COLORS) && R_CSTL_LogColorsSupported ();
+        int disableTags = flags & R_CSTL_LOG_FLAG_DISABLE_TAGS;
+        
+        if (colorsEnabled)
+        {
+                const char* colorCode = R_CSTL_LogGetColorCode (entry->level);
+                fprintf (stderr, "%s", colorCode);
+        }
+        
+        if (disableTags)
+        {
+                fprintf (stderr, "%s", entry->message);
+        }
+        else
+        {
+                fprintf (
+                    stderr,
+                    "[%s][tid=%" PRIu32 "][%-5s] %s",
+                    entry->timestamp,
+                    entry->threadId,
+                    level,
+                    entry->message);
+        }
+        
         if (entry->message[0] != 0x00)
         {
                 size_t len = strlen (entry->message);
                 if (entry->message[len - 1] != '\n') fputc ('\n', stderr);
         }
+        
+        if (colorsEnabled)
+        {
+                fprintf (stderr, "\033[0m");
+        }
+        
         if (entry->backtrace) fputs (entry->backtrace, stderr);
         fflush (stderr);
 
@@ -719,7 +786,7 @@ R_CSTL_LogInit (void)
             g_log.capacity * sizeof (R_CSTL_LogEntry*),
             R_CSTL_HEAP_NAME (R_CSTL_LogInit));
 
-        R_CSTL_LogMutexInit (&g_log.mutex);
+        R_CSTL_LogNewMutex (&g_log.mutex);
         R_CSTL_LogCondInit (&g_log.cond);
         R_CSTL_LogCondInit (&g_log.flushCond);
         R_CSTL_LogAtomicStoreRunning (&g_log.atomics, 1);
@@ -840,6 +907,23 @@ uint64_t
 R_CSTL_LogGetDroppedCount (void)
 {
         return R_CSTL_LogAtomicLoadDropped (&g_log.atomics);
+}
+
+void
+R_CSTL_LogSetFlags (uint32_t flags)
+{
+        R_CSTL_LogMutexLock (&g_log.mutex);
+        g_log.flags = flags;
+        R_CSTL_LogMutexUnlock (&g_log.mutex);
+}
+
+uint32_t
+R_CSTL_LogGetFlags (void)
+{
+        R_CSTL_LogMutexLock (&g_log.mutex);
+        uint32_t flags = g_log.flags;
+        R_CSTL_LogMutexUnlock (&g_log.mutex);
+        return flags;
 }
 
 void

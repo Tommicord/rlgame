@@ -27,6 +27,26 @@ R_CSTL_ErrorToString (int error)
                 return "String operation error";
         case R_CSTL_ERROR_LEAK_DETECTED:
                 return "Allocation leak detected";
+        case R_CSTL_ERROR_THREAD_CREATE_FAILED:
+                return "Thread creation failed";
+        case R_CSTL_ERROR_THREAD_JOIN_FAILED:
+                return "Thread join failed";
+        case R_CSTL_ERROR_MUTEX_INIT_FAILED:
+                return "Mutex initialization failed";
+        case R_CSTL_ERROR_MUTEX_DESTROY_FAILED:
+                return "Mutex destruction failed";
+        case R_CSTL_ERROR_MUTEX_LOCK_FAILED:
+                return "Mutex lock failed";
+        case R_CSTL_ERROR_MUTEX_UNLOCK_FAILED:
+                return "Mutex unlock failed";
+        case R_CSTL_ERROR_CONDITION_INIT_FAILED:
+                return "Condition variable initialization failed";
+        case R_CSTL_ERROR_CONDITION_DESTROY_FAILED:
+                return "Condition variable destruction failed";
+        case R_CSTL_ERROR_CONDITION_WAIT_FAILED:
+                return "Condition variable wait failed";
+        case R_CSTL_ERROR_CONDITION_SIGNAL_FAILED:
+                return "Condition variable signal failed";
         default:
                 return "Unknown error";
         }
