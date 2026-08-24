@@ -6,6 +6,18 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/* Default configuration values */
+#define R_RPACK_DEFAULT_MAX_ATLAS_WIDTH    4096
+#define R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT   4096
+#define R_RPACK_DEFAULT_PADDING            1
+#define R_RPACK_DEFAULT_BORDER             0
+#define R_RPACK_DEFAULT_SIMILARITY_THRESHOLD 0.125f
+#define R_RPACK_DEFAULT_ALPHA_THRESHOLD    0.0f
+#define R_RPACK_DEFAULT_WORKER_COUNT       0
+#define R_RPACK_DEFAULT_MAX_TEXTURES       0
+#define R_RPACK_DEFAULT_POWER_OF_TWO       0
+#define R_RPACK_DEFAULT_ENABLE_ROTATION    0
+
 /**
  * @brief Input image data for encoding
  */
@@ -23,11 +35,16 @@ struct R_RPackInputImage
  */
 struct R_RPackEncoderConfig
 {
-                uint32_t maxAtlasWidth; /**< Maximum atlas width (default: 4096) */
-                uint32_t maxAtlasHeight; /**< Maximum atlas height (default: 4096) */
-                uint32_t padding; /**< Padding between textures (default: 1) */
-                float    similarityThreshold; /**< Color similarity threshold (0.0-1.0) */
-                uint32_t workerCount; /**< Number of worker threads (default: 0 = auto-detect) */
+                uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_RPACK_DEFAULT_MAX_ATLAS_WIDTH) */
+                uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT) */
+                uint32_t padding; /**< Padding between textures (default: R_RPACK_DEFAULT_PADDING) */
+                uint32_t border; /**< Border size around textures (default: R_RPACK_DEFAULT_BORDER) */
+                float    similarityThreshold; /**< Color similarity threshold (default: R_RPACK_DEFAULT_SIMILARITY_THRESHOLD) */
+                float    alphaThreshold; /**< Alpha threshold for transparency (default: R_RPACK_DEFAULT_ALPHA_THRESHOLD) */
+                uint32_t workerCount; /**< Number of worker threads (default: R_RPACK_DEFAULT_WORKER_COUNT = auto-detect) */
+                uint32_t maxTextures; /**< Maximum number of textures to pack (default: R_RPACK_DEFAULT_MAX_TEXTURES = unlimited) */
+                uint8_t  powerOfTwo; /**< Force power of two dimensions (default: R_RPACK_DEFAULT_POWER_OF_TWO) */
+                uint8_t  enableRotation; /**< Enable texture rotation (default: R_RPACK_DEFAULT_ENABLE_ROTATION) */
 };
 
 /**

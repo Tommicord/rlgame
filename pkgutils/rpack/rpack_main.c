@@ -11,23 +11,42 @@
 static void
 R_RPack_PrintHelp (const char* pProgramName)
 {
-        printf ("\033[1;36mRPACK Texture Packer\033[0m\n");
-        printf ("\033[1;36m==================\033[0m\n\n");
-        printf ("Usage: %s [OPTIONS] -o OUTPUT.rpack INPUT1 [INPUT2 ...]\n\n", pProgramName);
-        printf ("Options:\n");
-        printf ("  \033[1;32m-o, --output FILE\033[0m     Output RPACK file path (required)\n");
-        printf ("  \033[1;32m-w, --width SIZE\033[0m      Maximum atlas width (default: 4096)\n");
-        printf ("  \033[1;32m-h, --height SIZE\033[0m     Maximum atlas height (default: 4096)\n");
-        printf ("  \033[1;32m-p, --padding SIZE\033[0m    Padding between textures (default: 1)\n");
-        printf ("  \033[1;32m-t, --threshold FLOAT\033[0m  Color similarity threshold (default: 0.1)\n");
-        printf ("  \033[1;32m-j, --workers COUNT\033[0m   Number of worker threads (default: 0 = auto)\n");
-        printf ("  \033[1;32m-c, --colors\033[0m           Enable colored console output\n");
-        printf ("  \033[1;32m--help\033[0m                  Show this help message\n\n");
-        printf ("Examples:\n");
+        printf ("Usage\n");
+        printf ("  %s [options] -o OUTPUT.rpack INPUT1 [INPUT2 ...]\n\n", pProgramName);
+        
+        printf ("Description\n");
+        printf ("  RPACK is a texture packing tool that combines multiple images into a single\n");
+        printf ("  atlas texture with optimized layout. It generates a RPACK file containing\n");
+        printf ("  the atlas image and metadata for texture coordinates.\n\n");
+        
+        printf ("Options\n");
+        printf ("  -o, --output FILE           = Output RPACK file path (required).\n");
+        printf ("  -w, --width SIZE            = Maximum atlas width in pixels (default: 4096).\n");
+        printf ("  -h, --height SIZE           = Maximum atlas height in pixels (default: 4096).\n");
+        printf ("  -p, --padding SIZE          = Padding between textures in pixels (default: 1).\n");
+        printf ("  -b, --border SIZE           = Border size around textures in pixels (default: 0).\n");
+        printf ("  -t, --threshold FLOAT       = Color similarity threshold 0.0-1.0 (default: 0.1).\n");
+        printf ("                               Lower values = more colors, higher = fewer colors.\n");
+        printf ("  -j, --workers COUNT         = Number of worker threads (default: 0 = auto).\n");
+        printf ("                               Set to 1 for single-threaded mode.\n");
+        printf ("  -c, --colors                = Enable colored console output.\n");
+        printf ("  -v, --verbose               = Enable verbose output with detailed progress.\n");
+        printf ("  -q, --quiet                 = Suppress all non-error output.\n");
+        printf ("  --power-of-two              = Force atlas dimensions to be power of two.\n");
+        printf ("  --rotate                    = Enable texture rotation for better packing.\n");
+        printf ("  --alpha-threshold FLOAT     = Alpha threshold 0.0-1.0 (default: 0.0).\n");
+        printf ("                               Pixels below this alpha are considered transparent.\n");
+        printf ("  --max-textures COUNT        = Maximum number of textures to pack (default: unlimited).\n");
+        printf ("  --help                      = Print this help message and exit.\n");
+        printf ("  --version                   = Print version information and exit.\n\n");
+        
+        printf ("Examples\n");
         printf ("  %s -o textures.rpack texture1.png texture2.png\n", pProgramName);
         printf ("  %s -o atlas.rpack -w 2048 -h 2048 *.png\n", pProgramName);
         printf ("  %s -o output.rpack -c -t 0.05 image1.png image2.png\n", pProgramName);
-        printf ("  %s -o output.rpack -j 4 image1.png image2.png\n\n", pProgramName);
+        printf ("  %s -o output.rpack -j 4 --power-of-two --rotate *.png\n", pProgramName);
+        printf ("  %s -o game_assets.rpack -v -p 2 -b 1 sprites/*.png\n\n", pProgramName);
+
 }
 
 static int
@@ -37,7 +56,9 @@ R_RPack_ParseArguments (
     struct R_RPackEncoderConfig* pConfig,
     char**                       ppOutputPath,
     struct R_CSTL_Array**        ppInputPaths,
-    int*                         pEnableColors)
+    int*                         pEnableColors,
+    int*                         pVerbose,
+    int*                         pQuiet)
 {
         *ppOutputPath = NULL;
         *ppInputPaths = R_CSTL_NewArray ();
@@ -46,7 +67,22 @@ R_RPack_ParseArguments (
                 return -1;
         }
         *pEnableColors = 0;
+        *pVerbose = 0;
+        *pQuiet = 0;
 
+        if (pConfig)
+        {
+                pConfig->maxAtlasWidth = R_RPACK_DEFAULT_MAX_ATLAS_WIDTH;
+                pConfig->maxAtlasHeight = R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT;
+                pConfig->padding = R_RPACK_DEFAULT_PADDING;
+                pConfig->border = R_RPACK_DEFAULT_BORDER;
+                pConfig->similarityThreshold = R_RPACK_DEFAULT_SIMILARITY_THRESHOLD;
+                pConfig->alphaThreshold = R_RPACK_DEFAULT_ALPHA_THRESHOLD;
+                pConfig->workerCount = R_RPACK_DEFAULT_WORKER_COUNT;
+                pConfig->maxTextures = R_RPACK_DEFAULT_MAX_TEXTURES;
+                pConfig->powerOfTwo = R_RPACK_DEFAULT_POWER_OF_TWO;
+                pConfig->enableRotation = R_RPACK_DEFAULT_ENABLE_ROTATION;
+        }
         for (int i = 1; i < argc; ++i)
         {
                 if (strcmp (argv[i], "--help") == 0 || strcmp (argv[i], "-h") == 0)
@@ -126,6 +162,69 @@ R_RPack_ParseArguments (
                 else if (strcmp (argv[i], "-c") == 0 || strcmp (argv[i], "--colors") == 0)
                 {
                         *pEnableColors = 1;
+                }
+                else if (strcmp (argv[i], "-b") == 0 || strcmp (argv[i], "--border") == 0)
+                {
+                        if (i + 1 >= argc)
+                        {
+                                fprintf (stderr, "\033[1;31mError: --border requires an argument\033[0m\n");
+                                return -1;
+                        }
+                        if (pConfig)
+                        {
+                                pConfig->border = (uint32_t)atoi (argv[++i]);
+                        }
+                }
+                else if (strcmp (argv[i], "-v") == 0 || strcmp (argv[i], "--verbose") == 0)
+                {
+                        *pVerbose = 1;
+                }
+                else if (strcmp (argv[i], "-q") == 0 || strcmp (argv[i], "--quiet") == 0)
+                {
+                        *pQuiet = 1;
+                }
+                else if (strcmp (argv[i], "--power-of-two") == 0)
+                {
+                        if (pConfig)
+                        {
+                                pConfig->powerOfTwo = 1;
+                        }
+                }
+                else if (strcmp (argv[i], "--rotate") == 0)
+                {
+                        if (pConfig)
+                        {
+                                pConfig->enableRotation = 1;
+                        }
+                }
+                else if (strcmp (argv[i], "--alpha-threshold") == 0)
+                {
+                        if (i + 1 >= argc)
+                        {
+                                fprintf (stderr, "\033[1;31mError: --alpha-threshold requires an argument\033[0m\n");
+                                return -1;
+                        }
+                        if (pConfig)
+                        {
+                                pConfig->alphaThreshold = (float)atof (argv[++i]);
+                        }
+                }
+                else if (strcmp (argv[i], "--max-textures") == 0)
+                {
+                        if (i + 1 >= argc)
+                        {
+                                fprintf (stderr, "\033[1;31mError: --max-textures requires an argument\033[0m\n");
+                                return -1;
+                        }
+                        if (pConfig)
+                        {
+                                pConfig->maxTextures = (uint32_t)atoi (argv[++i]);
+                        }
+                }
+                else if (strcmp (argv[i], "--version") == 0)
+                {
+                        printf ("RPACK Texture Packer v1.0.0\n");
+                        return 1;
                 }
                 else if (argv[i][0] == '-')
                 {

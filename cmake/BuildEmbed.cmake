@@ -87,12 +87,12 @@ set(SHADERS
 )
 
 set(CUDA_FILES
-  src/rlgame.cssources/cvulkan_defragmentation.cu
+  src/rlgame.compsrc/cvulkan_defragmentation.cu
 )
 
 set(OPENCL_FILES
-  src/rlgame.cssources/cvulkan_defragmentation.cl
-  src/rlgame.cssources/cvulkan_memval.cl
+  src/rlgame.compsrc/cvulkan_defragmentation.cl
+  src/rlgame.compsrc/cvulkan_memval.cl
 )
 
 set(SPV_OUTPUTS "")
