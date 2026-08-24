@@ -16,10 +16,6 @@ R_CVulkan_NewImageView (
         R_CVULKAN_ASSERT (pCreateInfo->image != VK_NULL_HANDLE);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pImageView || !pCreateInfo || !pCreateInfo->pDevice || pCreateInfo->image == VK_NULL_HANDLE)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
         if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
@@ -32,7 +28,6 @@ R_CVulkan_NewImageView (
 #if defined(R_CVULKAN_DEBUG)
         pImageView->booted = false;
 #endif
-
         VkImageViewCreateInfo viewInfo = {0};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = pCreateInfo->image;
@@ -54,23 +49,13 @@ R_CVulkan_NewImageView (
 }
 
 void
-R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* imageView)
+R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* pImageView)
 {
-        R_CVULKAN_ASSERT (imageView);
+        R_CVULKAN_ASSERT (pImageView);
 
+        vkDestroyImageView (pImageView->device, pImageView->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-        if (!imageView)
-        {
-                return;
-        }
-#endif
-        if (imageView->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyImageView (imageView->device, imageView->handle, NULL);
-                imageView->handle = VK_NULL_HANDLE;
-        }
-#if defined(R_CVULKAN_DEBUG)
-        imageView->booted = false;
+        pImageView->booted = false;
 #endif
 }
 

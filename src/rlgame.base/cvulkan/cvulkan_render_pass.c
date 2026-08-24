@@ -88,7 +88,7 @@ R_CVulkan_DeleteRenderPass (struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API VkRenderPass
-R_CVulkan_RenderPass_GetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
+R_CVulkan_RenderPassGetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pRenderPass );
@@ -97,7 +97,7 @@ R_CVulkan_RenderPass_GetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_RenderPass_GetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
+R_CVulkan_RenderPassGetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
         R_CVULKAN_ASSERT (pRenderPass );
@@ -106,7 +106,7 @@ R_CVulkan_RenderPass_GetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API int
-R_CVulkan_RenderPass_IsInitialized (const struct R_CVulkan_RenderPass* pRenderPass)
+R_CVulkan_RenderPassIsInitialized (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
         return pRenderPass->booted;

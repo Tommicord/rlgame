@@ -1381,27 +1381,27 @@ R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
                 }
 
                 void*    srcMapped = NULL;
-                VkResult vkResult = vkMapMemory (
+                VkResult result = vkMapMemory (
                     srcBlock->device,
                     srcBlock->memory,
                     move->srcOffset,
                     move->size,
                     0,
                     &srcMapped);
-                if (vkResult != VK_SUCCESS)
+                if (result != VK_SUCCESS)
                 {
                         continue;
                 }
 
                 void* dstMapped = NULL;
-                vkResult = vkMapMemory (
+                result = vkMapMemory (
                     dstBlock->device,
                     dstBlock->memory,
                     move->dstOffset,
                     move->size,
                     0,
                     &dstMapped);
-                if (vkResult != VK_SUCCESS)
+                if (result != VK_SUCCESS)
                 {
                         vkUnmapMemory (srcBlock->device, srcBlock->memory);
                         continue;

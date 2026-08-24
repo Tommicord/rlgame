@@ -182,3 +182,10 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_ResultToError (const VkResult result
  * @return Static string describing the Vulkan result
  */
 R_CVULKAN_API const char* R_CVulkan_ResultToString (const VkResult result);
+
+/**
+ * @brief Get human-readable string for Vulkan format
+ * @param format Vulkan format
+ * @return Static string describing the Vulkan format
+ */
+R_CVULKAN_API const char* R_CVulkan_FormatToString (const VkFormat format);

@@ -1,6 +1,7 @@
 #include "rlgame.base/cvulkan/cvulkan_fence.h"
 #include "rlgame.base/cvulkan/cvulkan_device.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
+#include "rlgame.base/cstl/cstl_log.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <stdlib.h>
@@ -14,11 +15,6 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
         R_CVULKAN_ASSERT (pDevice );
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pFence || !pDevice)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-        R_CVULKAN_ASSERT (R_CVulkan_DeviceIsInitialized (pDevice));
         if (!R_CVulkan_DeviceIsInitialized (pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
@@ -52,19 +48,7 @@ R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence)
 {
         R_CVULKAN_ASSERT (pFence );
 
-#if defined(R_CVULKAN_DEBUG)
-        if (!pFence)
-        {
-                return;
-        }
-#endif
-
-        if (pFence->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyFence (pFence->device, pFence->handle, NULL);
-                pFence->handle = VK_NULL_HANDLE;
-        }
-
+        vkDestroyFence (pFence->device, pFence->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
         pFence->device = VK_NULL_HANDLE;
         pFence->booted = false;
@@ -95,8 +79,8 @@ R_CVulkan_FenceWait (
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
-
-        VkFence* nativeFences = (VkFence*)R_CSTL_HeapAlloc (fenceCount * sizeof (VkFence));
+        size_t   nativeFencesSize = fenceCount * sizeof (VkFence);
+        VkFence* nativeFences = (VkFence*)R_CSTL_HeapAlloc (nativeFencesSize);
         if (!nativeFences)
         {
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -121,8 +105,7 @@ R_CVulkan_FenceWait (
             nativeFences,
             waitAll ? VK_TRUE : VK_FALSE,
             timeout);
-
-        free (nativeFences);
+        R_CSTL_HeapFree(nativeFences);
 
         if (result == VK_SUCCESS)
         {

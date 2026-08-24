@@ -25,8 +25,6 @@ struct R_CVulkan_InstanceCreateInfo
                 const struct R_CSTL_String* pEngineName; /**< Engine name (can be NULL) */
                 uint32_t                    engineVersion; /**< Engine version (default: 1,0,0) */
                 uint32_t apiVersion; /**< Vulkan API version (default: VK_API_VERSION_1_1) */
-                bool enableValidationLayers; /**< Enable validation layers (default: from R_CVULKAN_DEBUG) */
-                bool enableHeadlessMode; /**< Enable headless mode (default: from R_CVULKAN_HEADLESS) */
 };
 
 /**

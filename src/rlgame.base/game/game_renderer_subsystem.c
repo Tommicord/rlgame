@@ -76,7 +76,7 @@ struct R_GameRendererLifecycle
 
 struct R_GameRendererSubsystem
 {
-                struct R_GameCVulkan_PipelineContext* pPipelineContext;
+                struct R_Game_PipelineContext* pPipelineContext;
                 struct R_GameRendererLifecycle        lifecycle;
 
                 struct R_GameRendererFrame* pFrames;
@@ -100,7 +100,7 @@ struct R_GameRendererManager
 {
                 struct R_GameRendererSubsystemEntry   subsystems[R_GAME_RENDERER_MAX_SUBSYSTEMS];
                 uint32_t                              subsystemCount;
-                struct R_GameCVulkan_PipelineContext* pPipelineContext;
+                struct R_Game_PipelineContext* pPipelineContext;
                 struct R_CVulkan_RenderPass*          pCompositionRenderPass;
                 struct R_CVulkan_Pipeline*            pCompositionPipeline;
                 struct R_CVulkan_Image*               pSwapchainImages[R_GAME_RENDERER_MAX_SWAPCHAIN_IMAGES];
@@ -174,7 +174,7 @@ R_GameRenderer_WaitForFence (
 
 static int
 R_GameRenderer_AcquireNextImage (
-    struct R_GameCVulkan_PipelineContext* pPipelineContext,
+    struct R_Game_PipelineContext* pPipelineContext,
     uint32_t*                             pImageIndex)
 {
         return R_GameRenderer_AcquireSwapchainImage (pPipelineContext, pImageIndex);
@@ -374,7 +374,7 @@ R_GameRenderer_WaitAndResetFence (struct R_CVulkan_Device* pDevice, struct R_CVu
 
 static int
 R_GameRenderer_AcquireSwapchainImage (
-    struct R_GameCVulkan_PipelineContext* pPipelineContext,
+    struct R_Game_PipelineContext* pPipelineContext,
     uint32_t*                             pImageIndex)
 {
         enum R_CVulkanError err = R_CVulkan_SwapchainAcquireNextImage (
@@ -401,28 +401,26 @@ R_GameRenderer_RenderLayer (struct R_GameRendererLayer* pLayer, struct R_CVulkan
                 return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
         }
 
+        void* pLayerOp = (void*)pLayer;
         if (pLayer->beforePassCallback )
         {
-                pLayer->beforePassCallback ((void*)pLayer, pCmdBuffer, sizeof (*pCmdBuffer));
+                pLayer->beforePassCallback (pLayerOp, pCmdBuffer, sizeof (*pCmdBuffer));
         }
-
         if (pLayer->renderCallback )
         {
-                pLayer->renderCallback ((void*)pLayer, pCmdBuffer, sizeof (*pCmdBuffer));
+                pLayer->renderCallback (pLayerOp, pCmdBuffer, sizeof (*pCmdBuffer));
         }
 
         if (pLayer->afterPassCallback )
         {
-                pLayer->afterPassCallback ((void*)pLayer, pCmdBuffer, sizeof (*pCmdBuffer));
+                pLayer->afterPassCallback (pLayerOp, pCmdBuffer, sizeof (*pCmdBuffer));
         }
-
         err = R_CVulkan_EndCommandBuffer (pCmdBuffer);
         if (err != R_CVULKAN_OK)
         {
                 R_CSTL_LOG_ERROR ("Failed to end command buffer: %s", R_CVulkanErrorToString (err));
                 return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
         }
-
         return R_GAME_OK;
 }
 
@@ -550,17 +548,17 @@ R_GameRenderer_WorkerThreadProc (void* pParam)
                 {
                         if (layer.beforePassCallback )
                         {
-                                layer.beforePassCallback ((void*)&layer, &cmdBuffer, sizeof (cmdBuffer));
+                                layer.beforePassCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
                         }
 
                         if (layer.renderCallback )
                         {
-                                layer.renderCallback ((void*)&layer, &cmdBuffer, sizeof (cmdBuffer));
+                                layer.renderCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
                         }
 
                         if (layer.afterPassCallback )
                         {
-                                layer.afterPassCallback ((void*)&layer, &cmdBuffer, sizeof (cmdBuffer));
+                                layer.afterPassCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
                         }
 
                         R_CVulkan_EndCommandBuffer (&cmdBuffer);
@@ -725,8 +723,6 @@ R_GameRenderer_InitializeBytecodeDecoder (void)
                 g_pBytecodeDecoder = NULL;
                 return R_GAME_ERROR_FAILED;
         }
-
-        R_CSTL_LOG_INFO ("Bytecode decoder initialized for validation");
 #endif
         return R_GAME_OK;
 }
@@ -886,11 +882,11 @@ R_GameRenderer_InitializeFence (
 static int
 R_GameRenderer_InitializeFrame (
     struct R_GameRendererSubsystem*       pSubsystem,
-    struct R_GameCVulkan_PipelineContext* pPipelineContext)
+    struct R_Game_PipelineContext* pPipelineContext)
 {
-        struct R_CVulkan_Device*      pDevice = R_GameCVulkan_PipelineContextGetDevice (pPipelineContext);
+        struct R_CVulkan_Device*      pDevice = R_Game_PipelineContextGetDevice (pPipelineContext);
         struct R_CVulkan_CommandPool* pGraphicsPool
-            = R_GameCVulkan_PipelineContextGetGraphicsCommandPool (pPipelineContext);
+            = R_Game_PipelineContextGetGraphicsCommandPool (pPipelineContext);
 
         for (uint32_t frameIdx = 0; frameIdx < pSubsystem->maxFramesInFlight; ++frameIdx)
         {
@@ -1048,7 +1044,7 @@ R_GameRenderer_DeleteSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 R_GAME_API int
 R_GameRenderer_SetPipelineContext (
     struct R_GameRendererSubsystem*       pSubsystem,
-    struct R_GameCVulkan_PipelineContext* pPipelineContext)
+    struct R_Game_PipelineContext* pPipelineContext)
 {
 #if defined(R_GAME_DEBUG)
         if (pSubsystem == NULL || pPipelineContext == NULL)
@@ -1064,7 +1060,7 @@ R_GameRenderer_SetPipelineContext (
         }
 #endif
 
-        if (!R_GameCVulkan_PipelineContextIsInitialized (pPipelineContext))
+        if (!R_Game_PipelineContextIsInitialized (pPipelineContext))
         {
                 R_CSTL_LOG_ERROR ("Pipeline context is not initialized");
                 return R_GAME_ERROR_RENDERER_NOT_SET;
@@ -1166,11 +1162,11 @@ R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem)
         }
 
         struct R_CVulkan_Device* pDevice
-            = R_GameCVulkan_PipelineContextGetDevice (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetDevice (pSubsystem->pPipelineContext);
         struct R_CVulkan_Fence* pFence
-            = R_GameCVulkan_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
         uint32_t* pImageIndex
-            = R_GameCVulkan_PipelineContextGetCurrentFrameIndex (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetCurrentFrameIndex (pSubsystem->pPipelineContext);
 
         if (R_GameRenderer_WaitForFence (pDevice, pFence, UINT64_MAX) != R_GAME_OK)
         {
@@ -1287,15 +1283,15 @@ R_GameRenderer_EndFrame (struct R_GameRendererSubsystem* pSubsystem)
         }
 
         struct R_CVulkan_Device* pDevice
-            = R_GameCVulkan_PipelineContextGetDevice (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetDevice (pSubsystem->pPipelineContext);
         struct R_CVulkan_Queue* pQueue
-            = R_GameCVulkan_PipelineContextGetGraphicsQueue (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetGraphicsQueue (pSubsystem->pPipelineContext);
         struct R_CVulkan_Semaphore* pSignalSemaphore
-            = R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetRenderFinishedSemaphore (pSubsystem->pPipelineContext);
         struct R_CVulkan_Semaphore* pWaitSemaphore
-            = R_GameCVulkan_PipelineContextGetImageAvailableSemaphore (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetImageAvailableSemaphore (pSubsystem->pPipelineContext);
         struct R_CVulkan_Fence* pFence
-            = R_GameCVulkan_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
+            = R_Game_PipelineContextGetInFlightFence (pSubsystem->pPipelineContext);
         uint32_t imageIndex = pSubsystem->currentFrameIndex;
 
         struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[imageIndex];
@@ -1328,10 +1324,10 @@ R_GameRenderer_WaitForFrame (struct R_GameRendererSubsystem* pSubsystem)
         R_GAME_VALIDATE_PARAM (pSubsystem);
         R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
 
-        struct R_GameCVulkan_PipelineContext* pPipelineContext = pSubsystem->pPipelineContext;
-        struct R_CVulkan_Queue*     pQueue = R_GameCVulkan_PipelineContextGetPresentQueue (pPipelineContext);
+        struct R_Game_PipelineContext* pPipelineContext = pSubsystem->pPipelineContext;
+        struct R_CVulkan_Queue*     pQueue = R_Game_PipelineContextGetPresentQueue (pPipelineContext);
         struct R_CVulkan_Semaphore* pSignalSemaphore
-            = R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (pPipelineContext);
+            = R_Game_PipelineContextGetRenderFinishedSemaphore (pPipelineContext);
         uint32_t imageIndex = pSubsystem->currentFrameIndex;
 
         struct R_CVulkan_Swapchain swapchain = pPipelineContext->swapchain;
@@ -1434,6 +1430,69 @@ R_GameRenderer_SetLayerEnabled (struct R_GameRendererSubsystem* pSubsystem, uint
         R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
         if (enabled) layer.flags |= R_GAME_RENDERER_LAYER_FLAG_ENABLED;
         else layer.flags &= ~R_GAME_RENDERER_LAYER_FLAG_ENABLED;
+        R_CSTL_ArrayTypedSetAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
+
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_SetLayerRenderCallback (
+    struct R_GameRendererSubsystem* pSubsystem,
+    uint32_t                        layerIndex,
+    R_GameLifecycleRender           callback)
+{
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        size_t layerCount
+            = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
+        R_GAME_ASSERT (layerIndex < layerCount);
+
+        R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
+        struct R_GameRendererLayer layer;
+        R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        layer.renderCallback = callback;
+        R_CSTL_ArrayTypedSetAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
+
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_SetLayerBeforePassCallback (
+    struct R_GameRendererSubsystem* pSubsystem,
+    uint32_t                        layerIndex,
+    R_GameLifecycleBeforePass       callback)
+{
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        size_t layerCount
+            = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
+        R_GAME_ASSERT (layerIndex < layerCount);
+
+        R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
+        struct R_GameRendererLayer layer;
+        R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        layer.beforePassCallback = callback;
+        R_CSTL_ArrayTypedSetAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
+
+        return R_GAME_OK;
+}
+
+R_GAME_API int
+R_GameRenderer_SetLayerAfterPassCallback (
+    struct R_GameRendererSubsystem* pSubsystem,
+    uint32_t                        layerIndex,
+    R_GameLifecycleAfterPass        callback)
+{
+        R_GAME_VALIDATE_PARAM (pSubsystem);
+        size_t layerCount
+            = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
+        R_GAME_ASSERT (layerIndex < layerCount);
+
+        R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
+        struct R_GameRendererLayer layer;
+        R_CSTL_ArrayTypedAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
+        layer.afterPassCallback = callback;
         R_CSTL_ArrayTypedSetAt (pSubsystem->pLayerArray, struct R_GameRendererLayer, layerIndex, &layer);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
@@ -1634,7 +1693,7 @@ R_GameRenderer_SetFrameResource (
 }
 
 R_GAME_API struct R_GameRendererManager*
-R_GameRenderer_NewManager (struct R_GameCVulkan_PipelineContext* pPipelineContext)
+R_GameRenderer_NewManager (struct R_Game_PipelineContext* pPipelineContext)
 {
         R_CSTL_TRACE_FUNCTION ();
         R_GAME_VALIDATE_PARAM (pPipelineContext);

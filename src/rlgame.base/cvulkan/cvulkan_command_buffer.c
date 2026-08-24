@@ -248,7 +248,7 @@ R_CVulkan_CommandBufferDrawIndexed (
 }
 
 enum R_CVulkanError
-R_CVulkan_CommandBuffer_SetViewport (
+R_CVulkan_CommandBufferSetViewport (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        firstViewport,
     uint32_t                        viewportCount,

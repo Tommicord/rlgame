@@ -20,7 +20,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         pState->booted = false;
 #endif
 
-        struct R_GameCVulkan_PipelineContextCreateInfo pipelineCreateInfo = {0};
+        struct R_Game_PipelineContextCreateInfo pipelineCreateInfo = {0};
         pipelineCreateInfo.pApplicationName = pCreateInfo->pApplicationName;
 
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
@@ -35,7 +35,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         pipelineCreateInfo.pNSWindow = pCreateInfo->pNSWindow;
 #endif
 
-        enum R_GameError result = R_GameCVulkan_NewPipelineContext (&pState->context, &pipelineCreateInfo);
+        enum R_GameError result = R_Game_NewPipelineContext (&pState->context, &pipelineCreateInfo);
         if (result != R_GAME_OK)
         {
                 R_CSTL_LOG_ERROR (
@@ -48,7 +48,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         if (pState->pRendererManager == NULL)
         {
                 R_CSTL_LOG_ERROR ("GameState: Failed to create renderer manager");
-                R_GameCVulkan_PipelineContextDelete (&pState->context);
+                R_Game_PipelineContextDelete (&pState->context);
                 return R_GAME_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -73,7 +73,7 @@ R_GameState_Cleanup (struct R_GameState* pState)
                 R_GameRenderer_DeleteManager (pState->pRendererManager);
                 pState->pRendererManager = NULL;
         }
-        R_GameCVulkan_PipelineContextDelete (&pState->context);
+        R_Game_PipelineContextDelete (&pState->context);
         memset (pState, 0, sizeof (*pState));
 }
 
@@ -84,11 +84,11 @@ R_GameState_IsInitialized (const struct R_GameState* pState)
         R_GAME_CVULKAN_ASSERT (pState );
         return pState->booted;
 #else
-        return R_GameCVulkan_PipelineContextIsInitialized (&pState->context);
+        return R_Game_PipelineContextIsInitialized (&pState->context);
 #endif
 }
 
-R_GAME_API struct R_GameCVulkan_PipelineContext*
+R_GAME_API struct R_Game_PipelineContext*
 R_GameState_GetVulkanContext (struct R_GameState* pState)
 {
 #if defined(R_CVULKAN_DEBUG)

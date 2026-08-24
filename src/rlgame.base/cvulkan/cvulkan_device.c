@@ -20,7 +20,8 @@ static const char*    g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_deviceExtensions);
 
 static const char* g_optionalDeviceExtensions[]
-    = {VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+    = {VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+       VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
        VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,
        VK_EXT_DEBUG_MARKER_EXTENSION_NAME};
 static const uint32_t g_optionalDeviceExtensionCount
@@ -43,6 +44,7 @@ R_CVulkan_CheckExtensionAvailability (
 
         if (extensionCount == 0)
         {
+                R_CSTL_LOG_DEBUG ("R_CVulkan_CheckExtensionAvailability: No extensions available on device");
                 *pIsAvailable = false;
                 return R_CVULKAN_OK;
         }
@@ -51,6 +53,7 @@ R_CVulkan_CheckExtensionAvailability (
             = (VkExtensionProperties*)R_CSTL_HeapAlloc (extensionCount * sizeof (VkExtensionProperties));
         if (extensions == NULL)
         {
+                R_CSTL_LOG_ERROR ("R_CVulkan_CheckExtensionAvailability: Failed to allocate memory for extension properties");
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 
@@ -62,8 +65,14 @@ R_CVulkan_CheckExtensionAvailability (
                 if (strcmp (extensions[i].extensionName, pExtensionName) == 0)
                 {
                         *pIsAvailable = true;
+                        R_CSTL_LOG_DEBUG ("R_CVulkan_CheckExtensionAvailability: Found extension '%s'", pExtensionName);
                         break;
                 }
+        }
+        bool available = *pIsAvailable;
+        if (!available)
+        {
+                R_CSTL_LOG_WARN ("R_CVulkan_CheckExtensionAvailability: Extension '%s' not available", pExtensionName);
         }
 
         R_CSTL_HeapFree (extensions);

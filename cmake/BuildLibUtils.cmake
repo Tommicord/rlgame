@@ -8,6 +8,9 @@ function(set_common_output_directories TARGET)
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
     LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
     LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/Debug
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/Release
   )
 endfunction()
 
@@ -27,6 +30,7 @@ function(link_base_libraries EXECUTABLE)
     rlgame.base.cstl 
     rlgame.base.cvulkan 
     rlgame.base.game 
+    rlgame.client.render
     rlgame.base.entry)
   target_link_libraries(${EXECUTABLE} PRIVATE ${LIBRARIES})
 endfunction()

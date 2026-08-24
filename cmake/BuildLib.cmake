@@ -1,12 +1,14 @@
-file(GLOB_RECURSE CSTL_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
-file(GLOB_RECURSE CSTL_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
-file(GLOB_RECURSE CVULKAN_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
-file(GLOB_RECURSE CVULKAN_HEADERS CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
-file(GLOB_RECURSE CVULKAN_CUDA_SOURCES CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.cu)
-file(GLOB_RECURSE GAME_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
-file(GLOB_RECURSE GAME_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
-file(GLOB         MAIN_SOURCES    CONFIGURE_DEPENDS src/rlgame.base/*.c)
-file(GLOB         MAIN_HEADERS    CONFIGURE_DEPENDS src/rlgame.base/*.h)
+file(GLOB_RECURSE CSTL_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/cstl/*.c)
+file(GLOB_RECURSE CSTL_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/cstl/*.h)
+file(GLOB_RECURSE CVULKAN_SOURCES       CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
+file(GLOB_RECURSE CVULKAN_HEADERS       CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
+file(GLOB_RECURSE CVULKAN_CUDA_SOURCES  CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.cu)
+file(GLOB_RECURSE GAME_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
+file(GLOB_RECURSE GAME_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
+file(GLOB         CLIENT_RENDER_SOURCES CONFIGURE_DEPENDS src/rlgame.client/render/*.c)
+file(GLOB         CLIENT_RENDER_HEADERS CONFIGURE_DEPENDS src/rlgame.client/render/*.h)
+file(GLOB         MAIN_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/*.c)
+file(GLOB         MAIN_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/*.h)
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 if (UNIX AND NOT APPLE)
   list(FILTER MAIN_SOURCES EXCLUDE REGEX "main_window\\.c$")
@@ -44,6 +46,7 @@ if (WIN32)
 endif()
 
 target_compile_definitions(rlgame.base.cstl PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_CSTL_BUILDING_DLL)
+set_common_output_directories(rlgame.base.cstl)
 set_base_include_directories(rlgame.base.cstl)
 apply_gpu_backend(rlgame.base.cstl)
 add_library(rlgame.base.cvulkan SHARED ${CVULKAN_SOURCES} ${CVULKAN_HEADERS} ${CVULKAN_CUDA_SOURCES})
@@ -68,10 +71,6 @@ if(CUDA_FOUND)
   target_link_libraries(rlgame.base.cvulkan PUBLIC CUDA::CUDA)
 endif()
 
-if (UNIX AND NOT APPLE)
-  target_link_options(rlgame.base.cvulkan PUBLIC $<$<CONFIG:Debug>:-rdynamic>)
-endif()
-
 add_library(rlgame.base.game SHARED ${GAME_SOURCES} ${GAME_HEADERS})
 set_common_output_directories(rlgame.base.game)
 set_base_include_directories(rlgame.base.game)
@@ -81,6 +80,20 @@ apply_gpu_backend(rlgame.base.game)
 target_link_libraries(
   rlgame.base.game
   PUBLIC
+  rlgame.base.cvulkan
+  rlgame.base.cstl
+)
+
+add_library(rlgame.client.render SHARED ${CLIENT_RENDER_SOURCES} ${CLIENT_RENDER_HEADERS})
+set_common_output_directories(rlgame.client.render)
+set_base_include_directories(rlgame.client.render)
+target_compile_definitions(rlgame.client.render PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_RENDER_BUILDING_DLL)
+apply_gpu_backend(rlgame.client.render)
+
+target_link_libraries(
+  rlgame.client.render
+  PUBLIC
+  rlgame.base.game
   rlgame.base.cvulkan
   rlgame.base.cstl
 )
@@ -97,8 +110,8 @@ apply_gpu_backend(rlgame.base.entry)
 if (APPLE)
   find_package(MoltenVK REQUIRED)
   if (MoltenVK_FOUND)
-    target_link_libraries(rlgame.base.game PUBLIC MoltenVK::MoltenVK)
-    target_compile_definitions(rlgame.base.game PUBLIC VK_USE_PLATFORM_METAL_EXT)
+    target_link_libraries(rlgame.base.entry PUBLIC MoltenVK::MoltenVK)
+    target_compile_definitions(rlgame.base.entry PUBLIC VK_USE_PLATFORM_METAL_EXT)
   endif()
 endif()
 
@@ -110,8 +123,15 @@ if(RL_BUILD)
   else()
     add_executable(rlgame WIN32 ${MAIN_SOURCE})
   endif()
-
+  set_common_output_directories(rlgame)
   link_base_libraries(rlgame)
+endif()
+
+if (RL_BUILD AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_executable(triangle_test src/rlgame.client/render/test/triangle_test_main.c)
+  target_include_directories(triangle_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+  set_common_output_directories(triangle_test)
+  link_base_libraries(triangle_test)
 endif()
 
 if (RL_BUILD AND UNIX AND NOT APPLE)
@@ -140,7 +160,6 @@ if(RL_BUILD)
     PRIVATE
     ${EXTERN_IMPL}
   )
-
   target_compile_definitions(rlgame PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
   apply_gpu_backend(rlgame)
   if (NOT MSVC)

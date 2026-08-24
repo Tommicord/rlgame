@@ -15,27 +15,15 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
         R_CVULKAN_ASSERT (pCreateInfo->physicalDevice != VK_NULL_HANDLE);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pImage || !pCreateInfo || !pCreateInfo->device || pCreateInfo->physicalDevice == VK_NULL_HANDLE)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
         if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
 #endif
-
-        if (pCreateInfo->extent.width == 0 || pCreateInfo->extent.height == 0
-            || pCreateInfo->extent.depth == 0)
-        {
-                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
-        }
-
         if (pCreateInfo->mipLevels == 0 || pCreateInfo->arrayLayers == 0)
         {
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
-
         pImage->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
         pImage->handle = VK_NULL_HANDLE;
         pImage->memory = VK_NULL_HANDLE;
@@ -54,7 +42,6 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
 #if defined(R_CVULKAN_DEBUG)
         pImage->booted = false;
 #endif
-
         VkImageCreateInfo imageInfo = {0};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = pCreateInfo->imageType;
@@ -111,39 +98,11 @@ void
 R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 {
         R_CVULKAN_ASSERT (pImage);
+        R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
 
+        vkDestroyImage (pImage->device, pImage->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pImage)
-        {
-                return;
-        }
-#endif
-        if (pImage->memory != VK_NULL_HANDLE)
-        {
-                R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
-                pImage->memory = VK_NULL_HANDLE;
-        }
-
-        if (pImage->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyImage (pImage->device, pImage->handle, NULL);
-                pImage->handle = VK_NULL_HANDLE;
-        }
-#if defined(R_CVULKAN_DEBUG)
-        pImage->device = VK_NULL_HANDLE;
-        pImage->size = 0;
-        pImage->width = 0;
-        pImage->height = 0;
-        pImage->mipLevels = 0;
-        pImage->arrayLayers = 0;
-        pImage->format = VK_FORMAT_UNDEFINED;
-        pImage->usage = 0;
-        pImage->properties = 0;
-        pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        pImage->imageType = VK_IMAGE_TYPE_2D;
-        pImage->samples = VK_SAMPLE_COUNT_1_BIT;
-        pImage->tiling = VK_IMAGE_TILING_OPTIMAL;
-        pImage->booted = false;
+        memset (pImage, 0, sizeof (R_CVulkan_Image));
 #endif
 }
 
@@ -159,11 +118,6 @@ R_CVulkan_ImageTransitionLayout (
         R_CVULKAN_ASSERT (pImage);
         R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pImage || commandBuffer == VK_NULL_HANDLE)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
         if (!pImage->booted)
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;

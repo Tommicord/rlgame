@@ -51,7 +51,7 @@ function(compile_and_embed FILES_LIST COMPILE_TARGET COMPILE_FLAGS OUTPUT_EXT OU
       OUTPUT "${COMPILED_OUTPUT}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
       COMMAND ${CMAKE_COMMAND} -E echo "Compiling input:${FILE_ABS_PATH} -> compiled:${COMPILED_OUTPUT}"
-      COMMAND $<TARGET_FILE:${COMPILE_TARGET}> ${COMPILE_FLAGS} "${FILE_ABS_PATH}" -o "${COMPILED_OUTPUT}"
+      COMMAND ${COMPILE_TARGET} ${COMPILE_FLAGS} "${FILE_ABS_PATH}" -o "${COMPILED_OUTPUT}"
       DEPENDS "${FILE_ABS_PATH}" "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
       COMMENT "Compiling ${FILE_NAME}"
       VERBATIM
@@ -64,8 +64,8 @@ function(compile_and_embed FILES_LIST COMPILE_TARGET COMPILE_FLAGS OUTPUT_EXT OU
     add_custom_command(
       OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CFILE}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
-      COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${FILE_ABS_PATH} -DOUTPUT_H=${EMBEDDED_HEADER} -DOUTPUT_C=${EMBEDDED_CFILE} -DVARIABLE_NAME=${VAR_NAME} -P "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
-      DEPENDS "${COMPILED_OUTPUT}"
+      COMMAND ${CMAKE_COMMAND} -DINPUT_FILE=${COMPILED_OUTPUT} -DOUTPUT_H=${EMBEDDED_HEADER} -DOUTPUT_C=${EMBEDDED_CFILE} -DVARIABLE_NAME=${VAR_NAME} -P "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
+      DEPENDS "${COMPILED_OUTPUT}" "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
       COMMENT "Embedding ${RANDOM_NAME}"
       VERBATIM
     )
@@ -132,12 +132,13 @@ foreach(F IN LISTS OLD_CL)
   file(REMOVE "${F}")
 endforeach()
 
+find_program(GLSLC_EXECUTABLE glslc REQUIRED)
 compile_and_embed(
   "${SHADERS}"
-  Vulkan::glslc
+  ${GLSLC_EXECUTABLE}
   "${GLSLC_DEBUG_FLAGS}"
   "spv"
-  ${SPV_DIR}
+  "${SPV_DIR}"
   SPV_OUTPUTS
   EMBEDDED_HEADERS
   EMBEDDED_CFILES
@@ -175,13 +176,16 @@ endif()
 
 message(STATUS "Embedded CL headers: ${EMBEDDED_CL_HEADERS}")
 message(STATUS "Embedded CL cfiles: ${EMBEDDED_CL_CFILES}")
+message(STATUS "Embedded shader headers: ${EMBEDDED_HEADERS}")
+message(STATUS "Embedded shader cfiles: ${EMBEDDED_CFILES}")
 
-target_sources(rlgame PRIVATE ${EMBEDDED_HEADERS})
-target_sources(rlgame PRIVATE ${EMBEDDED_CFILES})
 if(CUDA_FOUND)
   target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_HEADERS})
   target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_CFILES})
 endif()
+
+target_sources(rlgame.client.render PRIVATE ${EMBEDDED_HEADERS})
+target_sources(rlgame.client.render PRIVATE ${EMBEDDED_CFILES})
 
 if(OpenCL_FOUND)
   target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CL_HEADERS})

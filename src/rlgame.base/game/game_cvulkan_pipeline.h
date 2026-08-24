@@ -22,7 +22,7 @@
 /**
  * @brief Configuration parameters for pipeline context creation
  */
-struct R_GameCVulkan_PipelineContextCreateInfo
+struct R_Game_PipelineContextCreateInfo
 {
                 const struct R_CSTL_String* pApplicationName;
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
@@ -44,7 +44,7 @@ struct R_GameCVulkan_PipelineContextCreateInfo
  * This structure holds all the Vulkan objects needed for rendering
  * and compute operations.
  */
-struct R_GameCVulkan_PipelineContext
+struct R_Game_PipelineContext
 {
                 struct R_CVulkan_Instance     instance;
                 struct R_CVulkan_Device       device;
@@ -74,16 +74,16 @@ struct R_GameCVulkan_PipelineContext
  * @param surface Vulkan surface (VK_NULL_HANDLE in headless mode)
  * @return CVULKAN_API R_CVULKAN_OK on success, error code otherwise
  */
-R_GAME_API enum R_GameError R_GameCVulkan_NewPipelineContext (
-    struct R_GameCVulkan_PipelineContext*                 pContext,
-    const struct R_GameCVulkan_PipelineContextCreateInfo* pCreateInfo);
+R_GAME_API enum R_GameError R_Game_NewPipelineContext (
+    struct R_Game_PipelineContext*                 pContext,
+    const struct R_Game_PipelineContextCreateInfo* pCreateInfo);
 
 /**
  * @brief Deletes the Vulkan pipeline context
  *
  * @param pContext Pointer to the pipeline context to delete
  */
-R_GAME_API void R_GameCVulkan_PipelineContextDelete (struct R_GameCVulkan_PipelineContext* pContext);
+R_GAME_API void R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the graphics queue
@@ -92,7 +92,7 @@ R_GAME_API void R_GameCVulkan_PipelineContextDelete (struct R_GameCVulkan_Pipeli
  * @return Pointer to the graphics queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_GameCVulkan_PipelineContextGetGraphicsQueue (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetGraphicsQueue (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the compute queue
@@ -101,7 +101,7 @@ R_GameCVulkan_PipelineContextGetGraphicsQueue (struct R_GameCVulkan_PipelineCont
  * @return Pointer to the compute queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_GameCVulkan_PipelineContextGetComputeQueue (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetComputeQueue (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the transfer queue
@@ -110,7 +110,7 @@ R_GameCVulkan_PipelineContextGetComputeQueue (struct R_GameCVulkan_PipelineConte
  * @return Pointer to the transfer queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_GameCVulkan_PipelineContextGetTransferQueue (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetTransferQueue (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the present queue
@@ -119,7 +119,7 @@ R_GameCVulkan_PipelineContextGetTransferQueue (struct R_GameCVulkan_PipelineCont
  * @return Pointer to the present queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_GameCVulkan_PipelineContextGetPresentQueue (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetPresentQueue (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the graphics command pool
@@ -128,7 +128,7 @@ R_GameCVulkan_PipelineContextGetPresentQueue (struct R_GameCVulkan_PipelineConte
  * @return Pointer to the graphics command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_GameCVulkan_PipelineContextGetGraphicsCommandPool (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetGraphicsCommandPool (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the compute command pool
@@ -137,7 +137,7 @@ R_GameCVulkan_PipelineContextGetGraphicsCommandPool (struct R_GameCVulkan_Pipeli
  * @return Pointer to the compute command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_GameCVulkan_PipelineContextGetComputeCommandPool (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetComputeCommandPool (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the transfer command pool
@@ -146,7 +146,7 @@ R_GameCVulkan_PipelineContextGetComputeCommandPool (struct R_GameCVulkan_Pipelin
  * @return Pointer to the transfer command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_GameCVulkan_PipelineContextGetTransferCommandPool (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Get the device
@@ -155,7 +155,7 @@ R_GameCVulkan_PipelineContextGetTransferCommandPool (struct R_GameCVulkan_Pipeli
  * @return Pointer to the device
  */
 R_GAME_API struct R_CVulkan_Device*
-R_GameCVulkan_PipelineContextGetDevice (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
 
 /**
  * @brief Check if the context is initialized
@@ -164,16 +164,16 @@ R_GameCVulkan_PipelineContextGetDevice (struct R_GameCVulkan_PipelineContext* pC
  * @return 1 if initialized, 0 otherwise
  */
 R_GAME_API int
-R_GameCVulkan_PipelineContextIsInitialized (const struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextIsInitialized (const struct R_Game_PipelineContext* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
-R_GameCVulkan_PipelineContextGetImageAvailableSemaphore (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetImageAvailableSemaphore (struct R_Game_PipelineContext* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
-R_GameCVulkan_PipelineContextGetRenderFinishedSemaphore (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetRenderFinishedSemaphore (struct R_Game_PipelineContext* pContext);
 
 R_GAME_API struct R_CVulkan_Fence*
-R_GameCVulkan_PipelineContextGetInFlightFence (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetInFlightFence (struct R_Game_PipelineContext* pContext);
 
 R_GAME_API uint32_t*
-R_GameCVulkan_PipelineContextGetCurrentFrameIndex (struct R_GameCVulkan_PipelineContext* pContext);
+R_Game_PipelineContextGetCurrentFrameIndex (struct R_Game_PipelineContext* pContext);

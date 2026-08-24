@@ -27,7 +27,7 @@
  */
 struct R_GameState
 {
-                struct R_GameCVulkan_PipelineContext context; /**< Vulkan rendering pipeline context */
+                struct R_Game_PipelineContext context; /**< Vulkan rendering pipeline context */
                 struct R_GameRendererManager*        pRendererManager; /**< Multi-renderer manager */
                 R_GAME_DEBUG_FIELD
 };
@@ -89,7 +89,7 @@ R_GAME_API int R_GameState_IsInitialized (const struct R_GameState* pState);
  * @param pState Pointer to game state
  * @return Pointer to Vulkan pipeline context, or NULL if not initialized
  */
-R_GAME_API struct R_GameCVulkan_PipelineContext* R_GameState_GetVulkanContext (struct R_GameState* pState);
+R_GAME_API struct R_Game_PipelineContext* R_GameState_GetVulkanContext (struct R_GameState* pState);
 
 /**
  * @brief Get the renderer manager

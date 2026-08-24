@@ -46,39 +46,39 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewImageView (
  * @brief Deletes an image view and destroy the Vulkan object
  * @param imageView Pointer to image view to delete
  */
-void R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* imageView);
+R_CVULKAN_API void R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* pImageView);
 
 /**
  * @brief Get the raw Vulkan image view handle
  * @param imageView Pointer to image view
  * @return Vulkan image view handle, or VK_NULL_HANDLE if not initialized
  */
-VkImageView R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* pImageView);
+R_CVULKAN_API VkImageView R_CVulkan_ImageViewGetHandle (const struct R_CVulkan_ImageView* pImageView);
 
 /**
  * @brief Get the associated device
  * @param imageView Pointer to image view
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-VkDevice R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* pImageView);
+R_CVULKAN_API VkDevice R_CVulkan_ImageViewGetDevice (const struct R_CVulkan_ImageView* pImageView);
 
 /**
  * @brief Get the associated image
  * @param imageView Pointer to image view
  * @return Image handle, or VK_NULL_HANDLE if not initialized
  */
-VkImage R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* pImageView);
+R_CVULKAN_API VkImage R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageView* pImageView);
 
 /**
  * @brief Get the view format
  * @param imageView Pointer to image view
  * @return View format, or VK_FORMAT_UNDEFINED if not initialized
  */
-VkFormat R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* pImageView);
+R_CVULKAN_API VkFormat R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* pImageView);
 
 /**
  * @brief Check if the image view is initialized
  * @param imageView Pointer to image view
  * @return 1 if initialized, 0 otherwise
  */
-int R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView);
+R_CVULKAN_API int R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView);

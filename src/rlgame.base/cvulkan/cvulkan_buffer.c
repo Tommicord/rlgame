@@ -98,30 +98,15 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
 R_CVULKAN_API void
 R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer)
 {
+        R_CVULKAN_ASSERT (pBuffer);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pBuffer)
-        {
-                return;
-        }
-#endif
-
         if (pBuffer->isMapped)
         {
                 R_CVulkan_BufferUnmap (pBuffer);
         }
-
-        if (pBuffer->memory != VK_NULL_HANDLE)
-        {
-                vkFreeMemory (pBuffer->device, pBuffer->memory, NULL);
-                pBuffer->memory = VK_NULL_HANDLE;
-        }
-
-        if (pBuffer->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyBuffer (pBuffer->device, pBuffer->handle, NULL);
-                pBuffer->handle = VK_NULL_HANDLE;
-        }
-
+#endif
+        vkFreeMemory (pBuffer->device, pBuffer->memory, NULL);
+        vkDestroyBuffer (pBuffer->device, pBuffer->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
         pBuffer->booted = false;
 #endif
@@ -141,12 +126,12 @@ R_CVulkan_BufferMap (
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
         R_CVULKAN_VALIDATE_PARAM (ppOutData);
         R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
-
+#if defined(R_CVULKAN_DEBUG)
         if (pBuffer->isMapped)
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
-
+#endif
         VkResult result = vkMapMemory (pBuffer->device, pBuffer->memory, offset, size, 0, &pBuffer->pMapped);
         if (result != VK_SUCCESS)
         {
@@ -163,12 +148,12 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
 {
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
         R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
-
+#if defined(R_CVULKAN_DEBUG)
         if (!pBuffer->isMapped)
         {
                 return R_CVULKAN_ERROR_FAILED;
         }
-
+#endif
         vkUnmapMemory (pBuffer->device, pBuffer->memory);
         pBuffer->pMapped = NULL;
         pBuffer->isMapped = false;
@@ -186,11 +171,6 @@ R_CVulkan_BufferCopyData (
         R_CVULKAN_VALIDATE_PARAM (pBuffer);
         R_CVULKAN_VALIDATE_PARAM (data);
         R_CVULKAN_VALIDATE_PARAM_BOOTED (pBuffer);
-
-        if (size == 0)
-        {
-                return R_CVULKAN_ERROR_INVALID_ARGUMENT;
-        }
 
         void*               mapped = NULL;
         enum R_CVulkanError error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);

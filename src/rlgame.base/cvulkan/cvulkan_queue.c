@@ -4,6 +4,7 @@
 #include "rlgame.base/cvulkan/cvulkan_semaphore.h"
 #include "rlgame.base/cvulkan/cvulkan_fence.h"
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
+#include "rlgame.base/cstl/cstl_log.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
 #include <string.h>
@@ -84,27 +85,15 @@ R_CVulkan_QueueSubmit (
     const struct R_CVulkan_Fence*         pFence)
 {
         R_CVULKAN_ASSERT (pQueue);
+        R_CVULKAN_ASSERT (commandBufferCount > 0);
+        R_CVULKAN_ASSERT (pCommandBuffers);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pQueue || !R_CVulkan_QueueIsInitialized (pQueue))
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (commandBufferCount > 0 && !pCommandBuffers)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (waitSemaphoreCount > 0 && (!pWaitSemaphores || !pWaitDstStageMask))
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-
-        if (signalSemaphoreCount > 0 && !pSignalSemaphores)
+        if (!R_CVulkan_QueueIsInitialized (pQueue))
         {
                 return R_CVULKAN_ERROR_NULL_POINTER;
         }
 #endif
+        enum R_CVulkanError error;
 
         VkSubmitInfo submitInfo = {0};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -203,22 +192,22 @@ R_CVulkan_QueueSubmit (
         if (pFence && R_CVulkan_FenceIsInitialized (pFence))
         {
                 nativeFence = R_CVulkan_FenceGetHandle (pFence);
+                VkResult resetResult = vkResetFences (pQueue->device, 1, &nativeFence);
+                if (resetResult != VK_SUCCESS)
+                {
+                        R_CSTL_LOG_ERROR ("R_CVulkan_QueueSubmit: Failed to reset fence: %d", resetResult);
+                        error = R_CVulkan_ResultToError(resetResult);
+                        goto r_cleanup;
+                }
         }
-        VkResult result = vkQueueSubmit (pQueue->handle, 1, &submitInfo, nativeFence);
-
+        VkResult submitResult = vkQueueSubmit (pQueue->handle, 1, &submitInfo, nativeFence);
+r_cleanup:
         R_CSTL_HeapFree (pNativeCommandBuffers);
         R_CSTL_HeapFree (nativeWaitSemaphores);
         R_CSTL_HeapFree (nativeWaitStageMask);
         R_CSTL_HeapFree (pNativeSignalSemaphores);
-
-        if (result == VK_SUCCESS)
-        {
-                return R_CVULKAN_OK;
-        }
-        else
-        {
-                return R_CVulkan_ResultToError (result);
-        }
+        error = R_CVulkan_ResultToError (submitResult);
+        return error;
 }
 
 R_CVULKAN_API enum R_CVulkanError

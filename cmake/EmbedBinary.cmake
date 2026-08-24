@@ -55,7 +55,7 @@ file(WRITE ${OUTPUT_H} "${HEADER_CONTENT}")
 get_filename_component(OUTPUT_H_FILENAME ${OUTPUT_H} NAME)
 set(CFILE_CONTENT "#include <stdint.h>\n#include \"${OUTPUT_H_FILENAME}\"\n\n")
 set(CFILE_CONTENT "${CFILE_CONTENT}#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
-set(CFILE_CONTENT "${CFILE_CONTENT}const uint32_t ${CAMELCASE_RESULT}_size = ${UINT32_COUNT};\n\n")
+set(CFILE_CONTENT "${CFILE_CONTENT}const uint32_t ${CAMELCASE_RESULT}_size = ${BYTE_COUNT};\n\n")
 set(CFILE_CONTENT "${CFILE_CONTENT}const uint32_t ${CAMELCASE_RESULT}_data[] = {\n")
 
 set(COUNT 0)

@@ -72,7 +72,7 @@ struct R_CVulkan_Pipeline
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewPipelineLayout (
-    struct R_CVulkan_PipelineLayout*                 pLayout,
+    struct R_CVulkan_PipelineLayout**                ppLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo);
 
 /**

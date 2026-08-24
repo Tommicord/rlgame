@@ -25,8 +25,7 @@ static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (
 
 static enum R_CVulkanError R_CVulkan_BuildInstanceExtensions (
     struct R_CSTL_Array** ppExtensions,
-    bool                  hasValidationFeatures,
-    bool                  headlessMode);
+    bool                  hasValidationFeatures);
 
 static enum R_CVulkanError R_CVulkan_CheckExtensionAvailability (
     const char*      pExtensionName,
@@ -52,7 +51,7 @@ R_CVulkan_DebugCallback (
         (void)messageType;
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-                R_CSTL_LOG_WARN ("[Vulkan Validation] %s", pCallbackData->pMessage);
+                R_CSTL_LOG_WARN("[Vulkan Validation] %s", pCallbackData->pMessage);
         }
         return VK_FALSE;
 }
@@ -266,8 +265,7 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
 static enum R_CVulkanError
 R_CVulkan_BuildInstanceExtensions (
     struct R_CSTL_Array** ppExtensions,
-    bool                  hasValidationFeatures,
-    bool                  headlessMode)
+    bool                  hasValidationFeatures)
 {
         R_CVULKAN_ASSERT (ppExtensions);
 
@@ -276,7 +274,6 @@ R_CVulkan_BuildInstanceExtensions (
         {
                 return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
-
         bool                hasPortability = false;
         enum R_CVulkanError err = R_CVulkan_CheckExtensionAvailability (
             VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
@@ -287,7 +284,6 @@ R_CVulkan_BuildInstanceExtensions (
                 R_CSTL_DeleteArray (pExtensions);
                 return err;
         }
-
 #if defined(_WIN32)
 #define RL_KHR_SURFACE VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 #elif defined(__linux__)
@@ -299,13 +295,10 @@ R_CVulkan_BuildInstanceExtensions (
 #endif
 
 #if !defined(R_CVULKAN_HEADLESS)
-        if (!headlessMode)
-        {
-                static const char* pExt1 = VK_KHR_SURFACE_EXTENSION_NAME;
-                R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt1, sizeof (const char*));
-                static const char* pExt2 = RL_KHR_SURFACE;
-                R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt2, sizeof (const char*));
-        }
+        static const char* pExt1 = VK_KHR_SURFACE_EXTENSION_NAME;
+        R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt1, sizeof (const char*));
+        static const char* pExt2 = RL_KHR_SURFACE;
+        R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt2, sizeof (const char*));
 #endif
 
         if (hasPortability)
@@ -339,11 +332,8 @@ R_CVulkan_NewInstance (
 {
         R_CVULKAN_ASSERT (pCreateInfo );
         R_CSTL_TRACE_SCOPE_CTX (
-            "app=%s, headless=%d, layers=%d",
-            R_CSTL_StringData (pCreateInfo->pApplicationName),
-            pCreateInfo->enableHeadlessMode,
-            pCreateInfo->enableValidationLayers);
-
+            "app=%s",
+            R_CSTL_StringData (pCreateInfo->pApplicationName))
         R_CVULKAN_ASSERT (pInstance);
         R_CVULKAN_ASSERT (pCreateInfo);
 
@@ -359,60 +349,36 @@ R_CVulkan_NewInstance (
 #endif
 
         enum R_CVulkanError result = R_CVULKAN_OK;
-
-        bool enableValidationLayers = pCreateInfo->enableValidationLayers;
 #if defined(R_CVULKAN_DEBUG)
-        if (!pCreateInfo->enableValidationLayers)
+        bool validationLayersSupported = R_CVulkan_CheckValidationLayerSupport ();
+        if (!validationLayersSupported)
         {
-                enableValidationLayers = true;
+                R_CSTL_LOG_ERROR (
+                        "Validation layers not available. Install Vulkan SDK with "
+                        "validation layers.");
+                result = R_CVULKAN_ERROR_LAYER_NOT_FOUND;
+                goto cvulkan_cleanup;
         }
 #endif
-
-        bool enableHeadlessMode = pCreateInfo->enableHeadlessMode;
-#if defined(R_CVULKAN_HEADLESS)
-        if (!pCreateInfo->enableHeadlessMode)
-        {
-                enableHeadlessMode = true;
-        }
-#endif
-
-#if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers)
-        {
-                bool validationLayersSupported = R_CVulkan_CheckValidationLayerSupport ();
-                if (!validationLayersSupported)
-                {
-                        R_CSTL_LOG_ERROR (
-                            "Validation layers requested but not available. Install Vulkan SDK with "
-                            "validation layers.");
-                        result = R_CVULKAN_ERROR_LAYER_NOT_FOUND;
-                        goto cvulkan_cleanup;
-                }
-        }
-#endif
-
         bool hasValidationFeatures = false;
         bool hasGpuAssisted = false;
 #if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers)
+        result = R_CVulkan_CheckExtensionAvailability (
+                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
+                VK_NULL_HANDLE,
+                &hasValidationFeatures);
+        if (result != R_CVULKAN_OK)
         {
-                result = R_CVulkan_CheckExtensionAvailability (
-                    VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
-                    VK_NULL_HANDLE,
-                    &hasValidationFeatures);
-                if (result != R_CVULKAN_OK)
-                {
-                        goto cvulkan_cleanup;
-                }
+                goto cvulkan_cleanup;
+        }
 
-                result = R_CVulkan_CheckExtensionAvailability (
-                    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-                    VK_NULL_HANDLE,
-                    &hasGpuAssisted);
-                if (result != R_CVULKAN_OK)
-                {
-                        goto cvulkan_cleanup;
-                }
+        result = R_CVulkan_CheckExtensionAvailability (
+                VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                VK_NULL_HANDLE,
+                &hasGpuAssisted);
+        if (result != R_CVULKAN_OK)
+        {
+                goto cvulkan_cleanup;
         }
 #endif
 
@@ -421,7 +387,7 @@ R_CVulkan_NewInstance (
         VkValidationFeatureEnableEXT enabledValidationFeatures[4];
         uint32_t                     enabledValidationFeatureCount = 0;
 
-        if (enableValidationLayers && hasValidationFeatures)
+        if (hasValidationFeatures)
         {
                 validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
 
@@ -446,42 +412,22 @@ R_CVulkan_NewInstance (
 #endif
 
         struct R_CSTL_Array* pExtensions = NULL;
-        result = R_CVulkan_BuildInstanceExtensions (&pExtensions, hasValidationFeatures, enableHeadlessMode);
+        result = R_CVulkan_BuildInstanceExtensions (&pExtensions, hasValidationFeatures);
         if (result != R_CVULKAN_OK)
         {
                 R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", R_CVulkanErrorToString (result));
                 goto cvulkan_cleanup;
         }
-
-        const char* pApplicationName = "Unknown Application";
-        if (pCreateInfo->pApplicationName )
+        R_CVULKAN_ASSERT (pCreateInfo->pApplicationName);
+        const char* pApplicationName = R_CSTL_StringData (pCreateInfo->pApplicationName);
+        const char* pEngineName = R_CSTL_StringData (pCreateInfo->pEngineName);
+        if (!pEngineName)
         {
-                pApplicationName = R_CSTL_StringData (pCreateInfo->pApplicationName);
+                pEngineName = "rlgame (UNKNOWN)";
         }
-
-        const char* pEngineName = "No Engine";
-        if (pCreateInfo->pEngineName )
-        {
-                pEngineName = R_CSTL_StringData (pCreateInfo->pEngineName);
-        }
-
         uint32_t applicationVersion = pCreateInfo->applicationVersion;
-        if (applicationVersion == 0)
-        {
-                applicationVersion = VK_MAKE_VERSION (1, 0, 0);
-        }
-
         uint32_t engineVersion = pCreateInfo->engineVersion;
-        if (engineVersion == 0)
-        {
-                engineVersion = VK_MAKE_VERSION (1, 0, 0);
-        }
-
-        uint32_t apiVersion = pCreateInfo->apiVersion;
-        if (apiVersion == 0)
-        {
-                apiVersion = VK_API_VERSION_1_1;
-        }
+        uint32_t apiVersion = VK_API_VERSION_1_2;
 
         VkApplicationInfo appInfo = {0};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -497,21 +443,17 @@ R_CVulkan_NewInstance (
         createInfo.pApplicationInfo = &appInfo;
 
 #if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers)
+        createInfo.enabledLayerCount = g_validationLayerCount;
+        createInfo.ppEnabledLayerNames = g_validationLayers;
+        if (hasValidationFeatures)
         {
-                createInfo.enabledLayerCount = g_validationLayerCount;
-                createInfo.ppEnabledLayerNames = g_validationLayers;
-                if (hasValidationFeatures)
-                {
-                        createInfo.pNext = &validationFeatures;
-                }
+                createInfo.pNext = &validationFeatures;
         }
         else
-#endif
         {
                 createInfo.enabledLayerCount = 0;
         }
-
+#endif
         bool hasPortability = false;
         R_CVulkan_CheckExtensionAvailability (
             VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
@@ -543,16 +485,13 @@ R_CVulkan_NewInstance (
         }
 
 #if defined(R_CVULKAN_DEBUG)
-        if (enableValidationLayers)
+        result = R_CVulkan_SetupDebugMessenger (pInstance->handle, &pInstance->debugMessenger);
+        if (result != R_CVULKAN_OK)
         {
-                result = R_CVulkan_SetupDebugMessenger (pInstance->handle, &pInstance->debugMessenger);
-                if (result != R_CVULKAN_OK)
-                {
-                        R_CSTL_LOG_ERROR (
-                            "Failed to setup debug messenger: %s",
-                            R_CVulkanErrorToString (result));
-                        goto cvulkan_cleanup;
-                }
+                R_CSTL_LOG_ERROR (
+                        "Failed to setup debug messenger: %s",
+                        R_CVulkanErrorToString (result));
+                goto cvulkan_cleanup;
         }
 #endif
 
@@ -567,12 +506,7 @@ cvulkan_cleanup:
         pInstance->booted = false;
         R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
 #endif
-        pInstance->debugMessenger = VK_NULL_HANDLE;
-        if (pInstance->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyInstance (pInstance->handle, NULL);
-                pInstance->handle = VK_NULL_HANDLE;
-        }
+        vkDestroyInstance (pInstance->handle, NULL);
         R_CSTL_TRACE_SCOPE_EXIT ();
         return result;
 }
@@ -581,25 +515,10 @@ R_CVULKAN_API void
 R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstance)
 {
         R_CVULKAN_ASSERT (pInstance);
-
-#if defined(R_CVULKAN_DEBUG)
-        if (!pInstance)
-        {
-                return;
-        }
-#endif
-
 #if defined(R_CVULKAN_DEBUG)
         R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
 #endif
-        pInstance->debugMessenger = VK_NULL_HANDLE;
-
-        if (pInstance->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyInstance (pInstance->handle, NULL);
-                pInstance->handle = VK_NULL_HANDLE;
-        }
-
+        vkDestroyInstance (pInstance->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
         pInstance->booted = false;
 #endif

@@ -10,24 +10,14 @@ R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*                 pFramebuffer,
     const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
 {
-        R_CVULKAN_ASSERT (pFramebuffer );
-        R_CVULKAN_ASSERT (pCreateInfo );
-        R_CVULKAN_ASSERT (pCreateInfo->pDevice );
-        R_CVULKAN_ASSERT (pCreateInfo->pRenderPass != VK_NULL_HANDLE);
+        R_CVULKAN_ASSERT (pFramebuffer);
+        R_CVULKAN_ASSERT (pCreateInfo);
+        R_CVULKAN_ASSERT (pCreateInfo->pDevice);
+        R_CVULKAN_ASSERT (pCreateInfo->pRenderPass);
         R_CVULKAN_ASSERT (pCreateInfo->pAttachments );
         R_CVULKAN_ASSERT (pCreateInfo->attachmentCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-        if (!pFramebuffer || !pCreateInfo || !pCreateInfo->pDevice)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-        if (pCreateInfo->pRenderPass == VK_NULL_HANDLE || !pCreateInfo->pAttachments
-            || pCreateInfo->attachmentCount == 0)
-        {
-                return R_CVULKAN_ERROR_NULL_POINTER;
-        }
-        R_CVULKAN_ASSERT (R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice));
         if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
         {
                 return R_CVULKAN_ERROR_NOT_INITIALIZED;
@@ -37,7 +27,6 @@ R_CVulkan_NewFramebuffer (
                 return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 #endif
-
         pFramebuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
         pFramebuffer->handle = VK_NULL_HANDLE;
         pFramebuffer->renderPass = pCreateInfo->pRenderPass;
@@ -47,7 +36,6 @@ R_CVulkan_NewFramebuffer (
 #if defined(R_CVULKAN_DEBUG)
         pFramebuffer->booted = false;
 #endif
-
         VkFramebufferCreateInfo framebufferInfo = {0};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = pCreateInfo->pRenderPass;
@@ -73,27 +61,15 @@ R_CVulkan_NewFramebuffer (
 R_CVULKAN_API void
 R_CVulkan_DeleteFramebuffer (struct R_CVulkan_Framebuffer* pFramebuffer)
 {
-        R_CVULKAN_ASSERT (pFramebuffer );
+        R_CVULKAN_ASSERT (pFramebuffer);
 
+        vkDestroyFramebuffer (pFramebuffer->device, pFramebuffer->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-        if (!pFramebuffer)
-        {
-                return;
-        }
-#endif
-
-        if (pFramebuffer->handle != VK_NULL_HANDLE)
-        {
-                vkDestroyFramebuffer (pFramebuffer->device, pFramebuffer->handle, NULL);
-                pFramebuffer->handle = VK_NULL_HANDLE;
-        }
-
         pFramebuffer->device = VK_NULL_HANDLE;
         pFramebuffer->renderPass = VK_NULL_HANDLE;
         pFramebuffer->width = 0;
         pFramebuffer->height = 0;
         pFramebuffer->attachmentCount = 0;
-#if defined(R_CVULKAN_DEBUG)
         pFramebuffer->booted = false;
 #endif
 }
