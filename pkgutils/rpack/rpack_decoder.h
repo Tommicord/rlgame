@@ -11,12 +11,12 @@
  */
 struct R_PackDecoder
 {
-                struct R_PackHeader*          pHeader;
-                struct R_PackHashEntry*       pHashTable;
-                struct R_PackColorEntry*      pColorTable;
-                struct R_PackPixelIndexEntry* pPixelIndexTable;
-                const uint8_t*                pData;
-                uint64_t                      dataSize;
+        struct R_PackHeader*          pHeader;
+        struct R_PackHashEntry*       pHashTable;
+        struct R_PackColorEntry*      pColorTable;
+        struct R_PackPixelIndexEntry* pPixelIndexTable;
+        const uint8_t*                pData;
+        uint64_t                      dataSize;
 };
 
 /**

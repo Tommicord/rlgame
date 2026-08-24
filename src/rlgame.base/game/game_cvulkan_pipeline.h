@@ -24,17 +24,17 @@
  */
 struct R_Game_PipelineContextCreateInfo
 {
-                const struct R_CSTL_String* pApplicationName;
+        const char* pApplicationName;
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
-                HINSTANCE hInstance;
-                HWND      hWnd;
+        HINSTANCE hInstance;
+        HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-                Display* pDisplay;
-                Window   window;
+        Display* pDisplay;
+        Window   window;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
-                ANativeWindow* pWindow;
+        ANativeWindow* pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
-                void* pNSWindow;
+        void* pNSWindow;
 #endif
 };
 
@@ -46,25 +46,25 @@ struct R_Game_PipelineContextCreateInfo
  */
 struct R_Game_PipelineContext
 {
-                struct R_CVulkan_Instance     instance;
-                struct R_CVulkan_Device       device;
-                struct R_CVulkan_Queue        graphicsQueue;
-                struct R_CVulkan_Queue        computeQueue;
-                struct R_CVulkan_Queue        transferQueue;
-                struct R_CVulkan_Queue        presentQueue;
-                struct R_CVulkan_Surface*     pSurface;
-                struct R_CVulkan_CommandPool  graphicsCommandPool;
-                struct R_CVulkan_CommandPool  computeCommandPool;
-                struct R_CVulkan_CommandPool  transferCommandPool;
-                struct R_CVulkan_Semaphore    imageAvailableSemaphore;
-                struct R_CVulkan_Semaphore    renderFinishedSemaphore;
-                struct R_CVulkan_Fence        inFlightFence;
-                struct R_CVulkan_Swapchain    swapchain;
-                struct R_CVulkan_RenderPass   renderPass;
-                struct R_CVulkan_Framebuffer* pFramebuffers;
-                uint32_t                      framebufferCount;
-                uint32_t                      currentFrameIndex;
-                R_CVULKAN_DEBUG_FIELD
+        struct R_CVulkan_Instance     instance;
+        struct R_CVulkan_Device       device;
+        struct R_CVulkan_Queue        graphicsQueue;
+        struct R_CVulkan_Queue        computeQueue;
+        struct R_CVulkan_Queue        transferQueue;
+        struct R_CVulkan_Queue        presentQueue;
+        struct R_CVulkan_Surface*     pSurface;
+        struct R_CVulkan_CommandPool  graphicsCommandPool;
+        struct R_CVulkan_CommandPool  computeCommandPool;
+        struct R_CVulkan_CommandPool  transferCommandPool;
+        struct R_CVulkan_Semaphore    imageAvailableSemaphore;
+        struct R_CVulkan_Semaphore    renderFinishedSemaphore;
+        struct R_CVulkan_Fence        inFlightFence;
+        struct R_CVulkan_Swapchain    swapchain;
+        struct R_CVulkan_RenderPass   renderPass;
+        struct R_CVulkan_Framebuffer* pFramebuffers;
+        uint32_t                      framebufferCount;
+        uint32_t                      currentFrameIndex;
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

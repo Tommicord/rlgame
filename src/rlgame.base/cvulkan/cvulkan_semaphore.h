@@ -11,9 +11,9 @@
  */
 struct R_CVulkan_Semaphore
 {
-                VkSemaphore handle; /**< Raw Vulkan semaphore handle */
-                VkDevice    device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkSemaphore handle; /**< Raw Vulkan semaphore handle */
+        VkDevice    device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

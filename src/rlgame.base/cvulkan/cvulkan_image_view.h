@@ -12,12 +12,12 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_ImageViewCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                VkImage                        image; /**< Image to create view for */
-                VkImageViewType                viewType; /**< View type (1D, 2D, 3D, cube, etc.) */
-                VkFormat                       format; /**< Image format */
-                VkComponentMapping             components; /**< Component mapping for swizzling */
-                VkImageSubresourceRange        subresourceRange; /**< Subresource range */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        VkImage                        image; /**< Image to create view for */
+        VkImageViewType                viewType; /**< View type (1D, 2D, 3D, cube, etc.) */
+        VkFormat                       format; /**< Image format */
+        VkComponentMapping             components; /**< Component mapping for swizzling */
+        VkImageSubresourceRange        subresourceRange; /**< Subresource range */
 };
 
 /**
@@ -25,11 +25,11 @@ struct R_CVulkan_ImageViewCreateInfo
  */
 struct R_CVulkan_ImageView
 {
-                VkImageView handle; /**< Raw Vulkan image view handle */
-                VkDevice    device; /**< Associated device */
-                VkImage     image; /**< Associated image */
-                VkFormat    format; /**< View format */
-                R_CVULKAN_DEBUG_FIELD
+        VkImageView handle; /**< Raw Vulkan image view handle */
+        VkDevice    device; /**< Associated device */
+        VkImage     image; /**< Associated image */
+        VkFormat    format; /**< View format */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

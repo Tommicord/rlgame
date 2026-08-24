@@ -13,11 +13,11 @@
  */
 struct R_TriangleTest_Context
 {
-                struct R_Game_PipelineContext    pipelineContext;
-                struct R_CVulkan_PipelineLayout* pipelineLayout;
-                struct R_CVulkan_Pipeline*       graphicsPipeline;
-                struct R_GameRendererSubsystem*  pRendererSubsystem;
-                uint32_t                         layerIndex;
+        struct R_Game_PipelineContext    pipelineContext;
+        struct R_CVulkan_PipelineLayout* pipelineLayout;
+        struct R_CVulkan_Pipeline*       graphicsPipeline;
+        struct R_GameRendererSubsystem*  pRendererSubsystem;
+        uint32_t                         layerIndex;
 };
 
 /**

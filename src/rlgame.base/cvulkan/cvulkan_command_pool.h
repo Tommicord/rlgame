@@ -13,10 +13,10 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_CommandPool
 {
-                VkCommandPool handle; /**< Raw Vulkan command pool handle */
-                VkDevice      device; /**< Associated device */
-                uint32_t      queueFamilyIndex; /**< Queue family index */
-                R_CVULKAN_DEBUG_FIELD
+        VkCommandPool handle; /**< Raw Vulkan command pool handle */
+        VkDevice      device; /**< Associated device */
+        uint32_t      queueFamilyIndex; /**< Queue family index */
+        R_CVULKAN_DEBUG_FIELD
 } R_CVulkan_CommandPool;
 
 /**

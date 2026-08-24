@@ -14,11 +14,11 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_BufferCreateInfo
 {
-                const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
-                VkPhysicalDevice               physicalDevice; /**< Physical device */
-                VkDeviceSize                   size; /**< Buffer size in bytes */
-                VkBufferUsageFlags             usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags          properties; /**< Memory property flags */
+        const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
+        VkPhysicalDevice               physicalDevice; /**< Physical device */
+        VkDeviceSize                   size; /**< Buffer size in bytes */
+        VkBufferUsageFlags             usage; /**< Buffer usage flags */
+        VkMemoryPropertyFlags          properties; /**< Memory property flags */
 };
 
 /**
@@ -26,15 +26,15 @@ struct R_CVulkan_BufferCreateInfo
  */
 struct R_CVulkan_Buffer
 {
-                VkBuffer              handle; /**< Raw Vulkan buffer handle */
-                VkDeviceMemory        memory; /**< Device memory handle */
-                VkDevice              device; /**< Associated device */
-                VkDeviceSize          size; /**< Buffer size in bytes */
-                VkBufferUsageFlags    usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags properties; /**< Memory property flags */
-                void*                 pMapped; /**< Mapped memory pointer (if mapped) */
-                bool                  isMapped; /**< Whether memory is currently mapped */
-                R_CVULKAN_DEBUG_FIELD
+        VkBuffer              handle; /**< Raw Vulkan buffer handle */
+        VkDeviceMemory        memory; /**< Device memory handle */
+        VkDevice              device; /**< Associated device */
+        VkDeviceSize          size; /**< Buffer size in bytes */
+        VkBufferUsageFlags    usage; /**< Buffer usage flags */
+        VkMemoryPropertyFlags properties; /**< Memory property flags */
+        void*                 pMapped; /**< Mapped memory pointer (if mapped) */
+        bool                  isMapped; /**< Whether memory is currently mapped */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

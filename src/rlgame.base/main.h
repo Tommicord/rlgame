@@ -14,15 +14,15 @@
  */
 enum R_GameLoopStateFlags
 {
-        R_GAMELOOP_STATE_NONE = 0x00, ///< No state flags set
-        R_GAMELOOP_STATE_RUNNING = 0x01, ///< Loop is actively running and processing frames
-        R_GAMELOOP_STATE_PAUSED = 0x02, ///< Loop is paused (update suspended but loop continues)
-        R_GAMELOOP_STATE_DESTROYED = 0x04, ///< Loop is being destroyed/cleanup in progress
-        R_GAMELOOP_STATE_RESUMED = 0x08, ///< Loop was just resumed from pause
-        R_GAMELOOP_STATE_SUSPENDED = 0x10, ///< Loop is suspended (background, low resource usage)
-        R_GAMELOOP_STATE_ERROR = 0x20, ///< Error state, loop may need recovery
-        R_GAMELOOP_STATE_SHUTDOWN = 0x40, ///< Shutdown requested, loop should exit
-        R_GAMELOOP_STATE_ALL = 0x7F ///< All state flags combined
+    R_GAMELOOP_STATE_NONE = 0x00, ///< No state flags set
+    R_GAMELOOP_STATE_RUNNING = 0x01, ///< Loop is actively running and processing frames
+    R_GAMELOOP_STATE_PAUSED = 0x02, ///< Loop is paused (update suspended but loop continues)
+    R_GAMELOOP_STATE_DESTROYED = 0x04, ///< Loop is being destroyed/cleanup in progress
+    R_GAMELOOP_STATE_RESUMED = 0x08, ///< Loop was just resumed from pause
+    R_GAMELOOP_STATE_SUSPENDED = 0x10, ///< Loop is suspended (background, low resource usage)
+    R_GAMELOOP_STATE_ERROR = 0x20, ///< Error state, loop may need recovery
+    R_GAMELOOP_STATE_SHUTDOWN = 0x40, ///< Shutdown requested, loop should exit
+    R_GAMELOOP_STATE_ALL = 0x7F ///< All state flags combined
 };
 
 /**
@@ -33,11 +33,11 @@ enum R_GameLoopStateFlags
  */
 struct R_ProcessInfo
 {
-                uint32_t                    pid; ///< Process ID
-                const struct R_CSTL_String* pName; ///< Process/executable name (UTF-8 string)
-                const struct R_CSTL_String* pUser; ///< Owning user or service name (if available)
-                uint64_t                    startTimeMs; ///< Start time in epoch milliseconds, 0 if unknown
-                uint64_t                    memoryBytes; ///< Working set / RSS in bytes, 0 if unknown
+        uint32_t                    pid; ///< Process ID
+        const struct R_CSTL_String* pName; ///< Process/executable name (UTF-8 string)
+        const struct R_CSTL_String* pUser; ///< Owning user or service name (if available)
+        uint64_t                    startTimeMs; ///< Start time in epoch milliseconds, 0 if unknown
+        uint64_t                    memoryBytes; ///< Working set / RSS in bytes, 0 if unknown
 };
 
 /**
@@ -48,12 +48,12 @@ struct R_ProcessInfo
  */
 struct R_MemoryInfo
 {
-                uint64_t totalPhysicalBytes; ///< Total physical RAM in bytes
-                uint64_t availablePhysicalBytes; ///< Available RAM in bytes
-                uint64_t totalVirtualBytes; ///< Total virtual address space in bytes
-                uint64_t usedBytes; ///< Total used memory (approximate) in bytes
-                size_t   heapAllocatedBytes; ///< Heap allocation tracked by app in bytes (optional)
-                size_t   heapReservedBytes; ///< Reserved heap size in bytes (optional)
+        uint64_t totalPhysicalBytes; ///< Total physical RAM in bytes
+        uint64_t availablePhysicalBytes; ///< Available RAM in bytes
+        uint64_t totalVirtualBytes; ///< Total virtual address space in bytes
+        uint64_t usedBytes; ///< Total used memory (approximate) in bytes
+        size_t   heapAllocatedBytes; ///< Heap allocation tracked by app in bytes (optional)
+        size_t   heapReservedBytes; ///< Reserved heap size in bytes (optional)
 };
 
 /**
@@ -64,9 +64,9 @@ struct R_MemoryInfo
  */
 struct R_ApplicationArgs
 {
-                int                argc; ///< Argument count
-                const char* const* argv; ///< Pointer to argv array (not owned by this struct)
-                char*              pCmdLine; ///< Optional full command-line string (owned, heap-allocated)
+        int                argc; ///< Argument count
+        const char* const* argv; ///< Pointer to argv array (not owned by this struct)
+        char*              pCmdLine; ///< Optional full command-line string (owned, heap-allocated)
 };
 
 /**
@@ -78,16 +78,16 @@ struct R_ApplicationArgs
  */
 struct R_ApplicationInfo
 {
-                const struct R_CSTL_String* pApplicationName; /**< Short application name (UTF-8 string) */
-                uint32_t                    applicationVersionMajor; /**< Major version number */
-                uint32_t                    applicationVersionMinor; /**< Minor version number */
-                uint32_t                    applicationVersionPatch; /**< Patch version number */
-                uint32_t                    pid; /**< Current process ID */
-                const struct R_ProcessInfo*
-                       pExistingProcesses; /**< Optional array of related processes (not owned) */
-                size_t existingProcessCount; /**< Number of entries in pExistingProcesses */
-                struct R_ApplicationArgs args; /**< Startup arguments */
-                struct R_MemoryInfo      memory; /**< Snapshot of memory usage at init */
+        const struct R_CSTL_String* pApplicationName; /**< Short application name (UTF-8 string) */
+        uint32_t                    applicationVersionMajor; /**< Major version number */
+        uint32_t                    applicationVersionMinor; /**< Minor version number */
+        uint32_t                    applicationVersionPatch; /**< Patch version number */
+        uint32_t                    pid; /**< Current process ID */
+        const struct R_ProcessInfo*
+                                 pExistingProcesses; /**< Optional array of related processes (not owned) */
+        size_t                   existingProcessCount; /**< Number of entries in pExistingProcesses */
+        struct R_ApplicationArgs args; /**< Startup arguments */
+        struct R_MemoryInfo      memory; /**< Snapshot of memory usage at init */
 };
 
 /**
@@ -110,10 +110,10 @@ typedef bool (*const R_GameCallback) (const struct R_ApplicationInfo* pAppInfo, 
  */
 struct R_MainProvider
 {
-                R_GameCallback                  pExecCallback; /**< Pointer to game loop function */
-                const struct R_ApplicationInfo* pAppInfo; /**< Pointer to application info (not owned) */
-                void*                           pUserData; /**< Optional user data pointer (not owned) */
-                volatile uint8_t                stateFlags; /**< Atomic state flags (R_GameLoopStateFlags) */
+        R_GameCallback                  pExecCallback; /**< Pointer to game loop function */
+        const struct R_ApplicationInfo* pAppInfo; /**< Pointer to application info (not owned) */
+        void*                           pUserData; /**< Optional user data pointer (not owned) */
+        volatile uint8_t                stateFlags; /**< Atomic state flags (R_GameLoopStateFlags) */
 };
 
 /**

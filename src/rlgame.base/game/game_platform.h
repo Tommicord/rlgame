@@ -43,7 +43,7 @@
 #define R_GAME_ATOMIC_INCREMENT(p) InterlockedIncrement ((LONG*)(p))
 #define R_GAME_ATOMIC_DECREMENT(p) InterlockedDecrement ((LONG*)(p))
 #define R_GAME_ATOMIC_COMPARE_EXCHANGE(p, expected, desired)                                                 \
-        InterlockedCompareExchange ((LONG*)(p), (LONG)(desired), (LONG)(expected))
+    InterlockedCompareExchange ((LONG*)(p), (LONG)(desired), (LONG)(expected))
 #define R_GAME_ATOMIC_EXCHANGE(p, value) InterlockedExchange ((LONG*)(p), (LONG)(value))
 #define R_GAME_ATOMIC_LOAD(p)            (*(p))
 #define R_GAME_ATOMIC_STORE(p, value)    (*(p) = (value))
@@ -59,19 +59,19 @@
 #define R_GAME_ATOMIC_INCREMENT(p) atomic_fetch_add_explicit ((atomic_int*)(p), 1, memory_order_relaxed) + 1
 #define R_GAME_ATOMIC_DECREMENT(p) atomic_fetch_sub_explicit ((atomic_int*)(p), 1, memory_order_relaxed) - 1
 #define R_GAME_ATOMIC_COMPARE_EXCHANGE(p, expected, desired)                                                 \
-        atomic_compare_exchange_strong_explicit (                                                            \
-            (atomic_int*)(p),                                                                                \
-            (int*)(expected),                                                                                \
-            (int)(desired),                                                                                  \
-            memory_order_acq_rel,                                                                            \
-            memory_order_relaxed)
+    atomic_compare_exchange_strong_explicit (                                                                \
+        (atomic_int*)(p),                                                                                    \
+        (int*)(expected),                                                                                    \
+        (int)(desired),                                                                                      \
+        memory_order_acq_rel,                                                                                \
+        memory_order_relaxed)
 #define R_GAME_ATOMIC_EXCHANGE(p, value)                                                                     \
-        atomic_exchange_explicit ((atomic_int*)(p), (int)(value), memory_order_acq_rel)
+    atomic_exchange_explicit ((atomic_int*)(p), (int)(value), memory_order_acq_rel)
 #define R_GAME_ATOMIC_LOAD(p) atomic_load_explicit ((atomic_int*)(p), memory_order_acquire)
 #define R_GAME_ATOMIC_STORE(p, value)                                                                        \
-        atomic_store_explicit ((atomic_int*)(p), (int)(value), memory_order_release)
+    atomic_store_explicit ((atomic_int*)(p), (int)(value), memory_order_release)
 #define R_GAME_ATOMIC_ADD(p, value)                                                                          \
-        atomic_fetch_add_explicit ((atomic_int*)(p), (int)(value), memory_order_relaxed)
+    atomic_fetch_add_explicit ((atomic_int*)(p), (int)(value), memory_order_relaxed)
 
 #endif
 
@@ -88,7 +88,7 @@
 #define R_GAME_COND_INIT(p)     InitializeConditionVariable ((CONDITION_VARIABLE*)(p))
 #define R_GAME_COND_DESTROY(p)  ((void)0)
 #define R_GAME_COND_WAIT(pCond, pMutex)                                                                      \
-        SleepConditionVariableCS ((CONDITION_VARIABLE*)(pCond), (CRITICAL_SECTION*)(pMutex), INFINITE)
+    SleepConditionVariableCS ((CONDITION_VARIABLE*)(pCond), (CRITICAL_SECTION*)(pMutex), INFINITE)
 #define R_GAME_COND_SIGNAL(p)    WakeConditionVariable ((CONDITION_VARIABLE*)(p))
 #define R_GAME_COND_BROADCAST(p) WakeAllConditionVariable ((CONDITION_VARIABLE*)(p))
 
@@ -106,7 +106,7 @@
 #define R_GAME_COND_INIT(p)     pthread_cond_init ((pthread_cond_t*)(p), NULL)
 #define R_GAME_COND_DESTROY(p)  pthread_cond_destroy ((pthread_cond_t*)(p))
 #define R_GAME_COND_WAIT(pCond, pMutex)                                                                      \
-        pthread_cond_wait ((pthread_cond_t*)(pCond), (pthread_mutex_t*)(pMutex))
+    pthread_cond_wait ((pthread_cond_t*)(pCond), (pthread_mutex_t*)(pMutex))
 #define R_GAME_COND_SIGNAL(p)    pthread_cond_signal ((pthread_cond_t*)(p))
 #define R_GAME_COND_BROADCAST(p) pthread_cond_broadcast ((pthread_cond_t*)(p))
 
@@ -117,29 +117,29 @@
  */
 enum R_GameError
 {
-        R_GAME_OK = 0, /**< Success */
-        R_GAME_ERROR_FAILED = -1, /**< General failure */
-        R_GAME_ERROR_OUT_OF_MEMORY = -2, /**< Memory allocation failed */
-        R_GAME_ERROR_INVALID_ARGUMENT = -3, /**< Invalid function argument */
-        R_GAME_ERROR_NULL_POINTER = -4, /**< Null pointer passed */
-        R_GAME_ERROR_NOT_INITIALIZED = -5, /**< Game subsystem not initialized */
-        R_GAME_ERROR_ALREADY_INITIALIZED = -6, /**< Already initialized */
-        R_GAME_ERROR_INVALID_STATE = -7, /**< Invalid state transition */
-        R_GAME_ERROR_RESOURCE_NOT_FOUND = -8, /**< Resource not found */
-        R_GAME_ERROR_RESOURCE_ALREADY_EXISTS = -9, /**< Resource already exists */
-        R_GAME_ERROR_MAX_RESOURCES_REACHED = -10, /**< Maximum resource limit reached */
-        R_GAME_ERROR_INVALID_HANDLE = -11, /**< Invalid resource handle */
-        R_GAME_ERROR_LAYER_NOT_FOUND = -12, /**< Layer not found */
-        R_GAME_ERROR_THREAD_CREATE_FAILED = -13, /**< Failed to create thread */
-        R_GAME_ERROR_INDEX_OUT_OF_BOUNDS = -14, /**< Index out of bounds */
-        R_GAME_ERROR_ARRAY_OPERATION_FAILED = -15, /**< Array operation failed */
-        R_GAME_ERROR_RENDERER_NOT_SET = -16, /**< Renderer context not set */
-        R_GAME_ERROR_FRAMEBUFFER_NOT_READY = -17, /**< Framebuffer not ready */
-        R_GAME_ERROR_COMMAND_BUFFER_FAILED = -18, /**< Command buffer operation failed */
-        R_GAME_ERROR_SUBSYSTEM_NOT_FOUND = -19, /**< Subsystem not found */
-        R_GAME_ERROR_VALIDATION_FAILED = -20, /**< Validation check failed */
-        R_GAME_ERROR_INITIALIZATION_FAILED = -21, /**< Initialization failed */
-        R_GAME_ERROR_UNKNOWN = -99 /**< Unknown error */
+    R_GAME_OK = 0, /**< Success */
+    R_GAME_ERROR_FAILED = -1, /**< General failure */
+    R_GAME_ERROR_OUT_OF_MEMORY = -2, /**< Memory allocation failed */
+    R_GAME_ERROR_INVALID_ARGUMENT = -3, /**< Invalid function argument */
+    R_GAME_ERROR_NULL_POINTER = -4, /**< Null pointer passed */
+    R_GAME_ERROR_NOT_INITIALIZED = -5, /**< Game subsystem not initialized */
+    R_GAME_ERROR_ALREADY_INITIALIZED = -6, /**< Already initialized */
+    R_GAME_ERROR_INVALID_STATE = -7, /**< Invalid state transition */
+    R_GAME_ERROR_RESOURCE_NOT_FOUND = -8, /**< Resource not found */
+    R_GAME_ERROR_RESOURCE_ALREADY_EXISTS = -9, /**< Resource already exists */
+    R_GAME_ERROR_MAX_RESOURCES_REACHED = -10, /**< Maximum resource limit reached */
+    R_GAME_ERROR_INVALID_HANDLE = -11, /**< Invalid resource handle */
+    R_GAME_ERROR_LAYER_NOT_FOUND = -12, /**< Layer not found */
+    R_GAME_ERROR_THREAD_CREATE_FAILED = -13, /**< Failed to create thread */
+    R_GAME_ERROR_INDEX_OUT_OF_BOUNDS = -14, /**< Index out of bounds */
+    R_GAME_ERROR_ARRAY_OPERATION_FAILED = -15, /**< Array operation failed */
+    R_GAME_ERROR_RENDERER_NOT_SET = -16, /**< Renderer context not set */
+    R_GAME_ERROR_FRAMEBUFFER_NOT_READY = -17, /**< Framebuffer not ready */
+    R_GAME_ERROR_COMMAND_BUFFER_FAILED = -18, /**< Command buffer operation failed */
+    R_GAME_ERROR_SUBSYSTEM_NOT_FOUND = -19, /**< Subsystem not found */
+    R_GAME_ERROR_VALIDATION_FAILED = -20, /**< Validation check failed */
+    R_GAME_ERROR_INITIALIZATION_FAILED = -21, /**< Initialization failed */
+    R_GAME_ERROR_UNKNOWN = -99 /**< Unknown error */
 };
 
 R_GAME_API const char* R_GameErrorToString (enum R_GameError error);
@@ -161,17 +161,17 @@ R_GAME_API const char* R_GameErrorToString (enum R_GameError error);
 
 #if defined(R_GAME_DEBUG)
 #define R_GAME_VALIDATE_PARAM(Data)                                                                          \
-        do                                                                                                   \
-        {                                                                                                    \
-                R_GAME_ASSERT (Data);                                                                        \
-        } while (0)
+    do                                                                                                       \
+    {                                                                                                        \
+        R_GAME_ASSERT (Data);                                                                                \
+    } while (0)
 
 #define R_GAME_VALIDATE_PARAM_BOOTED(Data)                                                                   \
-        do                                                                                                   \
-        {                                                                                                    \
-                R_GAME_ASSERT (Data);                                                                        \
-                R_GAME_ASSERT ((Data)->booted);                                                              \
-        } while (0)
+    do                                                                                                       \
+    {                                                                                                        \
+        R_GAME_ASSERT (Data);                                                                                \
+        R_GAME_ASSERT ((Data)->booted);                                                                      \
+    } while (0)
 #else
 #define R_GAME_VALIDATE_PARAM(Data)        ((void)0)
 #define R_GAME_VALIDATE_PARAM_BOOTED(Data) ((void)0)

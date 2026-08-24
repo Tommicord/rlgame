@@ -20,11 +20,11 @@
  */
 struct R_CVulkan_InstanceCreateInfo
 {
-                const struct R_CSTL_String* pApplicationName; /**< Application name (can be NULL) */
-                uint32_t                    applicationVersion; /**< Application version (default: 1,0,0) */
-                const struct R_CSTL_String* pEngineName; /**< Engine name (can be NULL) */
-                uint32_t                    engineVersion; /**< Engine version (default: 1,0,0) */
-                uint32_t apiVersion; /**< Vulkan API version (default: VK_API_VERSION_1_1) */
+        const char* pApplicationName; /**< Application name */
+        uint32_t    applicationVersion; /**< Application version (default: 1,0,0) */
+        const char* pEngineName; /**< Engine name (can be NULL) */
+        uint32_t    engineVersion; /**< Engine version (default: 1,0,0) */
+        uint32_t    apiVersion; /**< Vulkan API version (default: VK_API_VERSION_1_1) */
 };
 
 /**
@@ -32,9 +32,14 @@ struct R_CVulkan_InstanceCreateInfo
  */
 struct R_CVulkan_Instance
 {
-                VkInstance               handle; /**< Raw Vulkan instance handle */
-                VkDebugUtilsMessengerEXT debugMessenger; /**< Debug messenger for validation layers */
-                R_CVULKAN_DEBUG_FIELD
+        VkInstance               handle; /**< Raw Vulkan instance handle */
+        VkDebugUtilsMessengerEXT debugMessenger; /**< Debug messenger for validation layers */
+#if defined(R_CVULKAN_DEBUG)
+        VkValidationFeaturesEXT      validationFeatures; /**< Validation features for debug mode */
+        VkValidationFeatureEnableEXT enabledValidationFeatures[4]; /**< Enabled validation features */
+        uint32_t                     enabledValidationFeatureCount; /**< Count of enabled features */
+#endif
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

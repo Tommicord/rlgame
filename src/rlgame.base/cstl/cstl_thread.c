@@ -25,8 +25,8 @@
 
 struct R_CSTL_Thread
 {
-                HANDLE handle;
-                DWORD  threadId;
+        HANDLE handle;
+        DWORD  threadId;
 };
 
 typedef DWORD (WINAPI* Win32ThreadFunc) (LPVOID lpParam);
@@ -34,254 +34,254 @@ typedef DWORD (WINAPI* Win32ThreadFunc) (LPVOID lpParam);
 static DWORD WINAPI
 Win32ThreadEntry (LPVOID lpParam)
 {
-        struct
-        {
-                        R_CSTL_ThreadFunc pFunc;
-                        void*             pData;
-        }* pParams = lpParam;
+    struct
+    {
+            R_CSTL_ThreadFunc pFunc;
+            void*             pData;
+    }* pParams = lpParam;
 
-        R_CSTL_ThreadFunc pFunc = pParams->pFunc;
-        void*             pData = pParams->pData;
+    R_CSTL_ThreadFunc pFunc = pParams->pFunc;
+    void*             pData = pParams->pData;
 
-        R_CSTL_HeapFree (pParams);
+    R_CSTL_HeapFree (pParams);
 
-        pFunc (pData);
-        return 0;
+    pFunc (pData);
+    return 0;
 }
 
 struct R_CSTL_Thread*
 R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pFunc == NULL)
-        {
-                return NULL;
-        }
+    if (pFunc == NULL)
+    {
+        return NULL;
+    }
 #endif
-        struct
-        {
-                        R_CSTL_ThreadFunc pFunc;
-                        void*             pData;
-        }* pParams = R_CSTL_HeapAlloc (sizeof (*pParams));
+    struct
+    {
+            R_CSTL_ThreadFunc pFunc;
+            void*             pData;
+    }* pParams = R_CSTL_HeapAlloc (sizeof (*pParams));
 
 #if R_CSTL_THREAD_DEBUG
-        if (pParams == NULL)
-        {
-                return NULL;
-        }
+    if (pParams == NULL)
+    {
+        return NULL;
+    }
 #endif
 
-        pParams->pFunc = pFunc;
-        pParams->pData = pData;
+    pParams->pFunc = pFunc;
+    pParams->pData = pData;
 
-        struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
+    struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
 #if R_CSTL_THREAD_DEBUG
-        if (pThread == NULL)
-        {
-                R_CSTL_HeapFree (pParams);
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pThread,
-            pThread,
-            sizeof (struct R_CSTL_Thread),
-            R_CSTL_HEAP_NAME (R_CSTL_Thread));
+    if (pThread == NULL)
+    {
+        R_CSTL_HeapFree (pParams);
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pThread,
+        pThread,
+        sizeof (struct R_CSTL_Thread),
+        R_CSTL_HEAP_NAME (R_CSTL_Thread));
 #endif
 
-        pThread->handle = CreateThread (NULL, 0, Win32ThreadEntry, pParams, 0, &pThread->threadId);
+    pThread->handle = CreateThread (NULL, 0, Win32ThreadEntry, pParams, 0, &pThread->threadId);
 
 #if R_CSTL_THREAD_DEBUG
-        if (pThread->handle == NULL)
-        {
-                R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-                R_CSTL_HeapFree (pParams);
-                R_CSTL_HeapFree (pThread);
-                return NULL;
-        }
+    if (pThread->handle == NULL)
+    {
+        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+        R_CSTL_HeapFree (pParams);
+        R_CSTL_HeapFree (pThread);
+        return NULL;
+    }
 #endif
 
-        return pThread;
+    return pThread;
 }
 
 int
 R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pThread == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pThread == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        DWORD waitResult = WaitForSingleObject (pThread->handle, INFINITE);
+    DWORD waitResult = WaitForSingleObject (pThread->handle, INFINITE);
 
 #if R_CSTL_THREAD_DEBUG
-        if (waitResult != WAIT_OBJECT_0)
-        {
-                CloseHandle (pThread->handle);
-                R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-                R_CSTL_HeapFree (pThread);
-                return R_CSTL_ERROR_THREAD_JOIN_FAILED;
-        }
-#endif
-
+    if (waitResult != WAIT_OBJECT_0)
+    {
         CloseHandle (pThread->handle);
-#if R_CSTL_THREAD_DEBUG
         R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-#endif
         R_CSTL_HeapFree (pThread);
+        return R_CSTL_ERROR_THREAD_JOIN_FAILED;
+    }
+#endif
 
-        return R_CSTL_OK;
+    CloseHandle (pThread->handle);
+#if R_CSTL_THREAD_DEBUG
+    R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+#endif
+    R_CSTL_HeapFree (pThread);
+
+    return R_CSTL_OK;
 }
 
 uint64_t
 R_CSTL_ThreadGetCurrentId (void)
 {
-        return (uint64_t)GetCurrentThreadId ();
+    return (uint64_t)GetCurrentThreadId ();
 }
 
 void
 R_CSTL_ThreadYield (void)
 {
-        SwitchToThread ();
+    SwitchToThread ();
 }
 
 void
 R_CSTL_ThreadSleep (uint32_t milliseconds)
 {
-        Sleep (milliseconds);
+    Sleep (milliseconds);
 }
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
 struct R_CSTL_Thread
 {
-                pthread_t thread;
-                int       joined;
+        pthread_t thread;
+        int       joined;
 };
 
 struct ThreadParams
 {
-                R_CSTL_ThreadFunc pFunc;
-                void*             pData;
+        R_CSTL_ThreadFunc pFunc;
+        void*             pData;
 };
 
 static void*
 PthreadThreadEntry (void* arg)
 {
-        struct ThreadParams* pParams = arg;
-        R_CSTL_ThreadFunc    pFunc = pParams->pFunc;
-        void*                pData = pParams->pData;
+    struct ThreadParams* pParams = arg;
+    R_CSTL_ThreadFunc    pFunc = pParams->pFunc;
+    void*                pData = pParams->pData;
 
-        R_CSTL_HeapFree (pParams);
+    R_CSTL_HeapFree (pParams);
 
-        pFunc (pData);
-        return NULL;
+    pFunc (pData);
+    return NULL;
 }
 
 struct R_CSTL_Thread*
 R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pFunc == NULL)
-        {
-                return NULL;
-        }
+    if (pFunc == NULL)
+    {
+        return NULL;
+    }
 #endif
 
-        struct ThreadParams* pParams = R_CSTL_HeapAlloc (sizeof (struct ThreadParams));
+    struct ThreadParams* pParams = R_CSTL_HeapAlloc (sizeof (struct ThreadParams));
 #if R_CSTL_THREAD_DEBUG
-        if (pParams == NULL)
-        {
-                return NULL;
-        }
+    if (pParams == NULL)
+    {
+        return NULL;
+    }
 #endif
 
-        pParams->pFunc = pFunc;
-        pParams->pData = pData;
+    pParams->pFunc = pFunc;
+    pParams->pData = pData;
 
-        struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
+    struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
 #if R_CSTL_THREAD_DEBUG
-        if (pThread == NULL)
-        {
-                R_CSTL_HeapFree (pParams);
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pThread,
-            pThread,
-            sizeof (struct R_CSTL_Thread),
-            R_CSTL_HEAP_NAME (R_CSTL_Thread));
+    if (pThread == NULL)
+    {
+        R_CSTL_HeapFree (pParams);
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pThread,
+        pThread,
+        sizeof (struct R_CSTL_Thread),
+        R_CSTL_HEAP_NAME (R_CSTL_Thread));
 #endif
 
-        pThread->joined = 0;
+    pThread->joined = 0;
 
-        int result = pthread_create (&pThread->thread, NULL, PthreadThreadEntry, pParams);
+    int result = pthread_create (&pThread->thread, NULL, PthreadThreadEntry, pParams);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-                R_CSTL_HeapFree (pParams);
-                R_CSTL_HeapFree (pThread);
-                return NULL;
-        }
+    if (result != 0)
+    {
+        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+        R_CSTL_HeapFree (pParams);
+        R_CSTL_HeapFree (pThread);
+        return NULL;
+    }
 #endif
 
-        return pThread;
+    return pThread;
 }
 
 int
 R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pThread == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pThread == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 
-        if (pThread->joined)
-        {
-#if R_CSTL_THREAD_DEBUG
-                R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-#endif
-                R_CSTL_HeapFree (pThread);
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
-#endif
-
-        int result = pthread_join (pThread->thread, NULL);
-#if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-                R_CSTL_HeapFree (pThread);
-                return R_CSTL_ERROR_THREAD_JOIN_FAILED;
-        }
-#endif
-
+    if (pThread->joined)
+    {
 #if R_CSTL_THREAD_DEBUG
         R_CSTL_HeapUnregisterAllocation (pThread, pThread);
 #endif
         R_CSTL_HeapFree (pThread);
-        return R_CSTL_OK;
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
+#endif
+
+    int result = pthread_join (pThread->thread, NULL);
+#if R_CSTL_THREAD_DEBUG
+    if (result != 0)
+    {
+        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+        R_CSTL_HeapFree (pThread);
+        return R_CSTL_ERROR_THREAD_JOIN_FAILED;
+    }
+#endif
+
+#if R_CSTL_THREAD_DEBUG
+    R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+#endif
+    R_CSTL_HeapFree (pThread);
+    return R_CSTL_OK;
 }
 
 uint64_t
 R_CSTL_ThreadGetCurrentId (void)
 {
-        return (uint64_t)syscall (SYS_gettid);
+    return (uint64_t)syscall (SYS_gettid);
 }
 
 void
 R_CSTL_ThreadYield (void)
 {
-        sched_yield ();
+    sched_yield ();
 }
 
 void
 R_CSTL_ThreadSleep (uint32_t milliseconds)
 {
-        usleep (milliseconds * 1000);
+    usleep (milliseconds * 1000);
 }
 
 #endif
@@ -290,198 +290,198 @@ R_CSTL_ThreadSleep (uint32_t milliseconds)
 
 struct R_CSTL_Mutex
 {
-                CRITICAL_SECTION cs;
+        CRITICAL_SECTION cs;
 };
 
 struct R_CSTL_Mutex*
 R_CSTL_NewMutex (void)
 {
-        struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
+    struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pMutex,
-            pMutex,
-            sizeof (struct R_CSTL_Mutex),
-            R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+    if (pMutex == NULL)
+    {
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pMutex,
+        pMutex,
+        sizeof (struct R_CSTL_Mutex),
+        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
 #endif
-        InitializeCriticalSection (&pMutex->cs);
-        return pMutex;
+    InitializeCriticalSection (&pMutex->cs);
+    return pMutex;
 }
 
 void
 R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
 {
-        if (pMutex != NULL)
-        {
+    if (pMutex != NULL)
+    {
 #if R_CSTL_THREAD_DEBUG
-                DeleteCriticalSection (&pMutex->cs);
-                R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
+        DeleteCriticalSection (&pMutex->cs);
+        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
 #endif
-                R_CSTL_HeapFree (pMutex);
-        }
+        R_CSTL_HeapFree (pMutex);
+    }
 }
 
 int
 R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        EnterCriticalSection (&pMutex->cs);
-        return R_CSTL_OK;
+    EnterCriticalSection (&pMutex->cs);
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL || pOutLocked == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL || pOutLocked == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        BOOL result = TryEnterCriticalSection (&pMutex->cs);
-        *pOutLocked = result ? true : false;
-        return R_CSTL_OK;
+    BOOL result = TryEnterCriticalSection (&pMutex->cs);
+    *pOutLocked = result ? true : false;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        LeaveCriticalSection (&pMutex->cs);
-        return R_CSTL_OK;
+    LeaveCriticalSection (&pMutex->cs);
+    return R_CSTL_OK;
 }
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
 struct R_CSTL_Mutex
 {
-                pthread_mutex_t mutex;
+        pthread_mutex_t mutex;
 };
 
 struct R_CSTL_Mutex*
 R_CSTL_NewMutex (void)
 {
-        struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
+    struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pMutex,
-            pMutex,
-            sizeof (struct R_CSTL_Mutex),
-            R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+    if (pMutex == NULL)
+    {
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pMutex,
+        pMutex,
+        sizeof (struct R_CSTL_Mutex),
+        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
 #endif
-        int result = pthread_mutex_init (&pMutex->mutex, NULL);
+    int result = pthread_mutex_init (&pMutex->mutex, NULL);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
-                R_CSTL_HeapFree (pMutex);
-                return NULL;
-        }
+    if (result != 0)
+    {
+        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
+        R_CSTL_HeapFree (pMutex);
+        return NULL;
+    }
 #endif
-        return pMutex;
+    return pMutex;
 }
 
 void
 R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
 {
-        if (pMutex != NULL)
-        {
+    if (pMutex != NULL)
+    {
 #if R_CSTL_THREAD_DEBUG
-                pthread_mutex_destroy (&pMutex->mutex);
-                R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
+        pthread_mutex_destroy (&pMutex->mutex);
+        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
 #endif
-                R_CSTL_HeapFree (pMutex);
-        }
+        R_CSTL_HeapFree (pMutex);
+    }
 }
 
 int
 R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        int result = pthread_mutex_lock (&pMutex->mutex);
+    int result = pthread_mutex_lock (&pMutex->mutex);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                return R_CSTL_ERROR_MUTEX_LOCK_FAILED;
-        }
+    if (result != 0)
+    {
+        return R_CSTL_ERROR_MUTEX_LOCK_FAILED;
+    }
 #endif
 
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL || pOutLocked == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL || pOutLocked == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        int result = pthread_mutex_trylock (&pMutex->mutex);
-        if (result == 0)
-        {
-                *pOutLocked = 1;
-        }
-        else if (result == EBUSY)
-        {
-                *pOutLocked = 0;
-        }
+    int result = pthread_mutex_trylock (&pMutex->mutex);
+    if (result == 0)
+    {
+        *pOutLocked = 1;
+    }
+    else if (result == EBUSY)
+    {
+        *pOutLocked = 0;
+    }
 #if R_CSTL_THREAD_DEBUG
-        else
-        {
-                return R_CSTL_ERROR_MUTEX_LOCK_FAILED;
-        }
+    else
+    {
+        return R_CSTL_ERROR_MUTEX_LOCK_FAILED;
+    }
 #endif
 
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        int result = pthread_mutex_unlock (&pMutex->mutex);
+    int result = pthread_mutex_unlock (&pMutex->mutex);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                return R_CSTL_ERROR_MUTEX_UNLOCK_FAILED;
-        }
+    if (result != 0)
+    {
+        return R_CSTL_ERROR_MUTEX_UNLOCK_FAILED;
+    }
 #endif
 
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 #endif
@@ -490,200 +490,200 @@ R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 
 struct R_CSTL_Condition
 {
-                CONDITION_VARIABLE cv;
+        CONDITION_VARIABLE cv;
 };
 
 struct R_CSTL_Condition*
 R_CSTL_ConditionCreate (void)
 {
-        struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
+    struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pCondition,
-            pCondition,
-            sizeof (struct R_CSTL_Condition),
-            R_CSTL_HEAP_NAME (R_CSTL_Condition));
+    if (pCondition == NULL)
+    {
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pCondition,
+        pCondition,
+        sizeof (struct R_CSTL_Condition),
+        R_CSTL_HEAP_NAME (R_CSTL_Condition));
 #endif
-        InitializeConditionVariable (&pCondition->cv);
-        return pCondition;
+    InitializeConditionVariable (&pCondition->cv);
+    return pCondition;
 }
 
 void
 R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition)
 {
-        if (pCondition != NULL)
-        {
+    if (pCondition != NULL)
+    {
 #if R_CSTL_THREAD_DEBUG
-                R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
+        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
 #endif
-                R_CSTL_HeapFree (pCondition);
-        }
+        R_CSTL_HeapFree (pCondition);
+    }
 }
 
 int
 R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        BOOL result = SleepConditionVariableCS (&pCondition->cv, &pMutex->cs, INFINITE);
+    BOOL result = SleepConditionVariableCS (&pCondition->cv, &pMutex->cs, INFINITE);
 #if R_CSTL_THREAD_DEBUG
-        if (!result)
-        {
-                return R_CSTL_ERROR_CONDITION_WAIT_FAILED;
-        }
+    if (!result)
+    {
+        return R_CSTL_ERROR_CONDITION_WAIT_FAILED;
+    }
 #endif
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        WakeConditionVariable (&pCondition->cv);
-        return R_CSTL_OK;
+    WakeConditionVariable (&pCondition->cv);
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        WakeAllConditionVariable (&pCondition->cv);
-        return R_CSTL_OK;
+    WakeAllConditionVariable (&pCondition->cv);
+    return R_CSTL_OK;
 }
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
 struct R_CSTL_Condition
 {
-                pthread_cond_t cond;
+        pthread_cond_t cond;
 };
 
 struct R_CSTL_Condition*
 R_CSTL_ConditionCreate (void)
 {
-        struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
+    struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return NULL;
-        }
-        R_CSTL_HeapRegisterAllocation (
-            pCondition,
-            pCondition,
-            sizeof (struct R_CSTL_Condition),
-            R_CSTL_HEAP_NAME (R_CSTL_Condition));
+    if (pCondition == NULL)
+    {
+        return NULL;
+    }
+    R_CSTL_HeapRegisterAllocation (
+        pCondition,
+        pCondition,
+        sizeof (struct R_CSTL_Condition),
+        R_CSTL_HEAP_NAME (R_CSTL_Condition));
 #endif
-        int result = pthread_cond_init (&pCondition->cond, NULL);
+    int result = pthread_cond_init (&pCondition->cond, NULL);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
-                R_CSTL_HeapFree (pCondition);
-                return NULL;
-        }
+    if (result != 0)
+    {
+        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
+        R_CSTL_HeapFree (pCondition);
+        return NULL;
+    }
 #endif
-        return pCondition;
+    return pCondition;
 }
 
 void
 R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition)
 {
-        if (pCondition != NULL)
-        {
+    if (pCondition != NULL)
+    {
 #if R_CSTL_THREAD_DEBUG
-                pthread_cond_destroy (&pCondition->cond);
-                R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
+        pthread_cond_destroy (&pCondition->cond);
+        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
 #endif
-                R_CSTL_HeapFree (pCondition);
-        }
+        R_CSTL_HeapFree (pCondition);
+    }
 }
 
 int
 R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 
-        if (pMutex == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pMutex == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        int result = pthread_cond_wait (&pCondition->cond, &pMutex->mutex);
+    int result = pthread_cond_wait (&pCondition->cond, &pMutex->mutex);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                return R_CSTL_ERROR_CONDITION_WAIT_FAILED;
-        }
+    if (result != 0)
+    {
+        return R_CSTL_ERROR_CONDITION_WAIT_FAILED;
+    }
 #endif
 
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
 
-        int result = pthread_cond_signal (&pCondition->cond);
+    int result = pthread_cond_signal (&pCondition->cond);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                return R_CSTL_ERROR_CONDITION_SIGNAL_FAILED;
-        }
+    if (result != 0)
+    {
+        return R_CSTL_ERROR_CONDITION_SIGNAL_FAILED;
+    }
 #endif
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 int
 R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
-        if (pCondition == NULL)
-        {
-                return R_CSTL_ERROR_INVALID_ARGUMENT;
-        }
+    if (pCondition == NULL)
+    {
+        return R_CSTL_ERROR_INVALID_ARGUMENT;
+    }
 #endif
-        int result = pthread_cond_broadcast (&pCondition->cond);
+    int result = pthread_cond_broadcast (&pCondition->cond);
 #if R_CSTL_THREAD_DEBUG
-        if (result != 0)
-        {
-                return R_CSTL_ERROR_CONDITION_SIGNAL_FAILED;
-        }
+    if (result != 0)
+    {
+        return R_CSTL_ERROR_CONDITION_SIGNAL_FAILED;
+    }
 #endif
 
-        return R_CSTL_OK;
+    return R_CSTL_OK;
 }
 
 #endif

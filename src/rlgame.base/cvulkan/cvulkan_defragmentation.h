@@ -13,10 +13,10 @@
  */
 enum R_CVulkan_DefragBackend
 {
-        R_CVULKAN_DEFRAG_BACKEND_NONE = 0,
-        R_CVULKAN_DEFRAG_BACKEND_CUDA,
-        R_CVULKAN_DEFRAG_BACKEND_OPENCL,
-        R_CVULKAN_DEFRAG_BACKEND_CPU
+    R_CVULKAN_DEFRAG_BACKEND_NONE = 0,
+    R_CVULKAN_DEFRAG_BACKEND_CUDA,
+    R_CVULKAN_DEFRAG_BACKEND_OPENCL,
+    R_CVULKAN_DEFRAG_BACKEND_CPU
 };
 
 /**
@@ -24,13 +24,13 @@ enum R_CVulkan_DefragBackend
  */
 struct R_CVulkan_DefragBlockMetadata
 {
-                uint32_t blockIndex;
-                uint64_t totalSize;
-                uint64_t usedSize;
-                uint64_t freeSize;
-                float    fillLevel;
-                uint32_t allocationCount;
-                uint32_t isCandidate;
+        uint32_t blockIndex;
+        uint64_t totalSize;
+        uint64_t usedSize;
+        uint64_t freeSize;
+        float    fillLevel;
+        uint32_t allocationCount;
+        uint32_t isCandidate;
 };
 
 /**
@@ -38,12 +38,12 @@ struct R_CVulkan_DefragBlockMetadata
  */
 struct R_CVulkan_DefragMove
 {
-                uint32_t srcBlockIndex;
-                uint32_t dstBlockIndex;
-                uint64_t srcOffset;
-                uint64_t dstOffset;
-                uint64_t size;
-                uint32_t operation;
+        uint32_t srcBlockIndex;
+        uint32_t dstBlockIndex;
+        uint64_t srcOffset;
+        uint64_t dstOffset;
+        uint64_t size;
+        uint32_t operation;
 };
 
 /**
@@ -51,9 +51,9 @@ struct R_CVulkan_DefragMove
  */
 enum R_CVulkan_DefragMoveOperation
 {
-        R_CVULKAN_DEFRAG_MOVE_OPERATION_MOVE = 0,
-        R_CVULKAN_DEFRAG_MOVE_OPERATION_IGNORE,
-        R_CVULKAN_DEFRAG_MOVE_OPERATION_DESTROY
+    R_CVULKAN_DEFRAG_MOVE_OPERATION_MOVE = 0,
+    R_CVULKAN_DEFRAG_MOVE_OPERATION_IGNORE,
+    R_CVULKAN_DEFRAG_MOVE_OPERATION_DESTROY
 };
 
 /**
@@ -61,10 +61,10 @@ enum R_CVulkan_DefragMoveOperation
  */
 struct R_CVulkan_DefragConfig
 {
-                uint32_t                     mergeFactor;
-                uint64_t                     maxBytesPerPass;
-                uint32_t                     maxPasses;
-                enum R_CVulkan_DefragBackend preferredBackend;
+        uint32_t                     mergeFactor;
+        uint64_t                     maxBytesPerPass;
+        uint32_t                     maxPasses;
+        enum R_CVulkan_DefragBackend preferredBackend;
 };
 
 /**
@@ -72,23 +72,23 @@ struct R_CVulkan_DefragConfig
  */
 struct R_CVulkan_DefragContext
 {
-                struct R_CVulkan_MemoryAllocator* pAllocator;
-                struct R_CVulkan_DefragConfig     config;
-                enum R_CVulkan_DefragBackend      backend;
-                uint32_t                          currentPass;
-                uint32_t                          totalMoves;
-                uint64_t                          totalBytesMoved;
+        struct R_CVulkan_MemoryAllocator* pAllocator;
+        struct R_CVulkan_DefragConfig     config;
+        enum R_CVulkan_DefragBackend      backend;
+        uint32_t                          currentPass;
+        uint32_t                          totalMoves;
+        uint64_t                          totalBytesMoved;
 
-                void*    pBlockMetadata;
-                uint32_t blockMetadataCount;
-                uint32_t blockMetadataCapacity;
+        void*    pBlockMetadata;
+        uint32_t blockMetadataCount;
+        uint32_t blockMetadataCapacity;
 
-                void*    pMoves;
-                uint32_t moveCount;
-                uint32_t moveCapacity;
+        void*    pMoves;
+        uint32_t moveCount;
+        uint32_t moveCapacity;
 
-                void* pBackendContext;
-                bool  booted;
+        void* pBackendContext;
+        bool  booted;
 };
 
 /**
@@ -96,12 +96,12 @@ struct R_CVulkan_DefragContext
  */
 struct R_CVulkan_DefragStats
 {
-                uint32_t passesCompleted;
-                uint32_t totalMoves;
-                uint64_t totalBytesMoved;
-                uint32_t blocksFreed;
-                float    fragmentationBefore;
-                float    fragmentationAfter;
+        uint32_t passesCompleted;
+        uint32_t totalMoves;
+        uint64_t totalBytesMoved;
+        uint32_t blocksFreed;
+        float    fragmentationBefore;
+        float    fragmentationAfter;
 };
 
 /**

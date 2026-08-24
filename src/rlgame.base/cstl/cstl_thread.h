@@ -250,8 +250,8 @@ R_CSTL_API int R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition);
  */
 struct R_CSTL_MutexLockGuard
 {
-                struct R_CSTL_Mutex* pMutex;
-                int                  locked;
+        struct R_CSTL_Mutex* pMutex;
+        int                  locked;
 };
 
 /**
@@ -266,11 +266,11 @@ struct R_CSTL_MutexLockGuard
  * @note If lock fails, guard.locked is set to 0.
  */
 #define R_CSTL_MutexLockGuard(pGuard, pMutex)                                                                \
-        do                                                                                                   \
-        {                                                                                                    \
-                (pGuard)->pMutex = (pMutex);                                                                 \
-                (pGuard)->locked = (R_CSTL_MutexLock (pMutex) == R_CSTL_OK) ? 1 : 0;                         \
-        } while (0)
+    do                                                                                                       \
+    {                                                                                                        \
+        (pGuard)->pMutex = (pMutex);                                                                         \
+        (pGuard)->locked = (R_CSTL_MutexLock (pMutex) == R_CSTL_OK) ? 1 : 0;                                 \
+    } while (0)
 
 /**
  * @brief Unlock a mutex via guard
@@ -283,11 +283,11 @@ struct R_CSTL_MutexLockGuard
  * @note Sets guard.locked to 0 after unlocking.
  */
 #define R_CSTL_MutexUnlockGuard(pGuard)                                                                      \
-        do                                                                                                   \
+    do                                                                                                       \
+    {                                                                                                        \
+        if ((pGuard)->locked)                                                                                \
         {                                                                                                    \
-                if ((pGuard)->locked)                                                                        \
-                {                                                                                            \
-                        R_CSTL_MutexUnlock ((pGuard)->pMutex);                                               \
-                        (pGuard)->locked = 0;                                                                \
-                }                                                                                            \
-        } while (0)
+            R_CSTL_MutexUnlock ((pGuard)->pMutex);                                                           \
+            (pGuard)->locked = 0;                                                                            \
+        }                                                                                                    \
+    } while (0)

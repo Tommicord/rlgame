@@ -13,13 +13,13 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_FramebufferCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                VkRenderPass                   pRenderPass; /**< Render pass to use with this framebuffer */
-                const VkImageView*             pAttachments; /**< Array of image view attachments */
-                uint32_t                       attachmentCount; /**< Number of attachments */
-                uint32_t                       width; /**< Framebuffer width */
-                uint32_t                       height; /**< Framebuffer height */
-                uint32_t                       layers; /**< Framebuffer layers */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        VkRenderPass                   pRenderPass; /**< Render pass to use with this framebuffer */
+        const VkImageView*             pAttachments; /**< Array of image view attachments */
+        uint32_t                       attachmentCount; /**< Number of attachments */
+        uint32_t                       width; /**< Framebuffer width */
+        uint32_t                       height; /**< Framebuffer height */
+        uint32_t                       layers; /**< Framebuffer layers */
 };
 
 /**
@@ -27,13 +27,13 @@ struct R_CVulkan_FramebufferCreateInfo
  */
 struct R_CVulkan_Framebuffer
 {
-                VkFramebuffer handle; /**< Raw Vulkan framebuffer handle */
-                VkDevice      device; /**< Associated device */
-                VkRenderPass  renderPass; /**< Associated render pass */
-                uint32_t      width; /**< Framebuffer width */
-                uint32_t      height; /**< Framebuffer height */
-                uint32_t      attachmentCount; /**< Number of attachments */
-                R_CVULKAN_DEBUG_FIELD
+        VkFramebuffer handle; /**< Raw Vulkan framebuffer handle */
+        VkDevice      device; /**< Associated device */
+        VkRenderPass  renderPass; /**< Associated render pass */
+        uint32_t      width; /**< Framebuffer width */
+        uint32_t      height; /**< Framebuffer height */
+        uint32_t      attachmentCount; /**< Number of attachments */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

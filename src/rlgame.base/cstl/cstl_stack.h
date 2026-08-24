@@ -262,22 +262,22 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  * @note This macro performs bounds checking.
  */
 #define R_CSTL_StackTypedAt(pStack, Type, position, pOutValue)                                               \
-        do                                                                                                   \
+    do                                                                                                       \
+    {                                                                                                        \
+        Type           _temp;                                                                                \
+        size_t         _offset = (position - 1) * sizeof (Type);                                             \
+        size_t         _stackSize = R_CSTL_StackSize (pStack);                                               \
+        const uint8_t* _pData = R_CSTL_StackData (pStack);                                                   \
+        if (_offset + sizeof (Type) <= _stackSize)                                                           \
         {                                                                                                    \
-                Type           _temp;                                                                        \
-                size_t         _offset = (position - 1) * sizeof (Type);                                     \
-                size_t         _stackSize = R_CSTL_StackSize (pStack);                                       \
-                const uint8_t* _pData = R_CSTL_StackData (pStack);                                           \
-                if (_offset + sizeof (Type) <= _stackSize)                                                   \
-                {                                                                                            \
-                        memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));     \
-                }                                                                                            \
-                else                                                                                         \
-                {                                                                                            \
-                        memset (&_temp, 0, sizeof (Type));                                                   \
-                }                                                                                            \
-                memcpy (pOutValue, &_temp, sizeof (Type));                                                   \
-        } while (0)
+            memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));                 \
+        }                                                                                                    \
+        else                                                                                                 \
+        {                                                                                                    \
+            memset (&_temp, 0, sizeof (Type));                                                               \
+        }                                                                                                    \
+        memcpy (pOutValue, &_temp, sizeof (Type));                                                           \
+    } while (0)
 
 /**
  * @brief Get a typed element at a specific position from the top without bounds checking
@@ -293,12 +293,12 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  * @warning No bounds checking; undefined behavior if position is invalid.
  */
 #define R_CSTL_StackTypedAtUnchecked(pStack, Type, position, pOutValue)                                      \
-        do                                                                                                   \
-        {                                                                                                    \
-                Type           _temp;                                                                        \
-                size_t         _offset = (position - 1) * sizeof (Type);                                     \
-                size_t         _stackSize = R_CSTL_StackSize (pStack);                                       \
-                const uint8_t* _pData = R_CSTL_StackData (pStack);                                           \
-                memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));             \
-                memcpy (pOutValue, &_temp, sizeof (Type));                                                   \
-        } while (0)
+    do                                                                                                       \
+    {                                                                                                        \
+        Type           _temp;                                                                                \
+        size_t         _offset = (position - 1) * sizeof (Type);                                             \
+        size_t         _stackSize = R_CSTL_StackSize (pStack);                                               \
+        const uint8_t* _pData = R_CSTL_StackData (pStack);                                                   \
+        memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));                     \
+        memcpy (pOutValue, &_temp, sizeof (Type));                                                           \
+    } while (0)

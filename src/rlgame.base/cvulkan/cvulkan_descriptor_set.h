@@ -12,9 +12,9 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_DescriptorSetLayoutCreateInfo
 {
-                const struct R_CVulkan_Device*      device; /**< R_CVulkan device wrapper */
-                const VkDescriptorSetLayoutBinding* bindings; /**< Array of descriptor bindings */
-                uint32_t                            bindingCount; /**< Number of bindings */
+        const struct R_CVulkan_Device*      device; /**< R_CVulkan device wrapper */
+        const VkDescriptorSetLayoutBinding* bindings; /**< Array of descriptor bindings */
+        uint32_t                            bindingCount; /**< Number of bindings */
 };
 
 /**
@@ -22,10 +22,10 @@ struct R_CVulkan_DescriptorSetLayoutCreateInfo
  */
 struct R_CVulkan_DescriptorPoolCreateInfo
 {
-                const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
-                const VkDescriptorPoolSize*    poolSizes; /**< Array of pool sizes */
-                uint32_t                       poolSizeCount; /**< Number of pool sizes */
-                uint32_t                       maxSets; /**< Maximum number of descriptor sets */
+        const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
+        const VkDescriptorPoolSize*    poolSizes; /**< Array of pool sizes */
+        uint32_t                       poolSizeCount; /**< Number of pool sizes */
+        uint32_t                       maxSets; /**< Maximum number of descriptor sets */
 };
 
 /**
@@ -33,9 +33,9 @@ struct R_CVulkan_DescriptorPoolCreateInfo
  */
 struct R_CVulkan_DescriptorSetLayout
 {
-                VkDescriptorSetLayout handle; /**< Raw Vulkan descriptor set layout handle */
-                VkDevice              device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkDescriptorSetLayout handle; /**< Raw Vulkan descriptor set layout handle */
+        VkDevice              device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -43,10 +43,10 @@ struct R_CVulkan_DescriptorSetLayout
  */
 struct R_CVulkan_DescriptorPool
 {
-                VkDescriptorPool handle; /**< Raw Vulkan descriptor pool handle */
-                VkDevice         device; /**< Associated device */
-                uint32_t         maxSets; /**< Maximum number of descriptor sets */
-                R_CVULKAN_DEBUG_FIELD
+        VkDescriptorPool handle; /**< Raw Vulkan descriptor pool handle */
+        VkDevice         device; /**< Associated device */
+        uint32_t         maxSets; /**< Maximum number of descriptor sets */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -54,9 +54,9 @@ struct R_CVulkan_DescriptorPool
  */
 struct R_CVulkan_DescriptorSet
 {
-                VkDescriptorSet handle; /**< Raw Vulkan descriptor set handle */
-                VkDevice        device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkDescriptorSet handle; /**< Raw Vulkan descriptor set handle */
+        VkDevice        device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

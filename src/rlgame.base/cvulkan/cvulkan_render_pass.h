@@ -12,13 +12,13 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_RenderPassCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                const VkAttachmentDescription* pAttachments; /**< Array of attachment descriptions */
-                uint32_t                       attachmentCount; /**< Number of attachments */
-                const VkSubpassDescription*    pSubpasses; /**< Array of subpass descriptions */
-                uint32_t                       subpassCount; /**< Number of subpasses */
-                const VkSubpassDependency*     pDependencies; /**< Array of subpass dependencies */
-                uint32_t                       dependencyCount; /**< Number of dependencies */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        const VkAttachmentDescription* pAttachments; /**< Array of attachment descriptions */
+        uint32_t                       attachmentCount; /**< Number of attachments */
+        const VkSubpassDescription*    pSubpasses; /**< Array of subpass descriptions */
+        uint32_t                       subpassCount; /**< Number of subpasses */
+        const VkSubpassDependency*     pDependencies; /**< Array of subpass dependencies */
+        uint32_t                       dependencyCount; /**< Number of dependencies */
 };
 
 /**
@@ -26,9 +26,9 @@ struct R_CVulkan_RenderPassCreateInfo
  */
 struct R_CVulkan_RenderPass
 {
-                VkRenderPass handle; /**< Raw Vulkan render pass handle */
-                VkDevice     device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkRenderPass handle; /**< Raw Vulkan render pass handle */
+        VkDevice     device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

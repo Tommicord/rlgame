@@ -142,7 +142,7 @@ if(RL_BUILD)
   link_base_libraries(rlgame)
 endif()
 
-if (RL_BUILD AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+if (RL_BUILD)
   add_executable(triangle_test src/rlgame.client/render/test/triangle_test_main.c)
   target_include_directories(triangle_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
   set_common_output_directories(triangle_test)

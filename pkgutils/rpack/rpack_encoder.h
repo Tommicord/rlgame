@@ -23,11 +23,11 @@
  */
 struct R_PackInputImage
 {
-                const uint8_t* pPixels; /**< Raw pixel data (RGBA format) */
-                uint32_t       width; /**< Image width */
-                uint32_t       height; /**< Image height */
-                uint32_t       stride; /**< Bytes per row */
-                const char*    pName; /**< Texture name for hashing */
+        const uint8_t* pPixels; /**< Raw pixel data (RGBA format) */
+        uint32_t       width; /**< Image width */
+        uint32_t       height; /**< Image height */
+        uint32_t       stride; /**< Bytes per row */
+        const char*    pName; /**< Texture name for hashing */
 };
 
 /**
@@ -35,23 +35,20 @@ struct R_PackInputImage
  */
 struct R_PackEncoderConfig
 {
-                uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_RPACK_DEFAULT_MAX_ATLAS_WIDTH) */
-                uint32_t
-                    maxAtlasHeight; /**< Maximum atlas height (default: R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT) */
-                uint32_t padding; /**< Padding between textures (default: R_RPACK_DEFAULT_PADDING) */
-                uint32_t border; /**< Border size around textures (default: R_RPACK_DEFAULT_BORDER) */
-                float    similarityThreshold; /**< Color similarity threshold (default:
-                                              R_RPACK_DEFAULT_SIMILARITY_THRESHOLD) */
-                float alphaThreshold; /**< Alpha threshold for transparency (default:
-                                         R_RPACK_DEFAULT_ALPHA_THRESHOLD) */
-                uint32_t workerCount; /**< Number of worker threads (default: R_RPACK_DEFAULT_WORKER_COUNT =
-                                         auto-detect) */
-                uint32_t maxTextures; /**< Maximum number of textures to pack (default:
-                                         R_RPACK_DEFAULT_MAX_TEXTURES = unlimited) */
-                uint8_t
-                    powerOfTwo; /**< Force power of two dimensions (default: R_RPACK_DEFAULT_POWER_OF_TWO) */
-                uint8_t
-                    enableRotation; /**< Enable texture rotation (default: R_RPACK_DEFAULT_ENABLE_ROTATION) */
+        uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_RPACK_DEFAULT_MAX_ATLAS_WIDTH) */
+        uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT) */
+        uint32_t padding; /**< Padding between textures (default: R_RPACK_DEFAULT_PADDING) */
+        uint32_t border; /**< Border size around textures (default: R_RPACK_DEFAULT_BORDER) */
+        float    similarityThreshold; /**< Color similarity threshold (default:
+                                   R_RPACK_DEFAULT_SIMILARITY_THRESHOLD) */
+        float alphaThreshold; /**< Alpha threshold for transparency (default:
+                                 R_RPACK_DEFAULT_ALPHA_THRESHOLD) */
+        uint32_t workerCount; /**< Number of worker threads (default: R_RPACK_DEFAULT_WORKER_COUNT =
+                                 auto-detect) */
+        uint32_t maxTextures; /**< Maximum number of textures to pack (default:
+                                 R_RPACK_DEFAULT_MAX_TEXTURES = unlimited) */
+        uint8_t powerOfTwo; /**< Force power of two dimensions (default: R_RPACK_DEFAULT_POWER_OF_TWO) */
+        uint8_t enableRotation; /**< Enable texture rotation (default: R_RPACK_DEFAULT_ENABLE_ROTATION) */
 };
 
 /**
@@ -59,21 +56,21 @@ struct R_PackEncoderConfig
  */
 struct R_PackEncoder
 {
-                struct R_PackEncoderConfig    config;
-                struct R_PackHeader*          pHeader;
-                struct R_PackHashEntry*       pHashTable;
-                struct R_PackColorEntry*      pColorTable;
-                struct R_PackPixelIndexEntry* pPixelIndexTable;
-                uint32_t                      colorTableCapacity;
-                uint32_t                      colorTableCount;
-                uint32_t                      pixelIndexTableCapacity;
-                uint32_t                      pixelIndexTableCount;
-                uint8_t*                      pAtlasData;
-                uint64_t                      atlasDataSize;
-                struct R_CSTL_Mutex*          pMutex;
-                struct R_CSTL_Thread**        ppWorkerThreads;
-                uint32_t                      actualWorkerCount;
-                volatile int                  workersActive;
+        struct R_PackEncoderConfig    config;
+        struct R_PackHeader*          pHeader;
+        struct R_PackHashEntry*       pHashTable;
+        struct R_PackColorEntry*      pColorTable;
+        struct R_PackPixelIndexEntry* pPixelIndexTable;
+        uint32_t                      colorTableCapacity;
+        uint32_t                      colorTableCount;
+        uint32_t                      pixelIndexTableCapacity;
+        uint32_t                      pixelIndexTableCount;
+        uint8_t*                      pAtlasData;
+        uint64_t                      atlasDataSize;
+        struct R_CSTL_Mutex*          pMutex;
+        struct R_CSTL_Thread**        ppWorkerThreads;
+        uint32_t                      actualWorkerCount;
+        volatile int                  workersActive;
 };
 
 /**

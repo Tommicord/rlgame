@@ -13,10 +13,10 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_ShaderModule
 {
-                VkShaderModule handle; /**< Raw Vulkan shader module handle */
-                VkDevice       device; /**< Associated device */
-                size_t         codeSize; /**< Size of SPIR-V code in bytes */
-                R_CVULKAN_DEBUG_FIELD
+        VkShaderModule handle; /**< Raw Vulkan shader module handle */
+        VkDevice       device; /**< Associated device */
+        size_t         codeSize; /**< Size of SPIR-V code in bytes */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

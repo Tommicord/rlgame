@@ -27,9 +27,9 @@
  */
 struct R_GameState
 {
-                struct R_Game_PipelineContext context; /**< Vulkan rendering pipeline context */
-                struct R_GameRendererManager* pRendererManager; /**< Multi-renderer manager */
-                R_GAME_DEBUG_FIELD
+        struct R_Game_PipelineContext context; /**< Vulkan rendering pipeline context */
+        struct R_GameRendererManager* pRendererManager; /**< Multi-renderer manager */
+        R_GAME_DEBUG_FIELD
 };
 
 /**
@@ -37,17 +37,17 @@ struct R_GameState
  */
 struct R_GameStateCreateInfo
 {
-                const struct R_CSTL_String* pApplicationName; /**< Application name (can be NULL) */
+        const char* pApplicationName; /**< Application name */
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
-                HINSTANCE hInstance; /**< Windows instance handle (required if not headless) */
-                HWND      hWnd; /**< Windows window handle (required if not headless) */
+        HINSTANCE hInstance; /**< Windows instance handle (required if not headless) */
+        HWND      hWnd; /**< Windows window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-                Display* pDisplay; /**< X11 display connection (required if not headless) */
-                Window   window; /**< X11 window handle (required if not headless) */
+        Display* pDisplay; /**< X11 display connection (required if not headless) */
+        Window   window; /**< X11 window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
-                ANativeWindow* pWindow; /**< Android native window (required if not headless) */
+        ANativeWindow* pWindow; /**< Android native window (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
-                void* pNSWindow; /**< macOS NSWindow pointer (required if not headless) */
+        void* pNSWindow; /**< macOS NSWindow pointer (required if not headless) */
 #endif
 };
 

@@ -13,17 +13,17 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_ImageCreateInfo
 {
-                const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
-                VkPhysicalDevice               physicalDevice; /**< Physical device */
-                VkImageType                    imageType; /**< Image type (1D, 2D, 3D) */
-                VkExtent3D                     extent; /**< Image extent (width, height, depth) */
-                uint32_t                       mipLevels; /**< Number of mip levels */
-                uint32_t                       arrayLayers; /**< Number of array layers */
-                VkFormat                       format; /**< Image format */
-                VkImageTiling                  tiling; /**< Image tiling mode */
-                VkImageUsageFlags              usage; /**< Image usage flags */
-                VkMemoryPropertyFlags          properties; /**< Memory property flags */
-                VkSampleCountFlagBits          samples; /**< Number of samples */
+        const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
+        VkPhysicalDevice               physicalDevice; /**< Physical device */
+        VkImageType                    imageType; /**< Image type (1D, 2D, 3D) */
+        VkExtent3D                     extent; /**< Image extent (width, height, depth) */
+        uint32_t                       mipLevels; /**< Number of mip levels */
+        uint32_t                       arrayLayers; /**< Number of array layers */
+        VkFormat                       format; /**< Image format */
+        VkImageTiling                  tiling; /**< Image tiling mode */
+        VkImageUsageFlags              usage; /**< Image usage flags */
+        VkMemoryPropertyFlags          properties; /**< Memory property flags */
+        VkSampleCountFlagBits          samples; /**< Number of samples */
 };
 
 /**
@@ -31,22 +31,22 @@ struct R_CVulkan_ImageCreateInfo
  */
 struct R_CVulkan_Image
 {
-                VkImage               handle; /**< Raw Vulkan image handle */
-                VkDeviceMemory        memory; /**< Device memory handle */
-                VkDevice              device; /**< Associated device */
-                VkDeviceSize          size; /**< Image size in bytes */
-                uint32_t              width; /**< Image width */
-                uint32_t              height; /**< Image height */
-                uint32_t              mipLevels; /**< Number of mip levels */
-                uint32_t              arrayLayers; /**< Number of array layers */
-                VkFormat              format; /**< Image format */
-                VkImageUsageFlags     usage; /**< Image usage flags */
-                VkMemoryPropertyFlags properties; /**< Memory property flags */
-                VkImageLayout         currentLayout; /**< Current image layout */
-                VkImageType           imageType; /**< Image type (1D, 2D, 3D) */
-                VkSampleCountFlagBits samples; /**< Number of samples */
-                VkImageTiling         tiling; /**< Image tiling mode */
-                R_CVULKAN_DEBUG_FIELD
+        VkImage               handle; /**< Raw Vulkan image handle */
+        VkDeviceMemory        memory; /**< Device memory handle */
+        VkDevice              device; /**< Associated device */
+        VkDeviceSize          size; /**< Image size in bytes */
+        uint32_t              width; /**< Image width */
+        uint32_t              height; /**< Image height */
+        uint32_t              mipLevels; /**< Number of mip levels */
+        uint32_t              arrayLayers; /**< Number of array layers */
+        VkFormat              format; /**< Image format */
+        VkImageUsageFlags     usage; /**< Image usage flags */
+        VkMemoryPropertyFlags properties; /**< Memory property flags */
+        VkImageLayout         currentLayout; /**< Current image layout */
+        VkImageType           imageType; /**< Image type (1D, 2D, 3D) */
+        VkSampleCountFlagBits samples; /**< Number of samples */
+        VkImageTiling         tiling; /**< Image tiling mode */
+        R_CVULKAN_DEBUG_FIELD
 } R_CVulkan_Image;
 
 /**

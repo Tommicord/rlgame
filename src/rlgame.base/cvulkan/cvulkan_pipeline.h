@@ -13,11 +13,11 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_PipelineLayoutCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                const VkDescriptorSetLayout*   pSetLayouts; /**< Array of descriptor set layouts */
-                uint32_t                       setLayoutCount; /**< Number of descriptor set layouts */
-                const VkPushConstantRange*     pPushConstantRanges; /**< Array of push constant ranges */
-                uint32_t                       pushConstantRangeCount; /**< Number of push constant ranges */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        const VkDescriptorSetLayout*   pSetLayouts; /**< Array of descriptor set layouts */
+        uint32_t                       setLayoutCount; /**< Number of descriptor set layouts */
+        const VkPushConstantRange*     pPushConstantRanges; /**< Array of push constant ranges */
+        uint32_t                       pushConstantRangeCount; /**< Number of push constant ranges */
 };
 
 /**
@@ -25,24 +25,24 @@ struct R_CVulkan_PipelineLayoutCreateInfo
  */
 struct R_CVulkan_GraphicsPipelineCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                VkPipelineLayout               pipelineLayout; /**< Pipeline layout */
-                VkRenderPass pRenderPass; /**< Render pass (VK_NULL_HANDLE for dynamic rendering) */
-                const VkPipelineShaderStageCreateInfo*        pStages; /**< Shader stages */
-                uint32_t                                      stageCount; /**< Number of shader stages */
-                const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo; /**< Vertex input state */
-                const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyInfo; /**< Input assembly state */
-                const VkPipelineViewportStateCreateInfo*      pViewportInfo; /**< Viewport state */
-                const VkPipelineRasterizationStateCreateInfo* pRasterizationInfo; /**< Rasterization state */
-                const VkPipelineMultisampleStateCreateInfo*   pMultisampleInfo; /**< Multisample state */
-                const VkPipelineDepthStencilStateCreateInfo*  pDepthStencilInfo; /**< Depth stencil state */
-                const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo; /**< Color blend state */
-                const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo; /**< Dynamic state */
-                uint32_t                                      subpass; /**< Subpass index */
-                uint32_t  colorAttachmentCount; /**< Number of color attachments for dynamic rendering */
-                VkFormat* pColorAttachmentFormats; /**< Color attachment formats for dynamic rendering */
-                VkFormat  depthAttachmentFormat; /**< Depth attachment format for dynamic rendering */
-                VkFormat  stencilAttachmentFormat; /**< Stencil attachment format for dynamic rendering */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        VkPipelineLayout               pipelineLayout; /**< Pipeline layout */
+        VkRenderPass                   pRenderPass; /**< Render pass (VK_NULL_HANDLE for dynamic rendering) */
+        const VkPipelineShaderStageCreateInfo*        pStages; /**< Shader stages */
+        uint32_t                                      stageCount; /**< Number of shader stages */
+        const VkPipelineVertexInputStateCreateInfo*   pVertexInputInfo; /**< Vertex input state */
+        const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyInfo; /**< Input assembly state */
+        const VkPipelineViewportStateCreateInfo*      pViewportInfo; /**< Viewport state */
+        const VkPipelineRasterizationStateCreateInfo* pRasterizationInfo; /**< Rasterization state */
+        const VkPipelineMultisampleStateCreateInfo*   pMultisampleInfo; /**< Multisample state */
+        const VkPipelineDepthStencilStateCreateInfo*  pDepthStencilInfo; /**< Depth stencil state */
+        const VkPipelineColorBlendStateCreateInfo*    pColorBlendInfo; /**< Color blend state */
+        const VkPipelineDynamicStateCreateInfo*       pDynamicStateInfo; /**< Dynamic state */
+        uint32_t                                      subpass; /**< Subpass index */
+        uint32_t  colorAttachmentCount; /**< Number of color attachments for dynamic rendering */
+        VkFormat* pColorAttachmentFormats; /**< Color attachment formats for dynamic rendering */
+        VkFormat  depthAttachmentFormat; /**< Depth attachment format for dynamic rendering */
+        VkFormat  stencilAttachmentFormat; /**< Stencil attachment format for dynamic rendering */
 };
 
 /**
@@ -50,9 +50,9 @@ struct R_CVulkan_GraphicsPipelineCreateInfo
  */
 struct R_CVulkan_PipelineLayout
 {
-                VkPipelineLayout handle; /**< Raw Vulkan pipeline layout handle */
-                VkDevice         device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkPipelineLayout handle; /**< Raw Vulkan pipeline layout handle */
+        VkDevice         device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -60,9 +60,9 @@ struct R_CVulkan_PipelineLayout
  */
 struct R_CVulkan_Pipeline
 {
-                VkPipeline handle; /**< Raw Vulkan pipeline handle */
-                VkDevice   device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkPipeline handle; /**< Raw Vulkan pipeline handle */
+        VkDevice   device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

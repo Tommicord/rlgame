@@ -15,11 +15,11 @@ struct R_CVulkan_MemValStats;
  */
 struct R_CVulkan_Suballocation
 {
-                VkDeviceSize   offset; /**< Offset within the memory block */
-                VkDeviceSize   size; /**< Size of the allocation */
-                VkBuffer       buffer; /**< Buffer handle */
-                VkDeviceMemory memory; /**< Device memory handle */
-                uint32_t       blockIndex; /**< Index of the memory block */
+        VkDeviceSize   offset; /**< Offset within the memory block */
+        VkDeviceSize   size; /**< Size of the allocation */
+        VkBuffer       buffer; /**< Buffer handle */
+        VkDeviceMemory memory; /**< Device memory handle */
+        uint32_t       blockIndex; /**< Index of the memory block */
 };
 
 /**
@@ -27,8 +27,8 @@ struct R_CVulkan_Suballocation
  */
 struct R_CVulkan_FreeRegion
 {
-                VkDeviceSize offset; /**< Offset of the free region */
-                VkDeviceSize size; /**< Size of the free region */
+        VkDeviceSize offset; /**< Offset of the free region */
+        VkDeviceSize size; /**< Size of the free region */
 };
 
 /**
@@ -36,17 +36,17 @@ struct R_CVulkan_FreeRegion
  */
 struct R_CVulkan_MemoryBlock
 {
-                VkDevice                     device; /**< Vulkan device */
-                VkPhysicalDevice             physicalDevice; /**< Physical device */
-                VkDeviceSize                 size; /**< Total size of the block */
-                VkBufferUsageFlags           usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags        properties; /**< Memory property flags */
-                VkBuffer                     buffer; /**< Buffer handle */
-                VkDeviceMemory               memory; /**< Device memory handle */
-                VkDeviceSize                 usedSize; /**< Currently used size */
-                struct R_CVulkan_FreeRegion* pFreeRegions; /**< Array of free regions */
-                uint32_t                     freeRegionCount; /**< Number of free regions */
-                uint32_t                     freeRegionCapacity; /**< Capacity of free regions array */
+        VkDevice                     device; /**< Vulkan device */
+        VkPhysicalDevice             physicalDevice; /**< Physical device */
+        VkDeviceSize                 size; /**< Total size of the block */
+        VkBufferUsageFlags           usage; /**< Buffer usage flags */
+        VkMemoryPropertyFlags        properties; /**< Memory property flags */
+        VkBuffer                     buffer; /**< Buffer handle */
+        VkDeviceMemory               memory; /**< Device memory handle */
+        VkDeviceSize                 usedSize; /**< Currently used size */
+        struct R_CVulkan_FreeRegion* pFreeRegions; /**< Array of free regions */
+        uint32_t                     freeRegionCount; /**< Number of free regions */
+        uint32_t                     freeRegionCapacity; /**< Capacity of free regions array */
 };
 
 /**
@@ -54,14 +54,14 @@ struct R_CVulkan_MemoryBlock
  */
 struct R_CVulkan_MemoryAllocator
 {
-                VkDevice                       device; /**< Vulkan device */
-                VkPhysicalDevice               physicalDevice; /**< Physical device */
-                struct R_CVulkan_MemoryBlock** ppBlocks; /**< Array of memory blocks */
-                uint32_t                       blockCount; /**< Number of blocks */
-                uint32_t                       blockCapacity; /**< Capacity of blocks array */
-                VkDeviceSize                   minBlockSize; /**< Minimum block size (default: 256KB) */
-                VkDeviceSize defaultMaxBlockSize; /**< Default maximum block size (default: 256MB) */
-                struct R_CVulkan_MemValState* pMemVal; /**< Per-allocator memory validation state */
+        VkDevice                       device; /**< Vulkan device */
+        VkPhysicalDevice               physicalDevice; /**< Physical device */
+        struct R_CVulkan_MemoryBlock** ppBlocks; /**< Array of memory blocks */
+        uint32_t                       blockCount; /**< Number of blocks */
+        uint32_t                       blockCapacity; /**< Capacity of blocks array */
+        VkDeviceSize                   minBlockSize; /**< Minimum block size (default: 256KB) */
+        VkDeviceSize                  defaultMaxBlockSize; /**< Default maximum block size (default: 256MB) */
+        struct R_CVulkan_MemValState* pMemVal; /**< Per-allocator memory validation state */
 };
 
 /**
@@ -87,10 +87,10 @@ R_CVULKAN_API void R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAlloc
  */
 struct R_CVulkan_MemoryAllocationInfo
 {
-                VkDeviceSize          size; /**< Size to allocate */
-                VkDeviceSize          alignment; /**< Alignment requirement */
-                VkBufferUsageFlags    usage; /**< Buffer usage flags */
-                VkMemoryPropertyFlags properties; /**< Memory property flags */
+        VkDeviceSize          size; /**< Size to allocate */
+        VkDeviceSize          alignment; /**< Alignment requirement */
+        VkBufferUsageFlags    usage; /**< Buffer usage flags */
+        VkMemoryPropertyFlags properties; /**< Memory property flags */
 };
 
 /**

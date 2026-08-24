@@ -16,11 +16,11 @@ struct R_CVulkan_Fence;
  */
 struct R_CVulkan_Queue
 {
-                VkQueue  handle; /**< Raw Vulkan queue handle */
-                VkDevice device; /**< Associated device */
-                uint32_t queueFamilyIndex; /**< Queue family index */
-                uint32_t queueIndex; /**< Queue index within family */
-                R_CVULKAN_DEBUG_FIELD
+        VkQueue  handle; /**< Raw Vulkan queue handle */
+        VkDevice device; /**< Associated device */
+        uint32_t queueFamilyIndex; /**< Queue family index */
+        uint32_t queueIndex; /**< Queue index within family */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

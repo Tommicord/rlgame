@@ -23,17 +23,17 @@ struct R_CVulkan_Instance;
  */
 struct R_CVulkan_SurfaceCreateInfo
 {
-                const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
+        const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
-                HINSTANCE hInstance; /**< Windows instance handle */
-                HWND      hWnd; /**< Windows window handle */
+        HINSTANCE hInstance; /**< Windows instance handle */
+        HWND      hWnd; /**< Windows window handle */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-                Display* pDisplay; /**< X11 display connection */
-                Window   window; /**< X11 window handle */
+        Display* pDisplay; /**< X11 display connection */
+        Window   window; /**< X11 window handle */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
-                ANativeWindow* pWindow; /**< Android native window */
+        ANativeWindow* pWindow; /**< Android native window */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
-                void* pNSWindow; /**< macOS NSWindow pointer */
+        void* pNSWindow; /**< macOS NSWindow pointer */
 #endif
 };
 
@@ -42,9 +42,9 @@ struct R_CVulkan_SurfaceCreateInfo
  */
 struct R_CVulkan_Surface
 {
-                VkSurfaceKHR handle; /**< Raw Vulkan surface handle */
-                VkInstance   instance; /**< Associated Vulkan instance */
-                R_CVULKAN_DEBUG_FIELD
+        VkSurfaceKHR handle; /**< Raw Vulkan surface handle */
+        VkInstance   instance; /**< Associated Vulkan instance */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

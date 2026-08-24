@@ -35,35 +35,35 @@ typedef uint64_t R_GameRendererResourceHandle;
 
 struct R_GameRendererRenderTask
 {
-                uint32_t            layerIndex;
-                uint32_t            commandBufferIndex;
-                uint32_t            frameIndex;
-                int                 completed;
-                R_GAME_ATOMIC_INT32 atomicCompleted;
+        uint32_t            layerIndex;
+        uint32_t            commandBufferIndex;
+        uint32_t            frameIndex;
+        int                 completed;
+        R_GAME_ATOMIC_INT32 atomicCompleted;
 };
 
 struct R_GameRendererWorkerThread
 {
-                R_GAME_THREAD_HANDLE            threadHandle;
-                R_GAME_THREAD_ID                threadId;
-                uint32_t                        workerIndex;
-                int                             isRunning;
-                R_GAME_ATOMIC_INT32             atomicIsRunning;
-                struct R_GameRendererSubsystem* pSubsystem;
+        R_GAME_THREAD_HANDLE            threadHandle;
+        R_GAME_THREAD_ID                threadId;
+        uint32_t                        workerIndex;
+        int                             isRunning;
+        R_GAME_ATOMIC_INT32             atomicIsRunning;
+        struct R_GameRendererSubsystem* pSubsystem;
 };
 
 struct R_GameRendererThreadPool
 {
-                struct R_GameRendererWorkerThread workers[R_GAME_RENDERER_MAX_WORKER_THREADS];
-                uint32_t                          workerCount;
-                R_GAME_MUTEX                      taskMutex;
-                R_GAME_CONDITION_VARIABLE         taskAvailable;
-                R_GAME_CONDITION_VARIABLE         taskComplete;
-                struct R_CSTL_Stack*              pTaskQueue;
-                R_GAME_ATOMIC_UINT32              atomicPendingTasks;
-                R_GAME_ATOMIC_UINT32              atomicCompletedTasks;
-                int                               shutdownRequested;
-                R_GAME_ATOMIC_INT32               atomicShutdownRequested;
+        struct R_GameRendererWorkerThread workers[R_GAME_RENDERER_MAX_WORKER_THREADS];
+        uint32_t                          workerCount;
+        R_GAME_MUTEX                      taskMutex;
+        R_GAME_CONDITION_VARIABLE         taskAvailable;
+        R_GAME_CONDITION_VARIABLE         taskComplete;
+        struct R_CSTL_Stack*              pTaskQueue;
+        R_GAME_ATOMIC_UINT32              atomicPendingTasks;
+        R_GAME_ATOMIC_UINT32              atomicCompletedTasks;
+        int                               shutdownRequested;
+        R_GAME_ATOMIC_INT32               atomicShutdownRequested;
 };
 
 struct R_GameRendererFrame;
@@ -74,24 +74,24 @@ struct R_GameRendererSubsystem;
 
 struct R_GameRendererRenderTarget
 {
-                struct R_CVulkan_Image*       pColorImage;
-                struct R_CVulkan_ImageView*   pColorImageView;
-                struct R_CVulkan_Image*       pDepthImage;
-                struct R_CVulkan_ImageView*   pDepthImageView;
-                struct R_CVulkan_Framebuffer* pFramebuffer;
-                uint32_t                      width;
-                uint32_t                      height;
-                uint32_t                      format;
+        struct R_CVulkan_Image*       pColorImage;
+        struct R_CVulkan_ImageView*   pColorImageView;
+        struct R_CVulkan_Image*       pDepthImage;
+        struct R_CVulkan_ImageView*   pDepthImageView;
+        struct R_CVulkan_Framebuffer* pFramebuffer;
+        uint32_t                      width;
+        uint32_t                      height;
+        uint32_t                      format;
 };
 
 struct R_GameRendererSubsystemEntry
 {
-                struct R_GameRendererSubsystem*   pSubsystem;
-                struct R_GameRendererRenderTarget renderTarget;
-                uint32_t                          priority;
-                uint32_t                          flags;
-                int                               isVisible;
-                float                             blendFactor;
+        struct R_GameRendererSubsystem*   pSubsystem;
+        struct R_GameRendererRenderTarget renderTarget;
+        uint32_t                          priority;
+        uint32_t                          flags;
+        int                               isVisible;
+        float                             blendFactor;
 };
 struct R_GameRendererManager;
 

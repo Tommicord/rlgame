@@ -19,9 +19,9 @@ struct R_CVulkan_Instance;
  */
 struct R_CVulkan_DeviceCreateInfo
 {
-                const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
-                const struct R_CVulkan_Surface*
-                    pSurface; /**< Optional surface for presentation (can be NULL in headless mode) */
+        const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
+        const struct R_CVulkan_Surface*
+            pSurface; /**< Optional surface for presentation (can be NULL in headless mode) */
 };
 
 /**
@@ -29,14 +29,14 @@ struct R_CVulkan_DeviceCreateInfo
  */
 struct R_CVulkan_QueueFamilyIndices
 {
-                uint32_t graphicsFamily;
-                uint32_t presentFamily;
-                uint32_t computeFamily;
-                uint32_t transferFamily;
-                bool     hasGraphicsFamily;
-                bool     hasPresentFamily;
-                bool     hasComputeFamily;
-                bool     hasTransferFamily;
+        uint32_t graphicsFamily;
+        uint32_t presentFamily;
+        uint32_t computeFamily;
+        uint32_t transferFamily;
+        bool     hasGraphicsFamily;
+        bool     hasPresentFamily;
+        bool     hasComputeFamily;
+        bool     hasTransferFamily;
 };
 
 /**
@@ -44,9 +44,9 @@ struct R_CVulkan_QueueFamilyIndices
  */
 struct R_CVulkan_SwapChainSupport
 {
-                struct R_CSTL_Array*     pFormats;
-                struct R_CSTL_Array*     pPresentModes;
-                VkSurfaceCapabilitiesKHR capabilities;
+        struct R_CSTL_Array*     pFormats;
+        struct R_CSTL_Array*     pPresentModes;
+        VkSurfaceCapabilitiesKHR capabilities;
 };
 
 /**
@@ -55,13 +55,13 @@ struct R_CVulkan_SwapChainSupport
  */
 struct R_CVulkan_Device
 {
-                const struct R_CVulkan_Instance* pInstance; /**< Associated Vulkan instance */
-                VkPhysicalDevice                 physicalDevice;
-                VkDevice                         logicalDevice;
-                VkSurfaceKHR                     surface;
-                struct R_CVulkan_Queue           graphicsQueue;
-                struct R_CVulkan_Queue           presentQueue;
-                R_CVULKAN_DEBUG_FIELD
+        const struct R_CVulkan_Instance* pInstance; /**< Associated Vulkan instance */
+        VkPhysicalDevice                 physicalDevice;
+        VkDevice                         logicalDevice;
+        VkSurfaceKHR                     surface;
+        struct R_CVulkan_Queue           graphicsQueue;
+        struct R_CVulkan_Queue           presentQueue;
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

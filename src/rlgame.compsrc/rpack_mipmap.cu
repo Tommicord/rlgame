@@ -7,13 +7,14 @@
  * @param dstWidth Destination width
  * @param dstHeight Destination height
  */
-__global__ void R_RPack_MipmapBoxFilterKernel (
+__global__ void
+R_RPack_MipmapBoxFilterKernel (
     const uchar4* srcPixels,
-    uchar4* dstPixels,
-    uint32_t srcWidth,
-    uint32_t srcHeight,
-    uint32_t dstWidth,
-    uint32_t dstHeight)
+    uchar4*       dstPixels,
+    uint32_t      srcWidth,
+    uint32_t      srcHeight,
+    uint32_t      dstWidth,
+    uint32_t      dstHeight)
 {
     uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
     uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -29,7 +30,7 @@ __global__ void R_RPack_MipmapBoxFilterKernel (
     uint32_t srcY = (uint32_t)(y * scaleY);
 
     // Sample 2x2 region
-    uint4 sum = make_uint4 (0, 0, 0, 0);
+    uint4    sum = make_uint4 (0, 0, 0, 0);
     uint32_t count = 0;
 
     for (uint32_t dy = 0; dy < 2; ++dy)
@@ -51,11 +52,8 @@ __global__ void R_RPack_MipmapBoxFilterKernel (
     // Average
     if (count > 0)
     {
-        dstPixels[y * dstWidth + x] = make_uchar4 (
-            sum.x / count,
-            sum.y / count,
-            sum.z / count,
-            sum.w / count);
+        dstPixels[y * dstWidth + x]
+            = make_uchar4 (sum.x / count, sum.y / count, sum.z / count, sum.w / count);
     }
     else
     {
@@ -73,14 +71,15 @@ __global__ void R_RPack_MipmapBoxFilterKernel (
  * @param dstHeight Destination height
  * @param sigma Gaussian sigma value
  */
-__global__ void R_RPack_MipmapGaussianFilterKernel (
+__global__ void
+R_RPack_MipmapGaussianFilterKernel (
     const uchar4* srcPixels,
-    uchar4* dstPixels,
-    uint32_t srcWidth,
-    uint32_t srcHeight,
-    uint32_t dstWidth,
-    uint32_t dstHeight,
-    float sigma)
+    uchar4*       dstPixels,
+    uint32_t      srcWidth,
+    uint32_t      srcHeight,
+    uint32_t      dstWidth,
+    uint32_t      dstHeight,
+    float         sigma)
 {
     uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
     uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -101,7 +100,7 @@ __global__ void R_RPack_MipmapGaussianFilterKernel (
     if (radius < 1) radius = 1;
 
     float4 sum = make_float4 (0.0f, 0.0f, 0.0f, 0.0f);
-    float weightSum = 0.0f;
+    float  weightSum = 0.0f;
 
     for (int32_t dy = -radius; dy <= radius; ++dy)
     {
@@ -116,11 +115,7 @@ __global__ void R_RPack_MipmapGaussianFilterKernel (
                 float weight = expf (-0.5f * (distance * distance) / (sigma * sigma));
 
                 uchar4 pixel = srcPixels[sy * srcWidth + sx];
-                float4 fPixel = make_float4 (
-                    (float)pixel.x,
-                    (float)pixel.y,
-                    (float)pixel.z,
-                    (float)pixel.w);
+                float4 fPixel = make_float4 ((float)pixel.x, (float)pixel.y, (float)pixel.z, (float)pixel.w);
                 sum += fPixel * weight;
                 weightSum += weight;
             }

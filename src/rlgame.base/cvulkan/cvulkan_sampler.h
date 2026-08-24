@@ -13,20 +13,20 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_SamplerCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                VkFilter                       magFilter; /**< Magnification filter */
-                VkFilter                       minFilter; /**< Minification filter */
-                VkSamplerMipmapMode            mipmapMode; /**< Mipmap mode */
-                VkSamplerAddressMode           addressModeU; /**< Address mode for U coordinate */
-                VkSamplerAddressMode           addressModeV; /**< Address mode for V coordinate */
-                VkSamplerAddressMode           addressModeW; /**< Address mode for W coordinate */
-                float                          mipLodBias; /**< Mipmap LOD bias */
-                int           anisotropyEnable; /**< Whether to enable anisotropic filtering */
-                float         maxAnisotropy; /**< Maximum anisotropy */
-                float         minLod; /**< Minimum LOD */
-                float         maxLod; /**< Maximum LOD */
-                VkBorderColor borderColor; /**< Border color (for clamp to border) */
-                int           unnormalizedCoordinates; /**< Whether to use unnormalized coordinates */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        VkFilter                       magFilter; /**< Magnification filter */
+        VkFilter                       minFilter; /**< Minification filter */
+        VkSamplerMipmapMode            mipmapMode; /**< Mipmap mode */
+        VkSamplerAddressMode           addressModeU; /**< Address mode for U coordinate */
+        VkSamplerAddressMode           addressModeV; /**< Address mode for V coordinate */
+        VkSamplerAddressMode           addressModeW; /**< Address mode for W coordinate */
+        float                          mipLodBias; /**< Mipmap LOD bias */
+        int                            anisotropyEnable; /**< Whether to enable anisotropic filtering */
+        float                          maxAnisotropy; /**< Maximum anisotropy */
+        float                          minLod; /**< Minimum LOD */
+        float                          maxLod; /**< Maximum LOD */
+        VkBorderColor                  borderColor; /**< Border color (for clamp to border) */
+        int unnormalizedCoordinates; /**< Whether to use unnormalized coordinates */
 };
 
 /**
@@ -34,9 +34,9 @@ struct R_CVulkan_SamplerCreateInfo
  */
 struct R_CVulkan_Sampler
 {
-                VkSampler handle; /**< Raw Vulkan sampler handle */
-                VkDevice  device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkSampler handle; /**< Raw Vulkan sampler handle */
+        VkDevice  device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**

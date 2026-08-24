@@ -6,13 +6,13 @@
  */
 struct R_CVulkan_DefragBlockMetadata
 {
-    uint32_t blockIndex;
-    uint64_t totalSize;
-    uint64_t usedSize;
-    uint64_t freeSize;
-    float    fillLevel;
-    uint32_t allocationCount;
-    uint32_t isCandidate;
+        uint32_t blockIndex;
+        uint64_t totalSize;
+        uint64_t usedSize;
+        uint64_t freeSize;
+        float    fillLevel;
+        uint32_t allocationCount;
+        uint32_t isCandidate;
 };
 
 /**
@@ -20,12 +20,12 @@ struct R_CVulkan_DefragBlockMetadata
  */
 struct R_CVulkan_DefragMove
 {
-    uint32_t srcBlockIndex;
-    uint32_t dstBlockIndex;
-    uint64_t srcOffset;
-    uint64_t dstOffset;
-    uint64_t size;
-    uint32_t operation;
+        uint32_t srcBlockIndex;
+        uint32_t dstBlockIndex;
+        uint64_t srcOffset;
+        uint64_t dstOffset;
+        uint64_t size;
+        uint32_t operation;
 };
 
 /**
@@ -34,10 +34,11 @@ struct R_CVulkan_DefragMove
  * @param blockCount Number of blocks
  * @param mergeFactor Target merge factor n
  */
-__global__ void R_CVulkan_DefragAnalyzeBlocksKernel (
+__global__ void
+R_CVulkan_DefragAnalyzeBlocksKernel (
     struct R_CVulkan_DefragBlockMetadata* blockMetadata,
-    uint32_t             blockCount,
-    uint32_t             mergeFactor)
+    uint32_t                              blockCount,
+    uint32_t                              mergeFactor)
 {
     uint32_t blockIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -47,9 +48,8 @@ __global__ void R_CVulkan_DefragAnalyzeBlocksKernel (
     }
 
     struct R_CVulkan_DefragBlockMetadata* metadata = &blockMetadata[blockIndex];
-    metadata->fillLevel = (metadata->totalSize > 0) 
-        ? ((float)metadata->usedSize / (float)metadata->totalSize) 
-        : 0.0f;
+    metadata->fillLevel
+        = (metadata->totalSize > 0) ? ((float)metadata->usedSize / (float)metadata->totalSize) : 0.0f;
     metadata->freeSize = metadata->totalSize - metadata->usedSize;
 
     // Determine if this block is a candidate for defragmentation
@@ -67,13 +67,14 @@ __global__ void R_CVulkan_DefragAnalyzeBlocksKernel (
  * @param mergeFactor Target merge factor n
  * @param maxBytesPerPass Maximum bytes to move per pass
  */
-__global__ void R_CVulkan_DefragCreateMovePlanKernel (
+__global__ void
+R_CVulkan_DefragCreateMovePlanKernel (
     struct R_CVulkan_DefragBlockMetadata* blockMetadata,
-    struct R_CVulkan_DefragMove*         moves,
-    uint32_t*           moveCount,
-    uint32_t             blockCount,
-    uint32_t             mergeFactor,
-    uint64_t             maxBytesPerPass)
+    struct R_CVulkan_DefragMove*          moves,
+    uint32_t*                             moveCount,
+    uint32_t                              blockCount,
+    uint32_t                              mergeFactor,
+    uint64_t                              maxBytesPerPass)
 {
     uint32_t blockIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -91,7 +92,7 @@ __global__ void R_CVulkan_DefragCreateMovePlanKernel (
 
     // Find best target block
     uint32_t targetBlockIndex = 0;
-    float     bestFillLevel = 0.0f;
+    float    bestFillLevel = 0.0f;
 
     for (uint32_t j = 0; j < blockCount; ++j)
     {
@@ -146,11 +147,12 @@ __global__ void R_CVulkan_DefragCreateMovePlanKernel (
  * @param moveCount Number of moves
  * @param blockCount Number of blocks
  */
-__global__ void R_CVulkan_DefragUpdateMetadataKernel (
+__global__ void
+R_CVulkan_DefragUpdateMetadataKernel (
     struct R_CVulkan_DefragBlockMetadata* blockMetadata,
-    struct R_CVulkan_DefragMove*         moves,
-    uint32_t             moveCount,
-    uint32_t             blockCount)
+    struct R_CVulkan_DefragMove*          moves,
+    uint32_t                              moveCount,
+    uint32_t                              blockCount)
 {
     uint32_t moveIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -180,10 +182,11 @@ __global__ void R_CVulkan_DefragUpdateMetadataKernel (
 /**
  * @brief Host function to launch block analysis kernel
  */
-extern "C" cudaError_t R_CVulkan_DefragLaunchAnalyzeBlocks (
-    void*   blockMetadata,
-    uint32_t blockCount,
-    uint32_t mergeFactor,
+extern "C" cudaError_t
+R_CVulkan_DefragLaunchAnalyzeBlocks (
+    void*        blockMetadata,
+    uint32_t     blockCount,
+    uint32_t     mergeFactor,
     cudaStream_t stream)
 {
     int blockSize = 256;
@@ -200,13 +203,14 @@ extern "C" cudaError_t R_CVulkan_DefragLaunchAnalyzeBlocks (
 /**
  * @brief Host function to launch move plan creation kernel
  */
-extern "C" cudaError_t R_CVulkan_DefragLaunchCreateMovePlan (
-    void*     blockMetadata,
-    void*     moves,
-    uint32_t* moveCount,
-    uint32_t  blockCount,
-    uint32_t  mergeFactor,
-    uint64_t  maxBytesPerPass,
+extern "C" cudaError_t
+R_CVulkan_DefragLaunchCreateMovePlan (
+    void*        blockMetadata,
+    void*        moves,
+    uint32_t*    moveCount,
+    uint32_t     blockCount,
+    uint32_t     mergeFactor,
+    uint64_t     maxBytesPerPass,
     cudaStream_t stream)
 {
     int blockSize = 256;
@@ -232,11 +236,12 @@ extern "C" cudaError_t R_CVulkan_DefragLaunchCreateMovePlan (
 /**
  * @brief Host function to launch metadata update kernel
  */
-extern "C" cudaError_t R_CVulkan_DefragCudaLaunchUpdateMetadata (
-    void*         blockMetadata,
-    void*         moves,
-    uint32_t      moveCount,
-    uint32_t      blockCount,
+extern "C" cudaError_t
+R_CVulkan_DefragCudaLaunchUpdateMetadata (
+    void*        blockMetadata,
+    void*        moves,
+    uint32_t     moveCount,
+    uint32_t     blockCount,
     cudaStream_t stream)
 {
     int blockSize = 256;

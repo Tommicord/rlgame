@@ -12,9 +12,9 @@ struct R_CVulkan_Device;
  */
 struct R_CVulkan_DYRRenderPass
 {
-                VkRenderPass handle; /**< Raw Vulkan render pass handle */
-                VkDevice     device; /**< Associated device */
-                R_CVULKAN_DEBUG_FIELD
+        VkRenderPass handle; /**< Raw Vulkan render pass handle */
+        VkDevice     device; /**< Associated device */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -22,11 +22,11 @@ struct R_CVulkan_DYRRenderPass
  */
 struct R_CVulkan_DYRRenderPassCreateInfo
 {
-                const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
-                uint32_t                       colorAttachmentCount; /**< Number of color attachments */
-                const VkFormat*                pColorAttachmentFormats; /**< Color attachment formats */
-                VkFormat                       depthAttachmentFormat; /**< Depth attachment format */
-                VkFormat                       stencilAttachmentFormat; /**< Stencil attachment format */
+        const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
+        uint32_t                       colorAttachmentCount; /**< Number of color attachments */
+        const VkFormat*                pColorAttachmentFormats; /**< Color attachment formats */
+        VkFormat                       depthAttachmentFormat; /**< Depth attachment format */
+        VkFormat                       stencilAttachmentFormat; /**< Stencil attachment format */
 };
 
 /**

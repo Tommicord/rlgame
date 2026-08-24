@@ -10,78 +10,78 @@ struct R_CSTL_Mutex;
 
 enum R_CSTL_BytecodeArchitecture
 {
-        R_CSTL_BYTECODE_ARCH_X86 = 0,
-        R_CSTL_BYTECODE_ARCH_X86_64,
-        R_CSTL_BYTECODE_ARCH_ARMV8A,
-        R_CSTL_BYTECODE_ARCH_ARMEABI_V7A,
-        R_CSTL_BYTECODE_ARCH_RISC,
+    R_CSTL_BYTECODE_ARCH_X86 = 0,
+    R_CSTL_BYTECODE_ARCH_X86_64,
+    R_CSTL_BYTECODE_ARCH_ARMV8A,
+    R_CSTL_BYTECODE_ARCH_ARMEABI_V7A,
+    R_CSTL_BYTECODE_ARCH_RISC,
 };
 
 enum R_CSTL_BytecodeTokenKind
 {
-        R_CSTL_BYTECODE_TOKEN_OPCODE = 0,
-        R_CSTL_BYTECODE_TOKEN_OPERAND,
-        R_CSTL_BYTECODE_TOKEN_REGISTER,
-        R_CSTL_BYTECODE_TOKEN_IMMEDIATE,
-        R_CSTL_BYTECODE_TOKEN_RELATIVE_ADDRESS,
-        R_CSTL_BYTECODE_TOKEN_RIP_ADDRESSING,
-        R_CSTL_BYTECODE_TOKEN_ABSOLUTE_ADDRESS,
-        R_CSTL_BYTECODE_TOKEN_UNKNOWN,
+    R_CSTL_BYTECODE_TOKEN_OPCODE = 0,
+    R_CSTL_BYTECODE_TOKEN_OPERAND,
+    R_CSTL_BYTECODE_TOKEN_REGISTER,
+    R_CSTL_BYTECODE_TOKEN_IMMEDIATE,
+    R_CSTL_BYTECODE_TOKEN_RELATIVE_ADDRESS,
+    R_CSTL_BYTECODE_TOKEN_RIP_ADDRESSING,
+    R_CSTL_BYTECODE_TOKEN_ABSOLUTE_ADDRESS,
+    R_CSTL_BYTECODE_TOKEN_UNKNOWN,
 };
 
 struct R_CSTL_Bytecode;
 
 struct R_CSTL_BytecodeToken
 {
-                enum R_CSTL_BytecodeTokenKind kind;
-                size_t                        offset;
-                uint8_t                       size;
-                uint64_t                      value;
+        enum R_CSTL_BytecodeTokenKind kind;
+        size_t                        offset;
+        uint8_t                       size;
+        uint64_t                      value;
 };
 
 struct R_CSTL_BytecodeInstruction
 {
-                size_t   offset;
-                uint8_t  size;
-                uint8_t  opcodeSize;
-                uint8_t  operandCount;
-                uint8_t  bytes[16];
-                uint64_t opcode;
-                uint64_t targetAddress;
-                uint8_t  isCall;
-                uint8_t  isJump;
-                uint8_t  rexPrefix;
-                uint8_t  legacyPrefixes;
-                uint8_t  hasRex;
-                uint8_t  rexW;
-                uint8_t  rexR;
-                uint8_t  rexX;
-                uint8_t  rexB;
+        size_t   offset;
+        uint8_t  size;
+        uint8_t  opcodeSize;
+        uint8_t  operandCount;
+        uint8_t  bytes[16];
+        uint64_t opcode;
+        uint64_t targetAddress;
+        uint8_t  isCall;
+        uint8_t  isJump;
+        uint8_t  rexPrefix;
+        uint8_t  legacyPrefixes;
+        uint8_t  hasRex;
+        uint8_t  rexW;
+        uint8_t  rexR;
+        uint8_t  rexX;
+        uint8_t  rexB;
 };
 
 typedef void (*R_CSTL_BytecodeFunction) (void);
 
 struct R_CSTL_BytecodeSymbol
 {
-                uint64_t    address;
-                const char* pName;
-                size_t      nameSize;
-                uint64_t    size;
+        uint64_t    address;
+        const char* pName;
+        size_t      nameSize;
+        uint64_t    size;
 };
 
 struct R_CSTL_BytecodeDecoder
 {
-                void*                            pPlatformHandle;
-                bool                             initialized;
-                enum R_CSTL_BytecodeArchitecture architecture;
+        void*                            pPlatformHandle;
+        bool                             initialized;
+        enum R_CSTL_BytecodeArchitecture architecture;
 };
 
 struct R_CSTL_BytecodeFunctionInfo
 {
-                uint64_t    startAddress;
-                uint64_t    endAddress;
-                const char* pName;
-                size_t      nameSize;
+        uint64_t    startAddress;
+        uint64_t    endAddress;
+        const char* pName;
+        size_t      nameSize;
 };
 
 /** @brief Create a non-owning view of machine-code bytes. */

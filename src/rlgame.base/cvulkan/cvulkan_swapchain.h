@@ -23,21 +23,21 @@ struct R_CVulkan_Surface;
  */
 struct R_CVulkan_SwapchainCreateInfo
 {
-                const struct R_CVulkan_Device*  pDevice; /**< Vulkan device (required) */
-                const struct R_CVulkan_Surface* pSurface; /**< Vulkan surface (required) */
-                uint32_t                        imageCount; /**< Number of images in swapchain */
-                VkSurfaceFormatKHR              surfaceFormat; /**< Surface format */
-                VkPresentModeKHR                presentMode; /**< Present mode */
-                VkExtent2D                      extent; /**< Extent (use {0,0} for surface extent) */
-                VkImageUsageFlags
-                    imageUsage; /**< Image usage flags (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT by default) */
-                uint32_t arrayLayers; /**< Array layers (1 by default) */
-                VkSurfaceTransformFlagBitsKHR
-                    preTransform; /**< Pre-transform (VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR by default) */
-                VkCompositeAlphaFlagBitsKHR
-                    compositeAlpha; /**< Composite alpha (VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR by default) */
-                VkBool32       clipped; /**< Clipped (VK_TRUE by default) */
-                VkSwapchainKHR oldSwapchain; /**< Old swapchain to replace (VK_NULL_HANDLE by default) */
+        const struct R_CVulkan_Device*  pDevice; /**< Vulkan device (required) */
+        const struct R_CVulkan_Surface* pSurface; /**< Vulkan surface (required) */
+        uint32_t                        imageCount; /**< Number of images in swapchain */
+        VkSurfaceFormatKHR              surfaceFormat; /**< Surface format */
+        VkPresentModeKHR                presentMode; /**< Present mode */
+        VkExtent2D                      extent; /**< Extent (use {0,0} for surface extent) */
+        VkImageUsageFlags
+                 imageUsage; /**< Image usage flags (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT by default) */
+        uint32_t arrayLayers; /**< Array layers (1 by default) */
+        VkSurfaceTransformFlagBitsKHR
+            preTransform; /**< Pre-transform (VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR by default) */
+        VkCompositeAlphaFlagBitsKHR
+                       compositeAlpha; /**< Composite alpha (VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR by default) */
+        VkBool32       clipped; /**< Clipped (VK_TRUE by default) */
+        VkSwapchainKHR oldSwapchain; /**< Old swapchain to replace (VK_NULL_HANDLE by default) */
 };
 
 /**
@@ -45,12 +45,12 @@ struct R_CVulkan_SwapchainCreateInfo
  */
 struct R_CVulkan_Swapchain
 {
-                VkSwapchainKHR handle; /**< Raw Vulkan swapchain handle */
-                VkDevice       device; /**< Associated device */
-                VkFormat       imageFormat; /**< Format of swapchain images */
-                VkExtent2D     extent; /**< Extent of swapchain images */
-                uint32_t       imageCount; /**< Number of images in swapchain */
-                R_CVULKAN_DEBUG_FIELD
+        VkSwapchainKHR handle; /**< Raw Vulkan swapchain handle */
+        VkDevice       device; /**< Associated device */
+        VkFormat       imageFormat; /**< Format of swapchain images */
+        VkExtent2D     extent; /**< Extent of swapchain images */
+        uint32_t       imageCount; /**< Number of images in swapchain */
+        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
