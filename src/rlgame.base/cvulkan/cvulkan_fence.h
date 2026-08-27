@@ -17,7 +17,7 @@ struct R_CVulkan_Fence
         VkFence  handle; /**< Raw Vulkan fence handle */
         VkDevice device; /**< Associated device */
         R_CVULKAN_DEBUG_FIELD
-} R_CVulkan_Fence;
+};
 
 /**
  * @brief Initialize a fence

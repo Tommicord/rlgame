@@ -6,6 +6,10 @@
 
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
+#if defined(R_CVULKAN_PLATFORM_LINUX)
+#include <wayland-client.h>
+#endif
+
 struct R_CVulkan_Instance;
 
 /**
@@ -28,8 +32,8 @@ struct R_CVulkan_SurfaceCreateInfo
         HINSTANCE hInstance; /**< Windows instance handle */
         HWND      hWnd; /**< Windows window handle */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        Display* pDisplay; /**< X11 display connection */
-        Window   window; /**< X11 window handle */
+        struct wl_display* pDisplay; /**< Wayland display connection */
+        struct wl_surface* pSurface; /**< Wayland surface */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

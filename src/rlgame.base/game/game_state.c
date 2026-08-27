@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-R_GAME_API enum R_GameError
+R_GAME_API enum R_CVulkanError
 R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo)
 {
 #if defined(R_CVULKAN_DEBUG)
@@ -28,7 +28,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
     pipelineCreateInfo.hWnd = pCreateInfo->hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
     pipelineCreateInfo.pDisplay = pCreateInfo->pDisplay;
-    pipelineCreateInfo.window = pCreateInfo->window;
+    pipelineCreateInfo.pSurface = pCreateInfo->pSurface;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     pipelineCreateInfo.pWindow = pCreateInfo->pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
@@ -41,7 +41,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         R_CSTL_LOG_ERROR (
             "GameState: Failed to initialize Vulkan pipeline context (error: %s)",
             R_GameErrorToString (result));
-        return result;
+        return R_CVULKAN_ERROR_FAILED;
     }
 
     pState->pRendererManager = R_GameRenderer_NewManager (&pState->context);
@@ -49,14 +49,14 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
     {
         R_CSTL_LOG_ERROR ("GameState: Failed to create renderer manager");
         R_Game_PipelineContextDelete (&pState->context);
-        return R_GAME_ERROR_INITIALIZATION_FAILED;
+        return R_CVULKAN_ERROR_FAILED;
     }
 
 #if defined(R_CVULKAN_DEBUG)
     pState->booted = true;
 #endif
     R_CSTL_LOG_INFO ("GameState: Initialized successfully");
-    return R_GAME_OK;
+    return R_CVULKAN_OK;
 }
 R_GAME_API void
 R_GameState_Cleanup (struct R_GameState* pState)

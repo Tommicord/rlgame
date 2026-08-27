@@ -162,13 +162,6 @@ enum R_CVulkanError
 R_CVULKAN_API const char* R_CVulkanErrorToString (enum R_CVulkanError error);
 
 /**
- * @brief Get human-readable string for error category
- * @param category The error category
- * @return Static string describing the error category
- */
-R_CVULKAN_API const char* R_CVulkanErrorCategoryToString (enum R_CVulkanErrorCategory category);
-
-/**
  * @brief Convert Vulkan result to R_CVulkan errorcode
  * @param result Vulkan result code
  * @return Corresponding R_CVulkan error code

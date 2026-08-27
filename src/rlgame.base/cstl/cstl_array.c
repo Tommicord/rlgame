@@ -454,7 +454,7 @@ typedef int (*R_CSTL_ArraySortComparator) (const void* pLeft, const void* pRight
 #define R_CSTL_COMPARE(left, right) (((left) > (right)) - ((left) < (right)))
 
 R_CSTL_API_ATTR int
-R_CSTL_ArrayCompareU8 (const void* pLeft, const uint8_t* pRight, void* pData)
+R_CSTL_ArrayCompareU8 (const void* pLeft, const void* pRight, void* pData)
 {
     (void)pData;
     const uint8_t left = *(const uint8_t*)pLeft;
@@ -1420,9 +1420,9 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
     long     i = left;
     long     j = right - 2;
 
-#if defined(R_SIMD_AVX2)
     if (R_CSTL_LIKELY (pCtx->elemSize == 4u))
     {
+#if defined(R_SIMD_AVX2)
         uint32_t pivotVal = *(const uint32_t*)pPivot;
         __m256i  pivotVec = _mm256_set1_epi32 ((int)pivotVal);
 
@@ -1492,6 +1492,38 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
             ++i;
             --j;
         }
+
+        R_CSTL_ArraySwapElements (
+            R_CSTL_ArrayElementBytes (pCtx, i),
+            R_CSTL_ArrayElementBytes (pCtx, right - 1),
+            pCtx->elemSize,
+            pCtx->pTmp);
+        return i;
+#else
+        for (;;)
+        {
+            while (cmp (R_CSTL_ArrayElementBytes (pCtx, i), pPivot, data) < 0)
+                ++i;
+            while (cmp (R_CSTL_ArrayElementBytes (pCtx, j), pPivot, data) > 0)
+                --j;
+            if (i >= j) break;
+
+            R_CSTL_ArraySwapElements (
+                R_CSTL_ArrayElementBytes (pCtx, i),
+                R_CSTL_ArrayElementBytes (pCtx, j),
+                pCtx->elemSize,
+                pCtx->pTmp);
+            ++i;
+            --j;
+        }
+
+        R_CSTL_ArraySwapElements (
+            R_CSTL_ArrayElementBytes (pCtx, i),
+            R_CSTL_ArrayElementBytes (pCtx, right - 1),
+            pCtx->elemSize,
+            pCtx->pTmp);
+        return i;
+#endif
     }
     else
     {
@@ -1519,16 +1551,7 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
             pCtx->pTmp);
         return i;
     }
-
-    R_CSTL_ArraySwapElements (
-        R_CSTL_ArrayElementBytes (pCtx, i),
-        R_CSTL_ArrayElementBytes (pCtx, right - 1),
-        pCtx->elemSize,
-        pCtx->pTmp);
-    return i;
 }
-
-#endif
 
 R_CSTL_API void
 R_CSTL_ArrayIntrosort (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right, int depthLimit)
@@ -1706,7 +1729,6 @@ R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutVa
     if (index >= pArray->length) goto cstl_fail;
     *pOutValue = pArray->pData[index];
     return 0;
-
 cstl_fail:
     return -1;
 }

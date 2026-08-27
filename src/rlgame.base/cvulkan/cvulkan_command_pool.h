@@ -17,7 +17,7 @@ struct R_CVulkan_CommandPool
         VkDevice      device; /**< Associated device */
         uint32_t      queueFamilyIndex; /**< Queue family index */
         R_CVULKAN_DEBUG_FIELD
-} R_CVulkan_CommandPool;
+};
 
 /**
  * @brief Initialize a command pool

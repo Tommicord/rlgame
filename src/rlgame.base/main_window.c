@@ -321,12 +321,6 @@ R_WindowIsVisible (R_WIN32_HWND hwnd)
 
 #elif defined(__linux__)
 
-#include "rlgame.base/main_window.h"
-#include "rlgame.base/main.h"
-#include "rlgame.base/cstl/cstl_heap_allocator.h"
-#include "rlgame.base/cstl/cstl_string.h"
-#include "rlgame.base/cstl/cstl_log.h"
-
 #include <wayland-client.h>
 #include <xdg-shell.h>
 #include <string.h>
@@ -336,94 +330,94 @@ struct R_WaylandWindowState
         struct wl_display*    display;
         struct wl_registry*   registry;
         struct wl_compositor* compositor;
-        struct xdg_wm_base*   xdg_wm_base;
+        struct xdg_wm_base*   xdgWmBase;
         struct wl_surface*    surface;
-        struct xdg_surface*   xdg_surface;
-        struct xdg_toplevel*  xdg_toplevel;
+        struct xdg_surface*   xdgSurface;
+        struct xdg_toplevel*  xdgToplevel;
         int                   width;
         int                   height;
         bool                  configured;
-        bool                  compositor_bound;
-        bool                  xdg_wm_base_bound;
+        bool                  compositorBound;
+        bool                  xdgWmBaseBound;
 };
 
 static struct R_WaylandWindowState* g_waylandState = NULL;
 
 static void
-registry_global (
-    void*               data,
-    struct wl_registry* registry,
-    uint32_t            name,
-    const char*         interface,
-    uint32_t            version)
+R_RegistryGlobal (
+    void*               pData,
+    struct wl_registry* pRegistry,
+    const uint32_t      name,
+    const char*         pInterface,
+    const uint32_t      version)
 {
-    struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)data;
+    struct R_WaylandWindowState* pState = (struct R_WaylandWindowState*)pData;
 
-    if (strcmp (interface, wl_compositor_interface.name) == 0)
+    if (strcmp (pInterface, wl_compositor_interface.name) == 0)
     {
-        state->compositor = wl_registry_bind (registry, name, &wl_compositor_interface, version);
-        state->compositor_bound = true;
+        pState->compositor = wl_registry_bind (pRegistry, name, &wl_compositor_interface, version);
+        pState->compositorBound = true;
     }
-    else if (strcmp (interface, xdg_wm_base_interface.name) == 0)
+    else if (strcmp (pInterface, xdg_wm_base_interface.name) == 0)
     {
-        state->xdg_wm_base = wl_registry_bind (registry, name, &xdg_wm_base_interface, version);
-        state->xdg_wm_base_bound = true;
+        pState->xdgWmBase = wl_registry_bind (pRegistry, name, &xdg_wm_base_interface, version);
+        pState->xdgWmBaseBound = true;
     }
 }
 
 static void
-registry_global_remove (void* data, struct wl_registry* registry, uint32_t name)
+R_RegistryGlobalRemove (void* pData, struct wl_registry* pRegistry, const uint32_t name)
 {
-    (void)data;
-    (void)registry;
+    (void)pData;
+    (void)pRegistry;
     (void)name;
 }
 
-static const struct wl_registry_listener registry_listener = {registry_global, registry_global_remove};
+static const struct wl_registry_listener g_registryListener = {R_RegistryGlobal, R_RegistryGlobalRemove};
 
 static void
-xdg_wm_base_ping (void* data, struct xdg_wm_base* xdg_wm_base, uint32_t serial)
+R_BasePing (void* data, struct xdg_wm_base* pXdgWmBase, const uint32_t serial)
 {
     (void)data;
-    xdg_wm_base_pong (xdg_wm_base, serial);
+    xdg_wm_base_pong (pXdgWmBase, serial);
 }
 
-static const struct xdg_wm_base_listener xdg_wm_base_listener = {xdg_wm_base_ping};
+static const struct xdg_wm_base_listener g_xdgWmBaseListener = {R_BasePing};
 
 static void
-xdg_surface_configure (void* data, struct xdg_surface* xdg_surface, uint32_t serial)
+R_SurfaceConfigure (void* data, struct xdg_surface* pXdgSurface, uint32_t serial)
 {
-    struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)data;
-    xdg_surface_ack_configure (xdg_surface, serial);
-    state->configured = true;
+    struct R_WaylandWindowState* pState = (struct R_WaylandWindowState*)data;
+    xdg_surface_ack_configure (pXdgSurface, serial);
+    pState->configured = true;
 }
 
-static const struct xdg_surface_listener xdg_surface_listener = {xdg_surface_configure};
+static const struct xdg_surface_listener xdg_surface_listener = {R_SurfaceConfigure};
 
 static void
 xdg_toplevel_configure (
-    void*                data,
-    struct xdg_toplevel* xdg_toplevel,
+    void*                pData,
+    struct xdg_toplevel* pXdgTopLevel,
     int32_t              width,
     int32_t              height,
-    struct wl_array*     states)
+    struct wl_array*     pStates)
 {
-    (void)xdg_toplevel;
-    (void)states;
-    struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)data;
-    if (width > 0) state->width = width;
-    if (height > 0) state->height = height;
+    (void)pXdgTopLevel;
+    (void)pStates;
+    struct R_WaylandWindowState* pState = (struct R_WaylandWindowState*)pData;
+    if (width > 0) pState->width = width;
+    if (height > 0) pState->height = height;
 }
 
 static void
-xdg_toplevel_close (void* data, struct xdg_toplevel* xdg_toplevel)
+R_TopLevelClose (void* data, struct xdg_toplevel* pXdgTopLevel)
 {
     (void)data;
-    (void)xdg_toplevel;
+    (void)pXdgTopLevel;
 }
 
-static const struct xdg_toplevel_listener xdg_toplevel_listener
-    = {xdg_toplevel_configure, xdg_toplevel_close};
+static const struct xdg_toplevel_listener g_xdgTopLevelListener
+    = {xdg_toplevel_configure, R_TopLevelClose};
 
 R_WaylandWindow
 R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
@@ -433,7 +427,6 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Invalid application info");
         return NULL;
     }
-
     struct R_WaylandWindowState* state
         = (struct R_WaylandWindowState*)R_CSTL_HeapAlloc (sizeof (struct R_WaylandWindowState));
     if (!state)
@@ -441,7 +434,6 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to allocate state");
         goto r_cleanup_none;
     }
-
     state->display = wl_display_connect (NULL);
     if (!state->display)
     {
@@ -456,7 +448,7 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         goto r_cleanup_displayr;
     }
 
-    wl_registry_add_listener (state->registry, &registry_listener, state);
+    wl_registry_add_listener (state->registry, &g_registryListener, state);
     wl_display_roundtrip (state->display);
 
     if (!state->compositor)
@@ -465,14 +457,12 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         goto r_cleanup_registry;
     }
 
-    if (!state->xdg_wm_base)
+    if (!state->xdgWmBase)
     {
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to bind XDG WM base");
         goto r_cleanup_compositor;
     }
-
-    xdg_wm_base_add_listener (state->xdg_wm_base, &xdg_wm_base_listener, NULL);
-
+    xdg_wm_base_add_listener (state->xdgWmBase, &g_xdgWmBaseListener, NULL);
     state->surface = wl_compositor_create_surface (state->compositor);
     if (!state->surface)
     {
@@ -480,52 +470,48 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         goto r_cleanup_xdg_wm_base;
     }
 
-    state->xdg_surface = xdg_wm_base_get_xdg_surface (state->xdg_wm_base, state->surface);
-    if (!state->xdg_surface)
+    state->xdgSurface = xdg_wm_base_get_xdg_surface (state->xdgWmBase, state->surface);
+    if (!state->xdgSurface)
     {
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to create XDG surface");
         goto r_cleanup_surface;
     }
 
-    xdg_surface_add_listener (state->xdg_surface, &xdg_surface_listener, state);
+    xdg_surface_add_listener (state->xdgSurface, &xdg_surface_listener, state);
 
-    state->xdg_toplevel = xdg_surface_get_toplevel (state->xdg_surface);
-    if (!state->xdg_toplevel)
+    state->xdgToplevel = xdg_surface_get_toplevel (state->xdgSurface);
+    if (!state->xdgToplevel)
     {
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to create XDG toplevel");
         goto r_cleanup_xdg_surface;
     }
 
-    xdg_toplevel_add_listener (state->xdg_toplevel, &xdg_toplevel_listener, state);
+    xdg_toplevel_add_listener (state->xdgToplevel, &g_xdgTopLevelListener, state);
 
     const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
     if (pAppName)
     {
-        xdg_toplevel_set_app_id (state->xdg_toplevel, pAppName);
+        xdg_toplevel_set_app_id (state->xdgToplevel, pAppName);
     }
 
     state->width = 800;
     state->height = 600;
     state->configured = false;
-    state->compositor_bound = false;
-    state->xdg_wm_base_bound = false;
+    state->compositorBound = false;
+    state->xdgWmBaseBound = false;
 
     wl_surface_commit (state->surface);
 
-    while (!state->configured && wl_display_dispatch (state->display) != -1)
-    {
-    }
-
+    while (!state->configured && wl_display_dispatch (state->display) != -1);
     g_waylandState = state;
-    R_CSTL_LOG_INFO ("R_InitWaylandWindow: Wayland window initialized successfully");
-    return (R_WaylandWindow)state;
 
+    return (R_WaylandWindow)state;
 r_cleanup_xdg_toplevel:
-    xdg_surface_destroy (state->xdg_surface);
+    xdg_surface_destroy (state->xdgSurface);
 r_cleanup_xdg_surface:
     wl_surface_destroy (state->surface);
 r_cleanup_surface:
-    xdg_wm_base_destroy (state->xdg_wm_base);
+    xdg_wm_base_destroy (state->xdgWmBase);
 r_cleanup_xdg_wm_base:
     wl_compositor_destroy (state->compositor);
 r_cleanup_compositor:
@@ -548,10 +534,10 @@ R_GetWaylandDisplay (void)
 }
 
 R_ENTRY_API void
-R_WaylandWindowSetFullscreen (R_WaylandWindow window, bool fullscreen)
+R_WaylandWindowSetFullscreen (R_WaylandWindow window, const bool fullscreen)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
-    if (!state || !state->xdg_toplevel)
+    if (!state || !state->xdgToplevel)
     {
         R_CSTL_LOG_ERROR ("R_WaylandWindowSetFullscreen: Invalid window state");
         return;
@@ -559,11 +545,11 @@ R_WaylandWindowSetFullscreen (R_WaylandWindow window, bool fullscreen)
 
     if (fullscreen)
     {
-        xdg_toplevel_set_fullscreen (state->xdg_toplevel, NULL);
+        xdg_toplevel_set_fullscreen (state->xdgToplevel, NULL);
     }
     else
     {
-        xdg_toplevel_unset_fullscreen (state->xdg_toplevel);
+        xdg_toplevel_unset_fullscreen (state->xdgToplevel);
     }
 }
 
@@ -571,17 +557,17 @@ R_ENTRY_API void
 R_WaylandWindowSetTitle (R_WaylandWindow window, const char* pTitle)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
-    if (!state || !state->xdg_toplevel || !pTitle)
+    if (!state || !state->xdgToplevel || !pTitle)
     {
         R_CSTL_LOG_ERROR ("R_WaylandWindowSetTitle: Invalid parameters");
         return;
     }
 
-    xdg_toplevel_set_title (state->xdg_toplevel, pTitle);
+    xdg_toplevel_set_title (state->xdgToplevel, pTitle);
 }
 
 R_ENTRY_API void
-R_WaylandWindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
+R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state)
@@ -595,20 +581,34 @@ R_WaylandWindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
     if (pHeight) *pHeight = state->height;
 }
 
+R_ENTRY_API struct wl_surface*
+R_WaylandWindowGetSurface (R_WaylandWindow window)
+{
+    struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
+    if (!state) return NULL;
+    return state->surface;
+}
+
 R_ENTRY_API void
 R_DestroyWaylandWindow (R_WaylandWindow window)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state) return;
 
-    if (state->xdg_toplevel) xdg_toplevel_destroy (state->xdg_toplevel);
-    if (state->xdg_surface) xdg_surface_destroy (state->xdg_surface);
-    if (state->xdg_wm_base) xdg_wm_base_destroy (state->xdg_wm_base);
-    if (state->surface) wl_surface_destroy (state->surface);
-    if (state->compositor) wl_compositor_destroy (state->compositor);
-    if (state->registry) wl_registry_destroy (state->registry);
-    if (state->display) wl_display_disconnect (state->display);
-
+    if (state->xdgToplevel)
+        xdg_toplevel_destroy (state->xdgToplevel);
+    if (state->xdgSurface)
+        xdg_surface_destroy (state->xdgSurface);
+    if (state->xdgWmBase)
+        xdg_wm_base_destroy (state->xdgWmBase);
+    if (state->surface)
+        wl_surface_destroy (state->surface);
+    if (state->compositor)
+        wl_compositor_destroy (state->compositor);
+    if (state->registry)
+        wl_registry_destroy (state->registry);
+    if (state->display)
+        wl_display_disconnect (state->display);
     R_CSTL_HeapFree (state);
     g_waylandState = NULL;
     R_CSTL_LOG_INFO ("R_DestroyWaylandWindow: Wayland window destroyed");

@@ -212,7 +212,7 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, Vk
 /**
  * @brief Begin defragmentation for the memory allocator
  * @param pAllocator Pointer to allocator
- * @param pContext Pointer to receive defragmentation context
+ * @param ppContext Pointer to receive defragmentation context
  * @param pConfig Configuration parameters (can be NULL for defaults)
  * @return R_CVULKAN_OK on success, error code otherwise
  */

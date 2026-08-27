@@ -57,11 +57,7 @@ R_CVulkan_NewShaderModule (
         R_CSTL_LOG_ERROR ("R_CVulkan_NewShaderModule: Invalid SPIR-V magic number");
         R_CSTL_LOG_ERROR ("  Expected magic number: 0x%08X", R_CVULKAN_SPIRV_MAGIC_NUMBER);
         R_CSTL_LOG_ERROR ("  Found magic number: 0x%08X", magicNumber);
-        R_CSTL_LOG_ERROR ("  This indicates the data is not valid SPIR-V bytecode");
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Shader was not compiled to SPIR-V");
-        R_CSTL_LOG_ERROR ("    - Shader data is corrupted");
-        R_CSTL_LOG_ERROR ("    - Wrong data type passed (e.g., GLSL source instead of SPIR-V)");
+        R_CSTL_LOG_ERROR ("  The data is not valid SPIR-V bytecode");
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
     if ((codeSize & 3) != 0)
@@ -89,10 +85,6 @@ R_CVulkan_NewShaderModule (
         R_CSTL_LOG_ERROR ("R_CVulkan_NewShaderModule: vkCreateShaderModule failed");
         R_CSTL_LOG_ERROR ("  Vulkan result code: %d", result);
         R_CSTL_LOG_ERROR ("  Shader code size: %zu bytes", codeSize);
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Invalid SPIR-V bytecode");
-        R_CSTL_LOG_ERROR ("    - Shader uses features not supported by the device");
-        R_CSTL_LOG_ERROR ("    - Out of GPU memory");
         return R_CVULKAN_ERROR_SHADER_MODULE_CREATE_FAILED;
     }
 #if defined(R_CVULKAN_DEBUG)

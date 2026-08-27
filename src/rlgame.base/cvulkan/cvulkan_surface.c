@@ -72,18 +72,18 @@ R_CVulkan_NewSurface (
     result = vkCreateWin32SurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
 
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-    if (!pCreateInfo->pDisplay || !pCreateInfo->window)
+    if (!pCreateInfo->pDisplay || !pCreateInfo->pSurface)
     {
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
 
-    VkXlibSurfaceCreateInfoKHR surfaceInfo = {0};
-    surfaceInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-    surfaceInfo.dpy = pCreateInfo->pDisplay;
-    surfaceInfo.window = pCreateInfo->window;
+    VkWaylandSurfaceCreateInfoKHR surfaceInfo = {0};
+    surfaceInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+    surfaceInfo.display = pCreateInfo->pDisplay;
+    surfaceInfo.surface = pCreateInfo->pSurface;
 
-    result = vkCreateXlibSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+    result = vkCreateWaylandSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
 
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     if (!pCreateInfo->pWindow)

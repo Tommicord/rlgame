@@ -23,7 +23,7 @@
 #if defined(_MSC_VER)
 #define R_CSTL_HEAP_COMPILER_BARRIER() MemoryBarrier ()
 #elif defined(__GNUC__) || defined(__clang__)
-#define R_CSTL_HEAP_COMPILER_BARRIER() asm volatile ("mfence" ::: "memory");
+#define R_CSTL_HEAP_COMPILER_BARRIER() __asm__ volatile ("mfence" ::: "memory");
 #else
 #define R_CSTL_HEAP_COMPILER_BARRIER() ((void)0)
 #endif

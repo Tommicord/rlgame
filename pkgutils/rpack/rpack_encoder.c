@@ -10,10 +10,11 @@
 #define R_RPACK_DEFAULT_ATLAS_WIDTH            4096
 #define R_RPACK_DEFAULT_ATLAS_HEIGHT           4096
 #define R_RPACK_DEFAULT_PADDING                1
-#define R_RPACK_DEFAULT_SIMILARITY_THRESHOLD   0.1f
 #define R_RPACK_INITIAL_COLOR_TABLE_SIZE       4096
 #define R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
 #define R_RPACK_DEFAULT_WORKER_COUNT           0
+
+static uint32_t R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
 
 struct R_PackPixelWorkTask
 {

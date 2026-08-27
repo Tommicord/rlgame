@@ -428,7 +428,7 @@ R_CSTL_NewString (void)
 struct R_CSTL_String*
 R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
 {
-    if (!pData) return NULL;
+    if (!pData) goto cstl_fail;
     struct R_CSTL_String* pString = R_CSTL_StringCreateShell ();
     if (!pString) goto cstl_fail;
     if (!R_CSTL_StringBufferIsLive (pString)) goto cstl_fail;
@@ -441,7 +441,6 @@ R_CSTL_NewStringWithDataSized (const char* pData, const size_t length)
         pString->capacity = R_CSTL_SET_STORAGE_SBO (R_CSTL_STRING_SBO_SIZE);
         return pString;
     }
-
     size_t cap = R_CSTL_StringNextCapacity (R_CSTL_STRING_SBO_SIZE, length);
     char*  mem = (char*)R_CSTL_HeapAlloc (cap + 1);
     if (!mem)
@@ -1241,7 +1240,7 @@ cstl_fail_register:
 #endif
     return -1;
 cstl_fail:
-    return (size_t)-1;
+    return INT32_MAX;
 }
 
 int

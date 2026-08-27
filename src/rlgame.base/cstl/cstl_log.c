@@ -18,6 +18,8 @@
 #include <unistd.h>
 #if defined(__linux__)
 #include <sys/syscall.h>
+#include <stdio.h>
+#include <time.h>
 #endif
 #if defined(__APPLE__) || defined(__linux__)
 #include <execinfo.h>
@@ -220,7 +222,6 @@ R_CSTL_LogCondBroadcast (R_CSTL_LogCond* c)
 {
     if (c) pthread_cond_broadcast (c);
 }
-
 static void
 R_CSTL_LogFormatTimestamp (char* buffer, size_t bufferSize)
 {

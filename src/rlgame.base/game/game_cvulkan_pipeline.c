@@ -14,6 +14,7 @@
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_trace.h"
+#include "rlgame.base/main_window.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -21,11 +22,11 @@
 
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
 #include <windows.h>
-#elif defined(R_CVULKAN_PLATFORM_LINUX)
-#include <X11/Xlib.h>
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
 #include <android/native_window.h>
 #endif
+
+static enum R_CVulkanError R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext);
 
 static VkExtent2D
 R_Game_GetWindowExtent (const struct R_Game_PipelineContextCreateInfo* pCreateInfo)
@@ -45,12 +46,10 @@ R_Game_GetWindowExtent (const struct R_Game_PipelineContextCreateInfo* pCreateIn
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
     if (pCreateInfo->pDisplay)
     {
-        XWindowAttributes windowAttributes;
-        if (XGetWindowAttributes (pCreateInfo->pDisplay, pCreateInfo->window, &windowAttributes))
-        {
-            extent.width = windowAttributes.width;
-            extent.height = windowAttributes.height;
-        }
+        int width = 0, height = 0;
+        R_WindowGetSize (pCreateInfo->pDisplay, &width, &height);
+        extent.width = width;
+        extent.height = height;
     }
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     if (pCreateInfo->pWindow)
@@ -126,11 +125,6 @@ R_Game_InitializeRenderPass (struct R_Game_PipelineContext* pContext)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeRenderPass: Failed to create render pass");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Invalid attachment description");
-        R_CSTL_LOG_ERROR ("    - Invalid subpass description");
-        R_CSTL_LOG_ERROR ("    - Invalid dependency configuration");
-        R_CSTL_LOG_ERROR ("    - Device does not support the requested configuration");
         return err;
     }
 
@@ -181,10 +175,6 @@ R_Game_InitializeImageViews (
             R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (imgErr));
             R_CSTL_LOG_ERROR ("  Image handle: %p", (void*)pSwapchainImages[i]);
             R_CSTL_LOG_ERROR ("  Format: %d", swapchainFormat);
-            R_CSTL_LOG_ERROR ("  Possible causes:");
-            R_CSTL_LOG_ERROR ("    - Invalid image format");
-            R_CSTL_LOG_ERROR ("    - Invalid image handle");
-            R_CSTL_LOG_ERROR ("    - Out of GPU memory");
             return imgErr;
         }
 
@@ -218,9 +208,6 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
         R_CSTL_LOG_ERROR ("R_Game_InitializeFramebuffers: Failed to allocate swapchain images array");
         R_CSTL_LOG_ERROR ("  Requested size: %zu bytes", sizeof (VkImage) * imageCount);
         R_CSTL_LOG_ERROR ("  Image count: %u", imageCount);
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Out of system memory");
-        R_CSTL_LOG_ERROR ("    - Heap allocator not initialized");
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
 
@@ -322,11 +309,6 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
                 R_CSTL_LOG_ERROR ("  Width: %u", framebufferCreateInfo.width);
                 R_CSTL_LOG_ERROR ("  Height: %u", framebufferCreateInfo.height);
                 R_CSTL_LOG_ERROR ("  - Attachment count: %u", framebufferCreateInfo.attachmentCount);
-                R_CSTL_LOG_ERROR ("  Possible causes:");
-                R_CSTL_LOG_ERROR ("    - Invalid render pass");
-                R_CSTL_LOG_ERROR ("    - Invalid image view");
-                R_CSTL_LOG_ERROR ("    - Invalid dimensions");
-                R_CSTL_LOG_ERROR ("    - Out of GPU memory");
                 R_CVulkan_DeleteImageView (&imageView);
                 R_CSTL_HeapFree (pSwapchainImages);
                 return err;
@@ -372,9 +354,6 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to find queue families");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Physical device does not support required queue families");
-        R_CSTL_LOG_ERROR ("    - Surface is invalid or not properly initialized");
         return err;
     }
 
@@ -521,10 +500,6 @@ R_Game_InitializeVulkanCore (
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan instance");
             R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
-            R_CSTL_LOG_ERROR ("  Possible causes:");
-            R_CSTL_LOG_ERROR ("    - Vulkan runtime not installed");
-            R_CSTL_LOG_ERROR ("    - Invalid application name");
-            R_CSTL_LOG_ERROR ("    - Validation layers not available");
             return error;
         }
     }
@@ -533,9 +508,6 @@ R_Game_InitializeVulkanCore (
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to allocate memory for surface");
         R_CSTL_LOG_ERROR ("  Requested size: %zu bytes", sizeof (struct R_CVulkan_Surface));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Out of system memory");
-        R_CSTL_LOG_ERROR ("    - Heap allocator not initialized");
         error = R_GAME_ERROR_OUT_OF_MEMORY;
         goto r_cleanup_instance;
     }
@@ -547,7 +519,7 @@ R_Game_InitializeVulkanCore (
     surfaceCreateInfo.hWnd = pCreateInfo->hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
     surfaceCreateInfo.pDisplay = pCreateInfo->pDisplay;
-    surfaceCreateInfo.window = pCreateInfo->window;
+    surfaceCreateInfo.pSurface = pCreateInfo->pSurface;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     surfaceCreateInfo.pWindow = pCreateInfo->pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
@@ -560,10 +532,6 @@ R_Game_InitializeVulkanCore (
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan surface");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Invalid window handle");
-        R_CSTL_LOG_ERROR ("    - Platform-specific surface creation failed");
-        R_CSTL_LOG_ERROR ("    - Instance does not support surface creation");
         goto r_cleanup_surface_allocation;
     }
 #endif
@@ -576,10 +544,6 @@ R_Game_InitializeVulkanCore (
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan device");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - No suitable physical device found");
-        R_CSTL_LOG_ERROR ("    - Device does not support required features");
-        R_CSTL_LOG_ERROR ("    - Out of GPU memory");
         goto r_cleanup_surface;
     }
     return R_GAME_OK;
@@ -645,9 +609,6 @@ R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create image available semaphore");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Out of GPU memory");
-        R_CSTL_LOG_ERROR ("    - Device does not support semaphores");
         return err;
     }
     err = R_CVulkan_NewSemaphore (&pContext->renderFinishedSemaphore, &pContext->device, 0, 0);
@@ -655,9 +616,6 @@ R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create render finished semaphore");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Out of GPU memory");
-        R_CSTL_LOG_ERROR ("    - Device does not support semaphores");
         return err;
     }
 
@@ -666,9 +624,6 @@ R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create in-flight fence");
         R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-        R_CSTL_LOG_ERROR ("  Possible causes:");
-        R_CSTL_LOG_ERROR ("    - Out of GPU memory");
-        R_CSTL_LOG_ERROR ("    - Device does not support fences");
         return err;
     }
     R_CSTL_LOG_DEBUG ("R_Game_InitializeSyncPrimitives: In-flight fence created");
@@ -706,10 +661,6 @@ R_Game_InitializeVulkanSwapchain (
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanSwapchain: Failed to create swapchain");
             R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
-            R_CSTL_LOG_ERROR ("  Possible causes:");
-            R_CSTL_LOG_ERROR ("    - Invalid surface");
-            R_CSTL_LOG_ERROR ("    - Device does not support requested format/present mode");
-            R_CSTL_LOG_ERROR ("    - Invalid window extent");
             return R_GAME_ERROR_INITIALIZATION_FAILED;
         }
     }

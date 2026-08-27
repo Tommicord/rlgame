@@ -1,4 +1,5 @@
 #include "rpack/rpack_decoder.h"
+#include "rpack/rpack_encoder.h"
 
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_log.h"

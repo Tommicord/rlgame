@@ -174,6 +174,8 @@ R_ENTRY_API bool R_WindowIsVisible (R_WIN32_HWND hwnd);
 
 #elif defined(__linux__)
 
+#include <wayland-client.h>
+
 /**
  * @brief Wayland window handle type
  */
@@ -189,7 +191,7 @@ typedef void* R_WaylandDisplay;
  * @param pApplicationInfo Application information structure
  * @return Window handle on success, NULL on failure
  */
-R_ENTRY_API R_WaylandWindow R_InitWindow (struct R_ApplicationInfo* pApplicationInfo);
+R_ENTRY_API R_WaylandWindow R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo);
 
 /**
  * @brief Gets the Wayland display handle
@@ -220,10 +222,17 @@ R_ENTRY_API void R_WindowSetTitle (R_WaylandWindow window, const char* pTitle);
 R_ENTRY_API void R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
 
 /**
+ * @brief Gets the Wayland surface from the window
+ * @param window Window handle
+ * @return Wayland surface pointer, or NULL on failure
+ */
+R_ENTRY_API struct wl_surface* R_WaylandWindowGetSurface (R_WaylandWindow window);
+
+/**
  * @brief Destroys the Wayland window
  * @param window Window handle
  */
-R_ENTRY_API void R_DestroyWindow (R_WaylandWindow window);
+R_ENTRY_API void R_DestroyWaylandWindow (R_WaylandWindow window);
 
 #elif defined(__ANDROID__)
 

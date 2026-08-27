@@ -1,5 +1,65 @@
 find_package(Vulkan REQUIRED COMPONENTS glslc)
 
+# Wayland protocols (for Linux Wayland support)
+if(UNIX AND NOT APPLE)
+  find_package(PkgConfig)
+  if(PkgConfig_FOUND)
+    pkg_check_modules(WAYLAND_CLIENT wayland-client)
+    pkg_check_modules(WAYLAND_PROTOCOLS wayland-protocols)
+    
+    if(WAYLAND_CLIENT_FOUND)
+      message(STATUS "Wayland client found")
+      add_compile_definitions(R_CVULKAN_PLATFORM_LINUX)
+      
+      # Find wayland-scanner
+      find_program(WAYLAND_SCANNER wayland-scanner)
+      if(WAYLAND_SCANNER)
+        message(STATUS "Wayland scanner found: ${WAYLAND_SCANNER}")
+        
+        # Find xdg-shell.xml
+        find_file(XDG_SHELL_XML xdg-shell.xml
+          PATHS /usr/share/wayland-protocols/stable/xdg-shell/
+                /usr/local/share/wayland-protocols/stable/xdg-shell/
+          NO_DEFAULT_PATH)
+        
+        if(XDG_SHELL_XML)
+          message(STATUS "xdg-shell.xml found: ${XDG_SHELL_XML}")
+          
+          # Generate xdg-shell.h and xdg-shell.c
+          set(XDG_SHELL_OUTPUT_DIR ${CMAKE_BINARY_DIR}/third_party/wayland)
+          file(MAKE_DIRECTORY ${XDG_SHELL_OUTPUT_DIR})
+          set(XDG_SHELL_HEADER ${XDG_SHELL_OUTPUT_DIR}/xdg-shell.h)
+          set(XDG_SHELL_CODE ${XDG_SHELL_OUTPUT_DIR}/xdg-shell.c)
+          
+          add_custom_command(
+            OUTPUT ${XDG_SHELL_HEADER}
+            COMMAND ${WAYLAND_SCANNER} client-header ${XDG_SHELL_XML} ${XDG_SHELL_HEADER}
+            DEPENDS ${XDG_SHELL_XML}
+            COMMENT "Generating xdg-shell.h from ${XDG_SHELL_XML}"
+          )
+          
+          add_custom_command(
+            OUTPUT ${XDG_SHELL_CODE}
+            COMMAND ${WAYLAND_SCANNER} private-code ${XDG_SHELL_XML} ${XDG_SHELL_CODE}
+            DEPENDS ${XDG_SHELL_XML}
+            COMMENT "Generating xdg-shell.c from ${XDG_SHELL_XML}"
+          )
+          
+          add_library(wayland_xdg_shell STATIC ${XDG_SHELL_CODE} ${XDG_SHELL_HEADER})
+          target_include_directories(wayland_xdg_shell PUBLIC ${XDG_SHELL_OUTPUT_DIR})
+          target_link_libraries(wayland_xdg_shell PUBLIC ${WAYLAND_CLIENT_LIBRARIES})
+        else()
+          message(WARNING "xdg-shell.xml not found")
+        endif()
+      else()
+        message(WARNING "wayland-scanner not found")
+      endif()
+    else()
+      message(STATUS "Wayland client not found")
+    endif()
+  endif()
+endif()
+
 # vcpkg integration: use vcpkg toolchain to install OpenCL automatically
 # Run: cmake --preset default (or release) to use vcpkg toolchain
 find_package(OpenCL CONFIG QUIET)

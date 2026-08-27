@@ -19,6 +19,10 @@
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/game/game_platform.h"
 
+#if defined(R_CVULKAN_PLATFORM_LINUX)
+#include <wayland-client.h>
+#endif
+
 /**
  * @brief Configuration parameters for pipeline context creation
  */
@@ -29,8 +33,8 @@ struct R_Game_PipelineContextCreateInfo
         HINSTANCE hInstance;
         HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        Display* pDisplay;
-        Window   window;
+        struct wl_display* pDisplay;
+        struct wl_surface* pSurface;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

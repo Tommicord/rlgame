@@ -132,13 +132,6 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
         R_CSTL_TraceFunctionExit (_trace_guard.func, _trace_guard.file, _trace_guard.line, _trace_duration); \
     }
 
-#define R_CSTL_TRACE_SCOPE_EXIT()                                                                            \
-    do                                                                                                       \
-    {                                                                                                        \
-        uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_start;                               \
-        R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
-    } while (0)
-
 #else
 
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
@@ -150,14 +143,14 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
     R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__)
 
+#endif
+
 #define R_CSTL_TRACE_SCOPE_EXIT()                                                                            \
     do                                                                                                       \
     {                                                                                                        \
         uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_start;                               \
         R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
     } while (0)
-
-#endif
 
 /**
  * @brief Trace function entry with manual timing
@@ -237,9 +230,7 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
 #define R_CSTL_TRACE_RETURN()               ((void)0)
 #define R_CSTL_TRACE_SCOPE()                ((void)0)
 #define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)    ((void)0)
-#if defined(_MSC_VER) || (!defined(__GNUC__) && !defined(__clang__))
-#define R_CSTL_TRACE_SCOPE_EXIT() ((void)0)
-#endif
+#define R_CSTL_TRACE_SCOPE_EXIT()           ((void)0)
 #define R_CSTL_TRACE_POINT(name)               ((void)0)
 #define R_CSTL_TRACE_VAR(name, value)          ((void)0)
 #define R_CSTL_TRACE_VAR_FMT(name, value, fmt) ((void)0)

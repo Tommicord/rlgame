@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
+#include <errno.h>
 #include <sys/syscall.h>
 #else
 #error "Unsupported platform for cstl_thread"

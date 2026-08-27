@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
+#include "rlgame.base/cvulkan/cvulkan_device.h"
 
 /**
  * @brief Safe wrapper for VkCommandBuffer

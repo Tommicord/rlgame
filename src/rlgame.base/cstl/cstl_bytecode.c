@@ -62,7 +62,7 @@ R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
         }
     }
 #elif defined(R_SIMD_SSE)
-    while (i + R_CSTL_X86_SIMD_VECTOR_SIZE <= remaining && i < maxScan)
+    while (i + 16 <= remaining && i < maxScan)
     {
         __m128i chunk = _mm_loadu_si128 ((__m128i const*)(p + i));
 
@@ -109,9 +109,8 @@ static inline void
 R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
 {
     if (size == 0) return;
-
-#if defined(R_SIMD_AVX2)
     size_t i = 0;
+#if defined(R_SIMD_AVX2)
     while (i + 32 <= size)
     {
         __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(src + i));

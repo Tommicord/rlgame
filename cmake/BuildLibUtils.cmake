@@ -35,6 +35,14 @@ function(link_base_libraries EXECUTABLE)
   target_link_libraries(${EXECUTABLE} PRIVATE ${LIBRARIES})
 endfunction()
 
+function(link_wayland TARGET)
+  if(UNIX AND NOT APPLE AND WAYLAND_CLIENT_FOUND)
+    target_link_libraries(${TARGET} PRIVATE wayland_xdg_shell ${WAYLAND_CLIENT_LIBRARIES})
+    target_include_directories(${TARGET} PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+    target_compile_options(${TARGET} PRIVATE ${WAYLAND_CLIENT_CFLAGS_OTHER})
+  endif()
+endfunction()
+
 # Function to add resource files to a target
 function(target_add_resource TARGET)
   set(options)

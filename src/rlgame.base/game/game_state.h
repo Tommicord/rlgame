@@ -9,6 +9,10 @@
 #include "rlgame.base/game/game_platform.h"
 #include "rlgame.base/game/game_renderer_subsystem.h"
 
+#if defined(R_CVULKAN_PLATFORM_LINUX)
+#include <wayland-client.h>
+#endif
+
 /**
  * @file game_state.h
  * @brief Game state management for the main game loop
@@ -42,8 +46,8 @@ struct R_GameStateCreateInfo
         HINSTANCE hInstance; /**< Windows instance handle (required if not headless) */
         HWND      hWnd; /**< Windows window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        Display* pDisplay; /**< X11 display connection (required if not headless) */
-        Window   window; /**< X11 window handle (required if not headless) */
+        struct wl_display* pDisplay; /**< Wayland display connection (required if not headless) */
+        struct wl_surface* pSurface; /**< Wayland surface (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

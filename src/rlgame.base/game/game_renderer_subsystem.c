@@ -25,6 +25,8 @@
 #include <pthread.h>
 #endif
 
+static int R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineContext, uint32_t* pImageIndex);
+
 struct R_GameRendererFrame
 {
         struct R_CSTL_Array*        pCommandBufferArray;
@@ -1310,7 +1312,7 @@ R_GameRenderer_AddLayer (
     const char*                     pName,
     uint32_t                        priority,
     uint32_t                        flags,
-    const void*                     pUserData)
+    void*                           pUserData)
 {
     R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
     R_GAME_VALIDATE_PARAM (pName);
@@ -1493,7 +1495,7 @@ R_GAME_API uint64_t
 R_GameRenderer_RegisterResource (
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        type,
-    const void*                     pResource,
+    void*                           pResource,
     uint64_t                        size,
     const char*                     pName)
 {
