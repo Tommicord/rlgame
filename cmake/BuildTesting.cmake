@@ -22,6 +22,7 @@ target_link_libraries(
   GTest::gtest_main
   rlgame.base.cstl
   rlgame.base.cvulkan
+  rlgame.base.rpack
 )
 target_compile_definitions(rlgame_test PRIVATE $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG>)
 

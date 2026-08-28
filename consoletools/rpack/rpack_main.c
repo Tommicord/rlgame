@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 static int
 R_Pack_HasExtension (const char* pPath, const char* pExtension)
@@ -89,6 +90,58 @@ R_Pack_LogImageWarnings (const char* pPath, const struct R_PackInputImage* pImag
     }
 }
 
+static uint32_t
+R_Pack_MipmapDimension (uint32_t source, uint32_t other, uint32_t limit)
+{
+    uint32_t dimension = source > other ? limit : (uint32_t)(((uint64_t)source * limit) / other);
+    return dimension == 0 ? 1 : dimension;
+}
+
+static uint8_t*
+R_Pack_ResizeImageBox (const struct R_PackInputImage* pSource, uint32_t width, uint32_t height)
+{
+    uint8_t* pPixels = (uint8_t*)R_CSTL_HeapAlloc ((size_t)width * height * 4);
+    if (!pPixels) return NULL;
+
+    for (uint32_t y = 0; y < height; ++y)
+    {
+        uint32_t sourceY0 = (uint64_t)y * pSource->height / height;
+        uint32_t sourceY1 = ((uint64_t)(y + 1) * pSource->height + height - 1) / height;
+        if (sourceY1 > pSource->height) sourceY1 = pSource->height;
+        for (uint32_t x = 0; x < width; ++x)
+        {
+            uint32_t sourceX0 = (uint64_t)x * pSource->width / width;
+            uint32_t sourceX1 = ((uint64_t)(x + 1) * pSource->width + width - 1) / width;
+            if (sourceX1 > pSource->width) sourceX1 = pSource->width;
+            uint64_t sums[4] = {0, 0, 0, 0};
+            uint32_t count = 0;
+            for (uint32_t sourceY = sourceY0; sourceY < sourceY1; ++sourceY)
+                for (uint32_t sourceX = sourceX0; sourceX < sourceX1; ++sourceX)
+                {
+                    const uint8_t* pSourcePixel = pSource->pPixels + (size_t)sourceY * pSource->stride + sourceX * 4;
+                    for (uint32_t channel = 0; channel < 4; ++channel) sums[channel] += pSourcePixel[channel];
+                    ++count;
+                }
+            uint8_t* pDestinationPixel = pPixels + ((size_t)y * width + x) * 4;
+            for (uint32_t channel = 0; channel < 4; ++channel) pDestinationPixel[channel] = (uint8_t)(sums[channel] / count);
+        }
+    }
+    return pPixels;
+}
+
+static int
+R_Pack_MakeVariantPath (const char* pOutputPath, uint32_t size, char** ppVariantPath)
+{
+    const char* pExtension = strrchr (pOutputPath, '.');
+    size_t stemLength = pExtension ? (size_t)(pExtension - pOutputPath) : strlen (pOutputPath);
+    size_t suffixLength = strlen ("_4294967295x4294967295.rpack");
+    char* pPath = (char*)R_CSTL_HeapAlloc (stemLength + suffixLength + 1);
+    if (!pPath) return -1;
+    snprintf (pPath, stemLength + suffixLength + 1, "%.*s_%ux%u.rpack", (int)stemLength, pOutputPath, size, size);
+    *ppVariantPath = pPath;
+    return 0;
+}
+
 static void
 R_Pack_PrintHelp ()
 {
@@ -118,6 +171,7 @@ R_Pack_PrintHelp ()
     printf ("  --alpha-threshold FLOAT     = Alpha threshold 0.0-1.0 (default: 0.0).\n");
     printf ("                               Pixels below this alpha are considered transparent.\n");
     printf ("  --max-textures COUNT        = Maximum number of textures to pack (default: unlimited).\n");
+    printf ("  --mipmap                    = Generate 64x64 through 1x1 RPACK variants.\n");
     printf ("  --help                      = Print this help message and exit.\n");
     printf ("  --version                   = Print version information and exit.\n\n");
 }
@@ -131,7 +185,8 @@ R_Pack_ParseArguments (
     struct R_CSTL_Array**       ppInputPaths,
     int*                        pEnableColors,
     int*                        pVerbose,
-    int*                        pQuiet)
+    int*                        pQuiet,
+    int*                        pMipmap)
 {
     *ppOutputPath = NULL;
     *ppInputPaths = R_CSTL_NewArray ();
@@ -142,6 +197,7 @@ R_Pack_ParseArguments (
     *pEnableColors = 0;
     *pVerbose = 0;
     *pQuiet = 0;
+    *pMipmap = 0;
 
     if (pConfig)
     {
@@ -294,6 +350,10 @@ R_Pack_ParseArguments (
                 pConfig->maxTextures = (uint32_t)atoi (argv[++i]);
             }
         }
+        else if (strcmp (argv[i], "--mipmap") == 0)
+        {
+            *pMipmap = 1;
+        }
         else if (strcmp (argv[i], "--version") == 0)
         {
             printf ("RPACK Texture Packer v1.0.0\n");
@@ -388,7 +448,7 @@ R_Pack_CreateEncoder (const struct R_PackEncoderConfig* pConfig)
 }
 
 static uint32_t
-R_Pack_EncodeInputImages (struct R_PackEncoder* pEncoder, const struct R_CSTL_Array* pInputPaths)
+R_Pack_EncodeInputImages (struct R_PackEncoder* pEncoder, const struct R_CSTL_Array* pInputPaths, uint32_t mipmapSize)
 {
     uint32_t    successCount = 0;
     size_t      inputCount = 0;
@@ -419,6 +479,25 @@ R_Pack_EncodeInputImages (struct R_PackEncoder* pEncoder, const struct R_CSTL_Ar
         {
             R_CSTL_LOG_WARN ("Skipping image after load failure: %s", pPath);
             continue;
+        }
+
+        if (mipmapSize != 0 && (image.width > mipmapSize || image.height > mipmapSize))
+        {
+            uint32_t width = R_Pack_MipmapDimension (image.width, image.height, mipmapSize);
+            uint32_t height = R_Pack_MipmapDimension (image.height, image.width, mipmapSize);
+            uint8_t* pResizedPixels = R_Pack_ResizeImageBox (&image, width, height);
+            if (!pResizedPixels)
+            {
+                R_CSTL_LOG_WARN ("Skipping mipmap level for %s: resize allocation failed", pPath);
+                R_CSTL_HeapFree (pPixelBuffer);
+                continue;
+            }
+            R_CSTL_HeapFree (pPixelBuffer);
+            pPixelBuffer = pResizedPixels;
+            image.pPixels = pResizedPixels;
+            image.width = width;
+            image.height = height;
+            image.stride = width * 4;
         }
 
         R_Pack_LogImageWarnings (pPath, &image, &pEncoder->config);
@@ -511,6 +590,45 @@ R_Pack_EncodeAndWrite (struct R_PackEncoder* pEncoder, const char* pOutputPath)
     return 0;
 }
 
+static int
+R_Pack_EncodeMipmapVariants (const struct R_PackEncoderConfig* pConfig, const struct R_CSTL_Array* pInputPaths,
+                             const char* pOutputPath)
+{
+    static const uint32_t mipmapSizes[] = {64, 32, 16, 8, 4, 2, 1};
+    size_t generated = 0;
+    for (size_t i = 0; i < sizeof (mipmapSizes) / sizeof (mipmapSizes[0]); ++i)
+    {
+        char* pVariantPath = NULL;
+        if (R_Pack_MakeVariantPath (pOutputPath, mipmapSizes[i], &pVariantPath) != 0)
+        {
+            R_CSTL_LOG_ERROR ("Failed to allocate mipmap output path for %ux%u", mipmapSizes[i], mipmapSizes[i]);
+            return -1;
+        }
+
+        struct R_PackEncoder* pVariantEncoder = R_Pack_CreateEncoder (pConfig);
+        if (!pVariantEncoder)
+        {
+            R_CSTL_LOG_ERROR ("Failed to create encoder for mipmap level %ux%u", mipmapSizes[i], mipmapSizes[i]);
+            R_CSTL_HeapFree (pVariantPath);
+            return -1;
+        }
+
+        uint32_t successCount = R_Pack_EncodeInputImages (pVariantEncoder, pInputPaths, mipmapSizes[i]);
+        if (successCount == 0 || R_Pack_EncodeAndWrite (pVariantEncoder, pVariantPath) != 0)
+        {
+            R_CSTL_LOG_WARN ("Mipmap level %ux%u was not generated", mipmapSizes[i], mipmapSizes[i]);
+            R_Pack_DeleteEncoder (pVariantEncoder);
+            R_CSTL_HeapFree (pVariantPath);
+            continue;
+        }
+        R_CSTL_LOG_INFO ("Generated mipmap variant %s (%u images)", pVariantPath, successCount);
+        ++generated;
+        R_Pack_DeleteEncoder (pVariantEncoder);
+        R_CSTL_HeapFree (pVariantPath);
+    }
+    return generated == 0 ? -1 : 0;
+}
+
 static void
 R_Pack_CleanupResources (struct R_PackEncoder* pEncoder, struct R_CSTL_Array* pInputPaths)
 {
@@ -547,6 +665,7 @@ main (int argc, char** argv)
     struct R_PackEncoder*      pEncoder = NULL;
     int                        verbose = 0;
     int                        quiet = 0;
+    int                        mipmap = 0;
     int                        result = EXIT_FAILURE;
 
     int parseResult = R_Pack_ParseArguments (
@@ -557,7 +676,8 @@ main (int argc, char** argv)
         &pInputPaths,
         &enableColors,
         &verbose,
-        &quiet);
+        &quiet,
+        &mipmap);
     if (parseResult == 1)
     {
         R_CSTL_DeleteArray (pInputPaths);
@@ -589,7 +709,7 @@ main (int argc, char** argv)
     {
         goto r_cleanup_logging;
     }
-    uint32_t successCount = R_Pack_EncodeInputImages (pEncoder, pInputPaths);
+    uint32_t successCount = R_Pack_EncodeInputImages (pEncoder, pInputPaths, 0);
     if (successCount == 0)
     {
         R_CSTL_LOG_ERROR ("No images were processed");
@@ -610,6 +730,11 @@ main (int argc, char** argv)
 
     if (R_Pack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
     {
+        goto r_cleanup_encoder;
+    }
+    if (mipmap && R_Pack_EncodeMipmapVariants (&config, pInputPaths, pOutputPath) != 0)
+    {
+        R_CSTL_LOG_ERROR ("Mipmap generation failed for every requested level");
         goto r_cleanup_encoder;
     }
     R_CSTL_LOG_INFO ("Packing completed");
