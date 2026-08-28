@@ -144,12 +144,26 @@ R_Pack_ValidateHeader (const struct R_PackHeader* pHeader)
         return 0;
     }
 
-    if (pHeader->hashTableOffset < R_RPACK_HEADER_SIZE)
+    uint64_t hashTableSize = (uint64_t)pHeader->textureCount * sizeof (struct R_PackHashEntry);
+    uint64_t colorTableSize = (uint64_t)pHeader->colorTableSize * sizeof (struct R_PackColorEntry);
+    uint64_t pixelIndexTableSize
+        = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct R_PackPixelIndexEntry);
+    uint64_t atlasDataSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
+    if (pHeader->textureCount != 0 && hashTableSize / sizeof (struct R_PackHashEntry) != pHeader->textureCount
+        || pHeader->colorTableSize != 0
+               && colorTableSize / sizeof (struct R_PackColorEntry) != pHeader->colorTableSize
+        || pHeader->pixelIndexTableSize != 0
+               && pixelIndexTableSize / sizeof (struct R_PackPixelIndexEntry) != pHeader->pixelIndexTableSize
+        || atlasDataSize / 2 != (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight
+        || pHeader->dataOffset > UINT64_MAX - atlasDataSize)
     {
         return 0;
     }
 
-    if (pHeader->dataOffset < pHeader->hashTableOffset)
+    if (pHeader->hashTableOffset != R_RPACK_HEADER_SIZE
+        || pHeader->colorTableOffset != pHeader->hashTableOffset + hashTableSize
+        || pHeader->pixelIndexTableOffset != pHeader->colorTableOffset + colorTableSize
+        || pHeader->dataOffset != pHeader->pixelIndexTableOffset + pixelIndexTableSize)
     {
         return 0;
     }
@@ -170,6 +184,15 @@ R_Pack_GetExpectedFileSize (const struct R_PackHeader* pHeader)
     uint64_t pixelIndexTableSize
         = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct R_PackPixelIndexEntry);
     uint64_t atlasDataSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
+
+    if (R_RPACK_HEADER_SIZE > UINT64_MAX - hashTableSize
+        || R_RPACK_HEADER_SIZE + hashTableSize > UINT64_MAX - colorTableSize
+        || R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize > UINT64_MAX - pixelIndexTableSize
+        || R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize
+               > UINT64_MAX - atlasDataSize)
+    {
+        return 0;
+    }
 
     return R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize + atlasDataSize;
 }

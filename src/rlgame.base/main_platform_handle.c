@@ -21,14 +21,16 @@ static struct
         Window   window;
         int      screen;
         Atom     wmDeleteMessage;
-} g_x11State = {NULL, 0, 0, 0};
+        uint16_t styleFlags; ///< Window decoration flags (bit-packed)
+} g_x11State = {NULL, 0, 0, 0, 0};
 
 static struct
 {
         xcb_connection_t* connection;
         xcb_window_t      window;
         xcb_screen_t*     screen;
-} g_xcbState = {NULL, 0, NULL};
+        uint16_t          styleFlags; ///< Window decoration flags (bit-packed)
+} g_xcbState = {NULL, 0, NULL, 0};
 
 // Helper function to check if Wayland is available
 static bool
@@ -239,7 +241,7 @@ R_DetectVulkanCapabilities (struct R_Capabilities* pCapabilities)
 }
 
 R_ENTRY_API enum R_WindowHandleBackend
-R_DetectGPUCapabilities (struct R_Capabilities* pCapabilities)
+R_DetectCapabilities (struct R_Capabilities* pCapabilities)
 {
     if (!pCapabilities)
     {
@@ -639,6 +641,7 @@ struct R_WaylandWindowState
         bool                  configured;
         bool                  compositorBound;
         bool                  xdgWmBaseBound;
+        uint16_t              styleFlags; ///< Window decoration flags (bit-packed)
 };
 
 static struct R_WaylandWindowState* g_waylandState = NULL;
@@ -773,6 +776,14 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Invalid application info");
         return NULL;
     }
+
+    // Use default style if none provided
+    struct R_WindowHandleStyle defaultStyle = {R_WINDOW_STYLE_DEFAULT};
+    if (!pStyle)
+    {
+        pStyle = &defaultStyle;
+    }
+
     struct R_WaylandWindowState* pState
         = (struct R_WaylandWindowState*)R_CSTL_HeapAlloc (sizeof (struct R_WaylandWindowState));
     if (!pState)
@@ -783,6 +794,9 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_
     memset (pState, 0, sizeof (struct R_WaylandWindowState));
     pState->width = s_initialWidth;
     pState->height = s_initialHeight;
+
+    // Store style flags for later use
+    pState->styleFlags = pStyle->decorationFlags;
 
     pState->display = wl_display_connect (NULL);
     if (!pState->display)
@@ -876,6 +890,13 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_
     wl_display_flush (pState->display);
 
     g_waylandState = pState;
+
+    // Apply window style immediately after window creation
+    struct R_WindowHandleStyle currentStyle = {pState->styleFlags};
+    union R_WindowHandleHandle windowHandle;
+    windowHandle.waylandWindow = (R_WaylandWindow)pState;
+    R_ApplyWindowStyle (R_WINDOW_BACKEND_WAYLAND, &windowHandle, &currentStyle);
+
     R_CSTL_LOG_INFO ("Wayland with default size %dx%d initialized", pState->width, pState->height);
     return (R_WaylandWindow)pState;
 r_cleanup_xdg_toplevel:
@@ -926,10 +947,8 @@ R_ENTRY_API void
 R_WindowHandleSetTitle (R_WaylandWindow window, const char* pTitle)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
-    if (state)
-    {
-        if (pTitle && window) xdg_toplevel_set_title (state->xdgToplevel, pTitle);
-    }
+    if (state && pTitle && window)
+        xdg_toplevel_set_title (state->xdgToplevel, pTitle);
 }
 
 R_ENTRY_API void
@@ -1013,6 +1032,17 @@ R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo, const struct R_Wind
         R_CSTL_LOG_ERROR ("R_InitX11Window: Invalid application info");
         return 0;
     }
+
+    // Use default style if none provided
+    struct R_WindowHandleStyle defaultStyle = {R_WINDOW_STYLE_DEFAULT};
+    if (!pStyle)
+    {
+        pStyle = &defaultStyle;
+    }
+
+    // Store style flags for later use
+    g_x11State.styleFlags = pStyle->decorationFlags;
+
     g_x11State.display = XOpenDisplay (NULL);
     if (!g_x11State.display)
     {
@@ -1112,6 +1142,12 @@ R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo, const struct R_Wind
     {
         XNextEvent (g_x11State.display, &event);
     } while (event.type != MapNotify || event.xmap.window != g_x11State.window);
+
+    // Apply window style immediately after window creation
+    struct R_WindowHandleStyle currentStyle = {g_x11State.styleFlags};
+    union R_WindowHandleHandle windowHandle;
+    windowHandle.x11Window = g_x11State.window;
+    R_ApplyWindowStyle (R_WINDOW_BACKEND_X11, &windowHandle, &currentStyle);
 
     R_CSTL_LOG_INFO ("X11 window created and mapped successfully: %dx%d", s_initialWidth, s_initialHeight);
     return g_x11State.window;
@@ -1224,11 +1260,14 @@ R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_Wind
     }
 
     // Use default style if none provided
-    struct R_WindowHandleStyle defaultStyle = R_WINDOW_DECORATION_ORANGE;
+    struct R_WindowHandleStyle defaultStyle = {R_WINDOW_STYLE_ORANGE};
     if (!pStyle)
     {
         pStyle = &defaultStyle;
     }
+
+    // Store style flags for later use
+    g_xcbState.styleFlags = pStyle->decorationFlags;
 
     // Open connection to X server
     g_xcbState.connection = xcb_connect (NULL, NULL);
@@ -1290,6 +1329,12 @@ R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_Wind
     // Map (show) window
     xcb_map_window (g_xcbState.connection, g_xcbState.window);
     xcb_flush (g_xcbState.connection);
+
+    // Apply window style immediately after window creation
+    struct R_WindowHandleStyle currentStyle = {g_xcbState.styleFlags};
+    union R_WindowHandleHandle windowHandle;
+    windowHandle.xcbWindow = g_xcbState.window;
+    R_ApplyWindowStyle (R_WINDOW_BACKEND_XCB, &windowHandle, &currentStyle);
 
     R_CSTL_LOG_INFO ("XCB window created successfully: %dx%d", s_initialWidth, s_initialHeight);
     return g_xcbState.window;
@@ -1422,6 +1467,350 @@ R_DestroyXCBWindow (R_XCBWindow window)
 
 // Common window style functions
 
+/**
+ * @brief Maps color theme to RGB values
+ * @param colorTheme Color theme to map
+ * @param pRed Output pointer for red component
+ * @param pGreen Output pointer for green component
+ * @param pBlue Output pointer for blue component
+ */
+static void
+R_MapColorThemeToRGB (uint16_t colorTheme, uint16_t* pRed, uint16_t* pGreen, uint16_t* pBlue)
+{
+    switch (colorTheme)
+    {
+    case R_WINDOW_COLOR_ORANGE:
+        *pRed = 0xFF00;
+        *pGreen = 0xA500;
+        *pBlue = 0x0000;
+        break;
+    case R_WINDOW_COLOR_BLUE:
+        *pRed = 0x0000;
+        *pGreen = 0x0000;
+        *pBlue = 0xFFFF;
+        break;
+    case R_WINDOW_COLOR_GREEN:
+        *pRed = 0x0000;
+        *pGreen = 0x8000;
+        *pBlue = 0x0000;
+        break;
+    case R_WINDOW_COLOR_RED:
+        *pRed = 0xFF00;
+        *pGreen = 0x0000;
+        *pBlue = 0x0000;
+        break;
+    case R_WINDOW_COLOR_PURPLE:
+        *pRed = 0x8000;
+        *pGreen = 0x0000;
+        *pBlue = 0x8000;
+        break;
+    default:
+        *pRed = 0;
+        *pGreen = 0;
+        *pBlue = 0;
+        break;
+    }
+}
+
+/**
+ * @brief Applies X11 window manager color hints
+ * @param display X11 display
+ * @param window X11 window
+ * @param red Red color component
+ * @param green Green color component
+ * @param blue Blue color component
+ */
+static void
+R_ApplyX11ColorHints (Display* display, Window window, uint16_t red, uint16_t green, uint16_t blue)
+{
+    // KDE/Plasma supports _KDE_NET_WM_FRAME_STRUT and related atoms
+    Atom kdeColorAtom = XInternAtom (display, "_KDE_NET_WM_FRAME_STRUT", False);
+    if (kdeColorAtom != None)
+    {
+        // Try to set frame color hints for KDE
+        unsigned long frameColor[4] = {red, green, blue, 0};
+        XChangeProperty (
+            display,
+            window,
+            kdeColorAtom,
+            XInternAtom (display, "CARDINAL", False),
+            32,
+            PropModeReplace,
+            (unsigned char*)frameColor,
+            4);
+    }
+
+    // GNOME/Mutter supports _GTK_THEME_VARIANT and related hints
+    Atom gtkThemeAtom = XInternAtom (display, "_GTK_THEME_VARIANT", False);
+    if (gtkThemeAtom != None)
+    {
+        const char* themeVariant = "dark";
+        XChangeProperty (
+            display,
+            window,
+            gtkThemeAtom,
+            XInternAtom (display, "STRING", False),
+            8,
+            PropModeReplace,
+            (unsigned char*)themeVariant,
+            strlen (themeVariant));
+    }
+    Atom windowRoleAtom = XInternAtom (display, "WM_WINDOW_ROLE", False);
+    if (windowRoleAtom != None)
+    {
+        const char* windowRole = "custom-themed-window";
+        XChangeProperty (
+            display,
+            window,
+            windowRoleAtom,
+            XInternAtom (display, "STRING", False),
+            8,
+            PropModeReplace,
+            (unsigned char*)windowRole,
+            strlen (windowRole));
+    }
+    Atom xappDecorAtom = XInternAtom (display, "_XAPP_DECORATION_ENABLED", False);
+    if (xappDecorAtom != None)
+    {
+        unsigned long enabled = 1;
+        XChangeProperty (
+            display,
+            window,
+            xappDecorAtom,
+            XInternAtom (display, "CARDINAL", False),
+            32,
+            PropModeReplace,
+            (unsigned char*)&enabled,
+            1);
+    }
+}
+
+/**
+ * @brief Applies XCB window manager color hints
+ * @param connection XCB connection
+ * @param window XCB window
+ * @param red Red color component
+ * @param green Green color component
+ * @param blue Blue color component
+ */
+static void
+R_ApplyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_t red, uint16_t green, uint16_t blue)
+{
+    // Get standard atoms first
+    xcb_intern_atom_cookie_t cardinalCookie
+        = xcb_intern_atom (connection, 0, strlen ("CARDINAL"), "CARDINAL");
+    xcb_intern_atom_reply_t* cardinalReply
+        = xcb_intern_atom_reply (connection, cardinalCookie, NULL);
+    xcb_intern_atom_cookie_t stringCookie
+        = xcb_intern_atom (connection, 0, strlen ("STRING"), "STRING");
+    xcb_intern_atom_reply_t* stringReply
+        = xcb_intern_atom_reply (connection, stringCookie, NULL);
+
+    if (!cardinalReply || !stringReply)
+    {
+        if (cardinalReply) free (cardinalReply);
+        if (stringReply) free (stringReply);
+        return;
+    }
+
+    // KDE/Plasma supports _KDE_NET_WM_FRAME_STRUT and related atoms
+    xcb_intern_atom_cookie_t kdeCookie
+        = xcb_intern_atom (connection, 0, strlen ("_KDE_NET_WM_FRAME_STRUT"), "_KDE_NET_WM_FRAME_STRUT");
+    xcb_intern_atom_reply_t* kdeReply
+        = xcb_intern_atom_reply (connection, kdeCookie, NULL);
+    if (kdeReply)
+    {
+        const uint32_t frameColor[4] = {red, green, blue, 0};
+        xcb_change_property (
+            connection,
+            XCB_PROP_MODE_REPLACE,
+            window,
+            kdeReply->atom,
+            cardinalReply->atom,
+            32,
+            4,
+            (unsigned char*)frameColor);
+        free (kdeReply);
+    }
+
+    // GNOME/Mutter supports _GTK_THEME_VARIANT and related hints
+    xcb_intern_atom_cookie_t gtkCookie
+        = xcb_intern_atom (connection, 0, strlen ("_GTK_THEME_VARIANT"), "_GTK_THEME_VARIANT");
+    xcb_intern_atom_reply_t* gtkReply
+        = xcb_intern_atom_reply (connection, gtkCookie, NULL);
+    if (gtkReply)
+    {
+        const char* themeVariant = "dark";
+        xcb_change_property (
+            connection,
+            XCB_PROP_MODE_REPLACE,
+            window,
+            gtkReply->atom,
+            stringReply->atom,
+            8,
+            strlen (themeVariant),
+            (unsigned char*)themeVariant);
+        free (gtkReply);
+    }
+
+    // Try to set custom window role for theme styling
+    xcb_intern_atom_cookie_t roleCookie
+        = xcb_intern_atom (connection, 0, strlen ("WM_WINDOW_ROLE"), "WM_WINDOW_ROLE");
+    xcb_intern_atom_reply_t* roleReply
+        = xcb_intern_atom_reply (connection, roleCookie, NULL);
+    if (roleReply)
+    {
+        const char* windowRole = "custom-themed-window";
+        xcb_change_property (
+            connection,
+            XCB_PROP_MODE_REPLACE,
+            window,
+            roleReply->atom,
+            stringReply->atom,
+            8,
+            strlen (windowRole),
+            (unsigned char*)windowRole);
+        free (roleReply);
+    }
+
+    // Set XApp decoration hints for modern Linux desktops
+    xcb_intern_atom_cookie_t xappCookie
+        = xcb_intern_atom (connection, 0, strlen ("_XAPP_DECORATION_ENABLED"), "_XAPP_DECORATION_ENABLED");
+    xcb_intern_atom_reply_t* xappReply
+        = xcb_intern_atom_reply (connection, xappCookie, NULL);
+    if (xappReply)
+    {
+        uint32_t enabled = 1;
+        xcb_change_property (
+            connection,
+            XCB_PROP_MODE_REPLACE,
+            window,
+            xappReply->atom,
+            cardinalReply->atom,
+            32,
+            1,
+            (unsigned char*)&enabled);
+        free (xappReply);
+    }
+
+    // Clean up atom replies
+    free (cardinalReply);
+    free (stringReply);
+}
+
+/**
+ * @brief Sets X11 window decorations based on style flags
+ * @param display X11 display
+ * @param window X11 window
+ * @param decorationFlags Decoration flags
+ * @param isBorderless Whether window should be borderless
+ */
+static void
+R_SetX11WindowDecorations (Display* display, Window window, uint8_t decorationFlags, bool isBorderless)
+{
+    Atom wmHints = XInternAtom (display, "_MOTIF_WM_HINTS", False);
+    if (wmHints == None) return;
+
+    struct
+    {
+            unsigned long flags;
+            unsigned long functions;
+            unsigned long styles;
+            long          inputMode;
+            unsigned long status;
+    } hints = {0};
+
+    hints.flags = 2; // MWM_HINTS_DECORATIONS
+
+    if (isBorderless)
+    {
+        hints.styles = 0;
+    }
+    else
+    {
+        hints.styles = 0;
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_BORDER))
+            hints.styles |= (1 << 1); // MWM_DECOR_BORDER
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_TITLEBAR))
+            hints.styles |= (1 << 3); // MWM_DECOR_TITLE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_MINIMIZE))
+            hints.styles |= (1 << 2); // MWM_DECOR_MINIMIZE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_MAXIMIZE))
+            hints.styles |= (1 << 4); // MWM_DECOR_MAXIMIZE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_CLOSE))
+            hints.styles |= (1 << 5); // MWM_DECOR_MENU (close button)
+    }
+
+    XChangeProperty (
+        display,
+        window,
+        wmHints,
+        wmHints,
+        32,
+        PropModeReplace,
+        (unsigned char*)&hints,
+        5);
+    XFlush (display);
+}
+
+/**
+ * @brief Sets XCB window decorations based on style flags
+ * @param connection XCB connection
+ * @param window XCB window
+ * @param decorationFlags Decoration flags
+ * @param isBorderless Whether window should be borderless
+ */
+static void
+R_SetXCBWindowDecorations (xcb_connection_t* connection, xcb_window_t window, uint8_t decorationFlags, bool isBorderless)
+{
+    xcb_intern_atom_cookie_t motifCookie
+        = xcb_intern_atom (connection, 0, strlen ("_MOTIF_WM_HINTS"), "_MOTIF_WM_HINTS");
+    xcb_intern_atom_reply_t* motifReply
+        = xcb_intern_atom_reply (connection, motifCookie, NULL);
+    if (!motifReply) return;
+
+    struct
+    {
+            unsigned long flags;
+            unsigned long functions;
+            unsigned long styles;
+            long          inputMode;
+            unsigned long status;
+    } hints = {0};
+
+    hints.flags = 2; // MWM_HINTS_DECORATIONS
+
+    if (isBorderless)
+    {
+        hints.styles = 0; // No styles
+    }
+    else
+    {
+        hints.styles = 0; // Start with no styles
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_BORDER))
+            hints.styles |= (1 << 1); // MWM_DECOR_BORDER
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_TITLEBAR))
+            hints.styles |= (1 << 3); // MWM_DECOR_TITLE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_MINIMIZE))
+            hints.styles |= (1 << 2); // MWM_DECOR_MINIMIZE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_MAXIMIZE))
+            hints.styles |= (1 << 4); // MWM_DECOR_MAXIMIZE
+        if (R_HasDecorationFlag (decorationFlags, R_WINDOW_DECORATION_CLOSE))
+            hints.styles |= (1 << 5); // MWM_DECOR_MENU (close button)
+    }
+    xcb_change_property (
+        connection,
+        XCB_PROP_MODE_REPLACE,
+        window,
+        motifReply->atom,
+        motifReply->atom,
+        32,
+        5,
+        (unsigned char*)&hints);
+    xcb_flush (connection);
+    free (motifReply);
+}
+
 R_ENTRY_API void
 R_ApplyWindowStyle (
     enum R_WindowHandleBackend        backend,
@@ -1430,83 +1819,89 @@ R_ApplyWindowStyle (
 {
     if (!pStyle || !pWindowHandle) return;
 
+    uint8_t decorationFlags = R_GetDecorationFlags (pStyle->decorationFlags);
+    uint16_t colorTheme = R_GetColorTheme (pStyle->decorationFlags);
+    bool isBorderless = !R_HasDecorationFlag (pStyle->decorationFlags, R_WINDOW_DECORATION_BORDER);
+
     switch (backend)
     {
     case R_WINDOW_BACKEND_WAYLAND:
         // Wayland style is handled by the compositor, but we can set properties
-        if (pStyle->borderless)
+        if (isBorderless)
         {
             // For Wayland, borderless is typically handled by the compositor
             // We might need to use specific protocols for custom styles
+            // Some compositors support xdg-decoration protocol for borderless windows
+        }
+        if (g_waylandState && g_waylandState->xdgToplevel)
+        {
+            // Check if decoration protocol is available and apply flags
+            // This is compositor-specific and may not work on all Wayland compositors
+            if (R_HasDecorationFlag (pStyle->decorationFlags, R_WINDOW_DECORATION_MINIMIZE))
+            {
+                // Request minimize capability (if supported by compositor)
+            }
+            if (R_HasDecorationFlag (pStyle->decorationFlags, R_WINDOW_DECORATION_MAXIMIZE))
+            {
+                // Request maximize capability (if supported by compositor)
+            }
+            if (R_HasDecorationFlag (pStyle->decorationFlags, R_WINDOW_DECORATION_CLOSE))
+            {
+                // Request close capability (if supported by compositor)
+            }
         }
         break;
-
     case R_WINDOW_BACKEND_X11:
-        if (pStyle->borderless)
+        R_SetX11WindowDecorations (g_x11State.display, g_x11State.window, decorationFlags, isBorderless);
+
+        if (colorTheme != R_WINDOW_COLOR_DEFAULT)
         {
-            // Remove window styles for borderless mode
-            Atom wmHints = XInternAtom (g_x11State.display, "_MOTIF_WM_HINTS", False);
-            if (wmHints != None)
-            {
-                struct
-                {
-                        unsigned long flags;
-                        unsigned long functions;
-                        unsigned long styles;
-                        long          inputMode;
-                        unsigned long status;
-                } hints = {0};
+            uint16_t red, green, blue;
+            R_MapColorThemeToRGB (colorTheme, &red, &green, &blue);
 
-                hints.flags = 2; // MWM_HINTS_DECORATIONS
-                hints.styles = 0; // No styles
+            XColor color;
+            Colormap colormap = DefaultColormap (g_x11State.display, g_x11State.screen);
+            color.red = red;
+            color.green = green;
+            color.blue = blue;
 
-                XChangeProperty (
-                    g_x11State.display,
-                    g_x11State.window,
-                    wmHints,
-                    wmHints,
-                    32,
-                    PropModeReplace,
-                    (unsigned char*)&hints,
-                    5);
-            }
+            XAllocColor (g_x11State.display, colormap, &color);
+            XSetWindowBackground (g_x11State.display, g_x11State.window, color.pixel);
+
+            R_ApplyX11ColorHints (g_x11State.display, g_x11State.window, red, green, blue);
+            XClearWindow (g_x11State.display, g_x11State.window);
         }
         break;
 
     case R_WINDOW_BACKEND_XCB:
-        if (pStyle->borderless)
+        R_SetXCBWindowDecorations (g_xcbState.connection, g_xcbState.window, decorationFlags, isBorderless);
+
+        // Apply color theme by setting window background color and decoration hints
+        if (colorTheme != R_WINDOW_COLOR_DEFAULT)
         {
-            // Similar borderless handling for XCB
-            xcb_intern_atom_cookie_t motif_cookie
-                = xcb_intern_atom (g_xcbState.connection, 0, strlen ("_MOTIF_WM_HINTS"), "_MOTIF_WM_HINTS");
-            xcb_intern_atom_reply_t* motif_reply
-                = xcb_intern_atom_reply (g_xcbState.connection, motif_cookie, NULL);
+            uint16_t red, green, blue;
+            R_MapColorThemeToRGB (colorTheme, &red, &green, &blue);
 
-            if (motif_reply)
+            xcb_screen_iterator_t screenIter = xcb_setup_roots_iterator (xcb_get_setup (g_xcbState.connection));
+            xcb_colormap_t colormap = screenIter.data->default_colormap;
+
+            xcb_alloc_color_cookie_t colorCookie = xcb_alloc_color (g_xcbState.connection, colormap, red, green, blue);
+            xcb_alloc_color_reply_t* colorReply = xcb_alloc_color_reply (g_xcbState.connection, colorCookie, NULL);
+
+            if (colorReply)
             {
-                struct
-                {
-                        unsigned long flags;
-                        unsigned long functions;
-                        unsigned long styles;
-                        long          inputMode;
-                        unsigned long status;
-                } hints = {0};
-
-                hints.flags = 2; // MWM_HINTS_DECORATIONS
-                hints.styles = 0; // No styles
-
-                xcb_change_property (
+                xcb_change_window_attributes (
                     g_xcbState.connection,
-                    XCB_PROP_MODE_REPLACE,
-                    g_x11State.window,
-                    motif_reply->atom,
-                    motif_reply->atom,
-                    32,
-                    5,
-                    (unsigned char*)&hints);
-                free (motif_reply);
+                    g_xcbState.window,
+                    XCB_CW_BACK_PIXEL,
+                    &colorReply->pixel);
+                free (colorReply);
             }
+
+            R_ApplyXCBColorHints (g_xcbState.connection, g_xcbState.window, red, green, blue);
+
+            // Force window refresh to apply background color
+            xcb_clear_area (g_xcbState.connection, 1, g_xcbState.window, 0, 0, screenIter.data->width_in_pixels, screenIter.data->height_in_pixels);
         }
         break;
 
@@ -1533,6 +1928,19 @@ R_SetWindowTitle (
 
     if (!title) return;
 
+    // Check if title is empty using proper string length check
+    size_t titleLength = 0;
+    if (pCustomTitle)
+    {
+        titleLength = strlen (pCustomTitle);
+    }
+    else if (pApplicationInfo->pApplicationName)
+    {
+        titleLength = R_CSTL_StringLength (pApplicationInfo->pApplicationName);
+    }
+
+    if (titleLength == 0) return;
+
     switch (backend)
     {
     case R_WINDOW_BACKEND_WAYLAND:
@@ -1558,36 +1966,29 @@ R_ProcessWindowEvents (union R_WindowHandleHandle* pWindowHandle)
     switch (g_currentBackend)
     {
     case R_WINDOW_BACKEND_WAYLAND:
-        // Process Wayland events
         if (g_waylandState && g_waylandState->display)
         {
             wl_display_dispatch (g_waylandState->display);
         }
         break;
-
     case R_WINDOW_BACKEND_X11:
-        // Process X11 events
         if (g_x11State.display)
         {
             XEvent event;
             while (XPending (g_x11State.display))
             {
                 XNextEvent (g_x11State.display, &event);
-                // Handle window close event
                 if (event.type == ClientMessage)
                 {
                     if (event.xclient.data.l[0] == g_x11State.wmDeleteMessage)
                     {
-                        // Window close requested
                         R_CSTL_LOG_INFO ("X11 window close requested");
                     }
                 }
             }
         }
         break;
-
     case R_WINDOW_BACKEND_XCB:
-        // Process XCB events
         if (g_xcbState.connection)
         {
             xcb_generic_event_t* event;

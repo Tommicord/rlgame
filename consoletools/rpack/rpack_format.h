@@ -28,7 +28,7 @@ struct R_PackHeader
         uint64_t pixelIndexTableOffset; /**< Offset to pixel index table from file start */
         uint32_t colorTableSize; /**< Number of entries in color table */
         uint32_t pixelIndexTableSize; /**< Number of entries in pixel index table */
-        uint32_t reserved[6]; /**< Reserved for future use */
+        uint32_t reserved[1]; /**< Reserved for future use */
 };
 
 /**

@@ -14,7 +14,20 @@
 #define R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
 #define R_RPACK_DEFAULT_WORKER_COUNT           0
 
-static uint32_t R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
+static const struct R_PackEncoderConfig R_RPACK_DEFAULT_CONFIG
+    = {R_RPACK_DEFAULT_ATLAS_WIDTH,
+       R_RPACK_DEFAULT_ATLAS_HEIGHT,
+       R_RPACK_DEFAULT_PADDING,
+       0,
+       R_RPACK_DEFAULT_SIMILARITY_THRESHOLD,
+       0.0f,
+       R_RPACK_DEFAULT_WORKER_COUNT,
+       0,
+       0,
+       0};
+
+static uint32_t
+R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
 
 struct R_PackPixelWorkTask
 {
@@ -55,7 +68,7 @@ R_Pack_ProcessPixelRowWorker (void* pData)
             R_CSTL_MutexLock (pTask->pEncoder->pMutex);
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
-                uint32_t                      newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
+                const uint32_t                newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
                 struct R_PackPixelIndexEntry* pNewTable = (struct R_PackPixelIndexEntry*)R_CSTL_HeapRealloc (
                     pTask->pEncoder->pPixelIndexTable,
                     newCapacity * sizeof (struct R_PackPixelIndexEntry));
@@ -104,23 +117,28 @@ R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig)
     }
     else
     {
-        pEncoder->config.maxAtlasWidth = R_RPACK_DEFAULT_ATLAS_WIDTH;
-        pEncoder->config.maxAtlasHeight = R_RPACK_DEFAULT_ATLAS_HEIGHT;
-        pEncoder->config.padding = R_RPACK_DEFAULT_PADDING;
-        pEncoder->config.similarityThreshold = R_RPACK_DEFAULT_SIMILARITY_THRESHOLD;
-        pEncoder->config.workerCount = R_RPACK_DEFAULT_WORKER_COUNT;
+        pEncoder->config = R_RPACK_DEFAULT_CONFIG;
+    }
+
+    if (pEncoder->config.maxAtlasWidth == 0 || pEncoder->config.maxAtlasHeight == 0
+        || (uint64_t)pEncoder->config.maxAtlasWidth + pEncoder->config.padding * 2ULL > UINT32_MAX
+        || (uint64_t)pEncoder->config.maxAtlasHeight + pEncoder->config.padding * 2ULL > UINT32_MAX
+        || !isfinite (pEncoder->config.similarityThreshold) || pEncoder->config.similarityThreshold < 0.0f
+        || !isfinite (pEncoder->config.alphaThreshold) || pEncoder->config.alphaThreshold < 0.0f
+        || pEncoder->config.alphaThreshold > 1.0f)
+    {
+        R_CSTL_HeapFree (pEncoder);
+        return NULL;
     }
 
     if (pEncoder->config.workerCount == 0)
     {
-        pEncoder->actualWorkerCount = 1; // Default to 1 for now, can add CPU detection later
+        pEncoder->actualWorkerCount = 1;
     }
     else
     {
         pEncoder->actualWorkerCount = pEncoder->config.workerCount;
     }
-
-    // Create mutex for thread synchronization
     pEncoder->pMutex = R_CSTL_NewMutex ();
     if (!pEncoder->pMutex)
     {
@@ -327,6 +345,11 @@ R_Pack_ValidateInputImage (const struct R_PackInputImage* pImage)
         return R_RPACK_ERROR_INVALID_DIMENSIONS;
     }
 
+    if (pImage->width > SIZE_MAX / 4 || pImage->stride < pImage->width * 4)
+    {
+        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+    }
+
     return R_RPACK_OK;
 }
 
@@ -376,7 +399,7 @@ R_Pack_GetAtlasPosition (
 
     if (textureIndex > 0)
     {
-        struct R_PackHashEntry* pPrevEntry = &pEncoder->pHashTable[textureIndex - 1];
+        const struct R_PackHashEntry* pPrevEntry = &pEncoder->pHashTable[textureIndex - 1];
         currentX = pPrevEntry->atlasOffsetX + pPrevEntry->width + pEncoder->config.padding;
         if (currentX + pImage->width > pEncoder->config.maxAtlasWidth)
         {
@@ -470,7 +493,7 @@ R_Pack_ProcessPixelsSerial (struct R_PackEncoder* pEncoder, const struct R_PackI
 }
 
 static enum R_PackError
-R_Pack_ProcessPixelsParallel (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
+R_Pack_ProcessPixels (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
 {
     uint32_t                    rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
     struct R_PackPixelWorkTask* pTasks = (struct R_PackPixelWorkTask*)R_CSTL_HeapAlloc (
@@ -534,7 +557,7 @@ R_Pack_ProcessImagePixels (struct R_PackEncoder* pEncoder, const struct R_PackIn
 {
     if (pEncoder->actualWorkerCount > 1 && pImage->height > 100)
     {
-        return R_Pack_ProcessPixelsParallel (pEncoder, pImage);
+        return R_Pack_ProcessPixels (pEncoder, pImage);
     }
     else
     {
@@ -545,10 +568,26 @@ R_Pack_ProcessImagePixels (struct R_PackEncoder* pEncoder, const struct R_PackIn
 enum R_PackError
 R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
 {
+    if (!pEncoder)
+    {
+        return R_RPACK_ERROR_INVALID_ARGUMENT;
+    }
     enum R_PackError error = R_Pack_ValidateInputImage (pImage);
     if (error != R_RPACK_OK)
     {
         return error;
+    }
+
+    if (pEncoder->config.maxTextures != 0 && pEncoder->pHeader->textureCount >= pEncoder->config.maxTextures)
+    {
+        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+    }
+
+    uint64_t paddedWidth = (uint64_t)pImage->width + pEncoder->config.padding * 2ULL;
+    uint64_t paddedHeight = (uint64_t)pImage->height + pEncoder->config.padding * 2ULL;
+    if (paddedWidth > pEncoder->config.maxAtlasWidth || paddedHeight > pEncoder->config.maxAtlasHeight)
+    {
+        return R_RPACK_ERROR_INVALID_DIMENSIONS;
     }
 
     uint32_t textureIndex;
@@ -597,6 +636,11 @@ R_Pack_EncoderGetRequiredSize (const struct R_PackEncoder* pEncoder)
     uint64_t colorTableSize = (uint64_t)pEncoder->colorTableCount * sizeof (struct R_PackColorEntry);
     uint64_t pixelIndexTableSize
         = (uint64_t)pEncoder->pixelIndexTableCount * sizeof (struct R_PackPixelIndexEntry);
+    if (pEncoder->pHeader->atlasWidth != 0
+        && pEncoder->pHeader->atlasHeight > UINT64_MAX / pEncoder->pHeader->atlasWidth / 2)
+    {
+        return 0;
+    }
     uint64_t atlasDataSize = (uint64_t)pEncoder->pHeader->atlasWidth * pEncoder->pHeader->atlasHeight * 2;
 
     return R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize + atlasDataSize;
@@ -656,8 +700,11 @@ R_Pack_EncoderEncode (
         offset += pEncoder->pixelIndexTableCount * sizeof (struct R_PackPixelIndexEntry);
     }
     pEncoder->pHeader->pixelIndexTableSize = pEncoder->pixelIndexTableCount;
-
     pEncoder->pHeader->dataOffset = offset;
+
+    uint64_t atlasDataSize = (uint64_t)pEncoder->pHeader->atlasWidth * pEncoder->pHeader->atlasHeight * 2;
+    memset (pOutputBuffer + offset, 0, (size_t)atlasDataSize);
+    offset += atlasDataSize;
 
     if (pBytesWritten)
     {

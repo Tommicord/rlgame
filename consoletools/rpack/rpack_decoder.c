@@ -68,7 +68,8 @@ R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize)
     }
 
     const struct R_PackHeader* pHeader = (const struct R_PackHeader*)pData;
-    return R_Pack_ValidateHeader (pHeader);
+    uint64_t                   expectedSize = R_Pack_GetExpectedFileSize (pHeader);
+    return expectedSize != 0 && expectedSize <= dataSize;
 }
 
 const struct R_PackHashEntry*
@@ -234,7 +235,6 @@ R_Pack_DecoderDecodeTextures (
     {
         return R_RPACK_ERROR_INVALID_ARGUMENT;
     }
-
     uint64_t offset = 0;
     for (uint32_t i = 0; i < nameCount; ++i)
     {
@@ -248,7 +248,6 @@ R_Pack_DecoderDecodeTextures (
         {
             return R_RPACK_ERROR_BUFFER_TOO_SMALL;
         }
-
         uint64_t         written = 0;
         enum R_PackError err = R_Pack_DecoderDecodeTexture (
             pDecoder,
@@ -260,7 +259,6 @@ R_Pack_DecoderDecodeTextures (
         {
             return err;
         }
-
         offset += written;
     }
 

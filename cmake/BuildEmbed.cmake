@@ -7,7 +7,7 @@ function(embedding_uuid OUTPUT_UUID)
   set(${OUTPUT_UUID} "${BLOCK1}-${BLOCK2}-${BLOCK3}-${BLOCK4}-${BLOCK5}" PARENT_SCOPE)
 endfunction()
 
-function(embed_file FILE_PATH OUTPUT_DIR VAR_NAME OUTPUTS_LIST HEADERS_LIST CFILES_LIST)
+function(embed_file FILE_PATH OUTPUT_DIR PREFIX VAR_NAME OUTPUTS_LIST HEADERS_LIST CFILES_LIST)
   get_filename_component(FILE_ABS_PATH "${FILE_PATH}" ABSOLUTE)
   get_filename_component(FILE_NAME "${FILE_PATH}" NAME)
   get_filename_component(FILE_NAME_WE "${FILE_PATH}" NAME_WE)
@@ -15,8 +15,8 @@ function(embed_file FILE_PATH OUTPUT_DIR VAR_NAME OUTPUTS_LIST HEADERS_LIST CFIL
   string(REPLACE "." "_" FILE_EXT_UNDERSCORE "${FILE_EXT}")
 
   embedding_uuid(RANDOM_NAME)
-  set(EMBEDDED_HEADER "${OUTPUT_DIR}/${RANDOM_NAME}.h")
-  set(EMBEDDED_CFILE "${OUTPUT_DIR}/${RANDOM_NAME}.c")
+  set(EMBEDDED_HEADER "${OUTPUT_DIR}/${PREFIX}_${RANDOM_NAME}.h")
+  set(EMBEDDED_CFILE "${OUTPUT_DIR}/${PREFIX}_${RANDOM_NAME}.c")
   add_custom_command(
     OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CFILE}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
@@ -34,7 +34,7 @@ function(embed_file FILE_PATH OUTPUT_DIR VAR_NAME OUTPUTS_LIST HEADERS_LIST CFIL
   set(${CFILES_LIST} "${${CFILES_LIST}}" PARENT_SCOPE)
 endfunction()
 
-function(compile_and_embed FILES_LIST COMPILE_TARGET COMPILE_FLAGS OUTPUT_EXT OUTPUT_DIR OUTPUTS_LIST HEADERS_LIST CFILES_LIST)
+function(compile_and_embed FILES_LIST COMPILE_TARGET COMPILE_FLAGS OUTPUT_EXT OUTPUT_DIR PREFIX OUTPUTS_LIST HEADERS_LIST CFILES_LIST)
   foreach(FILE IN LISTS FILES_LIST)
     get_filename_component(FILE_ABS_PATH "${FILE}" ABSOLUTE)
     get_filename_component(FILE_NAME "${FILE}" NAME)
@@ -58,8 +58,8 @@ function(compile_and_embed FILES_LIST COMPILE_TARGET COMPILE_FLAGS OUTPUT_EXT OU
     )
     embedding_uuid(RANDOM_NAME)
 
-    set(EMBEDDED_HEADER "${OUTPUT_DIR}/${RANDOM_NAME}.h")
-    set(EMBEDDED_CFILE "${OUTPUT_DIR}/${RANDOM_NAME}.c")
+    set(EMBEDDED_HEADER "${OUTPUT_DIR}/${PREFIX}_${RANDOM_NAME}.h")
+    set(EMBEDDED_CFILE "${OUTPUT_DIR}/${PREFIX}_${RANDOM_NAME}.c")
 
     add_custom_command(
       OUTPUT "${EMBEDDED_HEADER}" "${EMBEDDED_CFILE}"
@@ -86,14 +86,34 @@ set(SHADERS
   src/rlgame.shader/test_triangle3d.vert
 )
 
-set(CUDA_FILES
-  src/rlgame.compsrc/cvulkan_defragmentation.cu
-)
+file(GLOB KERNEL_CUDA_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/rlgame.compsrc/*.cu")
+file(GLOB KERNEL_OPENCL_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/rlgame.compsrc/*.cl")
 
-set(OPENCL_FILES
-  src/rlgame.compsrc/cvulkan_defragmentation.cl
-  src/rlgame.compsrc/cvulkan_memval.cl
-)
+set(CVULKAN_CUDA_FILES "")
+set(RPACK_CUDA_FILES "")
+foreach(FILE IN LISTS KERNEL_CUDA_FILES)
+  get_filename_component(FILE_NAME "${FILE}" NAME)
+  if(FILE_NAME MATCHES "^cvulkan_")
+    list(APPEND CVULKAN_CUDA_FILES "${FILE}")
+  elseif(FILE_NAME MATCHES "^rpack_")
+    list(APPEND RPACK_CUDA_FILES "${FILE}")
+  else()
+    message(WARNING "Ignoring CUDA kernel without a recognized prefix: ${FILE_NAME}")
+  endif()
+endforeach()
+
+set(CVULKAN_OPENCL_FILES "")
+set(RPACK_OPENCL_FILES "")
+foreach(FILE IN LISTS KERNEL_OPENCL_FILES)
+  get_filename_component(FILE_NAME "${FILE}" NAME)
+  if(FILE_NAME MATCHES "^cvulkan_")
+    list(APPEND CVULKAN_OPENCL_FILES "${FILE}")
+  elseif(FILE_NAME MATCHES "^rpack_")
+    list(APPEND RPACK_OPENCL_FILES "${FILE}")
+  else()
+    message(WARNING "Ignoring OpenCL kernel without a recognized prefix: ${FILE_NAME}")
+  endif()
+endforeach()
 
 set(SPV_OUTPUTS "")
 set(EMBEDDED_HEADERS "")
@@ -139,6 +159,7 @@ compile_and_embed(
   "${GLSLC_DEBUG_FLAGS}"
   "spv"
   "${SPV_DIR}"
+  render
   SPV_OUTPUTS
   EMBEDDED_HEADERS
   EMBEDDED_CFILES
@@ -146,29 +167,54 @@ compile_and_embed(
 
 if(CUDA_FOUND)
   compile_and_embed(
-    "${CUDA_FILES}"
+    "${CVULKAN_CUDA_FILES}"
     CUDA::nvcc
     "--cubin"
     "cubin"
     "${CUDA_DIR}"
+    cvulkan
     CUDA_OUTPUTS
     EMBEDDED_CUDA_HEADERS
     EMBEDDED_CUDA_CFILES
   )
+  compile_and_embed(
+    "${RPACK_CUDA_FILES}"
+    CUDA::nvcc
+    "--cubin"
+    "cubin"
+    "${CUDA_DIR}"
+    rpack
+    RPACK_CUDA_OUTPUTS
+    RPACK_CUDA_HEADERS
+    RPACK_CUDA_CFILES
+  )
 endif()
 if(OpenCL_FOUND)
-  foreach(FILE IN LISTS OPENCL_FILES)
+  foreach(FILE IN LISTS CVULKAN_OPENCL_FILES)
     get_filename_component(FILE_NAME_WE "${FILE}" NAME_WE)
     set(VAR_NAME "${FILE_NAME_WE}")
     
     embed_file(
       "${FILE}" 
       "${CL_DIR}" 
-      ${VAR_NAME} 
+      cvulkan
+      ${VAR_NAME}
       CL_OUTPUTS 
       EMBEDDED_CL_HEADERS 
       EMBEDDED_CL_CFILES
       )
+  endforeach()
+  foreach(FILE IN LISTS RPACK_OPENCL_FILES)
+    get_filename_component(FILE_NAME_WE "${FILE}" NAME_WE)
+    embed_file(
+      "${FILE}"
+      "${CL_DIR}"
+      rpack
+      "${FILE_NAME_WE}"
+      RPACK_CL_OUTPUTS
+      RPACK_CL_HEADERS
+      RPACK_CL_CFILES
+    )
   endforeach()
 else()
   message(STATUS "OpenCL not found, skipping CL files")
@@ -180,8 +226,10 @@ message(STATUS "Embedded shader headers: ${EMBEDDED_HEADERS}")
 message(STATUS "Embedded shader cfiles: ${EMBEDDED_CFILES}")
 
 if(CUDA_FOUND)
-  target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_HEADERS})
-  target_sources(rlgame PRIVATE ${EMBEDDED_CUDA_CFILES})
+  target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CUDA_HEADERS})
+  target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CUDA_CFILES})
+  target_sources(rlgame.base.rpack PRIVATE ${RPACK_CUDA_HEADERS})
+  target_sources(rlgame.base.rpack PRIVATE ${RPACK_CUDA_CFILES})
 endif()
 
 target_sources(rlgame.client.render PRIVATE ${EMBEDDED_HEADERS})
@@ -190,6 +238,8 @@ target_sources(rlgame.client.render PRIVATE ${EMBEDDED_CFILES})
 if(OpenCL_FOUND)
   target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CL_HEADERS})
   target_sources(rlgame.base.cvulkan PRIVATE ${EMBEDDED_CL_CFILES})
+  target_sources(rlgame.base.rpack PRIVATE ${RPACK_CL_HEADERS})
+  target_sources(rlgame.base.rpack PRIVATE ${RPACK_CL_CFILES})
 else()
   message(STATUS "OpenCL not found, skipping CL files")
 endif()

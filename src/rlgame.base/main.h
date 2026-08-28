@@ -271,10 +271,10 @@ void R_FillMemoryInfo (struct R_MemoryInfo* out);
  * Sets the process name field from the executable path or argv[0].
  * The name string is heap-allocated and should be freed by the caller.
  *
- * @param proc Pointer to ProcessInfo structure
- * @param exePath Executable path (can be NULL)
+ * @param pProc Pointer to ProcessInfo structure
+ * @param pExePath Executable path (can be NULL)
  * @param argc Argument count from main()
  * @param argv Argument array from main()
  */
 void
-R_AssignProcessName (struct R_ProcessInfo* proc, const struct R_CSTL_String* exePath, int argc, char** argv);
+R_AssignProcessName (struct R_ProcessInfo* pProc, const struct R_CSTL_String* pExePath, int argc, char** argv);

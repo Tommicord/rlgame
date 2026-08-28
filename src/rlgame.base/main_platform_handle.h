@@ -179,15 +179,159 @@ R_ENTRY_API bool R_WindowHandleIsVisible (R_WIN32_HWND hwnd);
 #include <xcb/xcb.h>
 
 /**
+ * @brief Window decoration style flags (bit-packed)
+ *
+ * These flags use bit packing to efficiently store window decoration options
+ * in a single uint8_t instead of wasting space with multiple booleans or integers.
+ */
+enum R_WindowDecorationFlags
+{
+    R_WINDOW_DECORATION_NONE = 0x00,          ///< No decorations
+    R_WINDOW_DECORATION_BORDER = 0x01,         ///< Show window border
+    R_WINDOW_DECORATION_TITLEBAR = 0x02,       ///< Show title bar
+    R_WINDOW_DECORATION_MINIMIZE = 0x04,       ///< Show minimize button
+    R_WINDOW_DECORATION_MAXIMIZE = 0x08,       ///< Show maximize button
+    R_WINDOW_DECORATION_CLOSE = 0x10,          ///< Show close button
+    R_WINDOW_DECORATION_RESIZE = 0x20,         ///< Enable window resizing
+    R_WINDOW_DECORATION_MENU = 0x40,          ///< Show window menu
+    R_WINDOW_DECORATION_ALL = 0x7F            ///< All decorations enabled
+};
+
+/**
+ * @brief Window decoration color theme (bit-packed)
+ *
+ * Color themes for window decorations (menu bar, borders, etc.)
+ * Stored in upper bits of decoration flags (bits 8-10)
+ */
+enum R_WindowDecorationColor
+{
+    R_WINDOW_COLOR_DEFAULT = 0x00,            ///< Default system color (bits 8-10: 000)
+    R_WINDOW_COLOR_ORANGE = 0x0100,           ///< Orange theme (bits 8-10: 001)
+    R_WINDOW_COLOR_BLUE = 0x0200,             ///< Blue theme (bits 8-10: 010)
+    R_WINDOW_COLOR_GREEN = 0x0300,            ///< Green theme (bits 8-10: 011)
+    R_WINDOW_COLOR_RED = 0x0400,              ///< Red theme (bits 8-10: 100)
+    R_WINDOW_COLOR_PURPLE = 0x0500,           ///< Purple theme (bits 8-10: 101)
+    R_WINDOW_COLOR_CUSTOM = 0x0600            ///< Custom color (bits 8-10: 110)
+};
+
+/**
  * @brief Window backend type enumeration
  */
 enum R_WindowHandleBackend
 {
     R_WINDOW_BACKEND_NONE = 0,
-    R_WINDOW_BACKEND_WAYLAND = 0,
-    R_WINDOW_BACKEND_X11 = 1,
-    R_WINDOW_BACKEND_XCB = 2
+    R_WINDOW_BACKEND_WAYLAND = 1,
+    R_WINDOW_BACKEND_X11 = 2,
+    R_WINDOW_BACKEND_XCB = 3
 };
+
+/**
+ * @brief Window handle style structure with bit-packed flags
+ *
+ * This structure uses bit packing to efficiently store window decoration options
+ * without wasting space with multiple booleans or integers.
+ */
+struct R_WindowHandleStyle
+{
+    uint16_t decorationFlags; ///< Combined decoration flags and color theme (bit-packed)
+};
+
+/**
+ * @brief Predefined window decoration styles (bit-packed constants)
+ *
+ * These constants provide commonly used window decoration configurations
+ * using the bit-packed flag system for space efficiency.
+ */
+#define R_WINDOW_STYLE_DEFAULT ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_DEFAULT))
+#define R_WINDOW_STYLE_ORANGE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_ORANGE))
+#define R_WINDOW_STYLE_BLUE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_BLUE))
+#define R_WINDOW_STYLE_GREEN ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_GREEN))
+#define R_WINDOW_STYLE_RED ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_RED))
+#define R_WINDOW_STYLE_PURPLE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_PURPLE))
+#define R_WINDOW_STYLE_BORDERLESS ((R_WINDOW_DECORATION_NONE) | (R_WINDOW_COLOR_DEFAULT))
+#define R_WINDOW_STYLE_MINIMAL ((R_WINDOW_DECORATION_BORDER | R_WINDOW_DECORATION_TITLEBAR) | (R_WINDOW_COLOR_DEFAULT))
+#define R_WINDOW_STYLE_ORANGE_BORDERLESS ((R_WINDOW_DECORATION_NONE) | (R_WINDOW_COLOR_ORANGE))
+
+/**
+ * @brief Helper function to create a window style from decoration flags and color
+ * @param decorationFlags Decoration flags (bitwise OR of R_WindowDecorationFlags)
+ * @param colorTheme Color theme (R_WindowDecorationColor)
+ * @return Combined decoration flags value
+ */
+static inline uint16_t R_CreateWindowStyle (uint8_t decorationFlags, uint16_t colorTheme)
+{
+    return (uint16_t)decorationFlags | colorTheme;
+}
+
+/**
+ * @brief Helper function to extract decoration flags from style
+ * @param styleFlags Combined style flags
+ * @return Decoration flags (lower 8 bits)
+ */
+static inline uint8_t R_GetDecorationFlags (uint16_t styleFlags)
+{
+    return (uint8_t)(styleFlags & 0xFF);
+}
+
+/**
+ * @brief Helper function to extract color theme from style
+ * @param styleFlags Combined style flags
+ * @return Color theme (bits 8-10)
+ */
+static inline uint16_t R_GetColorTheme (uint16_t styleFlags)
+{
+    return styleFlags & 0x0700;
+}
+
+/**
+ * @brief Helper function to check if a specific decoration flag is set
+ * @param styleFlags Combined style flags
+ * @param flag Flag to check (R_WindowDecorationFlags)
+ * @return true if flag is set, false otherwise
+ */
+static inline bool R_HasDecorationFlag (uint16_t styleFlags, uint8_t flag)
+{
+    return (styleFlags & flag) != 0;
+}
+
+/**
+ * @brief Helper function to set a decoration flag
+ * @param pStyle Pointer to style structure
+ * @param flag Flag to set (R_WindowDecorationFlags)
+ */
+static inline void R_SetDecorationFlag (struct R_WindowHandleStyle* pStyle, uint8_t flag)
+{
+    if (pStyle)
+    {
+        pStyle->decorationFlags |= flag;
+    }
+}
+
+/**
+ * @brief Helper function to clear a decoration flag
+ * @param pStyle Pointer to style structure
+ * @param flag Flag to clear (R_WindowDecorationFlags)
+ */
+static inline void R_ClearDecorationFlag (struct R_WindowHandleStyle* pStyle, uint8_t flag)
+{
+    if (pStyle)
+    {
+        pStyle->decorationFlags &= ~flag;
+    }
+}
+
+/**
+ * @brief Helper function to set the color theme
+ * @param pStyle Pointer to style structure
+ * @param colorTheme Color theme to set (R_WindowDecorationColor)
+ */
+static inline void R_SetColorTheme (struct R_WindowHandleStyle* pStyle, uint16_t colorTheme)
+{
+    if (pStyle)
+    {
+        pStyle->decorationFlags = (pStyle->decorationFlags & 0xFF) | colorTheme;
+    }
+}
 
 /**
  * @brief GPU capability information
@@ -258,7 +402,7 @@ union R_DisplayHandle
  * @param pCapabilities Output structure for GPU capabilities
  * @return Chosen window backend type
  */
-R_ENTRY_API enum R_WindowHandleBackend R_DetectGPUCapabilities (struct R_Capabilities* pCapabilities);
+R_ENTRY_API enum R_WindowHandleBackend R_DetectCapabilities (struct R_Capabilities* pCapabilities);
 
 /**
  * @brief Initializes the Wayland window

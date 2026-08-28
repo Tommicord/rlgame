@@ -1,4 +1,7 @@
 #include "rpack/rpack_encoder.h"
+#include "rpack/rpack_val.h"
+#include "rpack/rpack_imgdecode_jpeg.h"
+
 #include "rlgame.base/cstl/cstl_log.h"
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_array.h"
@@ -7,6 +10,84 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static int
+R_Pack_HasExtension (const char* pPath, const char* pExtension)
+{
+    size_t pathLength = strlen (pPath);
+    size_t extensionLength = strlen (pExtension);
+    if (pathLength < extensionLength)
+    {
+        return 0;
+    }
+    pPath += pathLength - extensionLength;
+    for (size_t i = 0; i < extensionLength; ++i)
+    {
+        char pathChar = pPath[i];
+        char extensionChar = pExtension[i];
+        if (pathChar >= 'A' && pathChar <= 'Z') pathChar = (char)(pathChar + ('a' - 'A'));
+        if (extensionChar >= 'A' && extensionChar <= 'Z') extensionChar = (char)(extensionChar + ('a' - 'A'));
+        if (pathChar != extensionChar) return 0;
+    }
+    return 1;
+}
+
+static void
+R_Pack_LogConfigurationWarnings (const struct R_PackEncoderConfig* pConfig)
+{
+    uint64_t atlasBytes = (uint64_t)pConfig->maxAtlasWidth * pConfig->maxAtlasHeight * 2;
+    if (atlasBytes > 32ULL * 1024ULL * 1024ULL)
+    {
+        R_CSTL_LOG_WARN (
+            "Atlas limit is %ux%u (%.1f MiB); large images may exhaust the rpack heap",
+            pConfig->maxAtlasWidth,
+            pConfig->maxAtlasHeight,
+            (double)atlasBytes / (1024.0 * 1024.0));
+    }
+    if (pConfig->border != 0)
+    {
+        R_CSTL_LOG_WARN ("Border size %u was requested but border pixels are not encoded yet", pConfig->border);
+    }
+    if (pConfig->powerOfTwo)
+    {
+        R_CSTL_LOG_WARN ("Power-of-two atlas sizing was requested but is not implemented yet");
+    }
+    if (pConfig->enableRotation)
+    {
+        R_CSTL_LOG_WARN ("Texture rotation was requested but is not implemented yet");
+    }
+    if (pConfig->alphaThreshold > 0.0f)
+    {
+        R_CSTL_LOG_WARN ("Alpha threshold %.3f was requested but alpha masking is not implemented yet",
+                         pConfig->alphaThreshold);
+    }
+}
+
+static void
+R_Pack_LogImageWarnings (const char* pPath, const struct R_PackInputImage* pImage,
+                         const struct R_PackEncoderConfig* pConfig)
+{
+    uint64_t imageBytes = (uint64_t)pImage->width * pImage->height * 4;
+    if (imageBytes > 16ULL * 1024ULL * 1024ULL)
+    {
+        R_CSTL_LOG_WARN (
+            "Image %s is %ux%u (%.1f MiB RGBA); decoding and packing may use significant memory",
+            pPath,
+            pImage->width,
+            pImage->height,
+            (double)imageBytes / (1024.0 * 1024.0));
+    }
+    if (pImage->width > pConfig->maxAtlasWidth || pImage->height > pConfig->maxAtlasHeight)
+    {
+        R_CSTL_LOG_WARN (
+            "Image %s (%ux%u) exceeds the configured atlas limit %ux%u and will be skipped",
+            pPath,
+            pImage->width,
+            pImage->height,
+            pConfig->maxAtlasWidth,
+            pConfig->maxAtlasHeight);
+    }
+}
 
 static void
 R_Pack_PrintHelp ()
@@ -22,7 +103,7 @@ R_Pack_PrintHelp ()
     printf ("Options\n");
     printf ("  -o, --output FILE           = Output RPACK file path (required).\n");
     printf ("  -w, --width SIZE            = Maximum atlas width in pixels (default: 4096).\n");
-    printf ("  -h, --height SIZE           = Maximum atlas height in pixels (default: 4096).\n");
+    printf ("  -H, --height SIZE           = Maximum atlas height in pixels (default: 4096).\n");
     printf ("  -p, --padding SIZE          = Padding between textures in pixels (default: 1).\n");
     printf ("  -b, --border SIZE           = Border size around textures in pixels (default: 0).\n");
     printf ("  -t, --threshold FLOAT       = Color similarity threshold 0.0-1.0 (default: 0.1).\n");
@@ -103,7 +184,7 @@ R_Pack_ParseArguments (
                 pConfig->maxAtlasWidth = (uint32_t)atoi (argv[++i]);
             }
         }
-        else if (strcmp (argv[i], "-h") == 0 || strcmp (argv[i], "--height") == 0)
+        else if (strcmp (argv[i], "-H") == 0 || strcmp (argv[i], "--height") == 0)
         {
             if (i + 1 >= argc)
             {
@@ -250,14 +331,34 @@ R_Pack_ParseArguments (
 static int
 R_Pack_LoadImgAsset (const char* pPath, struct R_PackInputImage* pImage, uint8_t** ppPixelBuffer)
 {
-    (void)pPath;
-    (void)pImage;
-    (void)ppPixelBuffer;
+    if (!pPath || !pImage || !ppPixelBuffer)
+    {
+        return -1;
+    }
+    *ppPixelBuffer = NULL;
+    memset (pImage, 0, sizeof (*pImage));
 
-    fprintf (stderr, "\033[1;33mWarning: Image loading from file not yet implemented\033[0m\n");
-    fprintf (stderr, "\033[1;33mThis is a placeholder for runtime validation\033[0m\n");
+    if (!R_Pack_HasExtension (pPath, ".jpg") && !R_Pack_HasExtension (pPath, ".jpeg"))
+    {
+        R_CSTL_LOG_WARN ("Skipping unsupported image format: %s (JPEG expected)", pPath);
+        return -1;
+    }
 
-    return -1;
+    struct R_PackJpegImage decoded = {0};
+    enum R_PackError       error = R_Pack_JpegDecodeFile (pPath, &decoded);
+    if (error != R_RPACK_OK)
+    {
+        fprintf (stderr, "JPEG decode failed for %s: %s\n", pPath, R_Pack_ErrorToString (error));
+        return -1;
+    }
+
+    *ppPixelBuffer = decoded.pPixels;
+    pImage->pPixels = decoded.pPixels;
+    pImage->width = decoded.width;
+    pImage->height = decoded.height;
+    pImage->stride = decoded.stride;
+    pImage->pName = pPath;
+    return 0;
 }
 
 static int
@@ -289,32 +390,43 @@ R_Pack_CreateEncoder (const struct R_PackEncoderConfig* pConfig)
 static uint32_t
 R_Pack_EncodeInputImages (struct R_PackEncoder* pEncoder, const struct R_CSTL_Array* pInputPaths)
 {
-    uint32_t successCount = 0;
-    size_t   inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof (char*);
-    size_t   offset = 0;
+    uint32_t    successCount = 0;
+    size_t      inputCount = 0;
+    size_t      offset = 0;
+    size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
+    const char* pInputData = (const char*)R_CSTL_ArrayData (pInputPaths);
+
+    while (offset < inputBytes)
+    {
+        size_t pathLength = strnlen (pInputData + offset, inputBytes - offset);
+        if (pathLength == inputBytes - offset) break;
+        ++inputCount;
+        offset += pathLength + 1;
+    }
+    offset = 0;
 
     for (size_t i = 0; i < inputCount; ++i)
     {
-        char* pPath = NULL;
-        R_CSTL_ArrayTypedAt (pInputPaths, char*, offset, &pPath);
+        char* pPath = (char*)(pInputData + offset);
         offset += strlen (pPath) + 1;
 
         R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
-
         uint8_t*                pPixelBuffer = NULL;
         struct R_PackInputImage image = {0};
 
         int loadResult = R_Pack_LoadImgAsset (pPath, &image, &pPixelBuffer);
         if (loadResult < 0)
         {
-            R_CSTL_LOG_ERROR ("Failed to load image: %s", pPath);
+            R_CSTL_LOG_WARN ("Skipping image after load failure: %s", pPath);
             continue;
         }
+
+        R_Pack_LogImageWarnings (pPath, &image, &pEncoder->config);
 
         enum R_PackError err = R_Pack_EncoderAddImage (pEncoder, &image);
         if (err != R_RPACK_OK)
         {
-            R_CSTL_LOG_ERROR ("Failed to add image '%s': %s", pPath, R_PackErrorToString (err));
+            R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, R_Pack_ErrorToString (err));
             if (pPixelBuffer)
             {
                 R_CSTL_HeapFree (pPixelBuffer);
@@ -338,6 +450,12 @@ R_Pack_EncodeAndWrite (struct R_PackEncoder* pEncoder, const char* pOutputPath)
     uint64_t requiredSize = R_Pack_EncoderGetRequiredSize (pEncoder);
     R_CSTL_LOG_INFO ("Required output size: %llu bytes", (unsigned long long)requiredSize);
 
+    if (requiredSize > 32ULL * 1024ULL * 1024ULL)
+    {
+        R_CSTL_LOG_WARN ("Output requires %.1f MiB; the CLI heap is limited to 64 MiB",
+                         (double)requiredSize / (1024.0 * 1024.0));
+    }
+
     uint8_t* pOutputBuffer = (uint8_t*)R_CSTL_HeapAlloc (requiredSize);
     if (!pOutputBuffer)
     {
@@ -349,7 +467,7 @@ R_Pack_EncodeAndWrite (struct R_PackEncoder* pEncoder, const char* pOutputPath)
     enum R_PackError encodeErr = R_Pack_EncoderEncode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
     if (encodeErr != R_RPACK_OK)
     {
-        R_CSTL_LOG_ERROR ("Encoding failed: %s", R_PackErrorToString (encodeErr));
+        R_CSTL_LOG_ERROR ("Encoding failed: %s", R_Pack_ErrorToString (encodeErr));
         R_CSTL_HeapFree (pOutputBuffer);
         return -1;
     }
@@ -371,6 +489,22 @@ R_Pack_EncodeAndWrite (struct R_PackEncoder* pEncoder, const char* pOutputPath)
         R_CSTL_HeapFree (pOutputBuffer);
         return -1;
     }
+
+    struct R_PackValidationReport report;
+    if (!R_Pack_ValidatePackedData (pOutputBuffer, bytesWritten, &report))
+    {
+        R_CSTL_LOG_ERROR (
+            "RPACK validation failed: %s at byte %llu (texture %u, pixel %llu)",
+            R_Pack_ErrorToString (report.error),
+            (unsigned long long)report.offset,
+            report.textureIndex,
+            (unsigned long long)report.pixelIndex);
+        remove (pOutputPath);
+        R_CSTL_HeapFree (pOutputBuffer);
+        return -1;
+    }
+
+    R_CSTL_LOG_INFO ("RPACK validation passed: %llu bytes verified", (unsigned long long)bytesWritten);
 
     R_CSTL_LOG_INFO ("Successfully wrote %llu bytes to %s", (unsigned long long)bytesWritten, pOutputPath);
     R_CSTL_HeapFree (pOutputBuffer);
@@ -394,9 +528,15 @@ R_Pack_CleanupResources (struct R_PackEncoder* pEncoder, struct R_CSTL_Array* pI
 int
 main (int argc, char** argv)
 {
+    if (R_CSTL_HeapInit (64 * 1024 * 1024) != R_CSTL_OK)
+    {
+        fprintf (stderr, "Error: failed to initialize rpack heap\n");
+        return EXIT_FAILURE;
+    }
     if (argc == 1)
     {
         R_Pack_PrintHelp ();
+        R_CSTL_HeapShutdown ();
         return EXIT_SUCCESS;
     }
 
@@ -420,17 +560,29 @@ main (int argc, char** argv)
         &quiet);
     if (parseResult == 1)
     {
+        R_CSTL_DeleteArray (pInputPaths);
+        R_CSTL_HeapShutdown ();
         return EXIT_SUCCESS;
     }
     if (parseResult < 0)
     {
+        R_CSTL_DeleteArray (pInputPaths);
+        R_CSTL_HeapShutdown ();
         return EXIT_FAILURE;
     }
     if (R_Pack_InitializeLogging (enableColors) != 0)
     {
+        R_CSTL_DeleteArray (pInputPaths);
+        R_CSTL_HeapShutdown ();
         return EXIT_FAILURE;
     }
-    R_CSTL_LOG_INFO ("RPACK: Packing assets");
+    if (verbose)
+    {
+        R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_TRACE);
+    }
+    (void)quiet;
+    R_CSTL_LOG_INFO ("Packing assets");
+    R_Pack_LogConfigurationWarnings (&config);
 
     pEncoder = R_Pack_CreateEncoder (&config);
     if (!pEncoder)
@@ -440,17 +592,27 @@ main (int argc, char** argv)
     uint32_t successCount = R_Pack_EncodeInputImages (pEncoder, pInputPaths);
     if (successCount == 0)
     {
-        R_CSTL_LOG_ERROR ("No images were successfully processed");
+        R_CSTL_LOG_ERROR ("No images were processed");
         goto r_cleanup_encoder;
     }
-    size_t inputCount = R_CSTL_ArrayLength (pInputPaths) / sizeof (char*);
-    R_CSTL_LOG_INFO ("Successfully processed %u/%zu images", successCount, inputCount);
+    size_t      inputCount = 0;
+    size_t      inputOffset = 0;
+    size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
+    const char* pInputData = (const char*)R_CSTL_ArrayData (pInputPaths);
+    while (inputOffset < inputBytes)
+    {
+        size_t pathLength = strnlen (pInputData + inputOffset, inputBytes - inputOffset);
+        if (pathLength == inputBytes - inputOffset) break;
+        ++inputCount;
+        inputOffset += pathLength + 1;
+    }
+    R_CSTL_LOG_INFO ("Processed %u/%zu images", successCount, inputCount);
 
     if (R_Pack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
     {
         goto r_cleanup_encoder;
     }
-    R_CSTL_LOG_INFO ("RPACK: Packing completed successfully");
+    R_CSTL_LOG_INFO ("Packing completed");
     result = EXIT_SUCCESS;
 r_cleanup_encoder:
     if (pEncoder)
@@ -466,5 +628,6 @@ r_cleanup_input_paths:
     {
         R_CSTL_DeleteArray (pInputPaths);
     }
+    R_CSTL_HeapShutdown ();
     return result;
 }

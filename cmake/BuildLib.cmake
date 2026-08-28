@@ -3,6 +3,9 @@ file(GLOB_RECURSE CSTL_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/cstl/*
 file(GLOB_RECURSE CVULKAN_SOURCES       CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.c)
 file(GLOB_RECURSE CVULKAN_HEADERS       CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.h)
 file(GLOB_RECURSE CVULKAN_CUDA_SOURCES  CONFIGURE_DEPENDS src/rlgame.base/cvulkan/*.cu)
+if(NOT CUDA_FOUND)
+  set(CVULKAN_CUDA_SOURCES "")
+endif()
 file(GLOB_RECURSE GAME_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
 file(GLOB_RECURSE GAME_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
 file(GLOB         CLIENT_RENDER_SOURCES CONFIGURE_DEPENDS src/rlgame.client/render/*.c)
@@ -11,6 +14,10 @@ file(GLOB         MAIN_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/*.c)
 file(GLOB         MAIN_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/*.h)
 file(GLOB         RPACK_SOURCES         CONFIGURE_DEPENDS consoletools/rpack/*.c)
 file(GLOB         RPACK_HEADERS         CONFIGURE_DEPENDS consoletools/rpack/*.h)
+file(GLOB         RPACK_CUDA_SOURCES    CONFIGURE_DEPENDS src/rlgame.compsrc/rpack_mipmap.cu)
+if(NOT CUDA_FOUND)
+  set(RPACK_CUDA_SOURCES "")
+endif()
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 list(FILTER RPACK_SOURCES EXCLUDE REGEX "rpack_main\\.c$")
 
@@ -20,6 +27,7 @@ set(GPU_BACKEND_MACRO "")
 # Try CUDA first
 find_package(CUDA QUIET)
 if(CUDA_FOUND)
+  enable_language(CUDA)
   set(GPU_BACKEND_MACRO "R_CUDA")
   message(STATUS "GPU backend: CUDA detected and enabled")
 else()
@@ -84,17 +92,26 @@ target_link_libraries(
   rlgame.base.cstl
 )
 
-add_library(rlgame.base.rpack SHARED ${RPACK_SOURCES} ${RPACK_HEADERS})
+add_library(rlgame.base.rpack SHARED ${RPACK_SOURCES} ${RPACK_HEADERS} ${RPACK_CUDA_SOURCES})
 set_common_output_directories(rlgame.base.rpack)
 set_base_include_directories(rlgame.base.rpack)
 target_compile_definitions(rlgame.base.rpack PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_RPACK_BUILDING_DLL)
-
+apply_gpu_backend(rlgame.base.rpack)
 
 target_link_libraries(
   rlgame.base.rpack
   PUBLIC
   rlgame.base.cstl
 )
+if (UNIX AND NOT APPLE)
+  target_link_libraries(rlgame.base.rpack PUBLIC m)
+endif()
+if(OpenCL_FOUND)
+  target_link_libraries(rlgame.base.rpack PUBLIC OpenCL::OpenCL)
+endif()
+if(CUDA_FOUND)
+  target_link_libraries(rlgame.base.rpack PUBLIC CUDA::CUDA)
+endif()
 
 add_library(rlgame.client.render SHARED ${CLIENT_RENDER_SOURCES} ${CLIENT_RENDER_HEADERS})
 set_common_output_directories(rlgame.client.render)

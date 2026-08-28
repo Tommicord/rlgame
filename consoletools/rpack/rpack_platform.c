@@ -33,6 +33,8 @@ R_Pack_ErrorToString (enum R_PackError error)
         return "Invalid data";
     case R_RPACK_ERROR_BUFFER_TOO_SMALL:
         return "Buffer too small";
+    case R_RPACK_ERROR_UNSUPPORTED_FORMAT:
+        return "Unsupported image format or JPEG mode";
     case R_RPACK_ERROR_UNKNOWN:
         return "Unknown error";
     default:
