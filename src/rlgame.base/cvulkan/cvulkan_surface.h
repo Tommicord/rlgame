@@ -45,12 +45,12 @@ struct R_CVulkan_SurfaceCreateInfo
         HWND      hWnd; /**< Windows window handle */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
         enum R_CVulkan_LinuxBackend linuxBackend; /**< Linux window backend */
-        struct wl_display* pDisplay; /**< Wayland display connection */
-        struct wl_surface* pSurface; /**< Wayland surface */
-        Display* pX11Display; /**< X11 display connection */
-        Window x11Window; /**< X11 window handle */
-        xcb_connection_t* pXCBConnection; /**< XCB connection */
-        xcb_window_t xcbWindow; /**< XCB window handle */
+        struct wl_display*          pDisplay; /**< Wayland display connection */
+        struct wl_surface*          pSurface; /**< Wayland surface */
+        Display*                    pX11Display; /**< X11 display connection */
+        Window                      x11Window; /**< X11 window handle */
+        xcb_connection_t*           pXCBConnection; /**< XCB connection */
+        xcb_window_t                xcbWindow; /**< XCB window handle */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

@@ -28,7 +28,7 @@ LRESULT CALLBACK WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
  * @brief Centers the window on its current monitor
  * @param hwnd Window handle to center
  */
-R_ENTRY_API void R_WindowCenter (HWND hwnd);
+R_ENTRY_API void R_WindowHandleCenter (HWND hwnd);
 
 /**
  * @brief Gets the global window handle
@@ -51,51 +51,51 @@ R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicati
  * @param hwnd Window handle
  * @param fullscreen true to enable fullscreen, false to disable
  */
-R_ENTRY_API void R_WindowSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen);
+R_ENTRY_API void R_WindowHandleSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen);
 
 /**
  * @brief Sets the window to borderless mode
  * @param hwnd Window handle
  * @param borderless true to enable borderless, false to disable
  */
-R_ENTRY_API void R_WindowSetBorderless (R_WIN32_HWND hwnd, bool borderless);
+R_ENTRY_API void R_WindowHandleSetBorderless (R_WIN32_HWND hwnd, bool borderless);
 
 /**
  * @brief Sets the window to resizable or fixed size
  * @param hwnd Window handle
  * @param resizable true to enable resizing, false to disable
  */
-R_ENTRY_API void R_WindowSetResizable (R_WIN32_HWND hwnd, bool resizable);
+R_ENTRY_API void R_WindowHandleSetResizable (R_WIN32_HWND hwnd, bool resizable);
 
 /**
  * @brief Minimizes the window
  * @param hwnd Window handle
  */
-R_ENTRY_API void R_WindowMinimize (R_WIN32_HWND hwnd);
+R_ENTRY_API void R_WindowHandleMinimize (R_WIN32_HWND hwnd);
 
 /**
  * @brief Maximizes the window
  * @param hwnd Window handle
  */
-R_ENTRY_API void R_WindowMaximize (R_WIN32_HWND hwnd);
+R_ENTRY_API void R_WindowHandleMaximize (R_WIN32_HWND hwnd);
 
 /**
  * @brief Restores the window from minimized or maximized state
  * @param hwnd Window handle
  */
-R_ENTRY_API void R_WindowRestore (R_WIN32_HWND hwnd);
+R_ENTRY_API void R_WindowHandleRestore (R_WIN32_HWND hwnd);
 
 /**
  * @brief Hides the window
  * @param hwnd Window handle
  */
-R_ENTRY_API void R_WindowHide (R_WIN32_HWND hwnd);
+R_ENTRY_API void R_WindowHandleHide (R_WIN32_HWND hwnd);
 
 /**
  * @brief Shows the window
  * @param hwnd Window handle
  */
-R_ENTRY_API void R_WindowShow (R_WIN32_HWND hwnd);
+R_ENTRY_API void R_WindowHandleShow (R_WIN32_HWND hwnd);
 
 /**
  * @brief Gets the window client area dimensions
@@ -103,7 +103,7 @@ R_ENTRY_API void R_WindowShow (R_WIN32_HWND hwnd);
  * @param pWidth Output pointer for width
  * @param pHeight Output pointer for height
  */
-R_ENTRY_API void R_WindowGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight);
+R_ENTRY_API void R_WindowHandleGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight);
 
 /**
  * @brief Gets the window dimensions (including borders)
@@ -111,7 +111,7 @@ R_ENTRY_API void R_WindowGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHe
  * @param pWidth Output pointer for width
  * @param pHeight Output pointer for height
  */
-R_ENTRY_API void R_WindowGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight);
+R_ENTRY_API void R_WindowHandleGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight);
 
 /**
  * @brief Gets the window position
@@ -119,7 +119,7 @@ R_ENTRY_API void R_WindowGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHe
  * @param pX Output pointer for X position
  * @param pY Output pointer for Y position
  */
-R_ENTRY_API void R_WindowGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY);
+R_ENTRY_API void R_WindowHandleGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY);
 
 /**
  * @brief Sets the window position
@@ -127,7 +127,7 @@ R_ENTRY_API void R_WindowGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY);
  * @param x X position
  * @param y Y position
  */
-R_ENTRY_API void R_WindowSetPosition (R_WIN32_HWND hwnd, int x, int y);
+R_ENTRY_API void R_WindowHandleSetPosition (R_WIN32_HWND hwnd, int x, int y);
 
 /**
  * @brief Sets the window size
@@ -135,42 +135,42 @@ R_ENTRY_API void R_WindowSetPosition (R_WIN32_HWND hwnd, int x, int y);
  * @param width Window width
  * @param height Window height
  */
-R_ENTRY_API void R_WindowSetSize (R_WIN32_HWND hwnd, int width, int height);
+R_ENTRY_API void R_WindowHandleSetSize (R_WIN32_HWND hwnd, int width, int height);
 
 /**
  * @brief Sets the window title
  * @param hwnd Window handle
  * @param pTitle Window title string (UTF-8)
  */
-R_ENTRY_API void R_WindowSetTitle (R_WIN32_HWND hwnd, const char* pTitle);
+R_ENTRY_API void R_WindowHandleSetTitle (R_WIN32_HWND hwnd, const char* pTitle);
 
 /**
  * @brief Checks if the window is currently fullscreen
  * @param hwnd Window handle
  * @return true if fullscreen, false otherwise
  */
-R_ENTRY_API bool R_WindowIsFullscreen (R_WIN32_HWND hwnd);
+R_ENTRY_API bool R_WindowHandleIsFullscreen (R_WIN32_HWND hwnd);
 
 /**
  * @brief Checks if the window is currently minimized
  * @param hwnd Window handle
  * @return true if minimized, false otherwise
  */
-R_ENTRY_API bool R_WindowIsMinimized (R_WIN32_HWND hwnd);
+R_ENTRY_API bool R_WindowHandleIsMinimized (R_WIN32_HWND hwnd);
 
 /**
  * @brief Checks if the window is currently maximized
  * @param hwnd Window handle
  * @return true if maximized, false otherwise
  */
-R_ENTRY_API bool R_WindowIsMaximized (R_WIN32_HWND hwnd);
+R_ENTRY_API bool R_WindowHandleIsMaximized (R_WIN32_HWND hwnd);
 
 /**
  * @brief Checks if the window is currently visible
  * @param hwnd Window handle
  * @return true if visible, false otherwise
  */
-R_ENTRY_API bool R_WindowIsVisible (R_WIN32_HWND hwnd);
+R_ENTRY_API bool R_WindowHandleIsVisible (R_WIN32_HWND hwnd);
 
 #elif defined(__linux__)
 
@@ -181,7 +181,7 @@ R_ENTRY_API bool R_WindowIsVisible (R_WIN32_HWND hwnd);
 /**
  * @brief Window backend type enumeration
  */
-enum R_WindowBackend
+enum R_WindowHandleBackend
 {
     R_WINDOW_BACKEND_NONE = 0,
     R_WINDOW_BACKEND_WAYLAND = 0,
@@ -192,15 +192,15 @@ enum R_WindowBackend
 /**
  * @brief GPU capability information
  */
-struct R_GPUCapabilities
+struct R_Capabilities
 {
-    bool hasWaylandSupport;
-    bool hasX11Support;
-    bool hasXCBSupport;
-    bool isModernGPU;
-    uint32_t vulkanVersion;
-    const char* gpuName;
-    const char* driverVersion;
+        bool        hasWaylandSupport;
+        bool        hasX11Support;
+        bool        hasXCBSupport;
+        bool        looksModernGpu;
+        uint32_t    vulkanVersion;
+        const char* pVendor;
+        const char* pDriverVersion;
 };
 
 /**
@@ -236,11 +236,11 @@ typedef xcb_connection_t* R_XCBConnection;
 /**
  * @brief Generic window handle union
  */
-union R_WindowHandle
+union R_WindowHandleHandle
 {
-    R_WaylandWindow waylandWindow;
-    R_X11Window x11Window;
-    R_XCBWindow xcbWindow;
+        R_WaylandWindow waylandWindow;
+        R_X11Window     x11Window;
+        R_XCBWindow     xcbWindow;
 };
 
 /**
@@ -248,9 +248,9 @@ union R_WindowHandle
  */
 union R_DisplayHandle
 {
-    R_WaylandDisplay waylandDisplay;
-    R_X11Display x11Display;
-    R_XCBConnection xcbConnection;
+        R_WaylandDisplay waylandDisplay;
+        R_X11Display     x11Display;
+        R_XCBConnection  xcbConnection;
 };
 
 /**
@@ -258,28 +258,58 @@ union R_DisplayHandle
  * @param pCapabilities Output structure for GPU capabilities
  * @return Chosen window backend type
  */
-R_ENTRY_API enum R_WindowBackend R_DetectGPUCapabilities (struct R_GPUCapabilities* pCapabilities);
+R_ENTRY_API enum R_WindowHandleBackend R_DetectGPUCapabilities (struct R_Capabilities* pCapabilities);
 
 /**
  * @brief Initializes the Wayland window
  * @param pApplicationInfo Application information structure
+ * @param pStyle Window style style (can be NULL for default)
  * @return Window handle on success, NULL on failure
  */
-R_ENTRY_API R_WaylandWindow R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo);
+R_ENTRY_API R_WaylandWindow
+R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle);
 
 /**
  * @brief Initializes the X11 window
  * @param pApplicationInfo Application information structure
+ * @param pStyle Window style style (can be NULL for default)
  * @return Window handle on success, 0 on failure
  */
-R_ENTRY_API R_X11Window R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo);
+R_ENTRY_API R_X11Window
+R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle);
 
 /**
  * @brief Initializes the XCB window
  * @param pApplicationInfo Application information structure
+ * @param pStyle Window style style (can be NULL for default)
  * @return Window handle on success, 0 on failure
  */
-R_ENTRY_API R_XCBWindow R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo);
+R_ENTRY_API R_XCBWindow
+R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle);
+
+/**
+ * @brief Applies window style to an existing window
+ * @param backend Window backend type
+ * @param pWindowHandle Generic window handle
+ * @param pStyle Window style style
+ */
+R_ENTRY_API void R_ApplyWindowStyle (
+    enum R_WindowHandleBackend        backend,
+    union R_WindowHandleHandle*       pWindowHandle,
+    const struct R_WindowHandleStyle* pStyle);
+
+/**
+ * @brief Sets window title with proper app name handling
+ * @param backend Window backend type
+ * @param pWindowHandle Generic window handle
+ * @param pApplicationInfo Application information for app name
+ * @param pCustomTitle Optional custom title (overrides app name if provided)
+ */
+R_ENTRY_API void R_SetWindowTitle (
+    enum R_WindowHandleBackend      backend,
+    union R_WindowHandleHandle*     pWindowHandle,
+    const struct R_ApplicationInfo* pApplicationInfo,
+    const char*                     pCustomTitle);
 
 /**
  * @brief Gets the Wayland display handle
@@ -304,7 +334,7 @@ R_ENTRY_API R_XCBConnection R_GetXCBConnection (void);
  * @param window Window handle
  * @param fullscreen true to enable fullscreen, false to disable
  */
-R_ENTRY_API void R_WindowSetFullscreen (R_WaylandWindow window, bool fullscreen);
+R_ENTRY_API void R_WindowHandleSetFullscreen (R_WaylandWindow window, bool fullscreen);
 
 /**
  * @brief Sets the X11 window to fullscreen mode
@@ -325,7 +355,7 @@ R_ENTRY_API void R_XCBWindowSetFullscreen (R_XCBWindow window, bool fullscreen);
  * @param window Window handle
  * @param pTitle Window title string (UTF-8)
  */
-R_ENTRY_API void R_WindowSetTitle (R_WaylandWindow window, const char* pTitle);
+R_ENTRY_API void R_WindowHandleSetTitle (R_WaylandWindow window, const char* pTitle);
 
 /**
  * @brief Sets the X11 window title
@@ -347,7 +377,7 @@ R_ENTRY_API void R_XCBWindowSetTitle (R_XCBWindow window, const char* pTitle);
  * @param pWidth Output pointer for width
  * @param pHeight Output pointer for height
  */
-R_ENTRY_API void R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
+R_ENTRY_API void R_WindowHandleGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
 
 /**
  * @brief Gets the X11 window dimensions
@@ -418,6 +448,12 @@ R_ENTRY_API void R_DestroyX11Window (R_X11Window window);
  * @param window Window handle
  */
 R_ENTRY_API void R_DestroyXCBWindow (R_XCBWindow window);
+
+/**
+ * @brief Processes window events for the current backend
+ * Should be called each frame in the main loop
+ */
+R_ENTRY_API void R_ProcessWindowEvents (union R_WindowHandleHandle* pWindowHandle);
 
 #elif defined(__ANDROID__)
 

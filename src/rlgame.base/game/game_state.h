@@ -52,19 +52,19 @@ enum R_Game_LinuxBackend
 struct R_GameStateCreateInfo
 {
         const char* pApplicationName; /**< Application name */
-        int windowWidth; /**< Initial window width */
-        int windowHeight; /**< Initial window height */
+        int         windowWidth; /**< Initial window width */
+        int         windowHeight; /**< Initial window height */
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
         HINSTANCE hInstance; /**< Windows instance handle (required if not headless) */
         HWND      hWnd; /**< Windows window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
         enum R_Game_LinuxBackend linuxBackend; /**< Linux window backend */
-        struct wl_display* pDisplay; /**< Wayland display connection (required if not headless) */
-        struct wl_surface* pSurface; /**< Wayland surface (required if not headless) */
-        Display* pX11Display; /**< X11 display connection (required if not headless) */
-        Window x11Window; /**< X11 window handle (required if not headless) */
-        xcb_connection_t* pXCBConnection; /**< XCB connection (required if not headless) */
-        xcb_window_t xcbWindow; /**< XCB window handle (required if not headless) */
+        struct wl_display*       pDisplay; /**< Wayland display connection (required if not headless) */
+        struct wl_surface*       pSurface; /**< Wayland surface (required if not headless) */
+        Display*                 pX11Display; /**< X11 display connection (required if not headless) */
+        Window                   x11Window; /**< X11 window handle (required if not headless) */
+        xcb_connection_t*        pXCBConnection; /**< XCB connection (required if not headless) */
+        xcb_window_t             xcbWindow; /**< XCB window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

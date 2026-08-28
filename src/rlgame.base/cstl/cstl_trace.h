@@ -225,12 +225,12 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
 
 #else
 
-#define R_CSTL_TRACE_FUNCTION()             ((void)0)
-#define R_CSTL_TRACE_FUNCTION_CTX(fmt, ...) ((void)0)
-#define R_CSTL_TRACE_RETURN()               ((void)0)
-#define R_CSTL_TRACE_SCOPE()                ((void)0)
-#define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)    ((void)0)
-#define R_CSTL_TRACE_SCOPE_EXIT()           ((void)0)
+#define R_CSTL_TRACE_FUNCTION()                ((void)0)
+#define R_CSTL_TRACE_FUNCTION_CTX(fmt, ...)    ((void)0)
+#define R_CSTL_TRACE_RETURN()                  ((void)0)
+#define R_CSTL_TRACE_SCOPE()                   ((void)0)
+#define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)       ((void)0)
+#define R_CSTL_TRACE_SCOPE_EXIT()              ((void)0)
 #define R_CSTL_TRACE_POINT(name)               ((void)0)
 #define R_CSTL_TRACE_VAR(name, value)          ((void)0)
 #define R_CSTL_TRACE_VAR_FMT(name, value, fmt) ((void)0)

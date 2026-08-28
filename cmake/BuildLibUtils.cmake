@@ -20,7 +20,7 @@ function(set_base_include_directories TARGET)
     ${TARGET}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/pkgutils
+    ${CMAKE_CURRENT_SOURCE_DIR}/consoletools
   )
 endfunction()
 

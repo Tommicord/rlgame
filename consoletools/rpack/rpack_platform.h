@@ -43,4 +43,4 @@ enum R_PackError
     R_RPACK_ERROR_UNKNOWN = -99
 };
 
-R_RPACK_API const char* R_PackErrorToString (enum R_PackError error);
+R_RPACK_API const char* R_Pack_ErrorToString (enum R_PackError error);

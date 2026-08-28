@@ -85,8 +85,10 @@ R_CVulkan_NewSurface (
             return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating Wayland surface with display=%p, surface=%p", 
-                         (void*)pCreateInfo->pDisplay, (void*)pCreateInfo->pSurface);
+        R_CSTL_LOG_INFO (
+            "R_CVulkan_NewSurface: Creating Wayland surface with display=%p, surface=%p",
+            (void*)pCreateInfo->pDisplay,
+            (void*)pCreateInfo->pSurface);
 
         VkWaylandSurfaceCreateInfoKHR surfaceInfo = {0};
         surfaceInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
@@ -94,10 +96,15 @@ R_CVulkan_NewSurface (
         surfaceInfo.surface = pCreateInfo->pSurface;
 
         result = vkCreateWaylandSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
-        
-        if (result == VK_SUCCESS) {
-            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Wayland surface created successfully, handle=%p", (void*)pSurface->handle);
-        } else {
+
+        if (result == VK_SUCCESS)
+        {
+            R_CSTL_LOG_INFO (
+                "R_CVulkan_NewSurface: Wayland surface created successfully, handle=%p",
+                (void*)pSurface->handle);
+        }
+        else
+        {
             R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create Wayland surface, result=%d", result);
         }
     }
@@ -109,8 +116,10 @@ R_CVulkan_NewSurface (
             return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating X11 surface with display=%p, window=%lu", 
-                         (void*)pCreateInfo->pX11Display, (unsigned long)pCreateInfo->x11Window);
+        R_CSTL_LOG_INFO (
+            "R_CVulkan_NewSurface: Creating X11 surface with display=%p, window=%lu",
+            (void*)pCreateInfo->pX11Display,
+            (unsigned long)pCreateInfo->x11Window);
 
         VkXlibSurfaceCreateInfoKHR surfaceInfo = {0};
         surfaceInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
@@ -118,10 +127,15 @@ R_CVulkan_NewSurface (
         surfaceInfo.window = pCreateInfo->x11Window;
 
         result = vkCreateXlibSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
-        
-        if (result == VK_SUCCESS) {
-            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: X11 surface created successfully, handle=%p", (void*)pSurface->handle);
-        } else {
+
+        if (result == VK_SUCCESS)
+        {
+            R_CSTL_LOG_INFO (
+                "R_CVulkan_NewSurface: X11 surface created successfully, handle=%p",
+                (void*)pSurface->handle);
+        }
+        else
+        {
             R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create X11 surface, result=%d", result);
         }
     }
@@ -133,8 +147,10 @@ R_CVulkan_NewSurface (
             return R_CVULKAN_ERROR_INVALID_ARGUMENT;
         }
 
-        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating XCB surface with connection=%p, window=%u", 
-                         (void*)pCreateInfo->pXCBConnection, pCreateInfo->xcbWindow);
+        R_CSTL_LOG_INFO (
+            "R_CVulkan_NewSurface: Creating XCB surface with connection=%p, window=%u",
+            (void*)pCreateInfo->pXCBConnection,
+            pCreateInfo->xcbWindow);
 
         VkXcbSurfaceCreateInfoKHR surfaceInfo = {0};
         surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
@@ -142,10 +158,15 @@ R_CVulkan_NewSurface (
         surfaceInfo.window = pCreateInfo->xcbWindow;
 
         result = vkCreateXcbSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
-        
-        if (result == VK_SUCCESS) {
-            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: XCB surface created successfully, handle=%p", (void*)pSurface->handle);
-        } else {
+
+        if (result == VK_SUCCESS)
+        {
+            R_CSTL_LOG_INFO (
+                "R_CVulkan_NewSurface: XCB surface created successfully, handle=%p",
+                (void*)pSurface->handle);
+        }
+        else
+        {
             R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create XCB surface, result=%d", result);
         }
     }

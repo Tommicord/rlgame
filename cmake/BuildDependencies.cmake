@@ -98,37 +98,15 @@ else()
   set(CVULKAN_CUDA_SOURCES)
 endif()
 
-# RenderDoc (optional)
-find_program(RENDERDOC_EXE renderdoccmd DOC "RenderDoc command line tool")
-if(RENDERDOC_EXE)
-  message(STATUS "RenderDoc found: ${RENDERDOC_EXE}")
-  set(RENDERDOC_FOUND TRUE)
-else()
-  message(STATUS "RenderDoc not found in PATH; RenderDoc integration disabled")
-  set(RENDERDOC_FOUND FALSE)
-endif()
-
-# Google Benchmark
-include(FetchContent)
-
-FetchContent_Declare(
-  googlebenchmark
-  GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG        v1.9.2
-)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_USE_BUNDLED_GTEST OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googlebenchmark)
 
 # Google Test
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        v1.14.0
-)
-FetchContent_MakeAvailable(googletest)
+
+add_subdirectory(third_party/googletest)
+add_subdirectory(third_party/googlebenchmark)
 include(GoogleTest)

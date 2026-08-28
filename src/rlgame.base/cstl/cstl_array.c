@@ -1650,9 +1650,9 @@ R_CSTL_ArraySort (
 #if defined(R_SIMD_AVX2)
             R_CSTL_ArraySortU32AVX2 ((uint32_t*)pBase, nelem);
 #elif defined(R_SIMD_SSE)
-                R_CSTL_ArraySortU32SSE ((uint32_t*)pBase, nelem);
+            R_CSTL_ArraySortU32SSE ((uint32_t*)pBase, nelem);
 #elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
-                R_CSTL_ArraySortU32NEON ((uint32_t*)pBase, nelem);
+            R_CSTL_ArraySortU32NEON ((uint32_t*)pBase, nelem);
 #endif
         }
         else

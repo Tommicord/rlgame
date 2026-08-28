@@ -25,7 +25,8 @@
 #include <pthread.h>
 #endif
 
-static int R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineContext, uint32_t* pImageIndex);
+static int
+R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineContext, uint32_t* pImageIndex);
 
 struct R_GameRendererFrame
 {

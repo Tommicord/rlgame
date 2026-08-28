@@ -1,4 +1,4 @@
-#include "rlgame.base/main_window.h"
+#include "rlgame.base/main_platform_handle.h"
 #include "rlgame.base/main.h"
 #include "rlgame.base/main_platform.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
@@ -11,52 +11,55 @@
 #include <inttypes.h>
 #include <vulkan/vulkan.h>
 
-static uint16_t s_initialWidth = 784;
-static uint16_t s_initialHeight = 512;
-static enum R_WindowBackend g_currentBackend = R_WINDOW_BACKEND_NONE;
+static uint16_t                   s_initialWidth = 784;
+static uint16_t                   s_initialHeight = 512;
+static enum R_WindowHandleBackend g_currentBackend = R_WINDOW_BACKEND_NONE;
 
-static struct 
+static struct
 {
-    Display* display;
-    Window window;
-    int screen;
-    Atom wmDeleteMessage;
+        Display* display;
+        Window   window;
+        int      screen;
+        Atom     wmDeleteMessage;
 } g_x11State = {NULL, 0, 0, 0};
 
-static struct 
+static struct
 {
-    xcb_connection_t* connection;
-    xcb_window_t window;
-    xcb_screen_t* screen;
+        xcb_connection_t* connection;
+        xcb_window_t      window;
+        xcb_screen_t*     screen;
 } g_xcbState = {NULL, 0, NULL};
 
 // Helper function to check if Wayland is available
-static bool 
+static bool
 R_IsWaylandAvailable (void)
 {
     // Check if WAYLAND_DISPLAY is set
     const char* waylandDisplay = getenv ("WAYLAND_DISPLAY");
-    if (waylandDisplay && strlen (waylandDisplay) > 0) {
+    if (waylandDisplay && strlen (waylandDisplay) > 0)
+    {
         return true;
     }
-    
+
     // Try to connect to Wayland display
     struct wl_display* display = wl_display_connect (NULL);
-    if (display) {
+    if (display)
+    {
         wl_display_disconnect (display);
         return true;
     }
-    
+
     return false;
 }
 
 // Helper function to check if X11 is available
-static bool 
+static bool
 R_IsX11Available (void)
 {
     // Try to connect to X11 display
     Display* display = XOpenDisplay (NULL);
-    if (display) {
+    if (display)
+    {
         XCloseDisplay (display);
         return true;
     }
@@ -64,169 +67,234 @@ R_IsX11Available (void)
 }
 
 // Helper function to check if XCB is available
-static bool 
+static bool
 R_IsXCBAvailable (void)
 {
     // Try to connect to XCB
     xcb_connection_t* connection = xcb_connect (NULL, NULL);
-    if (connection && !xcb_connection_has_error (connection)) {
+    if (connection && !xcb_connection_has_error (connection))
+    {
         xcb_disconnect (connection);
         return true;
     }
-    if (connection) {
+    if (connection)
+    {
         xcb_disconnect (connection);
     }
     return false;
 }
 
 // Helper function to detect GPU capabilities using Vulkan
-static bool 
-R_DetectVulkanCapabilities (struct R_GPUCapabilities* pCapabilities)
+static bool
+R_DetectVulkanCapabilities (struct R_Capabilities* pCapabilities)
 {
     if (!pCapabilities) return false;
-    VkInstance instance = VK_NULL_HANDLE;
+    VkInstance           instance = VK_NULL_HANDLE;
     VkInstanceCreateInfo createInfo = {0};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    
+
     VkResult result = vkCreateInstance (&createInfo, NULL, &instance);
-    if (result != VK_SUCCESS) {
+    if (result != VK_SUCCESS)
+    {
         R_CSTL_LOG_ERROR ("Failed to create Vulkan instance for GPU detection: %d", result);
         return false;
     }
     uint32_t deviceCount = 0;
     result = vkEnumeratePhysicalDevices (instance, &deviceCount, NULL);
-    if (result != VK_SUCCESS || deviceCount == 0) {
+    if (result != VK_SUCCESS || deviceCount == 0)
+    {
         R_CSTL_LOG_ERROR ("No Vulkan physical devices found");
         vkDestroyInstance (instance, NULL);
         return false;
     }
     VkPhysicalDevice* devices = (VkPhysicalDevice*)R_CSTL_HeapAlloc (sizeof (VkPhysicalDevice) * deviceCount);
-    if (!devices) {
+    if (!devices)
+    {
         vkDestroyInstance (instance, NULL);
         return false;
     }
-    
+
     result = vkEnumeratePhysicalDevices (instance, &deviceCount, devices);
-    if (result != VK_SUCCESS) {
+    if (result != VK_SUCCESS)
+    {
         R_CSTL_HeapFree (devices);
         vkDestroyInstance (instance, NULL);
         return false;
     }
-    
+
     // Get properties of the first device
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties (devices[0], &deviceProperties);
-    
+
     // Extract Vulkan version
     uint32_t vulkanVersion = deviceProperties.apiVersion;
     pCapabilities->vulkanVersion = vulkanVersion;
-    
+
     // Store GPU name
-    pCapabilities->gpuName = deviceProperties.deviceName;
-    
+    pCapabilities->pVendor = deviceProperties.deviceName;
+
     // Determine if GPU is "modern" based on various criteria
     // Modern GPUs typically have:
     // - Vulkan 1.0+ (we already have Vulkan support)
     // - Dedicated GPU (not integrated)
     // - Recent driver version
     // - Good feature support
-    
+
     bool isDiscrete = (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
     bool isIntegrated = (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU);
-    
-    // Check for modern Intel integrated GPUs (HD Graphics 4000+ or Iris/Iris Pro)
+
+    // Check for modern Intel integrated GPUs
+    // Modern Intel integrated GPUs (good Vulkan/Wayland support):
+    // - UHD Graphics 600+ (Gemini Lake, 2017+)
+    // - Iris Plus Graphics 640/650/655 (Kaby Lake, 2017+)
+    // - Iris Xe Graphics (Tiger Lake 11th gen+, 2020+)
+    // - UHD Graphics Xe (11th gen+, 2020+)
+    // - Arc Graphics (discrete, 2022+)
+    // Older GPUs to EXCLUDE:
+    // - HD Graphics 4000-630 (Ivy Bridge through Skylake, 2012-2015)
+    // - HD Graphics 500-505 (Braswell/Cherry Trail, 2015) - too weak
     bool isModernIntel = false;
-    if (isIntegrated && strstr (deviceProperties.deviceName, "Intel")) {
-        // Check for HD Graphics 4000+ or Iris/Iris Pro
-        if (strstr (deviceProperties.deviceName, "HD Graphics") || 
-            strstr (deviceProperties.deviceName, "Iris") ||
-            strstr (deviceProperties.deviceName, "UHD") ||
-            strstr (deviceProperties.deviceName, "Arc")) {
+    if (isIntegrated && strstr (deviceProperties.deviceName, "Intel"))
+    {
+        const char* name = deviceProperties.deviceName;
+
+        // Check for explicitly modern Intel GPUs
+        if (strstr (name, "Iris Xe") || strstr (name, "Iris Plus") || strstr (name, "Arc"))
+        {
             isModernIntel = true;
         }
+        // Check for UHD Graphics 600+ (but not HD Graphics)
+        else if (strstr (name, "UHD Graphics"))
+        {
+            // Extract model number after "UHD Graphics"
+            const char* modelStr = strstr (name, "UHD Graphics");
+            if (modelStr)
+            {
+                modelStr += strlen ("UHD Graphics");
+                while (*modelStr == ' ' || *modelStr == 'G')
+                    modelStr++;
+                int modelNum = atoi (modelStr);
+                // UHD Graphics 600+ are modern (Gemini Lake 2017+, Tiger Lake 2020+)
+                if (modelNum >= 600)
+                {
+                    isModernIntel = true;
+                }
+            }
+        }
+        // Check for HD Graphics - only 600+ (Kaby Lake 7th gen+) might be acceptable
+        // But HD Graphics 530 (Skylake 6th gen) is too old
+        else if (strstr (name, "HD Graphics"))
+        {
+            const char* modelStr = strstr (name, "HD Graphics");
+            if (modelStr)
+            {
+                modelStr += strlen ("HD Graphics");
+                while (*modelStr == ' ' || *modelStr == 'P' || *modelStr == 'G')
+                    modelStr++;
+                int modelNum = atoi (modelStr);
+                // HD Graphics 600+ (Kaby Lake 7th gen+) - borderline but might work
+                // HD Graphics 500-505 (Apollo Lake) - too weak
+                // HD Graphics 530 (Skylake) - too old
+                if (modelNum >= 600)
+                {
+                    isModernIntel = true;
+                }
+            }
+        }
     }
-    
+
     // Check for AMD modern GPUs (GCN 1.0+)
     bool isModernAMD = false;
-    if (strstr (deviceProperties.deviceName, "AMD") || strstr (deviceProperties.deviceName, "Radeon")) {
+    if (strstr (deviceProperties.deviceName, "AMD") || strstr (deviceProperties.deviceName, "Radeon"))
+    {
         // Most AMD GPUs with Vulkan support are reasonably modern
         isModernAMD = true;
     }
-    
+
     // Check for NVIDIA modern GPUs (Kepler+)
     bool isModernNVIDIA = false;
-    if (strstr (deviceProperties.deviceName, "NVIDIA") || strstr (deviceProperties.deviceName, "GeForce")) {
+    if (strstr (deviceProperties.deviceName, "NVIDIA") || strstr (deviceProperties.deviceName, "GeForce"))
+    {
         // Most NVIDIA GPUs with Vulkan support are reasonably modern
         isModernNVIDIA = true;
     }
-    
+
     // Determine if GPU is modern
-    pCapabilities->isModernGPU = isDiscrete || isModernIntel || isModernAMD || isModernNVIDIA;
-    
+    pCapabilities->looksModernGpu = isDiscrete || isModernIntel || isModernAMD || isModernNVIDIA;
+
     R_CSTL_LOG_INFO ("GPU Detection:");
     R_CSTL_LOG_INFO ("  GPU Name: %s", deviceProperties.deviceName);
-    R_CSTL_LOG_INFO ("  GPU Type: %s", 
-        isDiscrete ? "Discrete" : (isIntegrated ? "Integrated" : "Other"));
-    R_CSTL_LOG_INFO ("  Vulkan Version: %u.%u.%u", 
+    R_CSTL_LOG_INFO ("  GPU Type: %s", isDiscrete ? "Discrete" : (isIntegrated ? "Integrated" : "Other"));
+    R_CSTL_LOG_INFO (
+        "  Vulkan Version: %u.%u.%u",
         VK_VERSION_MAJOR (vulkanVersion),
         VK_VERSION_MINOR (vulkanVersion),
         VK_VERSION_PATCH (vulkanVersion));
-    R_CSTL_LOG_INFO ("  Modern GPU: %s", pCapabilities->isModernGPU ? "Yes" : "No");
-    
+    R_CSTL_LOG_INFO ("  Looks Modern GPU: %s", pCapabilities->looksModernGpu ? "Yes" : "No");
+
     R_CSTL_HeapFree (devices);
     vkDestroyInstance (instance, NULL);
-    
+
     return true;
 }
 
-R_ENTRY_API enum R_WindowBackend 
-R_DetectGPUCapabilities (struct R_GPUCapabilities* pCapabilities)
+R_ENTRY_API enum R_WindowHandleBackend
+R_DetectGPUCapabilities (struct R_Capabilities* pCapabilities)
 {
-    if (!pCapabilities) {
+    if (!pCapabilities)
+    {
         return R_WINDOW_BACKEND_NONE;
     }
-    
+
     // Initialize capabilities
-    memset (pCapabilities, 0, sizeof (struct R_GPUCapabilities));
-    
+    memset (pCapabilities, 0, sizeof (struct R_Capabilities));
+
     // Check platform availability
     pCapabilities->hasWaylandSupport = R_IsWaylandAvailable ();
     pCapabilities->hasX11Support = R_IsX11Available ();
     pCapabilities->hasXCBSupport = R_IsXCBAvailable ();
-    
+
     R_CSTL_LOG_INFO ("Platform Availability:");
     R_CSTL_LOG_INFO ("  Wayland: %s", pCapabilities->hasWaylandSupport ? "Available" : "Not available");
     R_CSTL_LOG_INFO ("  X11: %s", pCapabilities->hasX11Support ? "Available" : "Not available");
     R_CSTL_LOG_INFO ("  XCB: %s", pCapabilities->hasXCBSupport ? "Available" : "Not available");
-    
+
     // Detect GPU capabilities
     bool gpuDetectionSuccess = R_DetectVulkanCapabilities (pCapabilities);
-    if (!gpuDetectionSuccess) {
+    if (!gpuDetectionSuccess)
+    {
         R_CSTL_LOG_WARN ("GPU detection failed, assuming legacy GPU");
-        pCapabilities->isModernGPU = false;
+        pCapabilities->looksModernGpu = false;
     }
-    
+
     // Choose backend based on GPU modernity and platform availability
-    enum R_WindowBackend chosenBackend = R_WINDOW_BACKEND_NONE;
-    
-    if (pCapabilities->isModernGPU && pCapabilities->hasWaylandSupport) {
+    enum R_WindowHandleBackend chosenBackend = R_WINDOW_BACKEND_NONE;
+
+    if (pCapabilities->looksModernGpu && pCapabilities->hasWaylandSupport)
+    {
         // Modern GPU with Wayland support - use Wayland
         chosenBackend = R_WINDOW_BACKEND_WAYLAND;
         R_CSTL_LOG_INFO ("Chosen backend: Wayland (modern GPU)");
-    } else if (pCapabilities->hasX11Support) {
+    }
+    else if (pCapabilities->hasX11Support)
+    {
         // Legacy GPU or no Wayland - use X11
         chosenBackend = R_WINDOW_BACKEND_X11;
         R_CSTL_LOG_INFO ("Chosen backend: X11 (legacy GPU or no Wayland)");
-    } else if (pCapabilities->hasXCBSupport) {
+    }
+    else if (pCapabilities->hasXCBSupport)
+    {
         // Fallback to XCB
         chosenBackend = R_WINDOW_BACKEND_XCB;
         R_CSTL_LOG_INFO ("Chosen backend: XCB (fallback)");
-    } else {
+    }
+    else
+    {
         // No suitable backend found
         R_CSTL_LOG_ERROR ("No suitable window backend found");
         chosenBackend = R_WINDOW_BACKEND_NONE;
     }
-    
+
     g_currentBackend = chosenBackend;
     return chosenBackend;
 }
@@ -244,7 +312,7 @@ R_GetWindowHandle (void)
 }
 
 LRESULT CALLBACK
-R_WindowProc (R_WIN32_HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+R_WindowHandleProc (R_WIN32_HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -261,7 +329,7 @@ R_WindowProc (R_WIN32_HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 R_ENTRY_API void
-R_WindowCenter (R_WIN32_HWND hwnd)
+R_WindowHandleCenter (R_WIN32_HWND hwnd)
 {
     RECT rc;
     GetWindowRect (hwnd, &rc);
@@ -286,7 +354,7 @@ R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicati
 {
     const char* CLASS_NAME = "GameWindowClass";
     WNDCLASSA   wc = {0};
-    wc.lpfnWndProc = R_WindowProc;
+    wc.lpfnWndProc = R_WindowHandleProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     if (!RegisterClassA (&wc)) goto r_fail_init;
@@ -307,7 +375,7 @@ R_InitWinMain (R_WIN32_HINSTANCE hInstance, struct R_ApplicationInfo* pApplicati
         NULL,
         hInstance,
         NULL);
-    R_WindowCenter (hwnd);
+    R_WindowHandleCenter (hwnd);
     if (!hwnd) goto r_fail_init;
     ShowWindow (hwnd, nCmdShow);
     return 1;
@@ -317,7 +385,7 @@ r_fail_init:
 }
 
 R_ENTRY_API void
-R_WindowSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen)
+R_WindowHandleSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen)
 {
     if (!hwnd) return;
 
@@ -357,7 +425,7 @@ R_WindowSetFullscreen (R_WIN32_HWND hwnd, bool fullscreen)
 }
 
 R_ENTRY_API void
-R_WindowSetBorderless (R_WIN32_HWND hwnd, bool borderless)
+R_WindowHandleSetBorderless (R_WIN32_HWND hwnd, bool borderless)
 {
     if (!hwnd) return;
     DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
@@ -376,7 +444,7 @@ R_WindowSetBorderless (R_WIN32_HWND hwnd, bool borderless)
 }
 
 R_ENTRY_API void
-R_WindowSetResizable (R_WIN32_HWND hwnd, bool resizable)
+R_WindowHandleSetResizable (R_WIN32_HWND hwnd, bool resizable)
 {
     if (!hwnd) return;
     DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
@@ -392,37 +460,37 @@ R_WindowSetResizable (R_WIN32_HWND hwnd, bool resizable)
 }
 
 R_ENTRY_API void
-R_WindowMinimize (R_WIN32_HWND hwnd)
+R_WindowHandleMinimize (R_WIN32_HWND hwnd)
 {
     if (hwnd) ShowWindow (hwnd, SW_MINIMIZE);
 }
 
 R_ENTRY_API void
-R_WindowMaximize (R_WIN32_HWND hwnd)
+R_WindowHandleMaximize (R_WIN32_HWND hwnd)
 {
     if (hwnd) ShowWindow (hwnd, SW_MAXIMIZE);
 }
 
 R_ENTRY_API void
-R_WindowRestore (R_WIN32_HWND hwnd)
+R_WindowHandleRestore (R_WIN32_HWND hwnd)
 {
     if (hwnd) ShowWindow (hwnd, SW_RESTORE);
 }
 
 R_ENTRY_API void
-R_WindowHide (R_WIN32_HWND hwnd)
+R_WindowHandleHide (R_WIN32_HWND hwnd)
 {
     if (hwnd) ShowWindow (hwnd, SW_HIDE);
 }
 
 R_ENTRY_API void
-R_WindowShow (R_WIN32_HWND hwnd)
+R_WindowHandleShow (R_WIN32_HWND hwnd)
 {
     if (hwnd) ShowWindow (hwnd, SW_SHOW);
 }
 
 R_ENTRY_API void
-R_WindowGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
+R_WindowHandleGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 {
     if (!hwnd)
     {
@@ -445,7 +513,7 @@ R_WindowGetClientSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 }
 
 R_ENTRY_API void
-R_WindowGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
+R_WindowHandleGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 {
     if (!hwnd)
     {
@@ -468,7 +536,7 @@ R_WindowGetWindowSize (R_WIN32_HWND hwnd, int* pWidth, int* pHeight)
 }
 
 R_ENTRY_API void
-R_WindowGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY)
+R_WindowHandleGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY)
 {
     if (!hwnd)
     {
@@ -491,26 +559,26 @@ R_WindowGetPosition (R_WIN32_HWND hwnd, int* pX, int* pY)
 }
 
 R_ENTRY_API void
-R_WindowSetPosition (R_WIN32_HWND hwnd, int x, int y)
+R_WindowHandleSetPosition (R_WIN32_HWND hwnd, int x, int y)
 {
     if (hwnd) SetWindowPos (hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
 R_ENTRY_API void
-R_WindowSetSize (R_WIN32_HWND hwnd, int width, int height)
+R_WindowHandleSetSize (R_WIN32_HWND hwnd, int width, int height)
 {
     if (hwnd) SetWindowPos (hwnd, NULL, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
 }
 
 R_ENTRY_API void
-R_WindowSetTitle (R_WIN32_HWND hwnd, const char* pTitle)
+R_WindowHandleSetTitle (R_WIN32_HWND hwnd, const char* pTitle)
 {
     if (!hwnd || !pTitle) return;
     SetWindowTextA (hwnd, pTitle);
 }
 
 R_ENTRY_API bool
-R_WindowIsFullscreen (R_WIN32_HWND hwnd)
+R_WindowHandleIsFullscreen (R_WIN32_HWND hwnd)
 {
     if (!hwnd) return false;
 
@@ -525,21 +593,21 @@ R_WindowIsFullscreen (R_WIN32_HWND hwnd)
 }
 
 R_ENTRY_API bool
-R_WindowIsMinimized (R_WIN32_HWND hwnd)
+R_WindowHandleIsMinimized (R_WIN32_HWND hwnd)
 {
     if (!hwnd) return false;
     return IsIconic (hwnd) != 0;
 }
 
 R_ENTRY_API bool
-R_WindowIsMaximized (R_WIN32_HWND hwnd)
+R_WindowHandleIsMaximized (R_WIN32_HWND hwnd)
 {
     if (!hwnd) return false;
     return IsZoomed (hwnd) != 0;
 }
 
 R_ENTRY_API bool
-R_WindowIsVisible (R_WIN32_HWND hwnd)
+R_WindowHandleIsVisible (R_WIN32_HWND hwnd)
 {
     if (!hwnd) return false;
     return IsWindowVisible (hwnd) != 0;
@@ -550,6 +618,7 @@ R_WindowIsVisible (R_WIN32_HWND hwnd)
 #include <wayland-client.h>
 #include <xdg-shell.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <xcb/xcb.h>
 #include <vulkan/vulkan.h>
 #include <string.h>
@@ -588,12 +657,14 @@ R_RegistryGlobal (
     {
         // Use the exact version the compositor advertises to avoid Intel driver bugs
         uint32_t bindVersion = version;
-        if (version < 1) {
+        if (version < 1)
+        {
             R_CSTL_LOG_ERROR ("Compositor version %u is too low, minimum required is 1", version);
             return;
         }
         pState->compositor = wl_registry_bind (pRegistry, name, &wl_compositor_interface, bindVersion);
-        if (!pState->compositor) {
+        if (!pState->compositor)
+        {
             R_CSTL_LOG_ERROR ("Failed to bind compositor");
             return;
         }
@@ -604,12 +675,14 @@ R_RegistryGlobal (
     {
         // Use the exact version the compositor advertises to avoid Intel driver bugs
         uint32_t bindVersion = version;
-        if (version < 1) {
+        if (version < 1)
+        {
             R_CSTL_LOG_ERROR ("XDG WM base version %u is too low, minimum required is 1", version);
             return;
         }
         pState->xdgWmBase = wl_registry_bind (pRegistry, name, &xdg_wm_base_interface, bindVersion);
-        if (!pState->xdgWmBase) {
+        if (!pState->xdgWmBase)
+        {
             R_CSTL_LOG_ERROR ("Failed to bind XDG WM base");
             return;
         }
@@ -635,9 +708,7 @@ xdg_wm_base_ping (void* data, struct xdg_wm_base* xdg_wm_base, uint32_t serial)
     xdg_wm_base_pong (xdg_wm_base, serial);
 }
 
-static const struct xdg_wm_base_listener g_xdgWmBaseListener = {
-    xdg_wm_base_ping
-};
+static const struct xdg_wm_base_listener g_xdgWmBaseListener = {xdg_wm_base_ping};
 
 static void
 xdg_surface_configure (void* data, struct xdg_surface* xdg_surface, uint32_t serial)
@@ -647,9 +718,7 @@ xdg_surface_configure (void* data, struct xdg_surface* xdg_surface, uint32_t ser
     pState->configured = true;
 }
 
-static const struct xdg_surface_listener xdg_surface_listener = {
-    xdg_surface_configure
-};
+static const struct xdg_surface_listener xdg_surface_listener = {xdg_surface_configure};
 
 static void
 xdg_toplevel_configure (
@@ -690,15 +759,14 @@ xdg_toplevel_wm_capabilities (void* data, struct xdg_toplevel* xdg_toplevel, str
     (void)capabilities;
 }
 
-static const struct xdg_toplevel_listener g_xdgTopLevelListener = {
-    xdg_toplevel_configure,
-    xdg_toplevel_close,
-    xdg_toplevel_configure_bounds,
-    xdg_toplevel_wm_capabilities
-};
+static const struct xdg_toplevel_listener g_xdgTopLevelListener
+    = {xdg_toplevel_configure,
+       xdg_toplevel_close,
+       xdg_toplevel_configure_bounds,
+       xdg_toplevel_wm_capabilities};
 
 R_WaylandWindow
-R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
+R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle)
 {
     if (!pApplicationInfo)
     {
@@ -712,7 +780,7 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to allocate state");
         goto r_cleanup_none;
     }
-    memset(pState, 0, sizeof(struct R_WaylandWindowState));
+    memset (pState, 0, sizeof (struct R_WaylandWindowState));
     pState->width = s_initialWidth;
     pState->height = s_initialHeight;
 
@@ -731,8 +799,9 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
     }
 
     wl_registry_add_listener (pState->registry, &g_registryListener, pState);
-    
-    if (wl_display_roundtrip (pState->display) < 0) {
+
+    if (wl_display_roundtrip (pState->display) < 0)
+    {
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to complete initial Wayland roundtrip");
         goto r_cleanup_registry;
     }
@@ -748,10 +817,10 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to bind XDG WM base");
         goto r_cleanup_compositor;
     }
-    
+
     R_CSTL_LOG_INFO ("Wayland registry roundtrip completed successfully");
     xdg_wm_base_add_listener (pState->xdgWmBase, &g_xdgWmBaseListener, NULL);
-    
+
     pState->surface = wl_compositor_create_surface (pState->compositor);
     if (!pState->surface)
     {
@@ -786,22 +855,25 @@ R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo)
     xdg_toplevel_set_min_size (pState->xdgToplevel, s_initialWidth, s_initialHeight);
     xdg_surface_set_window_geometry (pState->xdgSurface, 0, 0, s_initialWidth, s_initialHeight);
     wl_surface_commit (pState->surface);
-    wl_display_flush(pState->display);
+    wl_display_flush (pState->display);
 
-    while (!pState->configured) {
-        if (wl_display_dispatch(pState->display) == -1) {
+    while (!pState->configured)
+    {
+        if (wl_display_dispatch (pState->display) == -1)
+        {
             R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to dispatch Wayland events");
             goto r_cleanup_xdg_toplevel;
         }
     }
     wl_surface_commit (pState->surface);
-    wl_display_flush(pState->display);
+    wl_display_flush (pState->display);
 
-    if (wl_display_roundtrip(pState->display) < 0) {
+    if (wl_display_roundtrip (pState->display) < 0)
+    {
         R_CSTL_LOG_ERROR ("R_InitWaylandWindow: Failed to complete final Wayland roundtrip");
         goto r_cleanup_xdg_toplevel;
     }
-    wl_display_flush(pState->display);
+    wl_display_flush (pState->display);
 
     g_waylandState = pState;
     R_CSTL_LOG_INFO ("Wayland with default size %dx%d initialized", pState->width, pState->height);
@@ -834,7 +906,7 @@ R_GetWaylandDisplay (void)
 }
 
 R_ENTRY_API void
-R_WindowSetFullscreen (R_WaylandWindow window, const bool fullscreen)
+R_WindowHandleSetFullscreen (R_WaylandWindow window, const bool fullscreen)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (state && state->xdgToplevel)
@@ -851,18 +923,17 @@ R_WindowSetFullscreen (R_WaylandWindow window, const bool fullscreen)
 }
 
 R_ENTRY_API void
-R_WindowSetTitle (R_WaylandWindow window, const char* pTitle)
+R_WindowHandleSetTitle (R_WaylandWindow window, const char* pTitle)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (state)
     {
-        if (pTitle && window)
-            xdg_toplevel_set_title (state->xdgToplevel, pTitle);
+        if (pTitle && window) xdg_toplevel_set_title (state->xdgToplevel, pTitle);
     }
 }
 
 R_ENTRY_API void
-R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
+R_WindowHandleGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state)
@@ -871,10 +942,8 @@ R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight)
         if (pHeight) *pHeight = 0;
         return;
     }
-    if (pWidth)
-        *pWidth = state->width;
-    if (pHeight)
-        *pHeight = state->height;
+    if (pWidth) *pWidth = state->width;
+    if (pHeight) *pHeight = state->height;
 }
 
 R_ENTRY_API struct wl_surface*
@@ -899,28 +968,24 @@ R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight)
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state) return;
 
-    // Flush any pending events
-    wl_display_flush(state->display);
-    
-    // Perform a roundtrip to ensure all events are processed
-    if (wl_display_roundtrip (state->display) < 0) {
+    wl_display_flush (state->display);
+    if (wl_display_roundtrip (state->display) < 0)
+    {
         R_CSTL_LOG_ERROR ("R_WaylandWindowWaitForConfig: Failed to complete Wayland roundtrip");
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
         return;
     }
-    
+
     // Additional flush after roundtrip
-    wl_display_flush(state->display);
+    wl_display_flush (state->display);
 
     state->width = s_initialWidth;
     state->height = s_initialHeight;
-    
-    if (pWidth)
-        *pWidth = state->width;
-    if (pHeight)
-        *pHeight = state->height;
-    
+
+    if (pWidth) *pWidth = state->width;
+    if (pHeight) *pHeight = state->height;
+
     R_CSTL_LOG_INFO ("R_WaylandWindowWaitForConfig: Window size set to %dx%d", state->width, state->height);
 }
 
@@ -930,96 +995,138 @@ R_DestroyWaylandWindow (R_WaylandWindow window)
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state) return;
 
-    if (state->xdgToplevel)
-        xdg_toplevel_destroy (state->xdgToplevel);
-    if (state->xdgSurface)
-        xdg_surface_destroy (state->xdgSurface);
-    if (state->xdgWmBase)
-        xdg_wm_base_destroy (state->xdgWmBase);
-    if (state->surface)
-        wl_surface_destroy (state->surface);
-    if (state->compositor)
-        wl_compositor_destroy (state->compositor);
-    if (state->registry)
-        wl_registry_destroy (state->registry);
-    if (state->display)
-        wl_display_disconnect (state->display);
+    if (state->xdgToplevel) xdg_toplevel_destroy (state->xdgToplevel);
+    if (state->xdgSurface) xdg_surface_destroy (state->xdgSurface);
+    if (state->xdgWmBase) xdg_wm_base_destroy (state->xdgWmBase);
+    if (state->surface) wl_surface_destroy (state->surface);
+    if (state->compositor) wl_compositor_destroy (state->compositor);
+    if (state->registry) wl_registry_destroy (state->registry);
+    if (state->display) wl_display_disconnect (state->display);
     R_CSTL_HeapFree (state);
 }
 
-// X11 Window Implementation
-
-R_ENTRY_API R_X11Window 
-R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo)
+R_ENTRY_API R_X11Window
+R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle)
 {
-    if (!pApplicationInfo) {
+    if (!pApplicationInfo)
+    {
         R_CSTL_LOG_ERROR ("R_InitX11Window: Invalid application info");
         return 0;
     }
-
-    // Open connection to X server
     g_x11State.display = XOpenDisplay (NULL);
-    if (!g_x11State.display) {
+    if (!g_x11State.display)
+    {
         R_CSTL_LOG_ERROR ("R_InitX11Window: Failed to open X display");
         return 0;
     }
-
     g_x11State.screen = DefaultScreen (g_x11State.display);
 
-    // Create window
-    g_x11State.window = XCreateSimpleWindow (
+    XVisualInfo visualTemplate;
+    visualTemplate.screen = g_x11State.screen;
+    visualTemplate.depth = 32;
+    visualTemplate.class = TrueColor;
+
+    int          visualCount;
+    XVisualInfo* pVisualList = XGetVisualInfo (
+        g_x11State.display,
+        VisualScreenMask | VisualDepthMask | VisualClassMask,
+        &visualTemplate,
+        &visualCount);
+
+    Visual* pVisual;
+    int     depth;
+    if (pVisualList && visualCount > 0)
+    {
+        pVisual = pVisualList[0].visual;
+        depth = pVisualList[0].depth;
+    }
+    else
+    {
+        pVisual = DefaultVisual (g_x11State.display, g_x11State.screen);
+        depth = DefaultDepth (g_x11State.display, g_x11State.screen);
+        if (pVisualList) XFree (pVisualList);
+        pVisualList = NULL;
+    }
+    XSetWindowAttributes attrs = {0};
+    attrs.colormap = XCreateColormap (
         g_x11State.display,
         RootWindow (g_x11State.display, g_x11State.screen),
-        0, 0,
-        s_initialWidth, s_initialHeight,
-        1,
-        BlackPixel (g_x11State.display, g_x11State.screen),
-        WhitePixel (g_x11State.display, g_x11State.screen));
+        pVisual,
+        AllocNone);
+    attrs.background_pixel = 0;
+    attrs.border_pixel = 0;
+    attrs.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+                       | StructureNotifyMask | FocusChangeMask;
+    g_x11State.window = XCreateWindow (
+        g_x11State.display,
+        RootWindow (g_x11State.display, g_x11State.screen),
+        0,
+        0,
+        s_initialWidth,
+        s_initialHeight,
+        0,
+        depth,
+        InputOutput,
+        pVisual,
+        CWEventMask | CWColormap | CWBorderPixel | CWBackPixel,
+        &attrs);
 
-    if (!g_x11State.window) {
+    if (!g_x11State.window)
+    {
         R_CSTL_LOG_ERROR ("R_InitX11Window: Failed to create X11 window");
         XCloseDisplay (g_x11State.display);
         g_x11State.display = NULL;
         return 0;
     }
-
-    // Set window title
     const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
-    if (pAppName) {
+    if (pAppName)
+    {
         XStoreName (g_x11State.display, g_x11State.window, pAppName);
     }
-
-    // Set up WM_DELETE_MESSAGE protocol
     g_x11State.wmDeleteMessage = XInternAtom (g_x11State.display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols (g_x11State.display, g_x11State.window, &g_x11State.wmDeleteMessage, 1);
 
-    // Select input events
-    XSelectInput (g_x11State.display, g_x11State.window, 
-        ExposureMask | KeyPressMask | KeyReleaseMask | 
-        ButtonPressMask | ButtonReleaseMask | 
-        StructureNotifyMask);
+    XSelectInput (
+        g_x11State.display,
+        g_x11State.window,
+        ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+            | StructureNotifyMask);
+    attrs.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
+                       | StructureNotifyMask | FocusChangeMask;
+    XChangeWindowAttributes (g_x11State.display, g_x11State.window, CWEventMask, &attrs);
 
-    // Map (show) window
+    XWMHints* wmHints = XAllocWMHints ();
+    if (wmHints)
+    {
+        wmHints->flags = InputHint | StateHint;
+        wmHints->input = True;
+        wmHints->initial_state = NormalState;
+        XSetWMHints (g_x11State.display, g_x11State.window, wmHints);
+        XFree (wmHints);
+    }
     XMapWindow (g_x11State.display, g_x11State.window);
-
-    // Flush to ensure requests are sent
     XFlush (g_x11State.display);
 
-    R_CSTL_LOG_INFO ("X11 window created successfully: %dx%d", s_initialWidth, s_initialHeight);
+    XEvent event;
+    do
+    {
+        XNextEvent (g_x11State.display, &event);
+    } while (event.type != MapNotify || event.xmap.window != g_x11State.window);
+
+    R_CSTL_LOG_INFO ("X11 window created and mapped successfully: %dx%d", s_initialWidth, s_initialHeight);
     return g_x11State.window;
 }
 
-R_ENTRY_API R_X11Display 
+R_ENTRY_API R_X11Display
 R_GetX11Display (void)
 {
     return g_x11State.display;
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_X11WindowSetFullscreen (R_X11Window window, bool fullscreen)
 {
     (void)window; // We use the global state
-    
     if (!g_x11State.display) return;
 
     Atom wmState = XInternAtom (g_x11State.display, "_NET_WM_STATE", False);
@@ -1035,83 +1142,101 @@ R_X11WindowSetFullscreen (R_X11Window window, bool fullscreen)
     xev.xclient.data.l[1] = wmFullscreen;
     xev.xclient.data.l[2] = 0;
 
-    XSendEvent (g_x11State.display, DefaultRootWindow (g_x11State.display), False,
-        SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+    XSendEvent (
+        g_x11State.display,
+        DefaultRootWindow (g_x11State.display),
+        False,
+        SubstructureNotifyMask | SubstructureRedirectMask,
+        &xev);
     XFlush (g_x11State.display);
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_X11WindowSetTitle (R_X11Window window, const char* pTitle)
 {
     (void)window; // We use the global state
-    
+
     if (!g_x11State.display || !pTitle) return;
-    
+
     XStoreName (g_x11State.display, g_x11State.window, pTitle);
     XFlush (g_x11State.display);
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_X11WindowGetSize (R_X11Window window, int* pWidth, int* pHeight)
 {
     (void)window; // We use the global state
-    
-    if (!g_x11State.display) {
+
+    if (!g_x11State.display)
+    {
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
         return;
     }
 
     XWindowAttributes attributes;
-    if (XGetWindowAttributes (g_x11State.display, g_x11State.window, &attributes)) {
+    if (XGetWindowAttributes (g_x11State.display, g_x11State.window, &attributes))
+    {
         if (pWidth) *pWidth = attributes.width;
         if (pHeight) *pHeight = attributes.height;
-    } else {
+    }
+    else
+    {
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
     }
 }
 
-R_ENTRY_API Display* 
+R_ENTRY_API Display*
 R_X11WindowGetDisplay (R_X11Window window)
 {
     (void)window; // We use the global state
     return g_x11State.display;
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_DestroyX11Window (R_X11Window window)
 {
     (void)window; // We use the global state
-    
-    if (g_x11State.window) {
+
+    if (g_x11State.window)
+    {
         XDestroyWindow (g_x11State.display, g_x11State.window);
         g_x11State.window = 0;
     }
-    
-    if (g_x11State.display) {
+
+    if (g_x11State.display)
+    {
         XCloseDisplay (g_x11State.display);
         g_x11State.display = NULL;
     }
-    
+
     R_CSTL_LOG_INFO ("X11 window destroyed");
 }
 
-// XCB Window Implementation
-
-R_ENTRY_API R_XCBWindow 
-R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo)
+R_ENTRY_API R_XCBWindow
+R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo, const struct R_WindowHandleStyle* pStyle)
 {
-    if (!pApplicationInfo) {
+    if (!pApplicationInfo)
+    {
         R_CSTL_LOG_ERROR ("R_InitXCBWindow: Invalid application info");
         return 0;
     }
 
+    // Use default style if none provided
+    struct R_WindowHandleStyle defaultStyle = R_WINDOW_DECORATION_ORANGE;
+    if (!pStyle)
+    {
+        pStyle = &defaultStyle;
+    }
+
     // Open connection to X server
     g_xcbState.connection = xcb_connect (NULL, NULL);
-    if (!g_xcbState.connection || xcb_connection_has_error (g_xcbState.connection)) {
+    if (!g_xcbState.connection || xcb_connection_has_error (g_xcbState.connection))
+    {
         R_CSTL_LOG_ERROR ("R_InitXCBWindow: Failed to connect to X server via XCB");
-        if (g_xcbState.connection) {
+        if (g_xcbState.connection)
+        {
             xcb_disconnect (g_xcbState.connection);
             g_xcbState.connection = NULL;
         }
@@ -1119,36 +1244,38 @@ R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo)
     }
 
     // Get screen
-    const xcb_setup_t* setup = xcb_get_setup (g_xcbState.connection);
+    const xcb_setup_t*    setup = xcb_get_setup (g_xcbState.connection);
     xcb_screen_iterator_t iter = xcb_setup_roots_iterator (setup);
     g_xcbState.screen = iter.data;
 
     // Create window
     g_xcbState.window = xcb_generate_id (g_xcbState.connection);
-    
+
     uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     uint32_t values[2] = {
         g_xcbState.screen->white_pixel,
-        XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS | 
-        XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_BUTTON_PRESS | 
-        XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_STRUCTURE_NOTIFY
-    };
+        XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE
+            | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
     xcb_create_window (
         g_xcbState.connection,
         XCB_COPY_FROM_PARENT,
         g_xcbState.window,
         g_xcbState.screen->root,
-        0, 0,
-        s_initialWidth, s_initialHeight,
+        0,
+        0,
+        s_initialWidth,
+        s_initialHeight,
         1,
         XCB_WINDOW_CLASS_INPUT_OUTPUT,
         g_xcbState.screen->root_visual,
-        mask, values);
+        mask,
+        values);
 
     // Set window title
     const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
-    if (pAppName) {
+    if (pAppName)
+    {
         xcb_change_property (
             g_xcbState.connection,
             XCB_PROP_MODE_REPLACE,
@@ -1168,30 +1295,34 @@ R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo)
     return g_xcbState.window;
 }
 
-R_ENTRY_API R_XCBConnection 
+R_ENTRY_API R_XCBConnection
 R_GetXCBConnection (void)
 {
     return g_xcbState.connection;
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_XCBWindowSetFullscreen (R_XCBWindow window, bool fullscreen)
 {
     (void)window; // We use the global state
-    
+
     if (!g_xcbState.connection) return;
 
-    xcb_intern_atom_cookie_t wm_state_cookie = xcb_intern_atom (
-        g_xcbState.connection, 0, strlen ("_NET_WM_STATE"), "_NET_WM_STATE");
+    xcb_intern_atom_cookie_t wm_state_cookie
+        = xcb_intern_atom (g_xcbState.connection, 0, strlen ("_NET_WM_STATE"), "_NET_WM_STATE");
     xcb_intern_atom_cookie_t wm_fullscreen_cookie = xcb_intern_atom (
-        g_xcbState.connection, 0, strlen ("_NET_WM_STATE_FULLSCREEN"), "_NET_WM_STATE_FULLSCREEN");
+        g_xcbState.connection,
+        0,
+        strlen ("_NET_WM_STATE_FULLSCREEN"),
+        "_NET_WM_STATE_FULLSCREEN");
 
-    xcb_intern_atom_reply_t* wm_state_reply = xcb_intern_atom_reply (
-        g_xcbState.connection, wm_state_cookie, NULL);
-    xcb_intern_atom_reply_t* wm_fullscreen_reply = xcb_intern_atom_reply (
-        g_xcbState.connection, wm_fullscreen_cookie, NULL);
+    xcb_intern_atom_reply_t* wm_state_reply
+        = xcb_intern_atom_reply (g_xcbState.connection, wm_state_cookie, NULL);
+    xcb_intern_atom_reply_t* wm_fullscreen_reply
+        = xcb_intern_atom_reply (g_xcbState.connection, wm_fullscreen_cookie, NULL);
 
-    if (wm_state_reply && wm_fullscreen_reply) {
+    if (wm_state_reply && wm_fullscreen_reply)
+    {
         xcb_client_message_event_t event;
         memset (&event, 0, sizeof (event));
         event.response_type = XCB_CLIENT_MESSAGE;
@@ -1215,13 +1346,13 @@ R_XCBWindowSetFullscreen (R_XCBWindow window, bool fullscreen)
     }
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_XCBWindowSetTitle (R_XCBWindow window, const char* pTitle)
 {
     (void)window; // We use the global state
-    
+
     if (!g_xcbState.connection || !pTitle) return;
-    
+
     xcb_change_property (
         g_xcbState.connection,
         XCB_PROP_MODE_REPLACE,
@@ -1234,12 +1365,13 @@ R_XCBWindowSetTitle (R_XCBWindow window, const char* pTitle)
     xcb_flush (g_xcbState.connection);
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_XCBWindowGetSize (R_XCBWindow window, int* pWidth, int* pHeight)
 {
     (void)window; // We use the global state
-    
-    if (!g_xcbState.connection) {
+
+    if (!g_xcbState.connection)
+    {
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
         return;
@@ -1248,44 +1380,232 @@ R_XCBWindowGetSize (R_XCBWindow window, int* pWidth, int* pHeight)
     xcb_get_geometry_cookie_t cookie = xcb_get_geometry (g_xcbState.connection, g_xcbState.window);
     xcb_get_geometry_reply_t* reply = xcb_get_geometry_reply (g_xcbState.connection, cookie, NULL);
 
-    if (reply) {
+    if (reply)
+    {
         if (pWidth) *pWidth = reply->width;
         if (pHeight) *pHeight = reply->height;
         free (reply);
-    } else {
+    }
+    else
+    {
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
     }
 }
 
-R_ENTRY_API xcb_connection_t* 
+R_ENTRY_API xcb_connection_t*
 R_XCBWindowGetConnection (R_XCBWindow window)
 {
     (void)window; // We use the global state
     return g_xcbState.connection;
 }
 
-R_ENTRY_API void 
+R_ENTRY_API void
 R_DestroyXCBWindow (R_XCBWindow window)
 {
     (void)window; // We use the global state
-    
-    if (g_xcbState.window) {
+
+    if (g_xcbState.window)
+    {
         xcb_destroy_window (g_xcbState.connection, g_xcbState.window);
         g_xcbState.window = 0;
     }
-    
-    if (g_xcbState.connection) {
+
+    if (g_xcbState.connection)
+    {
         xcb_disconnect (g_xcbState.connection);
         g_xcbState.connection = NULL;
     }
-    
+
     R_CSTL_LOG_INFO ("XCB window destroyed");
+}
+
+// Common window style functions
+
+R_ENTRY_API void
+R_ApplyWindowStyle (
+    enum R_WindowHandleBackend        backend,
+    union R_WindowHandleHandle*       pWindowHandle,
+    const struct R_WindowHandleStyle* pStyle)
+{
+    if (!pStyle || !pWindowHandle) return;
+
+    switch (backend)
+    {
+    case R_WINDOW_BACKEND_WAYLAND:
+        // Wayland style is handled by the compositor, but we can set properties
+        if (pStyle->borderless)
+        {
+            // For Wayland, borderless is typically handled by the compositor
+            // We might need to use specific protocols for custom styles
+        }
+        break;
+
+    case R_WINDOW_BACKEND_X11:
+        if (pStyle->borderless)
+        {
+            // Remove window styles for borderless mode
+            Atom wmHints = XInternAtom (g_x11State.display, "_MOTIF_WM_HINTS", False);
+            if (wmHints != None)
+            {
+                struct
+                {
+                        unsigned long flags;
+                        unsigned long functions;
+                        unsigned long styles;
+                        long          inputMode;
+                        unsigned long status;
+                } hints = {0};
+
+                hints.flags = 2; // MWM_HINTS_DECORATIONS
+                hints.styles = 0; // No styles
+
+                XChangeProperty (
+                    g_x11State.display,
+                    g_x11State.window,
+                    wmHints,
+                    wmHints,
+                    32,
+                    PropModeReplace,
+                    (unsigned char*)&hints,
+                    5);
+            }
+        }
+        break;
+
+    case R_WINDOW_BACKEND_XCB:
+        if (pStyle->borderless)
+        {
+            // Similar borderless handling for XCB
+            xcb_intern_atom_cookie_t motif_cookie
+                = xcb_intern_atom (g_xcbState.connection, 0, strlen ("_MOTIF_WM_HINTS"), "_MOTIF_WM_HINTS");
+            xcb_intern_atom_reply_t* motif_reply
+                = xcb_intern_atom_reply (g_xcbState.connection, motif_cookie, NULL);
+
+            if (motif_reply)
+            {
+                struct
+                {
+                        unsigned long flags;
+                        unsigned long functions;
+                        unsigned long styles;
+                        long          inputMode;
+                        unsigned long status;
+                } hints = {0};
+
+                hints.flags = 2; // MWM_HINTS_DECORATIONS
+                hints.styles = 0; // No styles
+
+                xcb_change_property (
+                    g_xcbState.connection,
+                    XCB_PROP_MODE_REPLACE,
+                    g_x11State.window,
+                    motif_reply->atom,
+                    motif_reply->atom,
+                    32,
+                    5,
+                    (unsigned char*)&hints);
+                free (motif_reply);
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+R_ENTRY_API void
+R_SetWindowTitle (
+    enum R_WindowHandleBackend      backend,
+    union R_WindowHandleHandle*     pWindowHandle,
+    const struct R_ApplicationInfo* pApplicationInfo,
+    const char*                     pCustomTitle)
+{
+    if (!pApplicationInfo) return;
+
+    // Determine the title to use
+    const char* title = pCustomTitle;
+    if (!title)
+    {
+        title = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+    }
+
+    if (!title) return;
+
+    switch (backend)
+    {
+    case R_WINDOW_BACKEND_WAYLAND:
+        R_WindowHandleSetTitle (pWindowHandle->waylandWindow, title);
+        break;
+
+    case R_WINDOW_BACKEND_X11:
+        R_X11WindowSetTitle (pWindowHandle->x11Window, title);
+        break;
+
+    case R_WINDOW_BACKEND_XCB:
+        R_XCBWindowSetTitle (pWindowHandle->xcbWindow, title);
+        break;
+
+    default:
+        break;
+    }
+}
+
+R_ENTRY_API void
+R_ProcessWindowEvents (union R_WindowHandleHandle* pWindowHandle)
+{
+    switch (g_currentBackend)
+    {
+    case R_WINDOW_BACKEND_WAYLAND:
+        // Process Wayland events
+        if (g_waylandState && g_waylandState->display)
+        {
+            wl_display_dispatch (g_waylandState->display);
+        }
+        break;
+
+    case R_WINDOW_BACKEND_X11:
+        // Process X11 events
+        if (g_x11State.display)
+        {
+            XEvent event;
+            while (XPending (g_x11State.display))
+            {
+                XNextEvent (g_x11State.display, &event);
+                // Handle window close event
+                if (event.type == ClientMessage)
+                {
+                    if (event.xclient.data.l[0] == g_x11State.wmDeleteMessage)
+                    {
+                        // Window close requested
+                        R_CSTL_LOG_INFO ("X11 window close requested");
+                    }
+                }
+            }
+        }
+        break;
+
+    case R_WINDOW_BACKEND_XCB:
+        // Process XCB events
+        if (g_xcbState.connection)
+        {
+            xcb_generic_event_t* event;
+            while ((event = xcb_poll_for_event (g_xcbState.connection)))
+            {
+                free (event);
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 #elif defined(__ANDROID__)
 
-#include "rlgame.base/main_window.h"
+#include "rlgame.base/main_platform_handle.h"
 #include "rlgame.base/cstl/cstl_log.h"
 #include <android/native_window.h>
 

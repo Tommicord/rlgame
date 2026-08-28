@@ -1,5 +1,5 @@
 #include "rlgame.base/main.h"
-#include "rlgame.base/main_window.h"
+#include "rlgame.base/main_platform_handle.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_array.h"
@@ -558,7 +558,7 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
 #include <dirent.h>
 #include <time.h>
 
-#include "rlgame.base/main_window.h"
+#include "rlgame.base/main_platform_handle.h"
 
 static char*
 R_CopyStringToHeap (const char* src)
@@ -694,22 +694,18 @@ r_cleanup:
     return NULL;
 }
 
-static enum R_WindowBackend g_currentBackend = R_WINDOW_BACKEND_NONE;
-static union R_WindowHandle g_windowHandle = {0};
+static enum R_WindowHandleBackend g_currentBackend = R_WINDOW_BACKEND_NONE;
+static union R_WindowHandleHandle g_windowHandle = {0};
 
 static bool
 R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
 {
     (void)pAppInfo;
     struct R_GameState* pGameState = (struct R_GameState*)pUserData;
-
-    R_CSTL_LOG_INFO ("GameLoopCallback: Checking if game state is initialized");
     if (!R_GameState_IsInitialized (pGameState))
     {
         struct R_GameStateCreateInfo createInfo = {0};
         createInfo.pApplicationName = R_CSTL_StringData (pAppInfo->pApplicationName);
-
-        // Initialize window based on detected backend
         if (g_currentBackend == R_WINDOW_BACKEND_WAYLAND)
         {
             createInfo.linuxBackend = R_GAME_LINUX_BACKEND_WAYLAND;
@@ -724,20 +720,24 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             // Wait for compositor to provide window dimensions
             int windowWidth = 0, windowHeight = 0;
             R_WaylandWindowWaitForConfig (g_windowHandle.waylandWindow, &windowWidth, &windowHeight);
-            R_CSTL_LOG_INFO ("GameLoopCallback: Window dimensions received: %dx%d", windowWidth, windowHeight);
+            R_CSTL_LOG_INFO (
+                "GameLoopCallback: Window dimensions received: %dx%d",
+                windowWidth,
+                windowHeight);
 
             struct wl_display* display = R_WaylandWindowGetDisplay (g_windowHandle.waylandWindow);
             struct wl_surface* surface = R_WaylandWindowGetSurface (g_windowHandle.waylandWindow);
             R_CSTL_LOG_INFO ("GameLoopCallback: Wayland display pointer: %p", (void*)display);
             R_CSTL_LOG_INFO ("GameLoopCallback: Wayland surface pointer: %p", (void*)surface);
-            
-            if (!display || !surface) {
+
+            if (!display || !surface)
+            {
                 R_CSTL_LOG_ERROR ("GameLoopCallback: Invalid Wayland display or surface pointer");
                 R_DestroyWaylandWindow (g_windowHandle.waylandWindow);
                 g_windowHandle.waylandWindow = NULL;
                 return false;
             }
-            
+
             createInfo.pDisplay = display;
             createInfo.pSurface = surface;
             createInfo.windowWidth = windowWidth;
@@ -757,10 +757,14 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             // Get window dimensions
             int windowWidth = 0, windowHeight = 0;
             R_X11WindowGetSize (g_windowHandle.x11Window, &windowWidth, &windowHeight);
-            R_CSTL_LOG_INFO ("GameLoopCallback: Window dimensions received: %dx%d", windowWidth, windowHeight);
+            R_CSTL_LOG_INFO (
+                "GameLoopCallback: Window dimensions received: %dx%d",
+                windowWidth,
+                windowHeight);
 
             Display* display = R_X11WindowGetDisplay (g_windowHandle.x11Window);
-            if (!display) {
+            if (!display)
+            {
                 R_CSTL_LOG_ERROR ("GameLoopCallback: Invalid X11 display pointer");
                 R_DestroyX11Window (g_windowHandle.x11Window);
                 g_windowHandle.x11Window = 0;
@@ -786,10 +790,14 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             // Get window dimensions
             int windowWidth = 0, windowHeight = 0;
             R_XCBWindowGetSize (g_windowHandle.xcbWindow, &windowWidth, &windowHeight);
-            R_CSTL_LOG_INFO ("GameLoopCallback: Window dimensions received: %dx%d", windowWidth, windowHeight);
+            R_CSTL_LOG_INFO (
+                "GameLoopCallback: Window dimensions received: %dx%d",
+                windowWidth,
+                windowHeight);
 
             xcb_connection_t* connection = R_XCBWindowGetConnection (g_windowHandle.xcbWindow);
-            if (!connection) {
+            if (!connection)
+            {
                 R_CSTL_LOG_ERROR ("GameLoopCallback: Invalid XCB connection pointer");
                 R_DestroyXCBWindow (g_windowHandle.xcbWindow);
                 g_windowHandle.xcbWindow = 0;
@@ -845,24 +853,20 @@ R_GameLoopCleanup (struct R_GameState* pGameState)
 
     if (R_GameState_IsInitialized (pGameState))
     {
-        R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up game state");
         R_GameState_Cleanup (pGameState);
     }
     if (g_currentBackend == R_WINDOW_BACKEND_WAYLAND && g_windowHandle.waylandWindow)
     {
-        R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up Wayland window");
         R_DestroyWaylandWindow (g_windowHandle.waylandWindow);
         g_windowHandle.waylandWindow = NULL;
     }
     else if (g_currentBackend == R_WINDOW_BACKEND_X11 && g_windowHandle.x11Window)
     {
-        R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up X11 window");
         R_DestroyX11Window (g_windowHandle.x11Window);
         g_windowHandle.x11Window = 0;
     }
     else if (g_currentBackend == R_WINDOW_BACKEND_XCB && g_windowHandle.xcbWindow)
     {
-        R_CSTL_LOG_INFO ("GameLoopCleanupLinux: Cleaning up XCB window");
         R_DestroyXCBWindow (g_windowHandle.xcbWindow);
         g_windowHandle.xcbWindow = 0;
     }
@@ -874,10 +878,10 @@ R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData)
 {
     const struct R_ApplicationInfo* pAppInfo = (const struct R_ApplicationInfo*)pUserData;
     struct R_MainProvider           provider = {
-      .pExecCallback = pExecCallback,
-      .pAppInfo = pAppInfo,
-      .pUserData = (void*)pUserData,
-      .stateFlags = R_GAMELOOP_STATE_NONE,
+                  .pExecCallback = pExecCallback,
+                  .pAppInfo = pAppInfo,
+                  .pUserData = (void*)pUserData,
+                  .stateFlags = R_GAMELOOP_STATE_NONE,
     };
     R_MainProvider_Run (&provider);
 }
@@ -905,12 +909,11 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
 
     uint64_t frameCount = 0;
     R_CSTL_LOG_INFO ("GameLoop: Entering main loop");
-    
+
     while (R_GameLoop_IsRunning (pProvider) && !R_GameLoop_IsDestroyed (pProvider))
     {
-        R_CSTL_LOG_DEBUG ("GameLoop: Frame %lu starting", frameCount);
-        
-        if (!R_GameLoop_IsRunning (pProvider) || R_GameLoop_IsDestroyed (pProvider))
+        R_ProcessWindowEvents (&g_windowHandle);
+        if (!R_GameLoop_IsRunning (pProvider) | R_GameLoop_IsDestroyed (pProvider))
         {
             R_CSTL_LOG_INFO (
                 "GameLoop: State changed, exiting loop (running=%d, destroyed=%d)",
@@ -921,7 +924,6 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
 
         if (R_GameLoop_IsPaused (pProvider))
         {
-            R_CSTL_LOG_DEBUG ("GameLoop: Paused, sleeping");
             usleep (1000); // Sleep for 1ms during pause
             if (clock_gettime (CLOCK_MONOTONIC, &lastTime) != 0)
             {
@@ -929,34 +931,26 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
             }
             continue;
         }
-
-        R_CSTL_LOG_DEBUG ("GameLoop: Getting current time");
         struct timespec currentTime;
         if (clock_gettime (CLOCK_MONOTONIC, &currentTime) != 0)
         {
-            R_CSTL_LOG_ERROR ("GameLoop: clock_gettime failed for frame time");
             usleep (16000); // Fallback to ~60fps timing
             continue;
         }
         const double deltaSeconds = (double)(currentTime.tv_sec - lastTime.tv_sec)
-                              + (double)(currentTime.tv_nsec - lastTime.tv_nsec) / 1e9;
+                                    + (double)(currentTime.tv_nsec - lastTime.tv_nsec) / 1e9;
         lastTime = currentTime;
-
-        R_CSTL_LOG_DEBUG ("GameLoop: Calling callback (delta=%.6f)", deltaSeconds);
         frameCount++;
         bool shouldContinue = pProvider->pExecCallback (pProvider->pAppInfo, pProvider->pUserData);
-        R_CSTL_LOG_DEBUG ("GameLoop: Callback returned %d", shouldContinue);
-        
+
         if (!shouldContinue)
         {
-            R_CSTL_LOG_INFO ("GameLoop: Callback returned false, initiating shutdown");
             R_GameLoop_SetState (pProvider, R_GAMELOOP_STATE_SHUTDOWN);
             goto r_endloop;
         }
-        
+
         if (deltaSeconds < 0.016)
         {
-            R_CSTL_LOG_DEBUG ("GameLoop: Sleeping for frame rate control");
             usleep ((int)((0.016 - deltaSeconds) * 1e6));
         }
     }
@@ -980,7 +974,6 @@ int
 main (int argc, char** argv)
 {
     R_CSTL_TRACE_FUNCTION ();
-
     R_APP_INIT ();
 
     struct R_ApplicationInfo info;
@@ -989,17 +982,16 @@ main (int argc, char** argv)
     R_APP_LOG_HEAP_STATS ();
     R_APP_LOG_INFO (info);
 
-    struct R_GPUCapabilities gpuCapabilities = {0};
+    struct R_Capabilities gpuCapabilities = {0};
     g_currentBackend = R_DetectGPUCapabilities (&gpuCapabilities);
     if (g_currentBackend == R_WINDOW_BACKEND_NONE)
     {
-        R_CSTL_LOG_ERROR ("main: No suitable window backend found");
+        R_CSTL_LOG_ERROR ("No suitable window backend found");
         R_APP_CLEANUP_INFO (info);
         R_APP_SHUTDOWN ();
         R_CSTL_TRACE_RETURN ();
         return EXIT_FAILURE;
     }
-
     struct R_GameState    gameState = {0};
     struct R_MainProvider provider = {
         .pExecCallback = R_GameLoopCallback,

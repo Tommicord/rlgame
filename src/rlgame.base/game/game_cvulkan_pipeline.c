@@ -14,7 +14,7 @@
 #include "rlgame.base/cstl/cstl_string.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_trace.h"
-#include "rlgame.base/main_window.h"
+#include "rlgame.base/main_platform_handle.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -528,21 +528,27 @@ R_Game_InitializeVulkanCore (
     surfaceCreateInfo.x11Window = pCreateInfo->x11Window;
     surfaceCreateInfo.pXCBConnection = pCreateInfo->pXCBConnection;
     surfaceCreateInfo.xcbWindow = pCreateInfo->xcbWindow;
-    
+
     if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_WAYLAND)
     {
-        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: Wayland display=%p, surface=%p", 
-                         (void*)pCreateInfo->pDisplay, (void*)pCreateInfo->pSurface);
+        R_CSTL_LOG_INFO (
+            "R_Game_InitializeVulkanCore: Wayland display=%p, surface=%p",
+            (void*)pCreateInfo->pDisplay,
+            (void*)pCreateInfo->pSurface);
     }
     else if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_X11)
     {
-        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: X11 display=%p, window=%lu", 
-                         (void*)pCreateInfo->pX11Display, (unsigned long)pCreateInfo->x11Window);
+        R_CSTL_LOG_INFO (
+            "R_Game_InitializeVulkanCore: X11 display=%p, window=%lu",
+            (void*)pCreateInfo->pX11Display,
+            (unsigned long)pCreateInfo->x11Window);
     }
     else if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_XCB)
     {
-        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: XCB connection=%p, window=%u", 
-                         (void*)pCreateInfo->pXCBConnection, pCreateInfo->xcbWindow);
+        R_CSTL_LOG_INFO (
+            "R_Game_InitializeVulkanCore: XCB connection=%p, window=%u",
+            (void*)pCreateInfo->pXCBConnection,
+            pCreateInfo->xcbWindow);
     }
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     surfaceCreateInfo.pWindow = pCreateInfo->pWindow;

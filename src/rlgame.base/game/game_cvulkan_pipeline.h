@@ -41,19 +41,19 @@ enum R_Game_LinuxBackend
 struct R_Game_PipelineContextCreateInfo
 {
         const char* pApplicationName;
-        int windowWidth;
-        int windowHeight;
+        int         windowWidth;
+        int         windowHeight;
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
         HINSTANCE hInstance;
         HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
         enum R_Game_LinuxBackend linuxBackend;
-        struct wl_display* pDisplay;
-        struct wl_surface* pSurface;
-        Display* pX11Display;
-        Window x11Window;
-        xcb_connection_t* pXCBConnection;
-        xcb_window_t xcbWindow;
+        struct wl_display*       pDisplay;
+        struct wl_surface*       pSurface;
+        Display*                 pX11Display;
+        Window                   x11Window;
+        xcb_connection_t*        pXCBConnection;
+        xcb_window_t             xcbWindow;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
