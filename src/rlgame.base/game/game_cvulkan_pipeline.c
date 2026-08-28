@@ -22,6 +22,10 @@
 
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
 #include <windows.h>
+#elif defined(R_CVULKAN_PLATFORM_LINUX)
+#include <wayland-client.h>
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
 #include <android/native_window.h>
 #endif
@@ -44,12 +48,11 @@ R_Game_GetWindowExtent (const struct R_Game_PipelineContextCreateInfo* pCreateIn
         }
     }
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-    if (pCreateInfo->pDisplay)
+    // Use the window dimensions from create info
+    if (pCreateInfo->windowWidth > 0 && pCreateInfo->windowHeight > 0)
     {
-        int width = 0, height = 0;
-        R_WindowGetSize (pCreateInfo->pDisplay, &width, &height);
-        extent.width = width;
-        extent.height = height;
+        extent.width = pCreateInfo->windowWidth;
+        extent.height = pCreateInfo->windowHeight;
     }
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     if (pCreateInfo->pWindow)
@@ -518,8 +521,29 @@ R_Game_InitializeVulkanCore (
     surfaceCreateInfo.hInstance = pCreateInfo->hInstance;
     surfaceCreateInfo.hWnd = pCreateInfo->hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
+    surfaceCreateInfo.linuxBackend = pCreateInfo->linuxBackend;
     surfaceCreateInfo.pDisplay = pCreateInfo->pDisplay;
     surfaceCreateInfo.pSurface = pCreateInfo->pSurface;
+    surfaceCreateInfo.pX11Display = pCreateInfo->pX11Display;
+    surfaceCreateInfo.x11Window = pCreateInfo->x11Window;
+    surfaceCreateInfo.pXCBConnection = pCreateInfo->pXCBConnection;
+    surfaceCreateInfo.xcbWindow = pCreateInfo->xcbWindow;
+    
+    if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_WAYLAND)
+    {
+        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: Wayland display=%p, surface=%p", 
+                         (void*)pCreateInfo->pDisplay, (void*)pCreateInfo->pSurface);
+    }
+    else if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_X11)
+    {
+        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: X11 display=%p, window=%lu", 
+                         (void*)pCreateInfo->pX11Display, (unsigned long)pCreateInfo->x11Window);
+    }
+    else if (pCreateInfo->linuxBackend == R_GAME_LINUX_BACKEND_XCB)
+    {
+        R_CSTL_LOG_INFO ("R_Game_InitializeVulkanCore: XCB connection=%p, window=%u", 
+                         (void*)pCreateInfo->pXCBConnection, pCreateInfo->xcbWindow);
+    }
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     surfaceCreateInfo.pWindow = pCreateInfo->pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

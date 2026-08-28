@@ -524,7 +524,7 @@ R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
     void*  kernelArgs[] = {&dBlockMetadata, &pContext->blockMetadataCount, &pContext->config.mergeFactor};
     size_t argSizes[] = {sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_uint)};
 
-    result = R_CVulkan_DefragOpenCLExecuteKernel (
+    result = R_CVulkan_DefragExecuteKernel (
         context,
         device,
         "R_CVulkan_DefragAnalyzeBlocksKernel",
@@ -1407,7 +1407,7 @@ R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
 
 #ifdef R_OPENCL
 static enum R_CVulkanError
-R_CVulkan_DefragOpenCLExecuteKernel (
+R_CVulkan_DefragExecuteKernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -1463,7 +1463,7 @@ R_CVulkan_DefragOpenCLExecuteKernel (
     {
         result = R_CVULKAN_ERROR_FAILED;
         R_CSTL_LOG_ERROR ("OpenCL enqueue kernel failed: %d", error);
-        goto r_cleanup_kernel;
+        goto r_cleanup_program;
     }
 
     error = clFinish (queue);
@@ -1498,20 +1498,11 @@ R_CVulkan_DefragOpenCLExecuteKernel (
     }
 
 r_cleanup_kernel:
-    if (kernel)
-    {
-        clReleaseKernel (kernel);
-    }
+    clReleaseKernel (kernel);
 r_cleanup_program:
-    if (program)
-    {
-        clReleaseProgram (program);
-    }
+    clReleaseProgram (program);
 r_cleanup_queue:
-    if (queue)
-    {
-        clReleaseCommandQueue (queue);
-    }
+    clReleaseCommandQueue (queue);
 r_cleanup:
     return result;
 }

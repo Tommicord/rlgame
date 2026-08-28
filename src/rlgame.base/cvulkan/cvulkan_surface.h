@@ -8,6 +8,8 @@
 
 #if defined(R_CVULKAN_PLATFORM_LINUX)
 #include <wayland-client.h>
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
 #endif
 
 struct R_CVulkan_Instance;
@@ -23,6 +25,16 @@ struct R_CVulkan_Instance;
  */
 
 /**
+ * @brief Window backend type for Linux
+ */
+enum R_CVulkan_LinuxBackend
+{
+    R_CVULKAN_LINUX_BACKEND_WAYLAND = 0,
+    R_CVULKAN_LINUX_BACKEND_X11 = 1,
+    R_CVULKAN_LINUX_BACKEND_XCB = 2
+};
+
+/**
  * @brief Configuration parameters for surface creation
  */
 struct R_CVulkan_SurfaceCreateInfo
@@ -32,8 +44,13 @@ struct R_CVulkan_SurfaceCreateInfo
         HINSTANCE hInstance; /**< Windows instance handle */
         HWND      hWnd; /**< Windows window handle */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
+        enum R_CVulkan_LinuxBackend linuxBackend; /**< Linux window backend */
         struct wl_display* pDisplay; /**< Wayland display connection */
         struct wl_surface* pSurface; /**< Wayland surface */
+        Display* pX11Display; /**< X11 display connection */
+        Window x11Window; /**< X11 window handle */
+        xcb_connection_t* pXCBConnection; /**< XCB connection */
+        xcb_window_t xcbWindow; /**< XCB window handle */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

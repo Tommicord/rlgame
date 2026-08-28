@@ -282,6 +282,8 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
 #define RL_KHR_SURFACE VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 #elif defined(__linux__)
 #define RL_KHR_SURFACE VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
+#define RL_KHR_XLIB_SURFACE VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+#define RL_KHR_XCB_SURFACE VK_KHR_XCB_SURFACE_EXTENSION_NAME
 #elif defined(__ANDROID__)
 #define RL_KHR_SURFACE VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
 #else
@@ -293,6 +295,12 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
     R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt1, sizeof (const char*));
     static const char* pExt2 = RL_KHR_SURFACE;
     R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt2, sizeof (const char*));
+#if defined(__linux__)
+    static const char* pExtXlib = RL_KHR_XLIB_SURFACE;
+    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExtXlib, sizeof (const char*));
+    static const char* pExtXcb = RL_KHR_XCB_SURFACE;
+    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExtXcb, sizeof (const char*));
+#endif
 #endif
 
     if (hasPortability)

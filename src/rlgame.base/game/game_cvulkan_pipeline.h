@@ -21,7 +21,19 @@
 
 #if defined(R_CVULKAN_PLATFORM_LINUX)
 #include <wayland-client.h>
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
 #endif
+
+/**
+ * @brief Linux window backend type
+ */
+enum R_Game_LinuxBackend
+{
+    R_GAME_LINUX_BACKEND_WAYLAND = 0,
+    R_GAME_LINUX_BACKEND_X11 = 1,
+    R_GAME_LINUX_BACKEND_XCB = 2
+};
 
 /**
  * @brief Configuration parameters for pipeline context creation
@@ -29,12 +41,19 @@
 struct R_Game_PipelineContextCreateInfo
 {
         const char* pApplicationName;
+        int windowWidth;
+        int windowHeight;
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
         HINSTANCE hInstance;
         HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
+        enum R_Game_LinuxBackend linuxBackend;
         struct wl_display* pDisplay;
         struct wl_surface* pSurface;
+        Display* pX11Display;
+        Window x11Window;
+        xcb_connection_t* pXCBConnection;
+        xcb_window_t xcbWindow;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

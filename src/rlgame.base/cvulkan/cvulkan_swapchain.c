@@ -120,6 +120,223 @@ R_CVulkan_ChooseSwapExtent (const VkSurfaceCapabilitiesKHR* pCapabilities, VkExt
     return actualExtent;
 }
 
+static enum R_CVulkanError
+R_CVulkan_GetSurfaceCapabilities (
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkSurfaceCapabilitiesKHR* pCapabilities)
+{
+    VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR (physicalDevice, surface, pCapabilities);
+    if (result != VK_SUCCESS)
+    {
+        R_CSTL_LOG_ERROR ("Failed to get surface capabilities: %d", result);
+        return R_CVulkan_ResultToError (result);
+    }
+    R_CSTL_LOG_DEBUG (
+        "Surface capabilities: minImageCount=%u, maxImageCount=%u, currentExtent=%ux%u",
+        pCapabilities->minImageCount,
+        pCapabilities->maxImageCount,
+        pCapabilities->currentExtent.width,
+        pCapabilities->currentExtent.height);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_GetSurfaceFormats (
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkSurfaceFormatKHR** ppFormats,
+    uint32_t* pFormatCount)
+{
+    vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, pFormatCount, NULL);
+    R_CSTL_LOG_DEBUG ("Surface format count: %u", *pFormatCount);
+    
+    *ppFormats = (VkSurfaceFormatKHR*)R_CSTL_HeapAlloc (*pFormatCount * sizeof (VkSurfaceFormatKHR));
+    if (!*ppFormats)
+    {
+        R_CSTL_LOG_ERROR ("Failed to allocate surface formats array");
+        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
+    }
+    vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, pFormatCount, *ppFormats);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_GetPresentModes (
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkPresentModeKHR** ppPresentModes,
+    uint32_t* pPresentModeCount)
+{
+    vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, pPresentModeCount, NULL);
+    R_CSTL_LOG_DEBUG ("Present mode count: %u", *pPresentModeCount);
+    
+    *ppPresentModes = (VkPresentModeKHR*)R_CSTL_HeapAlloc (*pPresentModeCount * sizeof (VkPresentModeKHR));
+    if (!*ppPresentModes)
+    {
+        R_CSTL_LOG_ERROR ("Failed to allocate present modes array");
+        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
+    }
+    vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, pPresentModeCount, *ppPresentModes);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_ChooseSurfaceFormat (
+    const VkSurfaceFormatKHR* pFormats,
+    uint32_t formatCount,
+    const VkSurfaceFormatKHR* pUserFormat,
+    VkSurfaceFormatKHR* pChosenFormat)
+{
+    if (pUserFormat->format != VK_FORMAT_UNDEFINED)
+    {
+        *pChosenFormat = *pUserFormat;
+        R_CSTL_LOG_INFO ("Using user-specified format: %s", R_CVulkan_FormatToString (pUserFormat->format));
+        return R_CVULKAN_OK;
+    }
+    
+    return R_CVulkan_ChooseSwapSurfaceFormat (pFormats, formatCount, pChosenFormat);
+}
+
+static enum R_CVulkanError
+R_CVulkan_GetImageCount (
+    const VkSurfaceCapabilitiesKHR* pCapabilities,
+    uint32_t requestedCount,
+    uint32_t* pImageCount)
+{
+    *pImageCount = requestedCount;
+    if (*pImageCount == 0)
+    {
+        *pImageCount = pCapabilities->minImageCount + 1;
+    }
+    if (pCapabilities->maxImageCount > 0 && *pImageCount > pCapabilities->maxImageCount)
+    {
+        *pImageCount = pCapabilities->maxImageCount;
+    }
+    R_CSTL_LOG_DEBUG (
+        "Image count: %u (requested: %u, min: %u, max: %u)",
+        *pImageCount,
+        requestedCount,
+        pCapabilities->minImageCount,
+        pCapabilities->maxImageCount);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_ChooseCompositeAlpha (
+    const VkSurfaceCapabilitiesKHR* pCapabilities,
+    VkCompositeAlphaFlagBitsKHR userAlpha,
+    VkCompositeAlphaFlagBitsKHR* pChosenAlpha)
+{
+    // Log supported composite alpha modes for debugging
+    R_CSTL_LOG_DEBUG ("Supported composite alpha: 0x%x", pCapabilities->supportedCompositeAlpha);
+    if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
+        R_CSTL_LOG_DEBUG ("  - OPAQUE_BIT_KHR supported");
+    }
+    if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
+        R_CSTL_LOG_DEBUG ("  - PRE_MULTIPLIED_BIT_KHR supported");
+    }
+    if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) {
+        R_CSTL_LOG_DEBUG ("  - POST_MULTIPLIED_BIT_KHR supported");
+    }
+    if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        R_CSTL_LOG_DEBUG ("  - INHERIT_BIT_KHR supported");
+    }
+    
+    // Handle composite alpha with proper fallback for Wayland compatibility
+    if (userAlpha != 0) {
+        *pChosenAlpha = userAlpha;
+    } else if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
+        *pChosenAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    } else if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
+        *pChosenAlpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
+    } else if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) {
+        *pChosenAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+    } else if (pCapabilities->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        *pChosenAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    } else {
+        R_CSTL_LOG_ERROR ("No supported composite alpha mode found");
+        return R_CVULKAN_ERROR_SURFACE_LOST;
+    }
+    R_CSTL_LOG_DEBUG ("Selected composite alpha: %u", *pChosenAlpha);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_ConfigureQueueFamilies (
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkSwapchainCreateInfoKHR* pCreateInfo)
+{
+    struct R_CVulkan_QueueFamilyIndices indices;
+    enum R_CVulkanError err = R_CVulkan_DeviceFindQueueFamilies (physicalDevice, surface, &indices);
+    if (err != R_CVULKAN_OK)
+    {
+        R_CSTL_LOG_ERROR ("Failed to find queue families");
+        return err;
+    }
+    
+    R_CSTL_LOG_DEBUG ("Queue families: graphics=%u, present=%u", indices.graphicsFamily, indices.presentFamily);
+
+    uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
+    if (indices.graphicsFamily != indices.presentFamily)
+    {
+        pCreateInfo->imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        pCreateInfo->queueFamilyIndexCount = sizeof(queueFamilyIndices) / sizeof(queueFamilyIndices[0]);
+        pCreateInfo->pQueueFamilyIndices = queueFamilyIndices;
+        R_CSTL_LOG_DEBUG ("Using CONCURRENT sharing mode (different queues)");
+    }
+    else
+    {
+        pCreateInfo->imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        R_CSTL_LOG_DEBUG ("Using EXCLUSIVE sharing mode (same queue)");
+    }
+    
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_CreateSwapchain (
+    struct R_CVulkan_Swapchain* pSwapchain,
+    const VkSwapchainCreateInfoKHR* pCreateInfo)
+{
+    VkResult result = vkCreateSwapchainKHR (pSwapchain->device, pCreateInfo, NULL, &pSwapchain->handle);
+    if (result != VK_SUCCESS)
+    {
+        R_CSTL_LOG_ERROR ("Failed to create swapchain: %d", result);
+        return R_CVulkan_ResultToError (result);
+    }
+    R_CSTL_LOG_INFO ("Swapchain created");
+    R_CSTL_LOG_INFO ("  - Handle: %p", (void*)pSwapchain->handle);
+    return R_CVULKAN_OK;
+}
+
+static enum R_CVulkanError
+R_CVulkan_GetSwapchainImages (
+    struct R_CVulkan_Swapchain* pSwapchain)
+{
+    uint32_t imageCount = 0;
+    vkGetSwapchainImagesKHR (pSwapchain->device, pSwapchain->handle, &imageCount, NULL);
+    pSwapchain->imageCount = imageCount;
+    
+    VkImage* pImages = (VkImage*)R_CSTL_HeapAlloc (imageCount * sizeof (VkImage));
+    if (!pImages)
+    {
+        R_CSTL_LOG_ERROR ("Failed to allocate swapchain images array");
+        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
+    }
+    
+    vkGetSwapchainImagesKHR (pSwapchain->device, pSwapchain->handle, &imageCount, pImages);
+    R_CSTL_HeapFree (pImages);
+    
+    R_CSTL_LOG_INFO ("  - Final configuration: imageCount=%u, format=%s, extent=%ux%u",
+                    pSwapchain->imageCount,
+                    R_CVulkan_FormatToString (pSwapchain->imageFormat),
+                    pSwapchain->extent.width,
+                    pSwapchain->extent.height);
+    return R_CVULKAN_OK;
+}
+
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSwapchain (
     struct R_CVulkan_Swapchain*                 pSwapchain,
@@ -158,73 +375,49 @@ R_CVulkan_NewSwapchain (
     R_CSTL_LOG_DEBUG ("  Physical device: %p, Surface: %p", (void*)physicalDevice, (void*)surface);
 
     VkSurfaceCapabilitiesKHR capabilities;
-    VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR (physicalDevice, surface, &capabilities);
-    if (result != VK_SUCCESS)
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to get surface capabilities: %d", result);
-        return R_CVulkan_ResultToError (result);
-    }
-    R_CSTL_LOG_DEBUG (
-        "  Surface capabilities: minImageCount=%u, maxImageCount=%u, currentExtent=%ux%u",
-        capabilities.minImageCount,
-        capabilities.maxImageCount,
-        capabilities.currentExtent.width,
-        capabilities.currentExtent.height);
-    uint32_t formatCount = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, &formatCount, NULL);
-    R_CSTL_LOG_DEBUG ("  Surface format count: %u", formatCount);
-    VkSurfaceFormatKHR* pFormats
-        = (VkSurfaceFormatKHR*)R_CSTL_HeapAlloc (formatCount * sizeof (VkSurfaceFormatKHR));
-    if (!pFormats)
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to allocate surface formats array");
-        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
-    }
-    vkGetPhysicalDeviceSurfaceFormatsKHR (physicalDevice, surface, &formatCount, pFormats);
-
-    uint32_t presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, &presentModeCount, NULL);
-    R_CSTL_LOG_DEBUG ("  Present mode count: %u", presentModeCount);
-    VkPresentModeKHR* pPresentModes
-        = (VkPresentModeKHR*)R_CSTL_HeapAlloc (presentModeCount * sizeof (VkPresentModeKHR));
-    if (!pPresentModes)
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to allocate present modes array");
-        R_CSTL_HeapFree (pFormats);
-        return R_CVULKAN_ERROR_OUT_OF_MEMORY;
-    }
-    vkGetPhysicalDeviceSurfacePresentModesKHR (physicalDevice, surface, &presentModeCount, pPresentModes);
-
-    VkSurfaceFormatKHR surfaceFormat;
-    if (pCreateInfo->surfaceFormat.format != VK_FORMAT_UNDEFINED)
-    {
-        surfaceFormat = pCreateInfo->surfaceFormat;
-        R_CSTL_LOG_INFO (
-            "  Using user-specified format: %s",
-            R_CVulkan_FormatToString (surfaceFormat.format));
-    }
-    else
-    {
-        enum R_CVulkanError err = R_CVulkan_ChooseSwapSurfaceFormat (pFormats, formatCount, &surfaceFormat);
-        if (err != R_CVULKAN_OK)
-        {
-            R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to choose surface format");
-            R_CSTL_HeapFree (pFormats);
-            R_CSTL_HeapFree (pPresentModes);
-            return err;
-        }
-    }
-    VkPresentModeKHR presentMode;
-    presentMode = pCreateInfo->presentMode;
-
-    enum R_CVulkanError err = R_CVulkan_ChooseSwapPresentMode (pPresentModes, presentModeCount, &presentMode);
+    enum R_CVulkanError err = R_CVulkan_GetSurfaceCapabilities (physicalDevice, surface, &capabilities);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to choose present mode");
+        return err;
+    }
+
+    VkSurfaceFormatKHR* pFormats = NULL;
+    uint32_t formatCount = 0;
+    err = R_CVulkan_GetSurfaceFormats (physicalDevice, surface, &pFormats, &formatCount);
+    if (err != R_CVULKAN_OK)
+    {
+        return err;
+    }
+
+    VkPresentModeKHR* pPresentModes = NULL;
+    uint32_t presentModeCount = 0;
+    err = R_CVulkan_GetPresentModes (physicalDevice, surface, &pPresentModes, &presentModeCount);
+    if (err != R_CVULKAN_OK)
+    {
+        R_CSTL_HeapFree (pFormats);
+        return err;
+    }
+
+    VkSurfaceFormatKHR surfaceFormat;
+    err = R_CVulkan_ChooseSurfaceFormat (pFormats, formatCount, &pCreateInfo->surfaceFormat, &surfaceFormat);
+    if (err != R_CVULKAN_OK)
+    {
+        R_CSTL_LOG_ERROR ("Failed to choose surface format");
         R_CSTL_HeapFree (pFormats);
         R_CSTL_HeapFree (pPresentModes);
         return err;
     }
+
+    VkPresentModeKHR presentMode = pCreateInfo->presentMode;
+    err = R_CVulkan_ChooseSwapPresentMode (pPresentModes, presentModeCount, &presentMode);
+    if (err != R_CVULKAN_OK)
+    {
+        R_CSTL_LOG_ERROR ("Failed to choose present mode");
+        R_CSTL_HeapFree (pFormats);
+        R_CSTL_HeapFree (pPresentModes);
+        return err;
+    }
+
     VkExtent2D extent = pCreateInfo->extent;
     if (extent.width == 0 || extent.height == 0)
     {
@@ -236,21 +429,14 @@ R_CVulkan_NewSwapchain (
     }
     R_CSTL_LOG_DEBUG ("  Chosen extent: %ux%u", extent.width, extent.height);
 
-    uint32_t imageCount = pCreateInfo->imageCount;
-    if (imageCount == 0)
+    uint32_t imageCount = 0;
+    err = R_CVulkan_GetImageCount (&capabilities, pCreateInfo->imageCount, &imageCount);
+    if (err != R_CVULKAN_OK)
     {
-        imageCount = capabilities.minImageCount + 1;
+        R_CSTL_HeapFree (pFormats);
+        R_CSTL_HeapFree (pPresentModes);
+        return err;
     }
-    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
-    {
-        imageCount = capabilities.maxImageCount;
-    }
-    R_CSTL_LOG_DEBUG (
-        "  Image count: %u (requested: %u, min: %u, max: %u)",
-        imageCount,
-        pCreateInfo->imageCount,
-        capabilities.minImageCount,
-        capabilities.maxImageCount);
 
     VkSwapchainCreateInfoKHR createInfo = {0};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -263,64 +449,45 @@ R_CVulkan_NewSwapchain (
     createInfo.imageUsage
         = pCreateInfo->imageUsage != 0 ? pCreateInfo->imageUsage : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    struct R_CVulkan_QueueFamilyIndices indices;
-    enum R_CVulkanError err1 = R_CVulkan_DeviceFindQueueFamilies (physicalDevice, surface, &indices);
-    if (err1 != R_CVULKAN_OK)
+    err = R_CVulkan_ConfigureQueueFamilies (physicalDevice, surface, &createInfo);
+    if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to find queue families");
         R_CSTL_HeapFree (pFormats);
         R_CSTL_HeapFree (pPresentModes);
-        return err1;
-    }
-    R_CSTL_LOG_DEBUG (
-        "  Queue families: graphics=%u, present=%u",
-        indices.graphicsFamily,
-        indices.presentFamily);
-
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
-    if (indices.graphicsFamily != indices.presentFamily)
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-        R_CSTL_LOG_DEBUG ("  Using CONCURRENT sharing mode (different queues)");
-    }
-    else
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        R_CSTL_LOG_DEBUG ("  Using EXCLUSIVE sharing mode (same queue)");
+        return err;
     }
 
     createInfo.preTransform
         = pCreateInfo->preTransform != 0 ? pCreateInfo->preTransform : capabilities.currentTransform;
-    createInfo.compositeAlpha
-        = pCreateInfo->compositeAlpha != 0 ? pCreateInfo->compositeAlpha : VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    
+    VkCompositeAlphaFlagBitsKHR compositeAlpha;
+    err = R_CVulkan_ChooseCompositeAlpha (&capabilities, pCreateInfo->compositeAlpha, &compositeAlpha);
+    if (err != R_CVULKAN_OK)
+    {
+        R_CSTL_HeapFree (pFormats);
+        R_CSTL_HeapFree (pPresentModes);
+        return err;
+    }
+    createInfo.compositeAlpha = compositeAlpha;
     createInfo.clipped = pCreateInfo->clipped != 0 ? pCreateInfo->clipped : VK_TRUE;
     createInfo.oldSwapchain = pCreateInfo->oldSwapchain;
 
-    result = vkCreateSwapchainKHR (pSwapchain->device, &createInfo, NULL, &pSwapchain->handle);
-
+    err = R_CVulkan_CreateSwapchain (pSwapchain, &createInfo);
     R_CSTL_HeapFree (pFormats);
     R_CSTL_HeapFree (pPresentModes);
-
-    if (result != VK_SUCCESS)
+    if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewSwapchain: Failed to create swapchain: %d", result);
-        return R_CVulkan_ResultToError (result);
+        return err;
     }
-    R_CSTL_LOG_INFO ("R_CVulkan_NewSwapchain: Swapchain created");
-    R_CSTL_LOG_INFO ("  - Handle: %p", (void*)pSwapchain->handle);
 
-    vkGetSwapchainImagesKHR (pSwapchain->device, pSwapchain->handle, &imageCount, NULL);
-    pSwapchain->imageCount = imageCount;
     pSwapchain->imageFormat = surfaceFormat.format;
     pSwapchain->extent = extent;
-    R_CSTL_LOG_INFO (
-        "  - Final configuration: imageCount=%u, format=%s, extent=%ux%u",
-        imageCount,
-        R_CVulkan_FormatToString (surfaceFormat.format),
-        extent.width,
-        extent.height);
+    
+    err = R_CVulkan_GetSwapchainImages (pSwapchain);
+    if (err != R_CVULKAN_OK)
+    {
+        return err;
+    }
 
 #if defined(R_CVULKAN_DEBUG)
     pSwapchain->booted = true;

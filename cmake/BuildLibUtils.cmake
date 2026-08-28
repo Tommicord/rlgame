@@ -40,6 +40,32 @@ function(link_wayland TARGET)
     target_link_libraries(${TARGET} PRIVATE wayland_xdg_shell ${WAYLAND_CLIENT_LIBRARIES})
     target_include_directories(${TARGET} PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
     target_compile_options(${TARGET} PRIVATE ${WAYLAND_CLIENT_CFLAGS_OTHER})
+
+    pkg_check_modules(WAYLAND_PROTOCOLS_LIB wayland-protocols IMPORTED_TARGET)
+    if(WAYLAND_PROTOCOLS_LIB_FOUND)
+      target_link_libraries(${TARGET} PRIVATE PkgConfig::WAYLAND_PROTOCOLS_LIB)
+    endif()
+  endif()
+endfunction()
+
+# Function to link XCB libraries to a target
+function(link_xcb TARGET)
+  if(UNIX AND NOT APPLE AND XCB_FOUND)
+    target_link_libraries(${TARGET} PRIVATE ${XCB_LIBRARIES})
+    if(XCB_XINPUT_FOUND)
+      target_link_libraries(${TARGET} PRIVATE ${XCB_XINPUT_LIBRARIES})
+    endif()
+    target_include_directories(${TARGET} PRIVATE ${XCB_INCLUDE_DIRS})
+    target_compile_options(${TARGET} PRIVATE ${XCB_CFLAGS_OTHER})
+  endif()
+endfunction()
+
+# Function to link X11 (Xlib) libraries to a target
+function(link_x11 TARGET)
+  if(UNIX AND NOT APPLE AND X11_FOUND)
+    target_link_libraries(${TARGET} PRIVATE ${X11_LIBRARIES})
+    target_include_directories(${TARGET} PRIVATE ${X11_INCLUDE_DIRS})
+    target_compile_options(${TARGET} PRIVATE ${X11_CFLAGS_OTHER})
   endif()
 endfunction()
 

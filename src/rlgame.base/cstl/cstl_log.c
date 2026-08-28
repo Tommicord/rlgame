@@ -638,7 +638,7 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
     {
         fprintf (
             stderr,
-            "[%s][tid=%" PRIu32 "][%-5s] %s",
+            "%s [TID %" PRIu32 "] %-5s %s",
             entry->timestamp,
             entry->threadId,
             level,

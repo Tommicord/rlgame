@@ -22,13 +22,20 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
 
     struct R_Game_PipelineContextCreateInfo pipelineCreateInfo = {0};
     pipelineCreateInfo.pApplicationName = pCreateInfo->pApplicationName;
+    pipelineCreateInfo.windowWidth = pCreateInfo->windowWidth;
+    pipelineCreateInfo.windowHeight = pCreateInfo->windowHeight;
 
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
     pipelineCreateInfo.hInstance = pCreateInfo->hInstance;
     pipelineCreateInfo.hWnd = pCreateInfo->hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
+    pipelineCreateInfo.linuxBackend = pCreateInfo->linuxBackend;
     pipelineCreateInfo.pDisplay = pCreateInfo->pDisplay;
     pipelineCreateInfo.pSurface = pCreateInfo->pSurface;
+    pipelineCreateInfo.pX11Display = pCreateInfo->pX11Display;
+    pipelineCreateInfo.x11Window = pCreateInfo->x11Window;
+    pipelineCreateInfo.pXCBConnection = pCreateInfo->pXCBConnection;
+    pipelineCreateInfo.xcbWindow = pCreateInfo->xcbWindow;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     pipelineCreateInfo.pWindow = pCreateInfo->pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

@@ -13,6 +13,11 @@
 #include <android/native_window.h>
 #endif
 
+#if defined(R_CVULKAN_PLATFORM_LINUX)
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
+#endif
+
 R_CVULKAN_API enum R_CVulkanError
 R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
@@ -72,18 +77,83 @@ R_CVulkan_NewSurface (
     result = vkCreateWin32SurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
 
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-    if (!pCreateInfo->pDisplay || !pCreateInfo->pSurface)
+    if (pCreateInfo->linuxBackend == R_CVULKAN_LINUX_BACKEND_WAYLAND)
+    {
+        if (!pCreateInfo->pDisplay || !pCreateInfo->pSurface)
+        {
+            R_CSTL_TRACE_SCOPE_EXIT ();
+            return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating Wayland surface with display=%p, surface=%p", 
+                         (void*)pCreateInfo->pDisplay, (void*)pCreateInfo->pSurface);
+
+        VkWaylandSurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.display = pCreateInfo->pDisplay;
+        surfaceInfo.surface = pCreateInfo->pSurface;
+
+        result = vkCreateWaylandSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+        
+        if (result == VK_SUCCESS) {
+            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Wayland surface created successfully, handle=%p", (void*)pSurface->handle);
+        } else {
+            R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create Wayland surface, result=%d", result);
+        }
+    }
+    else if (pCreateInfo->linuxBackend == R_CVULKAN_LINUX_BACKEND_X11)
+    {
+        if (!pCreateInfo->pX11Display || !pCreateInfo->x11Window)
+        {
+            R_CSTL_TRACE_SCOPE_EXIT ();
+            return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating X11 surface with display=%p, window=%lu", 
+                         (void*)pCreateInfo->pX11Display, (unsigned long)pCreateInfo->x11Window);
+
+        VkXlibSurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.dpy = pCreateInfo->pX11Display;
+        surfaceInfo.window = pCreateInfo->x11Window;
+
+        result = vkCreateXlibSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+        
+        if (result == VK_SUCCESS) {
+            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: X11 surface created successfully, handle=%p", (void*)pSurface->handle);
+        } else {
+            R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create X11 surface, result=%d", result);
+        }
+    }
+    else if (pCreateInfo->linuxBackend == R_CVULKAN_LINUX_BACKEND_XCB)
+    {
+        if (!pCreateInfo->pXCBConnection || !pCreateInfo->xcbWindow)
+        {
+            R_CSTL_TRACE_SCOPE_EXIT ();
+            return R_CVULKAN_ERROR_INVALID_ARGUMENT;
+        }
+
+        R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: Creating XCB surface with connection=%p, window=%u", 
+                         (void*)pCreateInfo->pXCBConnection, pCreateInfo->xcbWindow);
+
+        VkXcbSurfaceCreateInfoKHR surfaceInfo = {0};
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.connection = pCreateInfo->pXCBConnection;
+        surfaceInfo.window = pCreateInfo->xcbWindow;
+
+        result = vkCreateXcbSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
+        
+        if (result == VK_SUCCESS) {
+            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: XCB surface created successfully, handle=%p", (void*)pSurface->handle);
+        } else {
+            R_CSTL_LOG_ERROR ("R_CVulkan_NewSurface: Failed to create XCB surface, result=%d", result);
+        }
+    }
+    else
     {
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
-
-    VkWaylandSurfaceCreateInfoKHR surfaceInfo = {0};
-    surfaceInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
-    surfaceInfo.display = pCreateInfo->pDisplay;
-    surfaceInfo.surface = pCreateInfo->pSurface;
-
-    result = vkCreateWaylandSurfaceKHR (instance, &surfaceInfo, NULL, &pSurface->handle);
 
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
     if (!pCreateInfo->pWindow)

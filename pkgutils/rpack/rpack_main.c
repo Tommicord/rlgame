@@ -79,7 +79,7 @@ R_Pack_ParseArguments (
     {
         if (strcmp (argv[i], "--help") == 0 || strcmp (argv[i], "-h") == 0)
         {
-            R_Pack_PrintHelp (argv[0]);
+            R_Pack_PrintHelp ();
             return 1;
         }
         else if (strcmp (argv[i], "-o") == 0 || strcmp (argv[i], "--output") == 0)

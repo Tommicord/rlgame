@@ -175,6 +175,33 @@ R_ENTRY_API bool R_WindowIsVisible (R_WIN32_HWND hwnd);
 #elif defined(__linux__)
 
 #include <wayland-client.h>
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
+
+/**
+ * @brief Window backend type enumeration
+ */
+enum R_WindowBackend
+{
+    R_WINDOW_BACKEND_NONE = 0,
+    R_WINDOW_BACKEND_WAYLAND = 0,
+    R_WINDOW_BACKEND_X11 = 1,
+    R_WINDOW_BACKEND_XCB = 2
+};
+
+/**
+ * @brief GPU capability information
+ */
+struct R_GPUCapabilities
+{
+    bool hasWaylandSupport;
+    bool hasX11Support;
+    bool hasXCBSupport;
+    bool isModernGPU;
+    uint32_t vulkanVersion;
+    const char* gpuName;
+    const char* driverVersion;
+};
 
 /**
  * @brief Wayland window handle type
@@ -187,6 +214,53 @@ typedef void* R_WaylandWindow;
 typedef void* R_WaylandDisplay;
 
 /**
+ * @brief X11 window handle type
+ */
+typedef Window R_X11Window;
+
+/**
+ * @brief X11 display handle type
+ */
+typedef Display* R_X11Display;
+
+/**
+ * @brief XCB window handle type
+ */
+typedef xcb_window_t R_XCBWindow;
+
+/**
+ * @brief XCB connection handle type
+ */
+typedef xcb_connection_t* R_XCBConnection;
+
+/**
+ * @brief Generic window handle union
+ */
+union R_WindowHandle
+{
+    R_WaylandWindow waylandWindow;
+    R_X11Window x11Window;
+    R_XCBWindow xcbWindow;
+};
+
+/**
+ * @brief Generic display handle union
+ */
+union R_DisplayHandle
+{
+    R_WaylandDisplay waylandDisplay;
+    R_X11Display x11Display;
+    R_XCBConnection xcbConnection;
+};
+
+/**
+ * @brief Detects GPU capabilities and chooses appropriate backend
+ * @param pCapabilities Output structure for GPU capabilities
+ * @return Chosen window backend type
+ */
+R_ENTRY_API enum R_WindowBackend R_DetectGPUCapabilities (struct R_GPUCapabilities* pCapabilities);
+
+/**
  * @brief Initializes the Wayland window
  * @param pApplicationInfo Application information structure
  * @return Window handle on success, NULL on failure
@@ -194,10 +268,36 @@ typedef void* R_WaylandDisplay;
 R_ENTRY_API R_WaylandWindow R_InitWaylandWindow (struct R_ApplicationInfo* pApplicationInfo);
 
 /**
+ * @brief Initializes the X11 window
+ * @param pApplicationInfo Application information structure
+ * @return Window handle on success, 0 on failure
+ */
+R_ENTRY_API R_X11Window R_InitX11Window (struct R_ApplicationInfo* pApplicationInfo);
+
+/**
+ * @brief Initializes the XCB window
+ * @param pApplicationInfo Application information structure
+ * @return Window handle on success, 0 on failure
+ */
+R_ENTRY_API R_XCBWindow R_InitXCBWindow (struct R_ApplicationInfo* pApplicationInfo);
+
+/**
  * @brief Gets the Wayland display handle
  * @return Display handle on success, NULL on failure
  */
 R_ENTRY_API R_WaylandDisplay R_GetWaylandDisplay (void);
+
+/**
+ * @brief Gets the X11 display handle
+ * @return Display handle on success, NULL on failure
+ */
+R_ENTRY_API R_X11Display R_GetX11Display (void);
+
+/**
+ * @brief Gets the XCB connection handle
+ * @return Connection handle on success, NULL on failure
+ */
+R_ENTRY_API R_XCBConnection R_GetXCBConnection (void);
 
 /**
  * @brief Sets the Wayland window to fullscreen mode
@@ -207,11 +307,39 @@ R_ENTRY_API R_WaylandDisplay R_GetWaylandDisplay (void);
 R_ENTRY_API void R_WindowSetFullscreen (R_WaylandWindow window, bool fullscreen);
 
 /**
+ * @brief Sets the X11 window to fullscreen mode
+ * @param window Window handle
+ * @param fullscreen true to enable fullscreen, false to disable
+ */
+R_ENTRY_API void R_X11WindowSetFullscreen (R_X11Window window, bool fullscreen);
+
+/**
+ * @brief Sets the XCB window to fullscreen mode
+ * @param window Window handle
+ * @param fullscreen true to enable fullscreen, false to disable
+ */
+R_ENTRY_API void R_XCBWindowSetFullscreen (R_XCBWindow window, bool fullscreen);
+
+/**
  * @brief Sets the Wayland window title
  * @param window Window handle
  * @param pTitle Window title string (UTF-8)
  */
 R_ENTRY_API void R_WindowSetTitle (R_WaylandWindow window, const char* pTitle);
+
+/**
+ * @brief Sets the X11 window title
+ * @param window Window handle
+ * @param pTitle Window title string (UTF-8)
+ */
+R_ENTRY_API void R_X11WindowSetTitle (R_X11Window window, const char* pTitle);
+
+/**
+ * @brief Sets the XCB window title
+ * @param window Window handle
+ * @param pTitle Window title string (UTF-8)
+ */
+R_ENTRY_API void R_XCBWindowSetTitle (R_XCBWindow window, const char* pTitle);
 
 /**
  * @brief Gets the Wayland window dimensions
@@ -222,6 +350,22 @@ R_ENTRY_API void R_WindowSetTitle (R_WaylandWindow window, const char* pTitle);
 R_ENTRY_API void R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHeight);
 
 /**
+ * @brief Gets the X11 window dimensions
+ * @param window Window handle
+ * @param pWidth Output pointer for width
+ * @param pHeight Output pointer for height
+ */
+R_ENTRY_API void R_X11WindowGetSize (R_X11Window window, int* pWidth, int* pHeight);
+
+/**
+ * @brief Gets the XCB window dimensions
+ * @param window Window handle
+ * @param pWidth Output pointer for width
+ * @param pHeight Output pointer for height
+ */
+R_ENTRY_API void R_XCBWindowGetSize (R_XCBWindow window, int* pWidth, int* pHeight);
+
+/**
  * @brief Gets the Wayland surface from the window
  * @param window Window handle
  * @return Wayland surface pointer, or NULL on failure
@@ -229,10 +373,51 @@ R_ENTRY_API void R_WindowGetSize (R_WaylandWindow window, int* pWidth, int* pHei
 R_ENTRY_API struct wl_surface* R_WaylandWindowGetSurface (R_WaylandWindow window);
 
 /**
+ * @brief Gets the Wayland display from the window
+ * @param window Window handle
+ * @return Wayland display pointer, or NULL on failure
+ */
+R_ENTRY_API struct wl_display* R_WaylandWindowGetDisplay (R_WaylandWindow window);
+
+/**
+ * @brief Gets the X11 display from the window
+ * @param window Window handle
+ * @return X11 display pointer, or NULL on failure
+ */
+R_ENTRY_API Display* R_X11WindowGetDisplay (R_X11Window window);
+
+/**
+ * @brief Gets the XCB connection from the window
+ * @param window Window handle
+ * @return XCB connection pointer, or NULL on failure
+ */
+R_ENTRY_API xcb_connection_t* R_XCBWindowGetConnection (R_XCBWindow window);
+
+/**
+ * @brief Waits for the Wayland compositor to provide window configuration
+ * @param window Window handle
+ * @param pWidth Output pointer for width (can be NULL)
+ * @param pHeight Output pointer for height (can be NULL)
+ */
+R_ENTRY_API void R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight);
+
+/**
  * @brief Destroys the Wayland window
  * @param window Window handle
  */
 R_ENTRY_API void R_DestroyWaylandWindow (R_WaylandWindow window);
+
+/**
+ * @brief Destroys the X11 window
+ * @param window Window handle
+ */
+R_ENTRY_API void R_DestroyX11Window (R_X11Window window);
+
+/**
+ * @brief Destroys the XCB window
+ * @param window Window handle
+ */
+R_ENTRY_API void R_DestroyXCBWindow (R_XCBWindow window);
 
 #elif defined(__ANDROID__)
 
