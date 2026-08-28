@@ -5,19 +5,19 @@
 
 #include <string.h>
 
-static enum R_PackError
-R_Pack_InputCheckOutput (struct R_PackOwnedImage* pOutput)
+static enum R_Pack_Error
+R_Pack_InputCheckOutput (struct R_Pack_OwnedImage* pOutput)
 {
     if (!pOutput) return R_RPACK_ERROR_INVALID_ARGUMENT;
     memset (pOutput, 0, sizeof (*pOutput));
     return R_RPACK_OK;
 }
 
-enum R_PackError
+enum R_Pack_Error
 R_Pack_InputFromRawRGBA (const uint8_t* pPixels, size_t pixelBytes, uint32_t width, uint32_t height,
-                         uint32_t stride, const char* pName, struct R_PackOwnedImage* pOutput)
+                         uint32_t stride, const char* pName, struct R_Pack_OwnedImage* pOutput)
 {
-    enum R_PackError error = R_Pack_InputCheckOutput (pOutput);
+    enum R_Pack_Error error = R_Pack_InputCheckOutput (pOutput);
     if (error != R_RPACK_OK || !pPixels || !pName || !width || !height ||
         (uint64_t)stride < (uint64_t)width * 4 ||
         (size_t)stride > SIZE_MAX / height || pixelBytes < (size_t)stride * height)
@@ -35,13 +35,13 @@ R_Pack_InputFromRawRGBA (const uint8_t* pPixels, size_t pixelBytes, uint32_t wid
     return R_RPACK_OK;
 }
 
-enum R_PackError
-R_Pack_InputFromBytes (const uint8_t* pData, size_t dataSize, const char* pName, struct R_PackOwnedImage* pOutput)
+enum R_Pack_Error
+R_Pack_InputFromBytes (const uint8_t* pData, size_t dataSize, const char* pName, struct R_Pack_OwnedImage* pOutput)
 {
-    enum R_PackError error = R_Pack_InputCheckOutput (pOutput);
+    enum R_Pack_Error error = R_Pack_InputCheckOutput (pOutput);
     if (error != R_RPACK_OK || !pData || !dataSize || !pName) return R_RPACK_ERROR_INVALID_ARGUMENT;
 
-    struct R_PackJpegImage decoded = {0};
+    struct R_Pack_JpegImage decoded = {0};
     error = R_Pack_JpegDecode (pData, dataSize, &decoded);
     if (error != R_RPACK_OK) return error;
     pOutput->pPixels = decoded.pPixels;
@@ -64,11 +64,11 @@ R_Pack_Base64Value (char character)
     return -1;
 }
 
-enum R_PackError
+enum R_Pack_Error
 R_Pack_InputFromBase64 (const char* pBase64, size_t textLength, const char* pName,
-                        struct R_PackOwnedImage* pOutput)
+                        struct R_Pack_OwnedImage* pOutput)
 {
-    enum R_PackError error = R_Pack_InputCheckOutput (pOutput);
+    enum R_Pack_Error error = R_Pack_InputCheckOutput (pOutput);
     if (error != R_RPACK_OK || !pBase64 || !textLength || !pName || textLength % 4 != 0)
         return R_RPACK_ERROR_INVALID_ARGUMENT;
 
@@ -104,7 +104,7 @@ R_Pack_InputFromBase64 (const char* pBase64, size_t textLength, const char* pNam
 }
 
 void
-R_Pack_DeleteOwnedImage (struct R_PackOwnedImage* pImage)
+R_Pack_DeleteOwnedImage (struct R_Pack_OwnedImage* pImage)
 {
     if (!pImage) return;
     if (pImage->pPixels) R_CSTL_HeapFree (pImage->pPixels);

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-struct R_PackJpegHuffman
+struct R_Pack_JpegHuffman
 {
         uint16_t codes[256];
         uint8_t  sizes[256];
@@ -14,7 +14,7 @@ struct R_PackJpegHuffman
         uint16_t count;
 };
 
-struct R_PackJpegDecoder
+struct R_Pack_JpegDecoder
 {
         const uint8_t*           data;
         size_t                   size;
@@ -28,8 +28,8 @@ struct R_PackJpegDecoder
         uint8_t                  quant[3];
         uint16_t                 quantTables[2][64];
         uint8_t                  quantPresent[2];
-        struct R_PackJpegHuffman dc[2];
-        struct R_PackJpegHuffman ac[2];
+        struct R_Pack_JpegHuffman dc[2];
+        struct R_Pack_JpegHuffman ac[2];
         uint8_t                  dcPresent[2];
         uint8_t                  acPresent[2];
         uint8_t                  unsupported;
@@ -43,7 +43,7 @@ struct R_PackJpegDecoder
 };
 
 static int
-R_Pack_JpegReadByte (struct R_PackJpegDecoder* pDecoder, uint8_t* pValue)
+R_Pack_JpegReadByte (struct R_Pack_JpegDecoder* pDecoder, uint8_t* pValue)
 {
     if (pDecoder->offset >= pDecoder->size) return 0;
     *pValue = pDecoder->data[pDecoder->offset++];
@@ -51,7 +51,7 @@ R_Pack_JpegReadByte (struct R_PackJpegDecoder* pDecoder, uint8_t* pValue)
 }
 
 static int
-R_Pack_JpegRead16 (struct R_PackJpegDecoder* pDecoder, uint16_t* pValue)
+R_Pack_JpegRead16 (struct R_Pack_JpegDecoder* pDecoder, uint16_t* pValue)
 {
     uint8_t high, low;
     if (!R_Pack_JpegReadByte (pDecoder, &high) || !R_Pack_JpegReadByte (pDecoder, &low)) return 0;
@@ -61,7 +61,7 @@ R_Pack_JpegRead16 (struct R_PackJpegDecoder* pDecoder, uint16_t* pValue)
 
 static int
 R_Pack_JpegBuildHuffman (
-    struct R_PackJpegHuffman* pTable,
+    struct R_Pack_JpegHuffman* pTable,
     const uint8_t*            pCounts,
     const uint8_t*            pValues,
     uint16_t                  valueCount)
@@ -85,7 +85,7 @@ R_Pack_JpegBuildHuffman (
 }
 
 static int
-R_Pack_JpegReadBits (struct R_PackJpegDecoder* pDecoder, uint8_t count, uint32_t* pValue)
+R_Pack_JpegReadBits (struct R_Pack_JpegDecoder* pDecoder, uint8_t count, uint32_t* pValue)
 {
     while (pDecoder->bits < count)
     {
@@ -106,8 +106,8 @@ R_Pack_JpegReadBits (struct R_PackJpegDecoder* pDecoder, uint8_t count, uint32_t
 
 static int
 R_Pack_JpegHuffmanValue (
-    struct R_PackJpegDecoder*       pDecoder,
-    const struct R_PackJpegHuffman* pTable,
+    struct R_Pack_JpegDecoder*       pDecoder,
+    const struct R_Pack_JpegHuffman* pTable,
     uint8_t*                        pValue)
 {
     uint32_t code = 0;
@@ -136,7 +136,7 @@ R_Pack_JpegExtend (uint32_t value, uint8_t bits)
 }
 
 static int
-R_Pack_JpegDecodeBlock (struct R_PackJpegDecoder* pDecoder, uint8_t component, int16_t* pBlock)
+R_Pack_JpegDecodeBlock (struct R_Pack_JpegDecoder* pDecoder, uint8_t component, int16_t* pBlock)
 {
     memset (pBlock, 0, 64 * sizeof (*pBlock));
     uint8_t dcSymbol;
@@ -204,7 +204,7 @@ R_Pack_JpegIdct (const int16_t* pBlock, uint8_t* pOutput)
 }
 
 static int
-R_Pack_JpegParse (struct R_PackJpegDecoder* pDecoder)
+R_Pack_JpegParse (struct R_Pack_JpegDecoder* pDecoder)
 {
     uint8_t marker;
     if (!R_Pack_JpegReadByte (pDecoder, &marker) || marker != 0xFF || !R_Pack_JpegReadByte (pDecoder, &marker)
@@ -336,12 +336,12 @@ R_Pack_JpegParse (struct R_PackJpegDecoder* pDecoder)
     return 1;
 }
 
-enum R_PackError
-R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_PackJpegImage* pImage)
+enum R_Pack_Error
+R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImage* pImage)
 {
     if (!pData || !pImage || dataSize < 4) return R_RPACK_ERROR_INVALID_ARGUMENT;
     memset (pImage, 0, sizeof (*pImage));
-    struct R_PackJpegDecoder decoder = {.data = pData, .size = dataSize};
+    struct R_Pack_JpegDecoder decoder = {.data = pData, .size = dataSize};
     if (!R_Pack_JpegParse (&decoder))
         return decoder.unsupported ? R_RPACK_ERROR_UNSUPPORTED_FORMAT : R_RPACK_ERROR_INVALID_FORMAT;
     if (!decoder.width || !decoder.height || decoder.width > UINT32_MAX / 4
@@ -406,8 +406,8 @@ R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_PackJpegImage
     return R_RPACK_OK;
 }
 
-enum R_PackError
-R_Pack_JpegDecodeFile (const char* pPath, struct R_PackJpegImage* pImage)
+enum R_Pack_Error
+R_Pack_JpegDecodeFile (const char* pPath, struct R_Pack_JpegImage* pImage)
 {
     if (!pPath || !pImage) return R_RPACK_ERROR_INVALID_ARGUMENT;
     FILE* pFile = fopen (pPath, "rb");
@@ -432,13 +432,13 @@ R_Pack_JpegDecodeFile (const char* pPath, struct R_PackJpegImage* pImage)
         return R_RPACK_ERROR_INVALID_DATA;
     }
     fclose (pFile);
-    enum R_PackError result = R_Pack_JpegDecode (data, (size_t)length, pImage);
+    enum R_Pack_Error result = R_Pack_JpegDecode (data, (size_t)length, pImage);
     R_CSTL_HeapFree (data);
     return result;
 }
 
 void
-R_Pack_JpegFreeImage (struct R_PackJpegImage* pImage)
+R_Pack_JpegFreeImage (struct R_Pack_JpegImage* pImage)
 {
     if (!pImage) return;
     if (pImage->pPixels) R_CSTL_HeapFree (pImage->pPixels);

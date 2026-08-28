@@ -21,7 +21,7 @@
 /**
  * @brief Input image data for encoding
  */
-struct R_PackInputImage
+struct R_Pack_InputImage
 {
         const uint8_t* pPixels; /**< Raw pixel data (RGBA format) */
         uint32_t       width; /**< Image width */
@@ -33,7 +33,7 @@ struct R_PackInputImage
 /**
  * @brief Encoder configuration
  */
-struct R_PackEncoderConfig
+struct R_Pack_EncoderConfig
 {
         uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_RPACK_DEFAULT_MAX_ATLAS_WIDTH) */
         uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT) */
@@ -54,13 +54,13 @@ struct R_PackEncoderConfig
 /**
  * @brief Encoder state
  */
-struct R_PackEncoder
+struct R_Pack_Encoder
 {
-        struct R_PackEncoderConfig    config;
-        struct R_PackHeader*          pHeader;
-        struct R_PackHashEntry*       pHashTable;
-        struct R_PackColorEntry*      pColorTable;
-        struct R_PackPixelIndexEntry* pPixelIndexTable;
+        struct R_Pack_EncoderConfig    config;
+        struct R_Pack_Header*          pHeader;
+        struct R_Pack_HashEntry*       pHashTable;
+        struct R_Pack_ColorEntry*      pColorTable;
+        struct R_Pack_PixelIndexEntry* pPixelIndexTable;
         uint32_t                      colorTableCapacity;
         uint32_t                      colorTableCount;
         uint32_t                      pixelIndexTableCapacity;
@@ -78,13 +78,13 @@ struct R_PackEncoder
  * @param config Encoder configuration (NULL for defaults)
  * @return Encoder instance or NULL on failure
  */
-R_RPACK_API struct R_PackEncoder* R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig);
+R_RPACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig);
 
 /**
  * @brief Destroy encoder instance
  * @param encoder Encoder instance to destroy
  */
-R_RPACK_API void R_Pack_DeleteEncoder (struct R_PackEncoder* pEncoder);
+R_RPACK_API void R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Add image to encoder
@@ -92,8 +92,8 @@ R_RPACK_API void R_Pack_DeleteEncoder (struct R_PackEncoder* pEncoder);
  * @param image Input image data
  * @return R_RPACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_PackError
-R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage);
+R_RPACK_API enum R_Pack_Error
+R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage);
 
 /**
  * @brief Encode all added images to RPACK format
@@ -103,8 +103,8 @@ R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInput
  * @param bytesWritten Number of bytes written to output
  * @return R_RPACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_PackError R_Pack_EncoderEncode (
-    struct R_PackEncoder* pEncoder,
+R_RPACK_API enum R_Pack_Error R_Pack_EncoderEncode (
+    struct R_Pack_Encoder* pEncoder,
     uint8_t*              pOutputBuffer,
     uint64_t              outputBufferSize,
     uint64_t*             pBytesWritten);
@@ -114,14 +114,14 @@ R_RPACK_API enum R_PackError R_Pack_EncoderEncode (
  * @param encoder Encoder instance
  * @return Required buffer size in bytes
  */
-R_RPACK_API uint64_t R_Pack_EncoderGetRequiredSize (const struct R_PackEncoder* pEncoder);
+R_RPACK_API uint64_t R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Get number of images added to encoder
  * @param encoder Encoder instance
  * @return Number of images
  */
-R_RPACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_PackEncoder* pEncoder);
+R_RPACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Convert RGBA to YUV-like encoding

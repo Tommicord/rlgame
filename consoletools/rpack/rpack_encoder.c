@@ -14,7 +14,7 @@
 #define R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
 #define R_RPACK_DEFAULT_WORKER_COUNT           0
 
-static const struct R_PackEncoderConfig R_RPACK_DEFAULT_CONFIG
+static const struct R_Pack_EncoderConfig R_RPACK_DEFAULT_CONFIG
     = {R_RPACK_DEFAULT_ATLAS_WIDTH,
        R_RPACK_DEFAULT_ATLAS_HEIGHT,
        R_RPACK_DEFAULT_PADDING,
@@ -27,12 +27,12 @@ static const struct R_PackEncoderConfig R_RPACK_DEFAULT_CONFIG
        0};
 
 static uint32_t
-R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
+R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
 
-struct R_PackPixelWorkTask
+struct R_Pack_PixelWorkTask
 {
-        struct R_PackEncoder*          pEncoder;
-        const struct R_PackInputImage* pImage;
+        struct R_Pack_Encoder*          pEncoder;
+        const struct R_Pack_InputImage* pImage;
         uint32_t                       startY;
         uint32_t                       endY;
         uint32_t*                      pOutPixelCount;
@@ -42,7 +42,7 @@ struct R_PackPixelWorkTask
 static void
 R_Pack_ProcessPixelRowWorker (void* pData)
 {
-    struct R_PackPixelWorkTask* pTask = (struct R_PackPixelWorkTask*)pData;
+    struct R_Pack_PixelWorkTask* pTask = (struct R_Pack_PixelWorkTask*)pData;
     uint32_t                    pixelCount = 0;
 
     for (uint32_t y = pTask->startY; y < pTask->endY; ++y)
@@ -69,9 +69,9 @@ R_Pack_ProcessPixelRowWorker (void* pData)
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
                 const uint32_t                newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
-                struct R_PackPixelIndexEntry* pNewTable = (struct R_PackPixelIndexEntry*)R_CSTL_HeapRealloc (
+                struct R_Pack_PixelIndexEntry* pNewTable = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
                     pTask->pEncoder->pPixelIndexTable,
-                    newCapacity * sizeof (struct R_PackPixelIndexEntry));
+                    newCapacity * sizeof (struct R_Pack_PixelIndexEntry));
                 if (!pNewTable)
                 {
                     R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
@@ -83,7 +83,7 @@ R_Pack_ProcessPixelRowWorker (void* pData)
             }
             R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
 
-            struct R_PackPixelIndexEntry* pPixelEntry
+            struct R_Pack_PixelIndexEntry* pPixelEntry
                 = &pTask->pEncoder->pPixelIndexTable[pTask->pEncoder->pixelIndexTableCount];
             pPixelEntry->colorIndex = (uint16_t)colorIndex;
             pPixelEntry->exponent = 1;
@@ -100,16 +100,16 @@ R_Pack_ProcessPixelRowWorker (void* pData)
     *pTask->pOutPixelCount = pixelCount;
 }
 
-struct R_PackEncoder*
-R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig)
+struct R_Pack_Encoder*
+R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig)
 {
-    struct R_PackEncoder* pEncoder = (struct R_PackEncoder*)R_CSTL_HeapAlloc (sizeof (struct R_PackEncoder));
+    struct R_Pack_Encoder* pEncoder = (struct R_Pack_Encoder*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Encoder));
     if (!pEncoder)
     {
         return NULL;
     }
 
-    memset (pEncoder, 0, sizeof (struct R_PackEncoder));
+    memset (pEncoder, 0, sizeof (struct R_Pack_Encoder));
 
     if (pConfig)
     {
@@ -149,19 +149,19 @@ R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig)
     pEncoder->workersActive = 0;
     pEncoder->ppWorkerThreads = NULL;
 
-    pEncoder->pHeader = (struct R_PackHeader*)R_CSTL_HeapAlloc (sizeof (struct R_PackHeader));
+    pEncoder->pHeader = (struct R_Pack_Header*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Header));
     if (!pEncoder->pHeader)
     {
         R_CSTL_HeapFree (pEncoder);
         return NULL;
     }
-    memset (pEncoder->pHeader, 0, sizeof (struct R_PackHeader));
+    memset (pEncoder->pHeader, 0, sizeof (struct R_Pack_Header));
     pEncoder->pHeader->magicInt32 = R_RPACK_MAGIC;
     pEncoder->pHeader->version = R_RPACK_VERSION;
 
     pEncoder->colorTableCapacity = R_RPACK_INITIAL_COLOR_TABLE_SIZE;
-    pEncoder->pColorTable = (struct R_PackColorEntry*)R_CSTL_HeapAlloc (
-        pEncoder->colorTableCapacity * sizeof (struct R_PackColorEntry));
+    pEncoder->pColorTable = (struct R_Pack_ColorEntry*)R_CSTL_HeapAlloc (
+        pEncoder->colorTableCapacity * sizeof (struct R_Pack_ColorEntry));
     if (!pEncoder->pColorTable)
     {
         R_CSTL_HeapFree (pEncoder->pHeader);
@@ -170,8 +170,8 @@ R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig)
     }
 
     pEncoder->pixelIndexTableCapacity = R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE;
-    pEncoder->pPixelIndexTable = (struct R_PackPixelIndexEntry*)R_CSTL_HeapAlloc (
-        pEncoder->pixelIndexTableCapacity * sizeof (struct R_PackPixelIndexEntry));
+    pEncoder->pPixelIndexTable = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapAlloc (
+        pEncoder->pixelIndexTableCapacity * sizeof (struct R_Pack_PixelIndexEntry));
     if (!pEncoder->pPixelIndexTable)
     {
         R_CSTL_HeapFree (pEncoder->pColorTable);
@@ -184,7 +184,7 @@ R_Pack_NewEncoder (const struct R_PackEncoderConfig* pConfig)
 }
 
 void
-R_Pack_DeleteEncoder (struct R_PackEncoder* pEncoder)
+R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder)
 {
     if (!pEncoder)
     {
@@ -285,13 +285,13 @@ R_Pack_GetColorSimilarity (uint8_t y1, uint8_t u1, uint8_t v1, uint8_t y2, uint8
 }
 
 static uint32_t
-R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v)
+R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v)
 {
     R_CSTL_MutexLock (pEncoder->pMutex);
 
     for (uint32_t i = 0; i < pEncoder->colorTableCount; ++i)
     {
-        struct R_PackColorEntry* pEntry = &pEncoder->pColorTable[i];
+        struct R_Pack_ColorEntry* pEntry = &pEncoder->pColorTable[i];
         float                    similarity = R_Pack_GetColorSimilarity (
             y,
             u,
@@ -309,9 +309,9 @@ R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, 
     if (pEncoder->colorTableCount >= pEncoder->colorTableCapacity)
     {
         uint32_t                 newCapacity = pEncoder->colorTableCapacity * 2;
-        struct R_PackColorEntry* pNewTable = (struct R_PackColorEntry*)R_CSTL_HeapRealloc (
+        struct R_Pack_ColorEntry* pNewTable = (struct R_Pack_ColorEntry*)R_CSTL_HeapRealloc (
             pEncoder->pColorTable,
-            newCapacity * sizeof (struct R_PackColorEntry));
+            newCapacity * sizeof (struct R_Pack_ColorEntry));
         if (!pNewTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
@@ -321,7 +321,7 @@ R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, 
         pEncoder->colorTableCapacity = newCapacity;
     }
 
-    struct R_PackColorEntry* pEntry = &pEncoder->pColorTable[pEncoder->colorTableCount];
+    struct R_Pack_ColorEntry* pEntry = &pEncoder->pColorTable[pEncoder->colorTableCount];
     pEntry->luminance = y;
     pEntry->luminanceExp = yExp;
     pEntry->chrominanceU = u;
@@ -332,8 +332,8 @@ R_Pack_FindOrAddColor (struct R_PackEncoder* pEncoder, uint8_t y, uint8_t yExp, 
     return colorIndex;
 }
 
-static enum R_PackError
-R_Pack_ValidateInputImage (const struct R_PackInputImage* pImage)
+static enum R_Pack_Error
+R_Pack_ValidateInputImage (const struct R_Pack_InputImage* pImage)
 {
     if (!pImage || !pImage->pPixels || !pImage->pName)
     {
@@ -353,15 +353,15 @@ R_Pack_ValidateInputImage (const struct R_PackInputImage* pImage)
     return R_RPACK_OK;
 }
 
-static enum R_PackError
-R_Pack_ExpandHashTable (struct R_PackEncoder* pEncoder, uint32_t* pOutTextureIndex)
+static enum R_Pack_Error
+R_Pack_ExpandHashTable (struct R_Pack_Encoder* pEncoder, uint32_t* pOutTextureIndex)
 {
     R_CSTL_MutexLock (pEncoder->pMutex);
     uint32_t textureIndex = pEncoder->pHeader->textureCount;
 
     if (textureIndex == 0)
     {
-        pEncoder->pHashTable = (struct R_PackHashEntry*)R_CSTL_HeapAlloc (sizeof (struct R_PackHashEntry));
+        pEncoder->pHashTable = (struct R_Pack_HashEntry*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_HashEntry));
         if (!pEncoder->pHashTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
@@ -370,9 +370,9 @@ R_Pack_ExpandHashTable (struct R_PackEncoder* pEncoder, uint32_t* pOutTextureInd
     }
     else
     {
-        struct R_PackHashEntry* pNewTable = (struct R_PackHashEntry*)R_CSTL_HeapRealloc (
+        struct R_Pack_HashEntry* pNewTable = (struct R_Pack_HashEntry*)R_CSTL_HeapRealloc (
             pEncoder->pHashTable,
-            (textureIndex + 1) * sizeof (struct R_PackHashEntry));
+            (textureIndex + 1) * sizeof (struct R_Pack_HashEntry));
         if (!pNewTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
@@ -388,8 +388,8 @@ R_Pack_ExpandHashTable (struct R_PackEncoder* pEncoder, uint32_t* pOutTextureInd
 
 static void
 R_Pack_GetAtlasPosition (
-    struct R_PackEncoder*          pEncoder,
-    const struct R_PackInputImage* pImage,
+    struct R_Pack_Encoder*          pEncoder,
+    const struct R_Pack_InputImage* pImage,
     uint32_t                       textureIndex,
     uint32_t*                      pOutX,
     uint32_t*                      pOutY)
@@ -399,7 +399,7 @@ R_Pack_GetAtlasPosition (
 
     if (textureIndex > 0)
     {
-        const struct R_PackHashEntry* pPrevEntry = &pEncoder->pHashTable[textureIndex - 1];
+        const struct R_Pack_HashEntry* pPrevEntry = &pEncoder->pHashTable[textureIndex - 1];
         currentX = pPrevEntry->atlasOffsetX + pPrevEntry->width + pEncoder->config.padding;
         if (currentX + pImage->width > pEncoder->config.maxAtlasWidth)
         {
@@ -418,7 +418,7 @@ R_Pack_GetAtlasPosition (
 
 static void
 R_Pack_UpdateAtlasDimensions (
-    struct R_PackEncoder* pEncoder,
+    struct R_Pack_Encoder* pEncoder,
     uint32_t              currentX,
     uint32_t              currentY,
     uint32_t              imageWidth,
@@ -438,8 +438,8 @@ R_Pack_UpdateAtlasDimensions (
     R_CSTL_MutexUnlock (pEncoder->pMutex);
 }
 
-static enum R_PackError
-R_Pack_ProcessPixelsSerial (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
+static enum R_Pack_Error
+R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     for (uint32_t y = 0; y < pImage->height; ++y)
     {
@@ -464,9 +464,9 @@ R_Pack_ProcessPixelsSerial (struct R_PackEncoder* pEncoder, const struct R_PackI
             if (pEncoder->pixelIndexTableCount >= pEncoder->pixelIndexTableCapacity)
             {
                 uint32_t                      newCapacity = pEncoder->pixelIndexTableCapacity * 2;
-                struct R_PackPixelIndexEntry* pNewTable = (struct R_PackPixelIndexEntry*)R_CSTL_HeapRealloc (
+                struct R_Pack_PixelIndexEntry* pNewTable = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
                     pEncoder->pPixelIndexTable,
-                    newCapacity * sizeof (struct R_PackPixelIndexEntry));
+                    newCapacity * sizeof (struct R_Pack_PixelIndexEntry));
                 if (!pNewTable)
                 {
                     R_CSTL_MutexUnlock (pEncoder->pMutex);
@@ -477,7 +477,7 @@ R_Pack_ProcessPixelsSerial (struct R_PackEncoder* pEncoder, const struct R_PackI
             }
             R_CSTL_MutexUnlock (pEncoder->pMutex);
 
-            struct R_PackPixelIndexEntry* pPixelEntry
+            struct R_Pack_PixelIndexEntry* pPixelEntry
                 = &pEncoder->pPixelIndexTable[pEncoder->pixelIndexTableCount];
             pPixelEntry->colorIndex = (uint16_t)colorIndex;
             pPixelEntry->exponent = 1;
@@ -492,12 +492,12 @@ R_Pack_ProcessPixelsSerial (struct R_PackEncoder* pEncoder, const struct R_PackI
     return R_RPACK_OK;
 }
 
-static enum R_PackError
-R_Pack_ProcessPixels (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
+static enum R_Pack_Error
+R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     uint32_t                    rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
-    struct R_PackPixelWorkTask* pTasks = (struct R_PackPixelWorkTask*)R_CSTL_HeapAlloc (
-        pEncoder->actualWorkerCount * sizeof (struct R_PackPixelWorkTask));
+    struct R_Pack_PixelWorkTask* pTasks = (struct R_Pack_PixelWorkTask*)R_CSTL_HeapAlloc (
+        pEncoder->actualWorkerCount * sizeof (struct R_Pack_PixelWorkTask));
     uint32_t* pPixelCounts = (uint32_t*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (uint32_t));
     int*      pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
 
@@ -552,8 +552,8 @@ R_Pack_ProcessPixels (struct R_PackEncoder* pEncoder, const struct R_PackInputIm
     return R_RPACK_OK;
 }
 
-static enum R_PackError
-R_Pack_ProcessImagePixels (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
+static enum R_Pack_Error
+R_Pack_ProcessImagePixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     if (pEncoder->actualWorkerCount > 1 && pImage->height > 100)
     {
@@ -565,14 +565,14 @@ R_Pack_ProcessImagePixels (struct R_PackEncoder* pEncoder, const struct R_PackIn
     }
 }
 
-enum R_PackError
-R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInputImage* pImage)
+enum R_Pack_Error
+R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     if (!pEncoder)
     {
         return R_RPACK_ERROR_INVALID_ARGUMENT;
     }
-    enum R_PackError error = R_Pack_ValidateInputImage (pImage);
+    enum R_Pack_Error error = R_Pack_ValidateInputImage (pImage);
     if (error != R_RPACK_OK)
     {
         return error;
@@ -597,7 +597,7 @@ R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInput
         return error;
     }
 
-    struct R_PackHashEntry* pEntry = &pEncoder->pHashTable[textureIndex];
+    struct R_Pack_HashEntry* pEntry = &pEncoder->pHashTable[textureIndex];
     pEntry->nameHash = R_Pack_Hash64String (pImage->pName, 0);
     pEntry->width = pImage->width;
     pEntry->height = pImage->height;
@@ -625,17 +625,17 @@ R_Pack_EncoderAddImage (struct R_PackEncoder* pEncoder, const struct R_PackInput
 }
 
 uint64_t
-R_Pack_EncoderGetRequiredSize (const struct R_PackEncoder* pEncoder)
+R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder)
 {
     if (!pEncoder || !pEncoder->pHeader)
     {
         return 0;
     }
 
-    uint64_t hashTableSize = (uint64_t)pEncoder->pHeader->textureCount * sizeof (struct R_PackHashEntry);
-    uint64_t colorTableSize = (uint64_t)pEncoder->colorTableCount * sizeof (struct R_PackColorEntry);
+    uint64_t hashTableSize = (uint64_t)pEncoder->pHeader->textureCount * sizeof (struct R_Pack_HashEntry);
+    uint64_t colorTableSize = (uint64_t)pEncoder->colorTableCount * sizeof (struct R_Pack_ColorEntry);
     uint64_t pixelIndexTableSize
-        = (uint64_t)pEncoder->pixelIndexTableCount * sizeof (struct R_PackPixelIndexEntry);
+        = (uint64_t)pEncoder->pixelIndexTableCount * sizeof (struct R_Pack_PixelIndexEntry);
     if (pEncoder->pHeader->atlasWidth != 0
         && pEncoder->pHeader->atlasHeight > UINT64_MAX / pEncoder->pHeader->atlasWidth / 2)
     {
@@ -646,9 +646,9 @@ R_Pack_EncoderGetRequiredSize (const struct R_PackEncoder* pEncoder)
     return R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize + atlasDataSize;
 }
 
-enum R_PackError
+enum R_Pack_Error
 R_Pack_EncoderEncode (
-    struct R_PackEncoder* pEncoder,
+    struct R_Pack_Encoder* pEncoder,
     uint8_t*              pOutputBuffer,
     uint64_t              outputBufferSize,
     uint64_t*             pBytesWritten)
@@ -666,8 +666,8 @@ R_Pack_EncoderEncode (
 
     uint64_t offset = 0;
 
-    memcpy (pOutputBuffer + offset, pEncoder->pHeader, sizeof (struct R_PackHeader));
-    offset += sizeof (struct R_PackHeader);
+    memcpy (pOutputBuffer + offset, pEncoder->pHeader, sizeof (struct R_Pack_Header));
+    offset += sizeof (struct R_Pack_Header);
 
     pEncoder->pHeader->hashTableOffset = offset;
     if (pEncoder->pHeader->textureCount > 0)
@@ -675,8 +675,8 @@ R_Pack_EncoderEncode (
         memcpy (
             pOutputBuffer + offset,
             pEncoder->pHashTable,
-            pEncoder->pHeader->textureCount * sizeof (struct R_PackHashEntry));
-        offset += pEncoder->pHeader->textureCount * sizeof (struct R_PackHashEntry);
+            pEncoder->pHeader->textureCount * sizeof (struct R_Pack_HashEntry));
+        offset += pEncoder->pHeader->textureCount * sizeof (struct R_Pack_HashEntry);
     }
 
     pEncoder->pHeader->colorTableOffset = offset;
@@ -685,8 +685,8 @@ R_Pack_EncoderEncode (
         memcpy (
             pOutputBuffer + offset,
             pEncoder->pColorTable,
-            pEncoder->colorTableCount * sizeof (struct R_PackColorEntry));
-        offset += pEncoder->colorTableCount * sizeof (struct R_PackColorEntry);
+            pEncoder->colorTableCount * sizeof (struct R_Pack_ColorEntry));
+        offset += pEncoder->colorTableCount * sizeof (struct R_Pack_ColorEntry);
     }
     pEncoder->pHeader->colorTableSize = pEncoder->colorTableCount;
 
@@ -696,8 +696,8 @@ R_Pack_EncoderEncode (
         memcpy (
             pOutputBuffer + offset,
             pEncoder->pPixelIndexTable,
-            pEncoder->pixelIndexTableCount * sizeof (struct R_PackPixelIndexEntry));
-        offset += pEncoder->pixelIndexTableCount * sizeof (struct R_PackPixelIndexEntry);
+            pEncoder->pixelIndexTableCount * sizeof (struct R_Pack_PixelIndexEntry));
+        offset += pEncoder->pixelIndexTableCount * sizeof (struct R_Pack_PixelIndexEntry);
     }
     pEncoder->pHeader->pixelIndexTableSize = pEncoder->pixelIndexTableCount;
     pEncoder->pHeader->dataOffset = offset;
@@ -711,13 +711,13 @@ R_Pack_EncoderEncode (
         *pBytesWritten = offset;
     }
 
-    memcpy (pOutputBuffer, pEncoder->pHeader, sizeof (struct R_PackHeader));
+    memcpy (pOutputBuffer, pEncoder->pHeader, sizeof (struct R_Pack_Header));
 
     return R_RPACK_OK;
 }
 
 uint32_t
-R_Pack_EncoderGetImageCount (const struct R_PackEncoder* pEncoder)
+R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder)
 {
     if (!pEncoder || !pEncoder->pHeader)
     {

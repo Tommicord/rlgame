@@ -1,7 +1,7 @@
 #include "rpack/rpack_platform.h"
 
 const char*
-R_Pack_ErrorToString (enum R_PackError error)
+R_Pack_ErrorToString (enum R_Pack_Error error)
 {
     switch (error)
     {

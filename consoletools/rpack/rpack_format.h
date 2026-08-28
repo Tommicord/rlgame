@@ -11,7 +11,7 @@
 /**
  * @brief RPACK file header
  */
-struct R_PackHeader
+struct R_Pack_Header
 {
         union
         {
@@ -34,7 +34,7 @@ struct R_PackHeader
 /**
  * @brief Hash table entry for texture lookup
  */
-struct R_PackHashEntry
+struct R_Pack_HashEntry
 {
         uint64_t nameHash; /**< xxHash64 of texture name */
         uint32_t atlasOffsetX; /**< X offset in atlas */
@@ -48,7 +48,7 @@ struct R_PackHashEntry
 /**
  * @brief Color table entry (YUV-like encoding)
  */
-struct R_PackColorEntry
+struct R_Pack_ColorEntry
 {
         uint8_t luminance; /**< Luminance (Y) 8 bits */
         uint8_t luminanceExp; /**< Luminance exponent 8 bits */
@@ -59,7 +59,7 @@ struct R_PackColorEntry
 /**
  * @brief Pixel index table entry for run-length encoding
  */
-struct R_PackPixelIndexEntry
+struct R_Pack_PixelIndexEntry
 {
         uint8_t  exponent; /**< Exponent multiplier (8 bits) */
         uint16_t colorIndex; /**< Index into color table (12 bits) */
@@ -90,11 +90,11 @@ uint64_t R_Pack_Hash64String (const char* pStr, uint64_t seed);
  * @param header Pointer to header to validate
  * @return 1 if valid, 0 otherwise
  */
-int R_Pack_ValidateHeader (const struct R_PackHeader* pHeader);
+int R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader);
 
 /**
  * @brief Get total expected file size from header
  * @param header Pointer to valid header
  * @return Expected file size in bytes
  */
-uint64_t R_Pack_GetExpectedFileSize (const struct R_PackHeader* pHeader);
+uint64_t R_Pack_GetExpectedFileSize (const struct R_Pack_Header* pHeader);

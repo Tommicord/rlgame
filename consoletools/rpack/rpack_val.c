@@ -7,7 +7,7 @@
 #include <string.h>
 
 static int
-R_Pack_ValidationFail (struct R_PackValidationReport* pReport, enum R_PackError error, uint64_t offset,
+R_Pack_ValidationFail (struct R_Pack_ValidationReport* pReport, enum R_Pack_Error error, uint64_t offset,
                        uint32_t textureIndex, uint64_t pixelIndex)
 {
     if (pReport)
@@ -27,19 +27,19 @@ R_Pack_RangesOverlap (uint64_t leftStart, uint64_t leftSize, uint64_t rightStart
 }
 
 int
-R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_PackValidationReport* pReport)
+R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pack_ValidationReport* pReport)
 {
     if (pReport)
     {
         memset (pReport, 0, sizeof (*pReport));
         pReport->error = R_RPACK_OK;
     }
-    if (!pData || dataSize < sizeof (struct R_PackHeader))
+    if (!pData || dataSize < sizeof (struct R_Pack_Header))
     {
         return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
     }
 
-    const struct R_PackHeader* pHeader = (const struct R_PackHeader*)pData;
+    const struct R_Pack_Header* pHeader = (const struct R_Pack_Header*)pData;
     if (!R_Pack_ValidateHeader (pHeader))
     {
         return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_FORMAT, 0, 0, 0);
@@ -53,10 +53,10 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
 
     uint64_t atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
     uint64_t fileEnd = dataSize;
-    const struct R_PackHashEntry* pHashes = (const struct R_PackHashEntry*)(pData + pHeader->hashTableOffset);
-    const struct R_PackColorEntry* pColors = (const struct R_PackColorEntry*)(pData + pHeader->colorTableOffset);
-    const struct R_PackPixelIndexEntry* pPixels
-        = (const struct R_PackPixelIndexEntry*)(pData + pHeader->pixelIndexTableOffset);
+    const struct R_Pack_HashEntry* pHashes = (const struct R_Pack_HashEntry*)(pData + pHeader->hashTableOffset);
+    const struct R_Pack_ColorEntry* pColors = (const struct R_Pack_ColorEntry*)(pData + pHeader->colorTableOffset);
+    const struct R_Pack_PixelIndexEntry* pPixels
+        = (const struct R_Pack_PixelIndexEntry*)(pData + pHeader->pixelIndexTableOffset);
 
     if (pHeader->dataOffset > fileEnd || atlasSize > fileEnd - pHeader->dataOffset)
     {
@@ -65,7 +65,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
 
     for (uint32_t i = 0; i < pHeader->textureCount; ++i)
     {
-        const struct R_PackHashEntry* pEntry = &pHashes[i];
+        const struct R_Pack_HashEntry* pEntry = &pHashes[i];
         uint64_t texturePixels = (uint64_t)pEntry->width * pEntry->height;
         if (pEntry->width == 0 || pEntry->height == 0 ||
             pEntry->atlasOffsetX > pHeader->atlasWidth || pEntry->width > pHeader->atlasWidth - pEntry->atlasOffsetX ||
@@ -93,7 +93,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
         for (uint64_t j = 0; j < texturePixels; ++j)
         {
             uint64_t pixelIndex = pEntry->pixelIndexTableOffset + j;
-            const struct R_PackPixelIndexEntry* pPixel = &pPixels[pixelIndex];
+            const struct R_Pack_PixelIndexEntry* pPixel = &pPixels[pixelIndex];
             if (pPixel->colorIndex >= pHeader->colorTableSize || pPixel->runWidth == 0 || pPixel->runWidth > 63 ||
                 pPixel->runHeight == 0 || pPixel->runHeight > 63 || pPixel->exponent == 0)
             {
@@ -108,7 +108,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
 }
 
 int
-R_Pack_ValidatePackedFile (const char* pPath, struct R_PackValidationReport* pReport)
+R_Pack_ValidatePackedFile (const char* pPath, struct R_Pack_ValidationReport* pReport)
 {
     if (!pPath) return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
     FILE* pFile = fopen (pPath, "rb");

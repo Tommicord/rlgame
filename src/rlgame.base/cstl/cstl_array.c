@@ -782,17 +782,17 @@ R_CSTL_ARRAY_SORT_TYPED (U16, uint16_t)
 R_CSTL_ARRAY_SORT_TYPED (U32, uint32_t)
 R_CSTL_ARRAY_SORT_TYPED (U64, uint64_t)
 
-typedef struct
+struct R_CSTL_ArrayStackFrame
 {
         long left;
         long right;
         int  depth;
-} R_CSTL_ArrayStackFrame;
+};
 
 #define R_CSTL_ARRAY_INTROSORT_SIMD(Suffix, PartitionFn)                                                     \
     static void R_CSTL_ArrayIntrosortU32##Suffix (uint32_t* pBase, long left, long right, int depthLimit)    \
     {                                                                                                        \
-        R_CSTL_ArrayStackFrame stack[64] = {0}; /* Sufficient for log2(2^64) depth */                        \
+        struct R_CSTL_ArrayStackFrame stack[64] = {0}; /* Sufficient for log2(2^64) depth */                 \
         int                    stackTop = 0;                                                                 \
                                                                                                              \
         stack[stackTop].left = left;                                                                         \
@@ -803,7 +803,7 @@ typedef struct
         while (stackTop > 0)                                                                                 \
         {                                                                                                    \
             stackTop--;                                                                                      \
-            R_CSTL_ArrayStackFrame* stackFrame = &stack[stackTop];                                           \
+            struct R_CSTL_ArrayStackFrame* stackFrame = &stack[stackTop];                                    \
             left = stackFrame->left;                                                                         \
             right = stackFrame->right;                                                                       \
             depthLimit = stackFrame->depth;                                                                  \
@@ -1556,9 +1556,9 @@ R_CSTL_ArrayPartition (const struct R_CSTL_ArraySortCtx* pCtx, long left, long r
 R_CSTL_API void
 R_CSTL_ArrayIntrosort (const struct R_CSTL_ArraySortCtx* pCtx, long left, long right, int depthLimit)
 {
-    R_CSTL_ArrayStackFrame  stack[64] = {0}; // Sufficient for log2(2^64) depth
-    long                    stackTop = 0;
-    R_CSTL_ArrayStackFrame* stackFrame = &stack[0];
+    struct R_CSTL_ArrayStackFrame  stack[64] = {0}; // Sufficient for log2(2^64) depth
+    long                           stackTop = 0;
+    struct R_CSTL_ArrayStackFrame* stackFrame = &stack[0];
     stackFrame->left = left;
     stackFrame->right = right;
     stackFrame->depth = depthLimit;
