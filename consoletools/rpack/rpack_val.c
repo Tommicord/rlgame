@@ -32,23 +32,23 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
     if (pReport)
     {
         memset (pReport, 0, sizeof (*pReport));
-        pReport->error = R_RPACK_OK;
+        pReport->error = R_PACK_OK;
     }
     if (!pData || dataSize < sizeof (struct R_Pack_Header))
     {
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
     }
 
     const struct R_Pack_Header* pHeader = (const struct R_Pack_Header*)pData;
     if (!R_Pack_ValidateHeader (pHeader))
     {
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_FORMAT, 0, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_FORMAT, 0, 0, 0);
     }
 
     uint64_t expectedSize = R_Pack_GetExpectedFileSize (pHeader);
     if (expectedSize == 0 || expectedSize != dataSize)
     {
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_FORMAT, dataSize, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_FORMAT, dataSize, 0, 0);
     }
 
     uint64_t atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
@@ -60,7 +60,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
 
     if (pHeader->dataOffset > fileEnd || atlasSize > fileEnd - pHeader->dataOffset)
     {
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, pHeader->dataOffset, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->dataOffset, 0, 0);
     }
 
     for (uint32_t i = 0; i < pHeader->textureCount; ++i)
@@ -74,19 +74,19 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
             pEntry->pixelIndexTableOffset > pHeader->pixelIndexTableSize ||
             texturePixels > pHeader->pixelIndexTableSize - pEntry->pixelIndexTableOffset)
         {
-            return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)i * sizeof (*pEntry), i, 0);
+            return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)i * sizeof (*pEntry), i, 0);
         }
 
         for (uint32_t j = i + 1; j < pHeader->textureCount; ++j)
         {
             if (pEntry->nameHash == pHashes[j].nameHash)
             {
-                return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
+                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
             }
             if (R_Pack_RangesOverlap (pEntry->atlasOffsetX, pEntry->width, pHashes[j].atlasOffsetX, pHashes[j].width) &&
                 R_Pack_RangesOverlap (pEntry->atlasOffsetY, pEntry->height, pHashes[j].atlasOffsetY, pHashes[j].height))
             {
-                return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
+                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
             }
         }
 
@@ -97,7 +97,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
             if (pPixel->colorIndex >= pHeader->colorTableSize || pPixel->runWidth == 0 || pPixel->runWidth > 63 ||
                 pPixel->runHeight == 0 || pPixel->runHeight > 63 || pPixel->exponent == 0)
             {
-                return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA,
+                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA,
                                                pHeader->pixelIndexTableOffset + pixelIndex * sizeof (*pPixel), i, j);
             }
             (void)pColors;
@@ -110,19 +110,19 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
 int
 R_Pack_ValidatePackedFile (const char* pPath, struct R_Pack_ValidationReport* pReport)
 {
-    if (!pPath) return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
+    if (!pPath) return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_ARGUMENT, 0, 0, 0);
     FILE* pFile = fopen (pPath, "rb");
-    if (!pFile) return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, 0, 0, 0);
+    if (!pFile) return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, 0, 0, 0);
     if (fseek (pFile, 0, SEEK_END) != 0)
     {
         fclose (pFile);
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, 0, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, 0, 0, 0);
     }
     long fileSize = ftell (pFile);
     if (fileSize < 0)
     {
         fclose (pFile);
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, 0, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, 0, 0, 0);
     }
     rewind (pFile);
     uint8_t* pData = (uint8_t*)malloc ((size_t)fileSize);
@@ -130,7 +130,7 @@ R_Pack_ValidatePackedFile (const char* pPath, struct R_Pack_ValidationReport* pR
     {
         free (pData);
         fclose (pFile);
-        return R_Pack_ValidationFail (pReport, R_RPACK_ERROR_INVALID_DATA, 0, 0, 0);
+        return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, 0, 0, 0);
     }
     fclose (pFile);
     int result = R_Pack_ValidatePackedData (pData, (uint64_t)fileSize, pReport);

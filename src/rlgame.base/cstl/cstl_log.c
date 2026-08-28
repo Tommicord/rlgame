@@ -771,14 +771,20 @@ R_CSTL_LogLevelName (enum R_CSTL_LogLevel level)
     }
 }
 
+#define R_CSTL_LOG_MAX_STACK_ENTRIES 128
+
 int
 R_CSTL_LogInit (void)
 {
-    if (g_log.initialized) return 0;
+    if (g_log.initialized) return R_CSTL_OK;
     g_log.capacity = R_CSTL_LOG_RING_CAPACITY;
     g_log.ring = (R_CSTL_LogEntry**)R_CSTL_HeapAlloc (g_log.capacity * sizeof (R_CSTL_LogEntry*));
-    if (!g_log.ring) return -1;
-
+    if (!g_log.ring)
+    {
+        static struct R_CSTL_LogEntry* entries[R_CSTL_LOG_MAX_STACK_ENTRIES] = {0};
+        g_log.ring = entries;
+        g_log.capacity = R_CSTL_LOG_MAX_STACK_ENTRIES;
+    }
     memset (g_log.ring, 0, g_log.capacity * sizeof (R_CSTL_LogEntry*));
     R_CSTL_HeapRegisterAllocation (
         &g_log,
@@ -817,7 +823,7 @@ R_CSTL_LogInit (void)
     }
 #endif
     g_log.initialized = true;
-    return 0;
+    return R_CSTL_OK;
 }
 
 void

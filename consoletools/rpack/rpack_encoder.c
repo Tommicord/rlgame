@@ -7,21 +7,21 @@
 #include <string.h>
 #include <math.h>
 
-#define R_RPACK_DEFAULT_ATLAS_WIDTH            4096
-#define R_RPACK_DEFAULT_ATLAS_HEIGHT           4096
-#define R_RPACK_DEFAULT_PADDING                1
-#define R_RPACK_INITIAL_COLOR_TABLE_SIZE       4096
-#define R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
-#define R_RPACK_DEFAULT_WORKER_COUNT           0
+#define R_PACK_DEFAULT_ATLAS_WIDTH            4096
+#define R_PACK_DEFAULT_ATLAS_HEIGHT           4096
+#define R_PACK_DEFAULT_PADDING                1
+#define R_PACK_INITIAL_COLOR_TABLE_SIZE       4096
+#define R_PACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
+#define R_PACK_DEFAULT_WORKER_COUNT           0
 
-static const struct R_Pack_EncoderConfig R_RPACK_DEFAULT_CONFIG
-    = {R_RPACK_DEFAULT_ATLAS_WIDTH,
-       R_RPACK_DEFAULT_ATLAS_HEIGHT,
-       R_RPACK_DEFAULT_PADDING,
+static const struct R_Pack_EncoderConfig R_PACK_DEFAULT_CONFIG
+    = {R_PACK_DEFAULT_ATLAS_WIDTH,
+       R_PACK_DEFAULT_ATLAS_HEIGHT,
+       R_PACK_DEFAULT_PADDING,
        0,
-       R_RPACK_DEFAULT_SIMILARITY_THRESHOLD,
+       R_PACK_DEFAULT_SIMILARITY_THRESHOLD,
        0.0f,
-       R_RPACK_DEFAULT_WORKER_COUNT,
+       R_PACK_DEFAULT_WORKER_COUNT,
        0,
        0,
        0};
@@ -117,7 +117,7 @@ R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig)
     }
     else
     {
-        pEncoder->config = R_RPACK_DEFAULT_CONFIG;
+        pEncoder->config = R_PACK_DEFAULT_CONFIG;
     }
 
     if (pEncoder->config.maxAtlasWidth == 0 || pEncoder->config.maxAtlasHeight == 0
@@ -156,10 +156,10 @@ R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig)
         return NULL;
     }
     memset (pEncoder->pHeader, 0, sizeof (struct R_Pack_Header));
-    pEncoder->pHeader->magicInt32 = R_RPACK_MAGIC;
-    pEncoder->pHeader->version = R_RPACK_VERSION;
+    pEncoder->pHeader->magicInt32 = R_PACK_MAGIC;
+    pEncoder->pHeader->version = R_PACK_VERSION;
 
-    pEncoder->colorTableCapacity = R_RPACK_INITIAL_COLOR_TABLE_SIZE;
+    pEncoder->colorTableCapacity = R_PACK_INITIAL_COLOR_TABLE_SIZE;
     pEncoder->pColorTable = (struct R_Pack_ColorEntry*)R_CSTL_HeapAlloc (
         pEncoder->colorTableCapacity * sizeof (struct R_Pack_ColorEntry));
     if (!pEncoder->pColorTable)
@@ -169,7 +169,7 @@ R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig)
         return NULL;
     }
 
-    pEncoder->pixelIndexTableCapacity = R_RPACK_INITIAL_PIXEL_INDEX_TABLE_SIZE;
+    pEncoder->pixelIndexTableCapacity = R_PACK_INITIAL_PIXEL_INDEX_TABLE_SIZE;
     pEncoder->pPixelIndexTable = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapAlloc (
         pEncoder->pixelIndexTableCapacity * sizeof (struct R_Pack_PixelIndexEntry));
     if (!pEncoder->pPixelIndexTable)
@@ -337,20 +337,20 @@ R_Pack_ValidateInputImage (const struct R_Pack_InputImage* pImage)
 {
     if (!pImage || !pImage->pPixels || !pImage->pName)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
     if (pImage->width == 0 || pImage->height == 0)
     {
-        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+        return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
 
     if (pImage->width > SIZE_MAX / 4 || pImage->stride < pImage->width * 4)
     {
-        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+        return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
 
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 static enum R_Pack_Error
@@ -365,7 +365,7 @@ R_Pack_ExpandHashTable (struct R_Pack_Encoder* pEncoder, uint32_t* pOutTextureIn
         if (!pEncoder->pHashTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
-            return R_RPACK_ERROR_OUT_OF_MEMORY;
+            return R_PACK_ERROR_OUT_OF_MEMORY;
         }
     }
     else
@@ -376,14 +376,14 @@ R_Pack_ExpandHashTable (struct R_Pack_Encoder* pEncoder, uint32_t* pOutTextureIn
         if (!pNewTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
-            return R_RPACK_ERROR_OUT_OF_MEMORY;
+            return R_PACK_ERROR_OUT_OF_MEMORY;
         }
         pEncoder->pHashTable = pNewTable;
     }
 
     *pOutTextureIndex = textureIndex;
     R_CSTL_MutexUnlock (pEncoder->pMutex);
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 static void
@@ -457,7 +457,7 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
             uint32_t colorIndex = R_Pack_FindOrAddColor (pEncoder, yuvY, yuvYExp, yuvU, yuvV);
             if (colorIndex == UINT32_MAX)
             {
-                return R_RPACK_ERROR_OUT_OF_MEMORY;
+                return R_PACK_ERROR_OUT_OF_MEMORY;
             }
 
             R_CSTL_MutexLock (pEncoder->pMutex);
@@ -470,7 +470,7 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
                 if (!pNewTable)
                 {
                     R_CSTL_MutexUnlock (pEncoder->pMutex);
-                    return R_RPACK_ERROR_OUT_OF_MEMORY;
+                    return R_PACK_ERROR_OUT_OF_MEMORY;
                 }
                 pEncoder->pPixelIndexTable = pNewTable;
                 pEncoder->pixelIndexTableCapacity = newCapacity;
@@ -489,7 +489,7 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
             R_CSTL_MutexUnlock (pEncoder->pMutex);
         }
     }
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 static enum R_Pack_Error
@@ -506,7 +506,7 @@ R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Input
         if (pTasks) R_CSTL_HeapFree (pTasks);
         if (pPixelCounts) R_CSTL_HeapFree (pPixelCounts);
         if (pErrors) R_CSTL_HeapFree (pErrors);
-        return R_RPACK_ERROR_OUT_OF_MEMORY;
+        return R_PACK_ERROR_OUT_OF_MEMORY;
     }
 
     memset (pErrors, 0, pEncoder->actualWorkerCount * sizeof (int));
@@ -542,14 +542,14 @@ R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Input
             R_CSTL_HeapFree (pTasks);
             R_CSTL_HeapFree (pPixelCounts);
             R_CSTL_HeapFree (pErrors);
-            return R_RPACK_ERROR_OUT_OF_MEMORY;
+            return R_PACK_ERROR_OUT_OF_MEMORY;
         }
     }
 
     R_CSTL_HeapFree (pTasks);
     R_CSTL_HeapFree (pPixelCounts);
     R_CSTL_HeapFree (pErrors);
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 static enum R_Pack_Error
@@ -570,29 +570,29 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
 {
     if (!pEncoder)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
     enum R_Pack_Error error = R_Pack_ValidateInputImage (pImage);
-    if (error != R_RPACK_OK)
+    if (error != R_PACK_OK)
     {
         return error;
     }
 
     if (pEncoder->config.maxTextures != 0 && pEncoder->pHeader->textureCount >= pEncoder->config.maxTextures)
     {
-        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+        return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
 
     uint64_t paddedWidth = (uint64_t)pImage->width + pEncoder->config.padding * 2ULL;
     uint64_t paddedHeight = (uint64_t)pImage->height + pEncoder->config.padding * 2ULL;
     if (paddedWidth > pEncoder->config.maxAtlasWidth || paddedHeight > pEncoder->config.maxAtlasHeight)
     {
-        return R_RPACK_ERROR_INVALID_DIMENSIONS;
+        return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
 
     uint32_t textureIndex;
     error = R_Pack_ExpandHashTable (pEncoder, &textureIndex);
-    if (error != R_RPACK_OK)
+    if (error != R_PACK_OK)
     {
         return error;
     }
@@ -613,7 +613,7 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
     R_Pack_UpdateAtlasDimensions (pEncoder, currentX, currentY, pImage->width, pImage->height);
 
     error = R_Pack_ProcessImagePixels (pEncoder, pImage);
-    if (error != R_RPACK_OK)
+    if (error != R_PACK_OK)
     {
         return error;
     }
@@ -621,7 +621,7 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
     R_CSTL_MutexLock (pEncoder->pMutex);
     pEncoder->pHeader->textureCount++;
     R_CSTL_MutexUnlock (pEncoder->pMutex);
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 uint64_t
@@ -643,7 +643,7 @@ R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder)
     }
     uint64_t atlasDataSize = (uint64_t)pEncoder->pHeader->atlasWidth * pEncoder->pHeader->atlasHeight * 2;
 
-    return R_RPACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize + atlasDataSize;
+    return R_PACK_HEADER_SIZE + hashTableSize + colorTableSize + pixelIndexTableSize + atlasDataSize;
 }
 
 enum R_Pack_Error
@@ -655,13 +655,13 @@ R_Pack_EncoderEncode (
 {
     if (!pEncoder || !pEncoder->pHeader || !pOutputBuffer)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
     uint64_t requiredSize = R_Pack_EncoderGetRequiredSize (pEncoder);
     if (outputBufferSize < requiredSize)
     {
-        return R_RPACK_ERROR_BUFFER_TOO_SMALL;
+        return R_PACK_ERROR_BUFFER_TOO_SMALL;
     }
 
     uint64_t offset = 0;
@@ -713,7 +713,7 @@ R_Pack_EncoderEncode (
 
     memcpy (pOutputBuffer, pEncoder->pHeader, sizeof (struct R_Pack_Header));
 
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 uint32_t

@@ -16,7 +16,9 @@ file(GLOB         RPACK_SOURCES         CONFIGURE_DEPENDS consoletools/rpack/*.c
 file(GLOB         RPACK_HEADERS         CONFIGURE_DEPENDS consoletools/rpack/*.h)
 file(GLOB         RPACK_CUDA_SOURCES    CONFIGURE_DEPENDS src/rlgame.compsrc/rpack_mipmap.cu)
 if(NOT CUDA_FOUND)
-  set(RPACK_CUDA_SOURCES "")
+  set(RPACK_CUDA_SOURCES ""
+          ../consoletools/rpack/rpack_pipeline.h
+          ../consoletools/rpack/rpack_pipeline.c)
 endif()
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 list(FILTER RPACK_SOURCES EXCLUDE REGEX "rpack_main\\.c$")
@@ -95,7 +97,7 @@ target_link_libraries(
 add_library(rlgame.base.rpack SHARED ${RPACK_SOURCES} ${RPACK_HEADERS} ${RPACK_CUDA_SOURCES})
 set_common_output_directories(rlgame.base.rpack)
 set_base_include_directories(rlgame.base.rpack)
-target_compile_definitions(rlgame.base.rpack PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_RPACK_BUILDING_DLL)
+target_compile_definitions(rlgame.base.rpack PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_PACK_BUILDING_DLL)
 apply_gpu_backend(rlgame.base.rpack)
 
 target_link_libraries(

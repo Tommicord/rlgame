@@ -25,13 +25,13 @@ struct R_Pack_Decoder
  * @param dataSize Size of file data
  * @return Decoder instance or NULL on failure
  */
-R_RPACK_API struct R_Pack_Decoder* R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize);
+R_PACK_API struct R_Pack_Decoder* R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize);
 
 /**
  * @brief Destroy decoder instance
  * @param decoder Decoder instance to destroy
  */
-R_RPACK_API void R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder);
+R_PACK_API void R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder);
 
 /**
  * @brief Find texture by name
@@ -39,7 +39,7 @@ R_RPACK_API void R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder);
  * @param name Texture name
  * @return Hash entry or NULL if not found
  */
-R_RPACK_API const struct R_Pack_HashEntry*
+R_PACK_API const struct R_Pack_HashEntry*
 R_Pack_DecoderFindTexture (const struct R_Pack_Decoder* pDecoder, const char* pName);
 
 /**
@@ -49,9 +49,9 @@ R_Pack_DecoderFindTexture (const struct R_Pack_Decoder* pDecoder, const char* pN
  * @param outputBuffer Output RGBA buffer (allocated by caller)
  * @param outputBufferSize Output buffer size in bytes
  * @param bytesWritten Number of bytes written
- * @return R_RPACK_OK on success, error code otherwise
+ * @return R_PACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_Pack_Error R_Pack_DecoderDecodeTexture (
+R_PACK_API enum R_Pack_Error R_Pack_DecoderDecodeTexture (
     const struct R_Pack_Decoder* pDecoder,
     const char*                 pName,
     uint8_t*                    pOutputBuffer,
@@ -66,9 +66,9 @@ R_RPACK_API enum R_Pack_Error R_Pack_DecoderDecodeTexture (
  * @param outputBuffer Output RGBA buffer (allocated by caller)
  * @param outputBufferSize Output buffer size in bytes
  * @param bytesWritten Number of bytes written
- * @return R_RPACK_OK on success, error code otherwise
+ * @return R_PACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_Pack_Error R_Pack_DecoderDecodeTextures (
+R_PACK_API enum R_Pack_Error R_Pack_DecoderDecodeTextures (
     const struct R_Pack_Decoder* pDecoder,
     const char**                pNames,
     uint32_t                    nameCount,
@@ -82,7 +82,7 @@ R_RPACK_API enum R_Pack_Error R_Pack_DecoderDecodeTextures (
  * @param name Texture name
  * @return Required buffer size in bytes (width * height * 4)
  */
-R_RPACK_API uint64_t R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* pDecoder, const char* pName);
+R_PACK_API uint64_t R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* pDecoder, const char* pName);
 
 /**
  * @brief Get required buffer size for decoding multiple textures
@@ -91,7 +91,7 @@ R_RPACK_API uint64_t R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* 
  * @param nameCount Number of texture names
  * @return Required buffer size in bytes
  */
-R_RPACK_API uint64_t
+R_PACK_API uint64_t
 R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char** pNames, uint32_t nameCount);
 
 /**
@@ -100,9 +100,9 @@ R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char
  * @param name Texture name
  * @param width Output width
  * @param height Output height
- * @return R_RPACK_OK on success, error code otherwise
+ * @return R_PACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_Pack_Error R_Pack_DecoderGetTextureDimensions (
+R_PACK_API enum R_Pack_Error R_Pack_DecoderGetTextureDimensions (
     const struct R_Pack_Decoder* pDecoder,
     const char*                 pName,
     uint32_t*                   pWidth,
@@ -113,7 +113,7 @@ R_RPACK_API enum R_Pack_Error R_Pack_DecoderGetTextureDimensions (
  * @param decoder Decoder instance
  * @return Number of textures
  */
-R_RPACK_API uint32_t R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder* pDecoder);
+R_PACK_API uint32_t R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder* pDecoder);
 
 /**
  * @brief Validate RPACK file data
@@ -121,4 +121,4 @@ R_RPACK_API uint32_t R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder*
  * @param dataSize Size of file data
  * @return 1 if valid, 0 otherwise
  */
-R_RPACK_API int R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize);
+R_PACK_API int R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize);

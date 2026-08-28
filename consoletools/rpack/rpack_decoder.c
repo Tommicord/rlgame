@@ -8,7 +8,7 @@
 struct R_Pack_Decoder*
 R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize)
 {
-    if (!pData || dataSize < R_RPACK_HEADER_SIZE)
+    if (!pData || dataSize < R_PACK_HEADER_SIZE)
     {
         return NULL;
     }
@@ -62,7 +62,7 @@ R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder)
 int
 R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize)
 {
-    if (!pData || dataSize < R_RPACK_HEADER_SIZE)
+    if (!pData || dataSize < R_PACK_HEADER_SIZE)
     {
         return 0;
     }
@@ -112,26 +112,26 @@ R_Pack_DecoderGetTextureDimensions (
 {
     if (!pDecoder || !pName || !pWidth || !pHeight)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
     const struct R_Pack_HashEntry* pEntry = R_Pack_DecoderFindTexture (pDecoder, pName);
     if (!pEntry)
     {
-        return R_RPACK_ERROR_TEXTURE_NOT_FOUND;
+        return R_PACK_ERROR_TEXTURE_NOT_FOUND;
     }
 
     *pWidth = pEntry->width;
     *pHeight = pEntry->height;
 
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 uint64_t
 R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* pDecoder, const char* pName)
 {
     uint32_t width = 0, height = 0;
-    if (R_Pack_DecoderGetTextureDimensions (pDecoder, pName, &width, &height) != R_RPACK_OK)
+    if (R_Pack_DecoderGetTextureDimensions (pDecoder, pName, &width, &height) != R_PACK_OK)
     {
         return 0;
     }
@@ -164,19 +164,19 @@ R_Pack_DecoderDecodeTexture (
 {
     if (!pDecoder || !pName || !pOutputBuffer)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
     const struct R_Pack_HashEntry* pEntry = R_Pack_DecoderFindTexture (pDecoder, pName);
     if (!pEntry)
     {
-        return R_RPACK_ERROR_TEXTURE_NOT_FOUND;
+        return R_PACK_ERROR_TEXTURE_NOT_FOUND;
     }
 
     uint64_t requiredSize = (uint64_t)pEntry->width * pEntry->height * 4;
     if (outputBufferSize < requiredSize)
     {
-        return R_RPACK_ERROR_BUFFER_TOO_SMALL;
+        return R_PACK_ERROR_BUFFER_TOO_SMALL;
     }
 
     uint32_t pixelCount = pEntry->width * pEntry->height;
@@ -186,13 +186,13 @@ R_Pack_DecoderDecodeTexture (
     {
         if (startIndex + i >= pDecoder->pHeader->pixelIndexTableSize)
         {
-            return R_RPACK_ERROR_INVALID_DATA;
+            return R_PACK_ERROR_INVALID_DATA;
         }
 
         const struct R_Pack_PixelIndexEntry* pPixelEntry = &pDecoder->pPixelIndexTable[startIndex + i];
         if (pPixelEntry->colorIndex >= pDecoder->pHeader->colorTableSize)
         {
-            return R_RPACK_ERROR_INVALID_DATA;
+            return R_PACK_ERROR_INVALID_DATA;
         }
 
         const struct R_Pack_ColorEntry* pColorEntry = &pDecoder->pColorTable[pPixelEntry->colorIndex];
@@ -219,7 +219,7 @@ R_Pack_DecoderDecodeTexture (
         *pBytesWritten = requiredSize;
     }
 
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 enum R_Pack_Error
@@ -233,7 +233,7 @@ R_Pack_DecoderDecodeTextures (
 {
     if (!pDecoder || !pNames || nameCount == 0 || !pOutputBuffer)
     {
-        return R_RPACK_ERROR_INVALID_ARGUMENT;
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     }
     uint64_t offset = 0;
     for (uint32_t i = 0; i < nameCount; ++i)
@@ -241,12 +241,12 @@ R_Pack_DecoderDecodeTextures (
         uint64_t textureSize = R_Pack_DecoderGetTextureSize (pDecoder, pNames[i]);
         if (textureSize == 0)
         {
-            return R_RPACK_ERROR_TEXTURE_NOT_FOUND;
+            return R_PACK_ERROR_TEXTURE_NOT_FOUND;
         }
 
         if (offset + textureSize > outputBufferSize)
         {
-            return R_RPACK_ERROR_BUFFER_TOO_SMALL;
+            return R_PACK_ERROR_BUFFER_TOO_SMALL;
         }
         uint64_t         written = 0;
         enum R_Pack_Error err = R_Pack_DecoderDecodeTexture (
@@ -255,7 +255,7 @@ R_Pack_DecoderDecodeTextures (
             pOutputBuffer + offset,
             textureSize,
             &written);
-        if (err != R_RPACK_OK)
+        if (err != R_PACK_OK)
         {
             return err;
         }
@@ -267,5 +267,5 @@ R_Pack_DecoderDecodeTextures (
         *pBytesWritten = offset;
     }
 
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }

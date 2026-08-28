@@ -339,17 +339,17 @@ R_Pack_JpegParse (struct R_Pack_JpegDecoder* pDecoder)
 enum R_Pack_Error
 R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImage* pImage)
 {
-    if (!pData || !pImage || dataSize < 4) return R_RPACK_ERROR_INVALID_ARGUMENT;
+    if (!pData || !pImage || dataSize < 4) return R_PACK_ERROR_INVALID_ARGUMENT;
     memset (pImage, 0, sizeof (*pImage));
     struct R_Pack_JpegDecoder decoder = {.data = pData, .size = dataSize};
     if (!R_Pack_JpegParse (&decoder))
-        return decoder.unsupported ? R_RPACK_ERROR_UNSUPPORTED_FORMAT : R_RPACK_ERROR_INVALID_FORMAT;
+        return decoder.unsupported ? R_PACK_ERROR_UNSUPPORTED_FORMAT : R_PACK_ERROR_INVALID_FORMAT;
     if (!decoder.width || !decoder.height || decoder.width > UINT32_MAX / 4
         || (size_t)decoder.width * 4 > SIZE_MAX / decoder.height)
-        return R_RPACK_ERROR_INVALID_FORMAT;
+        return R_PACK_ERROR_INVALID_FORMAT;
     size_t stride = (size_t)decoder.width * 4, outputSize = stride * decoder.height;
     pImage->pPixels = R_CSTL_HeapAlloc (outputSize);
-    if (!pImage->pPixels) return R_RPACK_ERROR_OUT_OF_MEMORY;
+    if (!pImage->pPixels) return R_PACK_ERROR_OUT_OF_MEMORY;
     pImage->width = decoder.width;
     pImage->height = decoder.height;
     pImage->stride = (uint32_t)stride;
@@ -374,7 +374,7 @@ R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImag
                     {
                         R_CSTL_HeapFree (pImage->pPixels);
                         memset (pImage, 0, sizeof (*pImage));
-                        return R_RPACK_ERROR_INVALID_DATA;
+                        return R_PACK_ERROR_INVALID_DATA;
                     }
                     R_Pack_JpegIdct (coefficients, blocks[component][block]);
                 }
@@ -403,25 +403,25 @@ R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImag
                     pixel[3] = 255;
                 }
         }
-    return R_RPACK_OK;
+    return R_PACK_OK;
 }
 
 enum R_Pack_Error
 R_Pack_JpegDecodeFile (const char* pPath, struct R_Pack_JpegImage* pImage)
 {
-    if (!pPath || !pImage) return R_RPACK_ERROR_INVALID_ARGUMENT;
+    if (!pPath || !pImage) return R_PACK_ERROR_INVALID_ARGUMENT;
     FILE* pFile = fopen (pPath, "rb");
-    if (!pFile) return R_RPACK_ERROR_INVALID_DATA;
+    if (!pFile) return R_PACK_ERROR_INVALID_DATA;
     if (fseek (pFile, 0, SEEK_END) != 0)
     {
         fclose (pFile);
-        return R_RPACK_ERROR_INVALID_DATA;
+        return R_PACK_ERROR_INVALID_DATA;
     }
     long length = ftell (pFile);
     if (length <= 0)
     {
         fclose (pFile);
-        return R_RPACK_ERROR_INVALID_DATA;
+        return R_PACK_ERROR_INVALID_DATA;
     }
     rewind (pFile);
     uint8_t* data = R_CSTL_HeapAlloc ((size_t)length);
@@ -429,7 +429,7 @@ R_Pack_JpegDecodeFile (const char* pPath, struct R_Pack_JpegImage* pImage)
     {
         if (data) R_CSTL_HeapFree (data);
         fclose (pFile);
-        return R_RPACK_ERROR_INVALID_DATA;
+        return R_PACK_ERROR_INVALID_DATA;
     }
     fclose (pFile);
     enum R_Pack_Error result = R_Pack_JpegDecode (data, (size_t)length, pImage);

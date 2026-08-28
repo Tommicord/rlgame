@@ -100,7 +100,7 @@ R_CVulkan_NewSurface (
         if (result == VK_SUCCESS)
         {
             R_CSTL_LOG_INFO (
-                "R_CVulkan_NewSurface: Wayland surface created successfully, handle=%p",
+                "R_CVulkan_NewSurface: Wayland surface created, handle=%p",
                 (void*)pSurface->handle);
         }
         else
@@ -131,7 +131,7 @@ R_CVulkan_NewSurface (
         if (result == VK_SUCCESS)
         {
             R_CSTL_LOG_INFO (
-                "R_CVulkan_NewSurface: X11 surface created successfully, handle=%p",
+                "R_CVulkan_NewSurface: X11 surface created, handle=%p",
                 (void*)pSurface->handle);
         }
         else
@@ -162,7 +162,7 @@ R_CVulkan_NewSurface (
         if (result == VK_SUCCESS)
         {
             R_CSTL_LOG_INFO (
-                "R_CVulkan_NewSurface: XCB surface created successfully, handle=%p",
+                "R_CVulkan_NewSurface: XCB surface created, handle=%p",
                 (void*)pSurface->handle);
         }
         else

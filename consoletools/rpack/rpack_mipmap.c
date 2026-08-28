@@ -23,16 +23,16 @@ R_Pack_MipmapInitialize (
     size_t                        kernelSourceSize,
     struct R_Pack_MipmapContext** ppOutContext)
 {
-    R_RPACK_MIPMAP_VALIDATE (
+    R_PACK_MIPMAP_VALIDATE (
         pContext != NULL && pDevice != NULL && pQueue != NULL,
-        R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
-    R_RPACK_MIPMAP_VALIDATE (
+        R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+    R_PACK_MIPMAP_VALIDATE (
         pKernelSource != NULL && kernelSourceSize > 0,
-        R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
-    R_RPACK_MIPMAP_VALIDATE (ppOutContext != NULL, R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+        R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+    R_PACK_MIPMAP_VALIDATE (ppOutContext != NULL, R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
 
     struct R_Pack_MipmapContext* pMipmap = calloc (1, sizeof (*pMipmap));
-    if (!pMipmap) return R_RPACK_MIPMAP_ERROR_INITIALIZATION;
+    if (!pMipmap) return R_PACK_MIPMAP_ERROR_INITIALIZATION;
 
     cl_int error = CL_SUCCESS;
     pMipmap->context = (cl_context)pContext;
@@ -49,11 +49,11 @@ R_Pack_MipmapInitialize (
     if (error != CL_SUCCESS)
     {
         R_Pack_MipmapShutdown (pMipmap);
-        return R_RPACK_MIPMAP_ERROR_INITIALIZATION;
+        return R_PACK_MIPMAP_ERROR_INITIALIZATION;
     }
 
     *ppOutContext = pMipmap;
-    return R_RPACK_MIPMAP_OK;
+    return R_PACK_MIPMAP_OK;
 }
 
 void
@@ -78,19 +78,19 @@ R_Pack_MipmapDispatch (
     enum R_Pack_MipmapFilter     filter,
     float                        sigma)
 {
-    R_RPACK_MIPMAP_VALIDATE (
+    R_PACK_MIPMAP_VALIDATE (
         pContext != NULL && pSource != NULL && pDestination != NULL,
-        R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
-    R_RPACK_MIPMAP_VALIDATE (
+        R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+    R_PACK_MIPMAP_VALIDATE (
         sourceWidth > 0 && sourceHeight > 0 && destinationWidth > 0 && destinationHeight > 0,
-        R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
-    R_RPACK_MIPMAP_VALIDATE (filter <= R_RPACK_MIPMAP_FILTER_GAUSSIAN, R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
-    R_RPACK_MIPMAP_VALIDATE (
-        filter == R_RPACK_MIPMAP_FILTER_BOX || (isfinite (sigma) && sigma > 0.0f),
-        R_RPACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+        R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+    R_PACK_MIPMAP_VALIDATE (filter <= R_PACK_MIPMAP_FILTER_GAUSSIAN, R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
+    R_PACK_MIPMAP_VALIDATE (
+        filter == R_PACK_MIPMAP_FILTER_BOX || (isfinite (sigma) && sigma > 0.0f),
+        R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
 
     cl_kernel kernel
-        = filter == R_RPACK_MIPMAP_FILTER_GAUSSIAN ? pContext->gaussianKernel : pContext->boxKernel;
+        = filter == R_PACK_MIPMAP_FILTER_GAUSSIAN ? pContext->gaussianKernel : pContext->boxKernel;
     cl_mem source = (cl_mem)pSource;
     cl_mem destination = (cl_mem)pDestination;
     cl_int error = clSetKernelArg (kernel, 0, sizeof (source), &source);
@@ -99,14 +99,14 @@ R_Pack_MipmapDispatch (
     error |= clSetKernelArg (kernel, 3, sizeof (sourceHeight), &sourceHeight);
     error |= clSetKernelArg (kernel, 4, sizeof (destinationWidth), &destinationWidth);
     error |= clSetKernelArg (kernel, 5, sizeof (destinationHeight), &destinationHeight);
-    if (filter == R_RPACK_MIPMAP_FILTER_GAUSSIAN) error |= clSetKernelArg (kernel, 6, sizeof (sigma), &sigma);
-    if (error != CL_SUCCESS) return R_RPACK_MIPMAP_ERROR_DISPATCH;
+    if (filter == R_PACK_MIPMAP_FILTER_GAUSSIAN) error |= clSetKernelArg (kernel, 6, sizeof (sigma), &sigma);
+    if (error != CL_SUCCESS) return R_PACK_MIPMAP_ERROR_DISPATCH;
 
     const size_t globalSize[2] = {destinationWidth, destinationHeight};
     return clEnqueueNDRangeKernel (pContext->queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, NULL)
                    == CL_SUCCESS
-               ? R_RPACK_MIPMAP_OK
-               : R_RPACK_MIPMAP_ERROR_DISPATCH;
+               ? R_PACK_MIPMAP_OK
+               : R_PACK_MIPMAP_ERROR_DISPATCH;
 }
 
 #elif !defined(R_CUDA)
@@ -131,7 +131,7 @@ R_Pack_MipmapInitialize (
     (void)pKernelSource;
     (void)kernelSourceSize;
     (void)ppOutContext;
-    return R_RPACK_MIPMAP_ERROR_UNSUPPORTED;
+    return R_PACK_MIPMAP_ERROR_UNSUPPORTED;
 }
 
 void
@@ -161,7 +161,7 @@ R_Pack_MipmapDispatch (
     (void)destinationHeight;
     (void)filter;
     (void)sigma;
-    return R_RPACK_MIPMAP_ERROR_UNSUPPORTED;
+    return R_PACK_MIPMAP_ERROR_UNSUPPORTED;
 }
 
 #endif

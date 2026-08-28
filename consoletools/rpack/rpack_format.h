@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define R_RPACK_MAGIC       0x5250434B // RPCK
-#define R_RPACK_VERSION     1
-#define R_RPACK_HEADER_SIZE 64
+#define R_PACK_MAGIC       0x5250434B // RPCK
+#define R_PACK_VERSION     1
+#define R_PACK_HEADER_SIZE 64
 #pragma pack(push, 1)
 
 /**

@@ -13,9 +13,9 @@ struct R_Pack_JpegImage
         uint32_t stride;
 };
 
-R_RPACK_API enum R_Pack_Error
+R_PACK_API enum R_Pack_Error
 R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImage* pImage);
 
-R_RPACK_API enum R_Pack_Error R_Pack_JpegDecodeFile (const char* pPath, struct R_Pack_JpegImage* pImage);
+R_PACK_API enum R_Pack_Error R_Pack_JpegDecodeFile (const char* pPath, struct R_Pack_JpegImage* pImage);
 
-R_RPACK_API void R_Pack_JpegFreeImage (struct R_Pack_JpegImage* pImage);
+R_PACK_API void R_Pack_JpegFreeImage (struct R_Pack_JpegImage* pImage);

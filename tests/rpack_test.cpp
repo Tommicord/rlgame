@@ -32,7 +32,7 @@ protected:
             0, 0, 255, 255,
             255, 255, 255, 255};
         R_Pack_OwnedImage image = {};
-        EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, pName, &image), R_RPACK_OK);
+        EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, pName, &image), R_PACK_OK);
         return image;
     }
 
@@ -46,12 +46,12 @@ protected:
         config.maxTextures = maxTextures;
         R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
         EXPECT_NE (encoder, nullptr);
-        EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &pImage->image), R_RPACK_OK);
+        EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &pImage->image), R_PACK_OK);
         uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
         EXPECT_GT (size, 0u);
         std::vector<uint8_t> output (size);
         uint64_t written = 0;
-        EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_RPACK_OK);
+        EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
         EXPECT_EQ (written, size);
         R_Pack_DeleteEncoder (encoder);
         return output;
@@ -68,7 +68,7 @@ TEST_F (RPackTest, EncodesAndExhaustivelyValidatesOneImage)
 
     R_Pack_ValidationReport report = {};
     EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
-    EXPECT_EQ (report.error, R_RPACK_OK);
+    EXPECT_EQ (report.error, R_PACK_OK);
     EXPECT_EQ (R_Pack_DecoderValidateFile (packed.data (), packed.size ()), 1);
 }
 
@@ -84,13 +84,13 @@ TEST_F (RPackTest, DecoderReturnsOriginalDimensionsAndPixels)
     EXPECT_NE (R_Pack_DecoderFindTexture (decoder, "test-image"), nullptr);
 
     uint32_t width = 0, height = 0;
-    ASSERT_EQ (R_Pack_DecoderGetTextureDimensions (decoder, "test-image", &width, &height), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_DecoderGetTextureDimensions (decoder, "test-image", &width, &height), R_PACK_OK);
     EXPECT_EQ (width, 2u);
     EXPECT_EQ (height, 2u);
 
     std::array<uint8_t, 16> decoded = {};
     uint64_t written = 0;
-    ASSERT_EQ (R_Pack_DecoderDecodeTexture (decoder, "test-image", decoded.data (), decoded.size (), &written), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_DecoderDecodeTexture (decoder, "test-image", decoded.data (), decoded.size (), &written), R_PACK_OK);
     EXPECT_EQ (written, decoded.size ());
     for (size_t i = 3; i < decoded.size (); i += 4) EXPECT_EQ (decoded[i], 255);
     R_Pack_DeleteDecoder (decoder);
@@ -100,14 +100,14 @@ TEST_F (RPackTest, RejectsNullAndTruncatedPackedData)
 {
     R_Pack_ValidationReport report = {};
     EXPECT_EQ (R_Pack_ValidatePackedData (nullptr, 0, &report), 0);
-    EXPECT_EQ (report.error, R_RPACK_ERROR_INVALID_ARGUMENT);
+    EXPECT_EQ (report.error, R_PACK_ERROR_INVALID_ARGUMENT);
     EXPECT_EQ (R_Pack_ValidatePackedData (nullptr, 0, nullptr), 0);
 
     R_Pack_OwnedImage image = MakeImage ("test-image");
     std::vector<uint8_t> packed = Encode (&image);
     R_Pack_DeleteOwnedImage (&image);
     EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size () - 1, &report), 0);
-    EXPECT_EQ (report.error, R_RPACK_ERROR_INVALID_FORMAT);
+    EXPECT_EQ (report.error, R_PACK_ERROR_INVALID_FORMAT);
     EXPECT_EQ (R_Pack_NewDecoder (packed.data (), packed.size () - 1), nullptr);
 }
 
@@ -121,9 +121,9 @@ TEST_F (RPackTest, RejectsInvalidHeaderMagicAndOffsets)
     R_Pack_ValidationReport report = {};
     header->magicInt32 = 0;
     EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 0);
-    EXPECT_EQ (report.error, R_RPACK_ERROR_INVALID_FORMAT);
+    EXPECT_EQ (report.error, R_PACK_ERROR_INVALID_FORMAT);
 
-    header->magicInt32 = R_RPACK_MAGIC;
+    header->magicInt32 = R_PACK_MAGIC;
     header->dataOffset = header->pixelIndexTableOffset;
     EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 0);
 }
@@ -139,11 +139,11 @@ TEST_F (RPackTest, RejectsOverlappingTexturesAndDuplicateNames)
     ASSERT_NE (encoder, nullptr);
     R_Pack_OwnedImage first = MakeImage ("same");
     R_Pack_OwnedImage second = MakeImage ("same");
-    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &first.image), R_RPACK_OK);
-    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &second.image), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &first.image), R_PACK_OK);
+    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &second.image), R_PACK_OK);
     uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
     std::vector<uint8_t> packed (size);
-    ASSERT_EQ (R_Pack_EncoderEncode (encoder, packed.data (), packed.size (), nullptr), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_EncoderEncode (encoder, packed.data (), packed.size (), nullptr), R_PACK_OK);
     R_Pack_DeleteEncoder (encoder);
     R_Pack_DeleteOwnedImage (&first);
     R_Pack_DeleteOwnedImage (&second);
@@ -163,7 +163,7 @@ TEST_F (RPackTest, ValidatorReportsCorruptPixelEntry)
 
     R_Pack_ValidationReport report = {};
     EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 0);
-    EXPECT_EQ (report.error, R_RPACK_ERROR_INVALID_DATA);
+    EXPECT_EQ (report.error, R_PACK_ERROR_INVALID_DATA);
     EXPECT_EQ (report.pixelIndex, 0u);
 }
 
@@ -177,11 +177,11 @@ TEST_F (RPackTest, ValidatorRejectsOverlappingAtlasRectangles)
     ASSERT_NE (encoder, nullptr);
     R_Pack_OwnedImage first = MakeImage ("first");
     R_Pack_OwnedImage second = MakeImage ("second");
-    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &first.image), R_RPACK_OK);
-    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &second.image), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &first.image), R_PACK_OK);
+    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &second.image), R_PACK_OK);
     uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
     std::vector<uint8_t> packed (size);
-    ASSERT_EQ (R_Pack_EncoderEncode (encoder, packed.data (), packed.size (), nullptr), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_EncoderEncode (encoder, packed.data (), packed.size (), nullptr), R_PACK_OK);
     R_Pack_DeleteEncoder (encoder);
     R_Pack_DeleteOwnedImage (&first);
     R_Pack_DeleteOwnedImage (&second);
@@ -201,11 +201,11 @@ TEST_F (RPackTest, EnforcesTextureLimitAndOutputBufferSize)
     config.maxTextures = 1;
     R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
     ASSERT_NE (encoder, nullptr);
-    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_RPACK_OK);
-    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_RPACK_ERROR_INVALID_DIMENSIONS);
+    ASSERT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_ERROR_INVALID_DIMENSIONS);
     uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
     std::vector<uint8_t> output (size);
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), size - 1, nullptr), R_RPACK_ERROR_BUFFER_TOO_SMALL);
+    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), size - 1, nullptr), R_PACK_ERROR_BUFFER_TOO_SMALL);
     R_Pack_DeleteEncoder (encoder);
     R_Pack_DeleteOwnedImage (&image);
 }
@@ -219,10 +219,10 @@ TEST_F (RPackTest, DecoderRejectsSmallOutputBufferAndMissingTexture)
     ASSERT_NE (decoder, nullptr);
     std::array<uint8_t, 3> output = {};
     EXPECT_EQ (R_Pack_DecoderDecodeTexture (decoder, "errors", output.data (), output.size (), nullptr),
-               R_RPACK_ERROR_BUFFER_TOO_SMALL);
+               R_PACK_ERROR_BUFFER_TOO_SMALL);
     EXPECT_EQ (R_Pack_DecoderGetTextureSize (decoder, "missing"), 0u);
     EXPECT_EQ (R_Pack_DecoderDecodeTexture (decoder, "missing", output.data (), output.size (), nullptr),
-               R_RPACK_ERROR_TEXTURE_NOT_FOUND);
+               R_PACK_ERROR_TEXTURE_NOT_FOUND);
     R_Pack_DeleteDecoder (decoder);
 }
 
@@ -230,13 +230,13 @@ TEST_F (RPackTest, InputModesValidateAndOwnBuffers)
 {
     std::array<uint8_t, 16> pixels = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     R_Pack_OwnedImage raw = {};
-    ASSERT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, "raw", &raw), R_RPACK_OK);
+    ASSERT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, "raw", &raw), R_PACK_OK);
     pixels[0] = 99;
     EXPECT_EQ (raw.pPixels[0], 1);
     R_Pack_DeleteOwnedImage (&raw);
-    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), 3, 2, 2, 8, "bad", &raw), R_RPACK_ERROR_INVALID_ARGUMENT);
-    EXPECT_EQ (R_Pack_InputFromBase64 ("!!!!", 4, "bad", &raw), R_RPACK_ERROR_INVALID_FORMAT);
-    EXPECT_EQ (R_Pack_InputFromBytes (pixels.data (), pixels.size (), "bad", &raw), R_RPACK_ERROR_INVALID_FORMAT);
+    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), 3, 2, 2, 8, "bad", &raw), R_PACK_ERROR_INVALID_ARGUMENT);
+    EXPECT_EQ (R_Pack_InputFromBase64 ("!!!!", 4, "bad", &raw), R_PACK_ERROR_INVALID_FORMAT);
+    EXPECT_EQ (R_Pack_InputFromBytes (pixels.data (), pixels.size (), "bad", &raw), R_PACK_ERROR_INVALID_FORMAT);
 }
 
 TEST_F (RPackTest, ColorConversionProducesBoundedChannels)

@@ -7,16 +7,16 @@
 #include <stddef.h>
 
 /* Default configuration values */
-#define R_RPACK_DEFAULT_MAX_ATLAS_WIDTH      4096
-#define R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT     4096
-#define R_RPACK_DEFAULT_PADDING              1
-#define R_RPACK_DEFAULT_BORDER               0
-#define R_RPACK_DEFAULT_SIMILARITY_THRESHOLD 0.125f
-#define R_RPACK_DEFAULT_ALPHA_THRESHOLD      0.0f
-#define R_RPACK_DEFAULT_WORKER_COUNT         0
-#define R_RPACK_DEFAULT_MAX_TEXTURES         0
-#define R_RPACK_DEFAULT_POWER_OF_TWO         0
-#define R_RPACK_DEFAULT_ENABLE_ROTATION      0
+#define R_PACK_DEFAULT_MAX_ATLAS_WIDTH      4096
+#define R_PACK_DEFAULT_MAX_ATLAS_HEIGHT     4096
+#define R_PACK_DEFAULT_PADDING              1
+#define R_PACK_DEFAULT_BORDER               0
+#define R_PACK_DEFAULT_SIMILARITY_THRESHOLD 0.125f
+#define R_PACK_DEFAULT_ALPHA_THRESHOLD      0.0f
+#define R_PACK_DEFAULT_WORKER_COUNT         0
+#define R_PACK_DEFAULT_MAX_TEXTURES         0
+#define R_PACK_DEFAULT_POWER_OF_TWO         0
+#define R_PACK_DEFAULT_ENABLE_ROTATION      0
 
 /**
  * @brief Input image data for encoding
@@ -35,20 +35,20 @@ struct R_Pack_InputImage
  */
 struct R_Pack_EncoderConfig
 {
-        uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_RPACK_DEFAULT_MAX_ATLAS_WIDTH) */
-        uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_RPACK_DEFAULT_MAX_ATLAS_HEIGHT) */
-        uint32_t padding; /**< Padding between textures (default: R_RPACK_DEFAULT_PADDING) */
-        uint32_t border; /**< Border size around textures (default: R_RPACK_DEFAULT_BORDER) */
+        uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_PACK_DEFAULT_MAX_ATLAS_WIDTH) */
+        uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_PACK_DEFAULT_MAX_ATLAS_HEIGHT) */
+        uint32_t padding; /**< Padding between textures (default: R_PACK_DEFAULT_PADDING) */
+        uint32_t border; /**< Border size around textures (default: R_PACK_DEFAULT_BORDER) */
         float    similarityThreshold; /**< Color similarity threshold (default:
-                             R_RPACK_DEFAULT_SIMILARITY_THRESHOLD) */
+                             R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
         float alphaThreshold; /**< Alpha threshold for transparency (default:
-                                 R_RPACK_DEFAULT_ALPHA_THRESHOLD) */
-        uint32_t workerCount; /**< Number of worker threads (default: R_RPACK_DEFAULT_WORKER_COUNT =
+                                 R_PACK_DEFAULT_ALPHA_THRESHOLD) */
+        uint32_t workerCount; /**< Number of worker threads (default: R_PACK_DEFAULT_WORKER_COUNT =
                                  auto-detect) */
         uint32_t maxTextures; /**< Maximum number of textures to pack (default:
-                                 R_RPACK_DEFAULT_MAX_TEXTURES = unlimited) */
-        uint8_t powerOfTwo; /**< Force power of two dimensions (default: R_RPACK_DEFAULT_POWER_OF_TWO) */
-        uint8_t enableRotation; /**< Enable texture rotation (default: R_RPACK_DEFAULT_ENABLE_ROTATION) */
+                                 R_PACK_DEFAULT_MAX_TEXTURES = unlimited) */
+        uint8_t powerOfTwo; /**< Force power of two dimensions (default: R_PACK_DEFAULT_POWER_OF_TWO) */
+        uint8_t enableRotation; /**< Enable texture rotation (default: R_PACK_DEFAULT_ENABLE_ROTATION) */
 };
 
 /**
@@ -78,21 +78,21 @@ struct R_Pack_Encoder
  * @param config Encoder configuration (NULL for defaults)
  * @return Encoder instance or NULL on failure
  */
-R_RPACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig);
+R_PACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig);
 
 /**
  * @brief Destroy encoder instance
  * @param encoder Encoder instance to destroy
  */
-R_RPACK_API void R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder);
+R_PACK_API void R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Add image to encoder
  * @param encoder Encoder instance
  * @param image Input image data
- * @return R_RPACK_OK on success, error code otherwise
+ * @return R_PACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_Pack_Error
+R_PACK_API enum R_Pack_Error
 R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage);
 
 /**
@@ -101,9 +101,9 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
  * @param outputBuffer Output buffer (allocated by caller)
  * @param outputBufferSize Output buffer size
  * @param bytesWritten Number of bytes written to output
- * @return R_RPACK_OK on success, error code otherwise
+ * @return R_PACK_OK on success, error code otherwise
  */
-R_RPACK_API enum R_Pack_Error R_Pack_EncoderEncode (
+R_PACK_API enum R_Pack_Error R_Pack_EncoderEncode (
     struct R_Pack_Encoder* pEncoder,
     uint8_t*              pOutputBuffer,
     uint64_t              outputBufferSize,
@@ -114,14 +114,14 @@ R_RPACK_API enum R_Pack_Error R_Pack_EncoderEncode (
  * @param encoder Encoder instance
  * @return Required buffer size in bytes
  */
-R_RPACK_API uint64_t R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder);
+R_PACK_API uint64_t R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Get number of images added to encoder
  * @param encoder Encoder instance
  * @return Number of images
  */
-R_RPACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder);
+R_PACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder);
 
 /**
  * @brief Convert RGBA to YUV-like encoding
@@ -131,7 +131,7 @@ R_RPACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* p
  * @param u Output chrominance U (4 bits)
  * @param v Output chrominance V (4 bits)
  */
-R_RPACK_API void
+R_PACK_API void
 R_Pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, uint8_t* pU, uint8_t* pV);
 
 /**
@@ -144,7 +144,7 @@ R_Pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, 
  * @param g Output green (8 bits)
  * @param b Output blue (8 bits)
  */
-R_RPACK_API void
+R_PACK_API void
 R_Pack_YUVToRGBA (uint8_t y, uint8_t yExp, uint8_t u, uint8_t v, uint8_t* pR, uint8_t* pG, uint8_t* pB);
 
 /**
@@ -157,5 +157,5 @@ R_Pack_YUVToRGBA (uint8_t y, uint8_t yExp, uint8_t u, uint8_t v, uint8_t* pR, ui
  * @param v2 Second chrominance V
  * @return Similarity score (0.0 = identical, higher = more different)
  */
-R_RPACK_API float
+R_PACK_API float
 R_Pack_GetColorSimilarity (uint8_t y1, uint8_t u1, uint8_t v1, uint8_t y2, uint8_t u2, uint8_t v2);

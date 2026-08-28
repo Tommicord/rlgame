@@ -21,7 +21,7 @@ enum R_CSTL_LogLevel
 #define R_CSTL_LOG_FLAG_DISABLE_TAGS  0x02
 #define R_CSTL_LOG_FLAG_PRIVATE_TRACE 0x04
 
-// Requires R_CSTL_HeapInit() before calling. Returns 0 on success.
+// Requires R_CSTL_HeapInit() before calling. Returns R_CSTL_OK on success.
 R_CSTL_API int R_CSTL_LogInit (void);
 
 // Drains pending messages, stops the consumer thread, and releases resources.
