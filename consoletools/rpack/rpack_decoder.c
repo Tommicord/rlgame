@@ -17,7 +17,8 @@ R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize)
         return NULL;
     }
 
-    struct R_Pack_Decoder* pDecoder = (struct R_Pack_Decoder*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Decoder));
+    struct R_Pack_Decoder* pDecoder
+        = (struct R_Pack_Decoder*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Decoder));
     if (!pDecoder)
     {
         return NULL;
@@ -68,7 +69,7 @@ R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize)
     }
 
     const struct R_Pack_Header* pHeader = (const struct R_Pack_Header*)pData;
-    uint64_t                   expectedSize = R_Pack_GetExpectedFileSize (pHeader);
+    uint64_t                    expectedSize = R_Pack_GetExpectedFileSize (pHeader);
     return expectedSize != 0 && expectedSize <= dataSize;
 }
 
@@ -106,9 +107,9 @@ R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder* pDecoder)
 enum R_Pack_Error
 R_Pack_DecoderGetTextureDimensions (
     const struct R_Pack_Decoder* pDecoder,
-    const char*                 pName,
-    uint32_t*                   pWidth,
-    uint32_t*                   pHeight)
+    const char*                  pName,
+    uint32_t*                    pWidth,
+    uint32_t*                    pHeight)
 {
     if (!pDecoder || !pName || !pWidth || !pHeight)
     {
@@ -157,10 +158,10 @@ R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char
 enum R_Pack_Error
 R_Pack_DecoderDecodeTexture (
     const struct R_Pack_Decoder* pDecoder,
-    const char*                 pName,
-    uint8_t*                    pOutputBuffer,
-    uint64_t                    outputBufferSize,
-    uint64_t*                   pBytesWritten)
+    const char*                  pName,
+    uint8_t*                     pOutputBuffer,
+    uint64_t                     outputBufferSize,
+    uint64_t*                    pBytesWritten)
 {
     if (!pDecoder || !pName || !pOutputBuffer)
     {
@@ -225,11 +226,11 @@ R_Pack_DecoderDecodeTexture (
 enum R_Pack_Error
 R_Pack_DecoderDecodeTextures (
     const struct R_Pack_Decoder* pDecoder,
-    const char**                pNames,
-    uint32_t                    nameCount,
-    uint8_t*                    pOutputBuffer,
-    uint64_t                    outputBufferSize,
-    uint64_t*                   pBytesWritten)
+    const char**                 pNames,
+    uint32_t                     nameCount,
+    uint8_t*                     pOutputBuffer,
+    uint64_t                     outputBufferSize,
+    uint64_t*                    pBytesWritten)
 {
     if (!pDecoder || !pNames || nameCount == 0 || !pOutputBuffer)
     {
@@ -248,7 +249,7 @@ R_Pack_DecoderDecodeTextures (
         {
             return R_PACK_ERROR_BUFFER_TOO_SMALL;
         }
-        uint64_t         written = 0;
+        uint64_t          written = 0;
         enum R_Pack_Error err = R_Pack_DecoderDecodeTexture (
             pDecoder,
             pNames[i],

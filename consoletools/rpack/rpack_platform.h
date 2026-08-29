@@ -17,15 +17,8 @@
 #if defined(R_PACK_DEBUG)
 #include <assert.h>
 #define R_PACK_ASSERT(condition) assert (condition)
-#define R_PACK_VALIDATE(condition, error)                                                                   \
-    do                                                                                                       \
-    {                                                                                                        \
-        R_PACK_ASSERT (condition);                                                                          \
-        if (!(condition)) return (error);                                                                    \
-    } while (0)
 #else
-#define R_PACK_ASSERT(condition)          ((void)0)
-#define R_PACK_VALIDATE(condition, error) ((void)0)
+#define R_PACK_ASSERT(condition) ((void)0)
 #endif
 
 /**

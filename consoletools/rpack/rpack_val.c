@@ -7,8 +7,12 @@
 #include <string.h>
 
 static int
-R_Pack_ValidationFail (struct R_Pack_ValidationReport* pReport, enum R_Pack_Error error, uint64_t offset,
-                       uint32_t textureIndex, uint64_t pixelIndex)
+R_Pack_ValidationFail (
+    struct R_Pack_ValidationReport* pReport,
+    enum R_Pack_Error               error,
+    uint64_t                        offset,
+    uint32_t                        textureIndex,
+    uint64_t                        pixelIndex)
 {
     if (pReport)
     {
@@ -51,10 +55,12 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
         return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_FORMAT, dataSize, 0, 0);
     }
 
-    uint64_t atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
-    uint64_t fileEnd = dataSize;
-    const struct R_Pack_HashEntry* pHashes = (const struct R_Pack_HashEntry*)(pData + pHeader->hashTableOffset);
-    const struct R_Pack_ColorEntry* pColors = (const struct R_Pack_ColorEntry*)(pData + pHeader->colorTableOffset);
+    uint64_t                       atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
+    uint64_t                       fileEnd = dataSize;
+    const struct R_Pack_HashEntry* pHashes
+        = (const struct R_Pack_HashEntry*)(pData + pHeader->hashTableOffset);
+    const struct R_Pack_ColorEntry* pColors
+        = (const struct R_Pack_ColorEntry*)(pData + pHeader->colorTableOffset);
     const struct R_Pack_PixelIndexEntry* pPixels
         = (const struct R_Pack_PixelIndexEntry*)(pData + pHeader->pixelIndexTableOffset);
 
@@ -66,39 +72,68 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
     for (uint32_t i = 0; i < pHeader->textureCount; ++i)
     {
         const struct R_Pack_HashEntry* pEntry = &pHashes[i];
-        uint64_t texturePixels = (uint64_t)pEntry->width * pEntry->height;
-        if (pEntry->width == 0 || pEntry->height == 0 ||
-            pEntry->atlasOffsetX > pHeader->atlasWidth || pEntry->width > pHeader->atlasWidth - pEntry->atlasOffsetX ||
-            pEntry->atlasOffsetY > pHeader->atlasHeight || pEntry->height > pHeader->atlasHeight - pEntry->atlasOffsetY ||
-            pEntry->colorTableIndex >= pHeader->colorTableSize ||
-            pEntry->pixelIndexTableOffset > pHeader->pixelIndexTableSize ||
-            texturePixels > pHeader->pixelIndexTableSize - pEntry->pixelIndexTableOffset)
+        uint64_t                       texturePixels = (uint64_t)pEntry->width * pEntry->height;
+        if (pEntry->width == 0 || pEntry->height == 0 || pEntry->atlasOffsetX > pHeader->atlasWidth
+            || pEntry->width > pHeader->atlasWidth - pEntry->atlasOffsetX
+            || pEntry->atlasOffsetY > pHeader->atlasHeight
+            || pEntry->height > pHeader->atlasHeight - pEntry->atlasOffsetY
+            || pEntry->colorTableIndex >= pHeader->colorTableSize
+            || pEntry->pixelIndexTableOffset > pHeader->pixelIndexTableSize
+            || texturePixels > pHeader->pixelIndexTableSize - pEntry->pixelIndexTableOffset)
         {
-            return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)i * sizeof (*pEntry), i, 0);
+            return R_Pack_ValidationFail (
+                pReport,
+                R_PACK_ERROR_INVALID_DATA,
+                pHeader->hashTableOffset + (uint64_t)i * sizeof (*pEntry),
+                i,
+                0);
         }
 
         for (uint32_t j = i + 1; j < pHeader->textureCount; ++j)
         {
             if (pEntry->nameHash == pHashes[j].nameHash)
             {
-                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
+                return R_Pack_ValidationFail (
+                    pReport,
+                    R_PACK_ERROR_INVALID_DATA,
+                    pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry),
+                    j,
+                    0);
             }
-            if (R_Pack_RangesOverlap (pEntry->atlasOffsetX, pEntry->width, pHashes[j].atlasOffsetX, pHashes[j].width) &&
-                R_Pack_RangesOverlap (pEntry->atlasOffsetY, pEntry->height, pHashes[j].atlasOffsetY, pHashes[j].height))
+            if (R_Pack_RangesOverlap (
+                    pEntry->atlasOffsetX,
+                    pEntry->width,
+                    pHashes[j].atlasOffsetX,
+                    pHashes[j].width)
+                && R_Pack_RangesOverlap (
+                    pEntry->atlasOffsetY,
+                    pEntry->height,
+                    pHashes[j].atlasOffsetY,
+                    pHashes[j].height))
             {
-                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA, pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry), j, 0);
+                return R_Pack_ValidationFail (
+                    pReport,
+                    R_PACK_ERROR_INVALID_DATA,
+                    pHeader->hashTableOffset + (uint64_t)j * sizeof (*pEntry),
+                    j,
+                    0);
             }
         }
 
         for (uint64_t j = 0; j < texturePixels; ++j)
         {
-            uint64_t pixelIndex = pEntry->pixelIndexTableOffset + j;
+            uint64_t                             pixelIndex = pEntry->pixelIndexTableOffset + j;
             const struct R_Pack_PixelIndexEntry* pPixel = &pPixels[pixelIndex];
-            if (pPixel->colorIndex >= pHeader->colorTableSize || pPixel->runWidth == 0 || pPixel->runWidth > 63 ||
-                pPixel->runHeight == 0 || pPixel->runHeight > 63 || pPixel->exponent == 0)
+            if (pPixel->colorIndex >= pHeader->colorTableSize || pPixel->runWidth == 0
+                || pPixel->runWidth > 63 || pPixel->runHeight == 0 || pPixel->runHeight > 63
+                || pPixel->exponent == 0)
             {
-                return R_Pack_ValidationFail (pReport, R_PACK_ERROR_INVALID_DATA,
-                                               pHeader->pixelIndexTableOffset + pixelIndex * sizeof (*pPixel), i, j);
+                return R_Pack_ValidationFail (
+                    pReport,
+                    R_PACK_ERROR_INVALID_DATA,
+                    pHeader->pixelIndexTableOffset + pixelIndex * sizeof (*pPixel),
+                    i,
+                    j);
             }
             (void)pColors;
         }

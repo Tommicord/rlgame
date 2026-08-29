@@ -6,6 +6,8 @@ file(GLOB_RECURSE CVULKAN_CUDA_SOURCES  CONFIGURE_DEPENDS src/rlgame.base/cvulka
 if(NOT CUDA_FOUND)
   set(CVULKAN_CUDA_SOURCES "")
 endif()
+file(GLOB_RECURSE CVULKAN_CPU_SOURCES   CONFIGURE_DEPENDS src/rlgame.base/cvulkan_cpu/*.c)
+file(GLOB_RECURSE CVULKAN_CPU_HEADERS   CONFIGURE_DEPENDS src/rlgame.base/cvulkan_cpu/*.h)
 file(GLOB_RECURSE GAME_SOURCES          CONFIGURE_DEPENDS src/rlgame.base/game/*.c)
 file(GLOB_RECURSE GAME_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/game/*.h)
 file(GLOB         CLIENT_RENDER_SOURCES CONFIGURE_DEPENDS src/rlgame.client/render/*.c)
@@ -15,10 +17,12 @@ file(GLOB         MAIN_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/*.h)
 file(GLOB         RPACK_SOURCES         CONFIGURE_DEPENDS consoletools/rpack/*.c)
 file(GLOB         RPACK_HEADERS         CONFIGURE_DEPENDS consoletools/rpack/*.h)
 file(GLOB         RPACK_CUDA_SOURCES    CONFIGURE_DEPENDS src/rlgame.compsrc/rpack_mipmap.cu)
+file(GLOB_RECURSE MICROBIT_SOURCES      CONFIGURE_DEPENDS consoletools/microbit/**/*.c)
+file(GLOB_RECURSE MICROBIT_HEADERS      CONFIGURE_DEPENDS consoletools/microbit/**/*.h)
+file(GLOB         R_MICROBIT_SOURCES    CONFIGURE_DEPENDS consoletools/microbit/spirvrunner/*.c)
+file(GLOB         R_MICROBIT_HEADERS    CONFIGURE_DEPENDS consoletools/microbit/spirvrunner/*.h)
 if(NOT CUDA_FOUND)
-  set(RPACK_CUDA_SOURCES ""
-          ../consoletools/rpack/rpack_pipeline.h
-          ../consoletools/rpack/rpack_pipeline.c)
+  set(RPACK_CUDA_SOURCES)
 endif()
 list(FILTER MAIN_SOURCES EXCLUDE REGEX "main\\.(c|h)$")
 list(FILTER RPACK_SOURCES EXCLUDE REGEX "rpack_main\\.c$")
@@ -115,6 +119,18 @@ if(CUDA_FOUND)
   target_link_libraries(rlgame.base.rpack PUBLIC CUDA::CUDA)
 endif()
 
+add_library(rlgame.base.microbit SHARED ${MICROBIT_SOURCES} ${MICROBIT_HEADERS})
+set_common_output_directories(rlgame.base.microbit)
+set_base_include_directories(rlgame.base.microbit)
+target_compile_definitions(rlgame.base.microbit PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_MICROBIT_BUILDING_DLL)
+apply_gpu_backend(rlgame.base.microbit)
+
+target_link_libraries(
+  rlgame.base.microbit
+  PUBLIC
+  rlgame.base.cstl
+)
+
 add_library(rlgame.client.render SHARED ${CLIENT_RENDER_SOURCES} ${CLIENT_RENDER_HEADERS})
 set_common_output_directories(rlgame.client.render)
 set_base_include_directories(rlgame.client.render)
@@ -150,9 +166,7 @@ endif()
 
 option(RL_BUILD "Build the rlgame executable" ON)
 if(RL_BUILD)
-  set(MAIN_SOURCE src/rlgame.base/main.c
-          ../consoletools/microbit/microbit_spirv.h
-          ../consoletools/microbit/microbit_spirv.c)
+  set(MAIN_SOURCE src/rlgame.base/main.c)
   if(NOT WIN32)
     add_executable(rlgame ${MAIN_SOURCE} ${MAIN_SOURCES} ${MAIN_HEADERS})
   else()

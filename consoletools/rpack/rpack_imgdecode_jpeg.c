@@ -16,30 +16,30 @@ struct R_Pack_JpegHuffman
 
 struct R_Pack_JpegDecoder
 {
-        const uint8_t*           data;
-        size_t                   size;
-        size_t                   offset;
-        uint32_t                 width;
-        uint32_t                 height;
-        uint8_t                  components;
-        uint8_t                  ids[3];
-        uint8_t                  horizontal[3];
-        uint8_t                  vertical[3];
-        uint8_t                  quant[3];
-        uint16_t                 quantTables[2][64];
-        uint8_t                  quantPresent[2];
+        const uint8_t*            data;
+        size_t                    size;
+        size_t                    offset;
+        uint32_t                  width;
+        uint32_t                  height;
+        uint8_t                   components;
+        uint8_t                   ids[3];
+        uint8_t                   horizontal[3];
+        uint8_t                   vertical[3];
+        uint8_t                   quant[3];
+        uint16_t                  quantTables[2][64];
+        uint8_t                   quantPresent[2];
         struct R_Pack_JpegHuffman dc[2];
         struct R_Pack_JpegHuffman ac[2];
-        uint8_t                  dcPresent[2];
-        uint8_t                  acPresent[2];
-        uint8_t                  unsupported;
-        uint8_t                  scanComponent[3];
-        uint8_t                  scanDc[3];
-        uint8_t                  scanAc[3];
-        uint8_t                  scanCount;
-        uint32_t                 bitBuffer;
-        uint8_t                  bits;
-        int16_t                  dcPredictor[3];
+        uint8_t                   dcPresent[2];
+        uint8_t                   acPresent[2];
+        uint8_t                   unsupported;
+        uint8_t                   scanComponent[3];
+        uint8_t                   scanDc[3];
+        uint8_t                   scanAc[3];
+        uint8_t                   scanCount;
+        uint32_t                  bitBuffer;
+        uint8_t                   bits;
+        int16_t                   dcPredictor[3];
 };
 
 static int
@@ -62,9 +62,9 @@ R_Pack_JpegRead16 (struct R_Pack_JpegDecoder* pDecoder, uint16_t* pValue)
 static int
 R_Pack_JpegBuildHuffman (
     struct R_Pack_JpegHuffman* pTable,
-    const uint8_t*            pCounts,
-    const uint8_t*            pValues,
-    uint16_t                  valueCount)
+    const uint8_t*             pCounts,
+    const uint8_t*             pValues,
+    uint16_t                   valueCount)
 {
     uint16_t code = 0;
     uint16_t value = 0;
@@ -108,7 +108,7 @@ static int
 R_Pack_JpegHuffmanValue (
     struct R_Pack_JpegDecoder*       pDecoder,
     const struct R_Pack_JpegHuffman* pTable,
-    uint8_t*                        pValue)
+    uint8_t*                         pValue)
 {
     uint32_t code = 0;
     for (uint8_t length = 1; length <= 16; ++length)

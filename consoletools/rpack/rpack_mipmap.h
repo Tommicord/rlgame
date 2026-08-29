@@ -24,7 +24,7 @@ struct R_Pack_MipmapContext;
 
 #if defined(R_DEVMODE)
 #include <assert.h>
-#define R_PACK_MIPMAP_VALIDATE(condition, error)                                                            \
+#define R_PACK_MIPMAP_VALIDATE(condition, error)                                                             \
     do                                                                                                       \
     {                                                                                                        \
         assert (condition);                                                                                  \

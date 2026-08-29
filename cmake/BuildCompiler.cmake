@@ -29,8 +29,6 @@ elseif (UNIX)
   endif()
 endif ()
 
-add_compile_definitions(_R_CHUNK_VULKAN_BACKEND)
-
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(R_DEVMODE R_CSTL_TRACE_ENABLED)
 endif ()

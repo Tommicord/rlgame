@@ -378,7 +378,6 @@ R_Pack_ThreadPoolDestroy (struct R_Pack_ThreadPool* pPool)
     R_CSTL_HeapFree (pPool);
 }
 
-
 static int
 R_Pack_LoadAsset (const char* pPath, struct R_Pack_InputImage* pImage, uint8_t** ppPixelBuffer)
 {
@@ -650,7 +649,7 @@ R_Pack_EncodeInputImagesThreaded (
     struct R_Pack_InputImage* pImages
         = (struct R_Pack_InputImage*)R_CSTL_HeapAlloc (inputCount * sizeof (struct R_Pack_InputImage));
     uint8_t** ppPixelBuffers = (uint8_t**)R_CSTL_HeapAlloc (inputCount * sizeof (uint8_t*));
-    int* pResults = (int*)R_CSTL_HeapAlloc (inputCount * sizeof (int));
+    int*      pResults = (int*)R_CSTL_HeapAlloc (inputCount * sizeof (int));
 
     if (!pTasks || !pImages || !ppPixelBuffers || !pResults)
     {

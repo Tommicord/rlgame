@@ -15,8 +15,8 @@ struct R_Pack_Decoder
         struct R_Pack_HashEntry*       pHashTable;
         struct R_Pack_ColorEntry*      pColorTable;
         struct R_Pack_PixelIndexEntry* pPixelIndexTable;
-        const uint8_t*                pData;
-        uint64_t                      dataSize;
+        const uint8_t*                 pData;
+        uint64_t                       dataSize;
 };
 
 /**
@@ -53,10 +53,10 @@ R_Pack_DecoderFindTexture (const struct R_Pack_Decoder* pDecoder, const char* pN
  */
 R_PACK_API enum R_Pack_Error R_Pack_DecoderDecodeTexture (
     const struct R_Pack_Decoder* pDecoder,
-    const char*                 pName,
-    uint8_t*                    pOutputBuffer,
-    uint64_t                    outputBufferSize,
-    uint64_t*                   pBytesWritten);
+    const char*                  pName,
+    uint8_t*                     pOutputBuffer,
+    uint64_t                     outputBufferSize,
+    uint64_t*                    pBytesWritten);
 
 /**
  * @brief Decode multiple textures to RGBA buffer
@@ -70,11 +70,11 @@ R_PACK_API enum R_Pack_Error R_Pack_DecoderDecodeTexture (
  */
 R_PACK_API enum R_Pack_Error R_Pack_DecoderDecodeTextures (
     const struct R_Pack_Decoder* pDecoder,
-    const char**                pNames,
-    uint32_t                    nameCount,
-    uint8_t*                    pOutputBuffer,
-    uint64_t                    outputBufferSize,
-    uint64_t*                   pBytesWritten);
+    const char**                 pNames,
+    uint32_t                     nameCount,
+    uint8_t*                     pOutputBuffer,
+    uint64_t                     outputBufferSize,
+    uint64_t*                    pBytesWritten);
 
 /**
  * @brief Get required buffer size for decoding texture
@@ -91,8 +91,10 @@ R_PACK_API uint64_t R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* p
  * @param nameCount Number of texture names
  * @return Required buffer size in bytes
  */
-R_PACK_API uint64_t
-R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char** pNames, uint32_t nameCount);
+R_PACK_API uint64_t R_Pack_DecoderGetTexturesSize (
+    const struct R_Pack_Decoder* pDecoder,
+    const char**                 pNames,
+    uint32_t                     nameCount);
 
 /**
  * @brief Get texture dimensions
@@ -104,9 +106,9 @@ R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char
  */
 R_PACK_API enum R_Pack_Error R_Pack_DecoderGetTextureDimensions (
     const struct R_Pack_Decoder* pDecoder,
-    const char*                 pName,
-    uint32_t*                   pWidth,
-    uint32_t*                   pHeight);
+    const char*                  pName,
+    uint32_t*                    pWidth,
+    uint32_t*                    pHeight);
 
 /**
  * @brief Get number of textures in RPACK file

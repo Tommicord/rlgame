@@ -1,0 +1,10 @@
+#pragma once
+
+#include "microbit/spirvrunner/microbit_spirv_threadexecutor.h"
+
+typedef R_Microbit_SpirvThreadExecutorTask R_Microbit_SpirvCpuTaskFunction;
+#define R_Microbit_SpirvCpuThreadPool       R_Microbit_SpirvThreadExecutor
+#define R_Microbit_SpirvCpuThreadPoolCreate R_Microbit_NewSpirvThreadExecutor
+#define R_Microbit_SpirvCpuThreadPoolDelete R_Microbit_DeleteSpirvThreadExecutor
+#define R_Microbit_SpirvCpuThreadPoolSubmit R_Microbit_SpirvThreadExecutorSubmit
+#define R_Microbit_SpirvCpuThreadPoolWait   R_Microbit_SpirvThreadExecutorWait

@@ -149,7 +149,8 @@ R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader)
     uint64_t pixelIndexTableSize
         = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct R_Pack_PixelIndexEntry);
     uint64_t atlasDataSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
-    if (pHeader->textureCount != 0 && hashTableSize / sizeof (struct R_Pack_HashEntry) != pHeader->textureCount
+    if (pHeader->textureCount != 0
+            && hashTableSize / sizeof (struct R_Pack_HashEntry) != pHeader->textureCount
         || pHeader->colorTableSize != 0
                && colorTableSize / sizeof (struct R_Pack_ColorEntry) != pHeader->colorTableSize
         || pHeader->pixelIndexTableSize != 0

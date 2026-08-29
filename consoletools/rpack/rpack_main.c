@@ -294,7 +294,7 @@ main (int argc, char** argv)
     R_CSTL_LogSetFlags (R_CSTL_LogGetFlags () | R_CSTL_LOG_FLAG_ENABLE_COLORS);
     if (R_CSTL_HeapInit (R_PACK_HEAP_SIZE) != R_CSTL_OK)
     {
-        R_CSTL_LOG_FATAL("Failed to initialize RPACK heap\n");
+        R_CSTL_LOG_FATAL ("Failed to initialize RPACK heap\n");
         return EXIT_FAILURE;
     }
     if (argc == 1)
@@ -312,15 +312,8 @@ main (int argc, char** argv)
     int                         mipmap = 0;
     int                         result = EXIT_FAILURE;
 
-    int parseResult = R_Pack_ParseArguments (
-        argc,
-        argv,
-        &config,
-        &pOutputPath,
-        &pInputPaths,
-        &verbose,
-        &quiet,
-        &mipmap);
+    int parseResult
+        = R_Pack_ParseArguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
     if (parseResult == 1)
     {
         R_CSTL_DeleteArray (pInputPaths);

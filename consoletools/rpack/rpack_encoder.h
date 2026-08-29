@@ -40,7 +40,7 @@ struct R_Pack_EncoderConfig
         uint32_t padding; /**< Padding between textures (default: R_PACK_DEFAULT_PADDING) */
         uint32_t border; /**< Border size around textures (default: R_PACK_DEFAULT_BORDER) */
         float    similarityThreshold; /**< Color similarity threshold (default:
-                             R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
+                          R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
         float alphaThreshold; /**< Alpha threshold for transparency (default:
                                  R_PACK_DEFAULT_ALPHA_THRESHOLD) */
         uint32_t workerCount; /**< Number of worker threads (default: R_PACK_DEFAULT_WORKER_COUNT =
@@ -61,16 +61,16 @@ struct R_Pack_Encoder
         struct R_Pack_HashEntry*       pHashTable;
         struct R_Pack_ColorEntry*      pColorTable;
         struct R_Pack_PixelIndexEntry* pPixelIndexTable;
-        uint32_t                      colorTableCapacity;
-        uint32_t                      colorTableCount;
-        uint32_t                      pixelIndexTableCapacity;
-        uint32_t                      pixelIndexTableCount;
-        uint8_t*                      pAtlasData;
-        uint64_t                      atlasDataSize;
-        struct R_CSTL_Mutex*          pMutex;
-        struct R_CSTL_Thread**        ppWorkerThreads;
-        uint32_t                      actualWorkerCount;
-        volatile int                  workersActive;
+        uint32_t                       colorTableCapacity;
+        uint32_t                       colorTableCount;
+        uint32_t                       pixelIndexTableCapacity;
+        uint32_t                       pixelIndexTableCount;
+        uint8_t*                       pAtlasData;
+        uint64_t                       atlasDataSize;
+        struct R_CSTL_Mutex*           pMutex;
+        struct R_CSTL_Thread**         ppWorkerThreads;
+        uint32_t                       actualWorkerCount;
+        volatile int                   workersActive;
 };
 
 /**
@@ -105,9 +105,9 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
  */
 R_PACK_API enum R_Pack_Error R_Pack_EncoderEncode (
     struct R_Pack_Encoder* pEncoder,
-    uint8_t*              pOutputBuffer,
-    uint64_t              outputBufferSize,
-    uint64_t*             pBytesWritten);
+    uint8_t*               pOutputBuffer,
+    uint64_t               outputBufferSize,
+    uint64_t*              pBytesWritten);
 
 /**
  * @brief Get required output buffer size for encoding
