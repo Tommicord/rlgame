@@ -6,28 +6,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pImage);
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CVULKAN_ASSERT (pCreateInfo->device);
-    R_CVULKAN_ASSERT (pCreateInfo->physicalDevice != VK_NULL_HANDLE);
+    R_CVULKAN_ASSERT (pCreateInfo->physicalDevice);
 
-#if defined(R_CVULKAN_DEBUG)
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->device))
-    {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
     if (pCreateInfo->mipLevels == 0 || pCreateInfo->arrayLayers == 0)
     {
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
     pImage->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
-    pImage->handle = VK_NULL_HANDLE;
-    pImage->memory = VK_NULL_HANDLE;
-    pImage->size = 0;
     pImage->width = pCreateInfo->extent.width;
     pImage->height = pCreateInfo->extent.height;
     pImage->mipLevels = pCreateInfo->mipLevels;
@@ -39,9 +30,6 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
     pImage->imageType = pCreateInfo->imageType;
     pImage->samples = pCreateInfo->samples;
     pImage->tiling = pCreateInfo->tiling;
-#if defined(R_CVULKAN_DEBUG)
-    
-#endif
     VkImageCreateInfo imageInfo = {0};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = pCreateInfo->imageType;
@@ -61,7 +49,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
         return R_CVULKAN_ERROR_IMAGE_CREATE_FAILED;
     }
 
-    enum R_CVulkanError error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
+    enum R_CVulkan_Error error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
         pImage->device,
         pCreateInfo->physicalDevice,
         pImage->handle,
@@ -102,11 +90,11 @@ R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 
     vkDestroyImage (pImage->device, pImage->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-    memset (pImage, 0, sizeof (R_CVulkan_Image));
+    memset (pImage, 0, sizeof (struct R_CVulkan_Image));
 #endif
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_ImageTransitionLayout (
     struct R_CVulkan_Image* pImage,
     VkCommandBuffer         commandBuffer,
@@ -159,7 +147,7 @@ R_CVulkan_ImageTransitionLayout (
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,

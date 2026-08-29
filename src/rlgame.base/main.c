@@ -392,7 +392,7 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
         createInfo.hInstance = hInstance;
         createInfo.hWnd = R_GetWindowHandle ();
 
-        enum R_CVulkanError result = R_GameState_Initialize (pGameState, &createInfo);
+        enum R_CVulkan_Error result = R_GameState_Initialize (pGameState, &createInfo);
         if (result != R_CVULKAN_OK)
         {
             return false;
@@ -777,7 +777,7 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             return false;
         }
         R_CSTL_LOG_INFO ("Got valid display and surface");
-        enum R_CVulkanError result = R_GameState_Initialize (pGameState, &createInfo);
+        enum R_CVulkan_Error result = R_GameState_Initialize (pGameState, &createInfo);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("ailed to initialize game state (error: %d)", result);

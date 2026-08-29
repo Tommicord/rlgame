@@ -14,7 +14,6 @@ struct R_CVulkan_DYRRenderPass
 {
         VkRenderPass handle; /**< Raw Vulkan render pass handle */
         VkDevice     device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -35,7 +34,7 @@ struct R_CVulkan_DYRRenderPassCreateInfo
  * @param pCreateInfo DYR render pass creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DYRCreateRenderPass (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DYRCreateRenderPass (
     struct R_CVulkan_DYRRenderPass*                 pDYRRenderPass,
     const struct R_CVulkan_DYRRenderPassCreateInfo* pCreateInfo);
 

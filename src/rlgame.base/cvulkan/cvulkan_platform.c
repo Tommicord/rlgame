@@ -1,7 +1,7 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 R_CVULKAN_API const char*
-R_CVulkanErrorToString (const enum R_CVulkanError error)
+R_CVulkan_ErrorToString (const enum R_CVulkan_Error error)
 {
     switch (error)
     {
@@ -120,7 +120,7 @@ R_CVulkanErrorToString (const enum R_CVulkanError error)
     }
 }
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_ResultToError (const VkResult result)
 {
     switch (result)

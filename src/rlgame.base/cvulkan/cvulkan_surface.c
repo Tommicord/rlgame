@@ -18,18 +18,14 @@
 #include <xcb/xcb.h>
 #endif
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
     const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo)
 {
+    R_CVULKAN_ASSERT(pSurface);
+    R_CVULKAN_ASSERT(pCreateInfo);
     R_CSTL_TRACE_SCOPE_CTX ("instance=%p", pCreateInfo ? pCreateInfo->pInstance : NULL);
-
-    if (!pSurface || !pCreateInfo)
-    {
-        R_CSTL_TRACE_SCOPE_EXIT ();
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    }
 
     if (pCreateInfo->pInstance == NULL)
     {
@@ -38,14 +34,6 @@ R_CVulkan_NewSurface (
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
-
-    if (!R_CVulkan_InstanceIsInitialized (pCreateInfo->pInstance))
-    {
-        R_CSTL_LOG_ERROR ("Instance not initialized. Call R_CVulkan_NewInstance first.");
-        R_CSTL_TRACE_SCOPE_EXIT ();
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-
     VkInstance instance = R_CVulkan_InstanceGetHandle (pCreateInfo->pInstance);
     if (instance == VK_NULL_HANDLE)
     {
@@ -53,15 +41,8 @@ R_CVulkan_NewSurface (
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
-
     pSurface->instance = instance;
-    pSurface->handle = VK_NULL_HANDLE;
-#if defined(R_CVULKAN_DEBUG)
-    
-#endif
-
     VkResult result = VK_ERROR_UNKNOWN;
-
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
     if (!pCreateInfo->hInstance || !pCreateInfo->hWnd)
     {
@@ -212,10 +193,6 @@ R_CVulkan_NewSurface (
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_SURFACE_CREATE_FAILED;
     }
-
-#if defined(R_CVULKAN_DEBUG)
-    
-#endif
     R_CSTL_TRACE_SCOPE_EXIT ();
     return R_CVULKAN_OK;
 }
@@ -224,57 +201,23 @@ R_CVULKAN_API void
 R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
 {
     R_CVULKAN_ASSERT (pSurface);
-
     vkDestroySurfaceKHR (pSurface->instance, pSurface->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
+    pSurface->handle = VK_NULL_HANDLE;
     pSurface->instance = VK_NULL_HANDLE;
-    
 #endif
 }
 
 R_CVULKAN_API VkSurfaceKHR
 R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
 {
-    if (!pSurface)
-    {
-        return VK_NULL_HANDLE;
-    }
-
-#if defined(R_CVULKAN_DEBUG)
-    
-    {
-        return VK_NULL_HANDLE;
-    }
-#endif
-
+    R_CVULKAN_ASSERT(pSurface);
     return pSurface->handle;
 }
 
 R_CVULKAN_API VkInstance
 R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
 {
-    if (!pSurface)
-    {
-        return VK_NULL_HANDLE;
-    }
-
-#if defined(R_CVULKAN_DEBUG)
-    
-    {
-        return VK_NULL_HANDLE;
-    }
-#endif
-
+    R_CVULKAN_ASSERT(pSurface);
     return pSurface->instance;
-}
-
-R_CVULKAN_API int
-R_CVulkan_SurfaceIsInitialized (const struct R_CVulkan_Surface* pSurface)
-{
-    if (!pSurface)
-    {
-        return 0;
-    }
-
-    return R_CVULKAN_IS_INITIALIZED_RETURN (pSurface);
 }

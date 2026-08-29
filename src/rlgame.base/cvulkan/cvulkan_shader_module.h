@@ -16,7 +16,6 @@ struct R_CVulkan_ShaderModule
         VkShaderModule handle; /**< Raw Vulkan shader module handle */
         VkDevice       device; /**< Associated device */
         size_t         codeSize; /**< Size of SPIR-V code in bytes */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -27,7 +26,7 @@ struct R_CVulkan_ShaderModule
  * @param codeSize Size of SPIR-V code in bytes
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewShaderModule (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewShaderModule (
     struct R_CVulkan_ShaderModule* pShaderModule,
     const struct R_CVulkan_Device* pDevice,
     const uint32_t*                pCode,

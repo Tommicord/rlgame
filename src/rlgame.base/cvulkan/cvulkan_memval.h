@@ -43,7 +43,7 @@ struct R_CVulkan_MemValStats
         uint16_t defragmentationThreshold; // Q8.8 fixed-point (0-256 represents 0.0-1.0)
 };
 
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemValInitialize (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemValInitialize (struct R_CVulkan_MemoryAllocator* pAllocator);
 R_CVULKAN_API void                R_CVulkan_MemValShutdown (struct R_CVulkan_MemoryAllocator* pAllocator);
 R_CVULKAN_API void                R_CVulkan_MemValNotifyAllocation (
                    const struct R_CVulkan_MemoryAllocator* pAllocator,
@@ -57,10 +57,10 @@ R_CVULKAN_API void R_CVulkan_MemValNotifyAllocationFailure (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     VkDeviceSize                            size,
     VkDeviceSize                            alignment);
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemValShouldDefragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded);
 R_CVULKAN_API void
 R_CVulkan_MemValNotifyDefragmentationComplete (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_MemValGetStats (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemValGetStats (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     struct R_CVulkan_MemValStats*           pStats);

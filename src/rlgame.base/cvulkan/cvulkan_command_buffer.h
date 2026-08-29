@@ -15,8 +15,6 @@ struct R_CVulkan_CommandBuffer
         VkCommandBuffer handle; /**< Raw Vulkan command buffer handle */
         VkCommandPool   pool; /**< Associated command pool */
         VkDevice        device; /**< Associated device */
-        bool            record; /**< Whether currently recording */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -87,7 +85,7 @@ struct R_CVulkan_DynamicRenderingInfo
  * @param level Command buffer level (primary or secondary)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewCommandBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     const struct R_CVulkan_Device*  pDevice,
     VkCommandPool                   pool,
@@ -106,7 +104,7 @@ R_CVULKAN_API void R_CVulkan_DeleteCommandBuffer (struct R_CVulkan_CommandBuffer
  * @param pInheritanceInfo Inheritance info for secondary command buffers (NULL for primary)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_BeginCommandBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BeginCommandBuffer (
     struct R_CVulkan_CommandBuffer*       pCommandBuffer,
     VkCommandBufferUsageFlags             flags,
     const VkCommandBufferInheritanceInfo* pInheritanceInfo);
@@ -116,7 +114,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_BeginCommandBuffer (
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Reset a command buffer
@@ -124,7 +122,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_EndCommandBuffer (struct R_CVulkan_C
  * @param flags Reset flags
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_ResetCommandBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ResetCommandBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkCommandBufferResetFlags       flags);
 
@@ -135,7 +133,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_ResetCommandBuffer (
  * @param pipeline Pipeline to bind
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindPipeline (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBindPipeline (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineBindPoint             pipelineBindPoint,
     VkPipeline                      pipeline);
@@ -149,7 +147,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindPipeline (
  * @param pOffsets Array of offsets
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindVertexBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBindVertexBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        firstBinding,
     uint32_t                        bindingCount,
@@ -164,7 +162,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindVertexBuffer (
  * @param indexType Index type
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindIndexBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBindIndexBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        buffer,
     VkDeviceSize                    offset,
@@ -182,7 +180,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindIndexBuffer (
  * @param pDynamicOffsets Array of dynamic offsets
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindDescriptorSets (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBindDescriptorSets (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineBindPoint             pipelineBindPoint,
     VkPipelineLayout                layout,
@@ -201,7 +199,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBindDescriptorSets (
  * @param firstInstance First instance index
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDraw (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferDraw (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        vertexCount,
     uint32_t                        instanceCount,
@@ -218,7 +216,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDraw (
  * @param firstInstance First instance index
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDrawIndexed (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferDrawIndexed (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        indexCount,
     uint32_t                        instanceCount,
@@ -234,7 +232,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDrawIndexed (
  * @param pViewports Array of viewports
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetViewport (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetViewport (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        firstViewport,
     uint32_t                        viewportCount,
@@ -248,7 +246,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetViewport (
  * @param pScissors Array of scissors
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetScissor (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetScissor (
     const struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                              firstScissor,
     uint32_t                              scissorCount,
@@ -260,7 +258,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetScissor (
  * @param blendConstants Blend constants (4 floats)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetBlendConstants (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetBlendConstants (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     const float                     blendConstants[4]);
 
@@ -271,7 +269,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetBlendConstants (
  * @param maxDepth Maximum depth bound
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetDepthBounds (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetDepthBounds (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     float                           minDepth,
     float                           maxDepth);
@@ -283,7 +281,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetDepthBounds (
  * @param compareMask Compare mask
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilCompareMask (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetStencilCompareMask (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
     uint32_t                        compareMask);
@@ -295,7 +293,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilCompareMask (
  * @param writeMask Write mask
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilWriteMask (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetStencilWriteMask (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
     uint32_t                        writeMask);
@@ -307,7 +305,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilWriteMask (
  * @param reference Reference value
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilReference (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferSetStencilReference (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkStencilFaceFlags              faceMask,
     uint32_t                        reference);
@@ -320,7 +318,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferSetStencilReference (
  * @param pRegion Copy region
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferCopyBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        srcBuffer,
     VkBuffer                        dstBuffer,
@@ -335,7 +333,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyBuffer (
  * @param pRegion Copy region
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyBufferToImage (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferCopyBufferToImage (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        srcBuffer,
     VkImage                         dstImage,
@@ -351,7 +349,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyBufferToImage (
  * @param region Copy region
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyImageToBuffer (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferCopyImageToBuffer (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkImage                         srcImage,
     VkImageLayout                   srcLayout,
@@ -364,7 +362,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferCopyImageToBuffer (
  * @param pBarrierInfo Pipeline barrier parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferPipelineBarrier (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferPipelineBarrier (
     struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_PipelineBarrierInfo* pBarrierInfo);
 
@@ -374,7 +372,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferPipelineBarrier (
  * @param pRenderPassInfo Render pass begin parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBeginRenderPass (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRenderPass (
     struct R_CVulkan_CommandBuffer*             pCommandBuffer,
     const struct R_CVulkan_RenderPassBeginInfo* pRenderPassInfo);
 
@@ -384,7 +382,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBeginRenderPass (
  * @param pRenderingInfo Dynamic rendering parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBeginRendering (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferBeginRendering (
     struct R_CVulkan_CommandBuffer*              pCommandBuffer,
     const struct R_CVulkan_DynamicRenderingInfo* pRenderingInfo);
 
@@ -393,7 +391,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferBeginRendering (
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
@@ -401,7 +399,7 @@ R_CVulkan_CommandBufferEndRenderPass (struct R_CVulkan_CommandBuffer* pCommandBu
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
@@ -410,7 +408,7 @@ R_CVulkan_CommandBufferEndRendering (struct R_CVulkan_CommandBuffer* pCommandBuf
  * @param contents Subpass contents
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferNextSubpass (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferNextSubpass (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkSubpassContents               contents);
 
@@ -424,7 +422,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferNextSubpass (
  * @param pValues Pointer to data
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferPushConstants (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferPushConstants (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkPipelineLayout                layout,
     VkShaderStageFlags              stageFlags,
@@ -440,7 +438,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferPushConstants (
  * @param groupCountZ Number of work groups in Z dimension
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDispatch (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferDispatch (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     uint32_t                        groupCountX,
     uint32_t                        groupCountY,
@@ -453,7 +451,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDispatch (
  * @param offset Offset in buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_CommandBufferDispatchIndirect (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandBufferDispatchIndirect (
     struct R_CVulkan_CommandBuffer* pCommandBuffer,
     VkBuffer                        buffer,
     VkDeviceSize                    offset);
@@ -481,17 +479,3 @@ R_CVulkan_CommandBufferGetPool (const struct R_CVulkan_CommandBuffer* pCommandBu
  */
 R_CVULKAN_API VkDevice
 R_CVulkan_CommandBufferGetDevice (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
-
-/**
- * @brief Check if currently recording
- * @param pCommandBuffer Pointer to command buffer
- * @return 1 if recording, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_CommandBufferIsRecording (const struct R_CVulkan_CommandBuffer* pCommandBuffer);
-
-/**
- * @brief Check if the command buffer is initialized
- * @param pCommandBuffer Pointer to command buffer
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_CommandBufferIsInitialized (const struct R_CVulkan_CommandBuffer* pCommandBuffer);

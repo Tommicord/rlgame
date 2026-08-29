@@ -17,7 +17,7 @@
  */
 #define R_CVULKAN_SPIRV_MIN_CODE_SIZE (sizeof (uint32_t) * 5)
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewShaderModule (
     struct R_CVulkan_ShaderModule* pShaderModule,
     const struct R_CVulkan_Device* pDevice,
@@ -29,20 +29,6 @@ R_CVulkan_NewShaderModule (
     R_CVULKAN_ASSERT (pCode);
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!pShaderModule || !pDevice || !pCode)
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewShaderModule: NULL pointer detected");
-        R_CSTL_LOG_ERROR ("  pShaderModule: %p", (void*)pShaderModule);
-        R_CSTL_LOG_ERROR ("  pDevice: %p", (void*)pDevice);
-        R_CSTL_LOG_ERROR ("  pCode: %p", (void*)pCode);
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    }
-
-    if (!R_CVulkan_DeviceIsInitialized (pDevice))
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewShaderModule: Device not initialized");
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
     if (codeSize < R_CVULKAN_SPIRV_MIN_CODE_SIZE)
     {
         R_CSTL_LOG_ERROR ("R_CVulkan_NewShaderModule: Invalid SPIR-V code size");

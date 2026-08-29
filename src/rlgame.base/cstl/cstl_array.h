@@ -438,7 +438,7 @@ R_CSTL_API int R_CSTL_ArraySort (
         size_t _offset = (index) * sizeof (Type);                                                            \
         if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                          \
         {                                                                                                    \
-            const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                               \
+            uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                     \
             memcpy (_pData + _offset, pValue, sizeof (Type));                                                \
         }                                                                                                    \
     } while (0)
@@ -454,7 +454,6 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param pValue Pointer to the value to write.
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
- * @note The element is copied using memcpy for optimal performance (SIMD-friendly).
  */
 #define R_CSTL_ArrayTypedSetAtUnchecked(pArray, Type, index, pValue)                                         \
     do                                                                                                       \

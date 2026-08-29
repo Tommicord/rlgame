@@ -14,7 +14,6 @@ struct R_CVulkan_Semaphore
 {
         VkSemaphore handle; /**< Raw Vulkan semaphore handle */
         VkDevice    device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -25,7 +24,7 @@ struct R_CVulkan_Semaphore
  * @param initialValue Initial value for timeline semaphores (ignored for binary semaphores)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSemaphore (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSemaphore (
     struct R_CVulkan_Semaphore*    pSemaphore,
     const struct R_CVulkan_Device* pDevice,
     int                            timelineSemaphore,
@@ -43,7 +42,7 @@ R_CVULKAN_API void R_CVulkan_DeleteSemaphore (struct R_CVulkan_Semaphore* pSemap
  * @param value Value to signal
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value);
 
 /**
@@ -53,7 +52,7 @@ R_CVulkan_SemaphoreSignal (struct R_CVulkan_Semaphore* pSemaphore, uint64_t valu
  * @param timeout Timeout in nanoseconds (UINT64_MAX for infinite wait)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value, uint64_t timeout);
 
 /**
@@ -62,7 +61,7 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
  * @param outValue Pointer to receive the current value
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
 
 /**
@@ -78,10 +77,3 @@ R_CVULKAN_API VkSemaphore R_CVulkan_SemaphoreGetHandle (const struct R_CVulkan_S
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
 R_CVULKAN_API VkDevice R_CVulkan_SemaphoreGetDevice (const struct R_CVulkan_Semaphore* pSemaphore);
-
-/**
- * @brief Check if the semaphore is initialized
- * @param semaphore Pointer to semaphore
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_SemaphoreIsInitialized (const struct R_CVulkan_Semaphore* pSemaphore);

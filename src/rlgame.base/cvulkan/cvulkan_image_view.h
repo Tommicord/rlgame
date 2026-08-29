@@ -29,7 +29,6 @@ struct R_CVulkan_ImageView
         VkDevice    device; /**< Associated device */
         VkImage     image; /**< Associated image */
         VkFormat    format; /**< View format */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -38,7 +37,7 @@ struct R_CVulkan_ImageView
  * @param pCreateInfo Image view creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewImageView (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewImageView (
     struct R_CVulkan_ImageView*                 pImageView,
     const struct R_CVulkan_ImageViewCreateInfo* pCreateInfo);
 
@@ -75,10 +74,3 @@ R_CVULKAN_API VkImage R_CVulkan_ImageViewGetImage (const struct R_CVulkan_ImageV
  * @return View format, or VK_FORMAT_UNDEFINED if not initialized
  */
 R_CVULKAN_API VkFormat R_CVulkan_ImageViewGetFormat (const struct R_CVulkan_ImageView* pImageView);
-
-/**
- * @brief Check if the image view is initialized
- * @param imageView Pointer to image view
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView);

@@ -82,7 +82,7 @@ struct R_GameStateCreateInfo
  * @param pCreateInfo Game state creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_GAME_API enum R_CVulkanError
+R_GAME_API enum R_CVulkan_Error
 R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo);
 
 /**

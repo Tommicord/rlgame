@@ -150,7 +150,9 @@ endif()
 
 option(RL_BUILD "Build the rlgame executable" ON)
 if(RL_BUILD)
-  set(MAIN_SOURCE src/rlgame.base/main.c)
+  set(MAIN_SOURCE src/rlgame.base/main.c
+          ../consoletools/microbit/microbit_spirv.h
+          ../consoletools/microbit/microbit_spirv.c)
   if(NOT WIN32)
     add_executable(rlgame ${MAIN_SOURCE} ${MAIN_SOURCES} ${MAIN_HEADERS})
   else()

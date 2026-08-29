@@ -61,7 +61,6 @@ struct R_CVulkan_Device
         VkSurfaceKHR                     surface;
         struct R_CVulkan_Queue           graphicsQueue;
         struct R_CVulkan_Queue           presentQueue;
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -79,7 +78,7 @@ struct R_CVulkan_Device
  * - R_CVULKAN_ERROR_PHYSICAL_DEVICE_NOT_FOUND: No suitable physical device found
  * - R_CVULKAN_ERROR_DEVICE_CREATE_FAILED: Failed to create logical device
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
 
 /**
@@ -134,13 +133,6 @@ R_CVulkan_DeviceGetPresentQueue (const struct R_CVulkan_Device* pDevice);
 R_CVULKAN_API VkSurfaceKHR R_CVulkan_DeviceGetSurface (const struct R_CVulkan_Device* pDevice);
 
 /**
- * @brief Check if the device is initialized
- * @param pDevice Pointer to device
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* pDevice);
-
-/**
  * @brief Find queue family indices for a physical device
  * @param physicalDevice Vulkan physical device
  * @param surface Vulkan surface (can be VK_NULL_HANDLE in headless mode)
@@ -148,7 +140,7 @@ R_CVULKAN_API int R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* 
  * @param pOutIndices Pointer to receive queue family indices
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceFindQueueFamilies (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
     VkPhysicalDevice                     physicalDevice,
     VkSurfaceKHR                         surface,
     struct R_CVulkan_QueueFamilyIndices* pOutIndices);
@@ -182,7 +174,7 @@ R_CVULKAN_API int R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CV
  * @note This function queries the physical device's available extensions
  * @note Common extension names: VK_KHR_DYNAMIC_RENDERING, VK_KHR_SWAPCHAIN, etc.
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceQueryExtensionSupport (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceQueryExtensionSupport (
     const struct R_CVulkan_Device* pDevice,
     const char*                    pExtensionName,
     bool*                          pIsSupported);
@@ -200,5 +192,5 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_DeviceQueryExtensionSupport (
  * @note The feature structure must have its sType member set appropriately
  * @note For example, use VkPhysicalDeviceDynamicRenderingFeaturesKHR for dynamic rendering
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DeviceQueryFeatureSupport (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure);

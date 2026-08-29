@@ -50,7 +50,6 @@ struct R_CVulkan_Swapchain
         VkFormat       imageFormat; /**< Format of swapchain images */
         VkExtent2D     extent; /**< Extent of swapchain images */
         uint32_t       imageCount; /**< Number of images in swapchain */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -67,7 +66,7 @@ struct R_CVulkan_Swapchain
  * - R_CVULKAN_ERROR_SWAPCHAIN_CREATE_FAILED: Failed to create swapchain
  * - R_CVULKAN_ERROR_OUT_OF_MEMORY: Memory allocation failed
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSwapchain (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSwapchain (
     struct R_CVulkan_Swapchain*                 pSwapchain,
     const struct R_CVulkan_SwapchainCreateInfo* pCreateInfo);
 
@@ -125,16 +124,9 @@ R_CVULKAN_API uint32_t R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_
  * - R_CVULKAN_ERROR_SWAPCHAIN_OUT_OF_DATE: Swapchain needs recreation
  * - R_CVULKAN_ERROR_SWAPCHAIN_SUBOPTIMAL: Swapchain is suboptimal
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_SwapchainAcquireNextImage (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SwapchainAcquireNextImage (
     struct R_CVulkan_Swapchain* pSwapchain,
     uint64_t                    timeout,
     VkSemaphore                 semaphore,
     VkFence                     fence,
     uint32_t*                   pImageIndex);
-
-/**
- * @brief Check if the swapchain is initialized
- * @param pSwapchain Pointer to swapchain
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_SwapchainIsInitialized (const struct R_CVulkan_Swapchain* pSwapchain);

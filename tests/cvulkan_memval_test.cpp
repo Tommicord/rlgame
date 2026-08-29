@@ -290,7 +290,7 @@ TEST_F (CvulkanMemvalTest, NotificationFunctionsUpdateStats)
     allocator.pMemVal = NULL;
 
     // Initialize MemVal
-    enum R_CVulkanError result = R_CVulkan_MemValInitialize (&allocator);
+    enum R_CVulkan_Error result = R_CVulkan_MemValInitialize (&allocator);
     // Note: This may fail without proper Vulkan setup, but we can test the stats structure
     if (result == R_CVULKAN_OK && allocator.pMemVal)
     {

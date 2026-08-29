@@ -52,7 +52,6 @@ struct R_CVulkan_PipelineLayout
 {
         VkPipelineLayout handle; /**< Raw Vulkan pipeline layout handle */
         VkDevice         device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -62,7 +61,6 @@ struct R_CVulkan_Pipeline
 {
         VkPipeline handle; /**< Raw Vulkan pipeline handle */
         VkDevice   device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -71,7 +69,7 @@ struct R_CVulkan_Pipeline
  * @param pCreateInfo Pipeline layout creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewPipelineLayout (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewPipelineLayout (
     struct R_CVulkan_PipelineLayout**                ppLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo);
 
@@ -87,7 +85,7 @@ R_CVULKAN_API void R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayo
  * @param pCreateInfo Graphics pipeline creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewGraphicsPipeline (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
 
@@ -97,7 +95,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewGraphicsPipeline (
  * @param pCreateInfo Graphics pipeline creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDynamicGraphicsPipeline (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDynamicGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
 
@@ -109,7 +107,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDynamicGraphicsPipeline (
  * @param pStage Compute shader stage
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewComputePipeline (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewComputePipeline (
     struct R_CVulkan_Pipeline*             pPipeline,
     const struct R_CVulkan_Device*         pDevice,
     VkPipelineLayout                       pipelineLayout,

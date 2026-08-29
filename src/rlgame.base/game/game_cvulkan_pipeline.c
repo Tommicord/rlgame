@@ -30,7 +30,7 @@
 #include <android/native_window.h>
 #endif
 
-static enum R_CVulkanError R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext);
+static enum R_CVulkan_Error R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext);
 
 static VkExtent2D
 R_Game_GetWindowExtent (const struct R_Game_PipelineContextCreateInfo* pCreateInfo)
@@ -68,7 +68,7 @@ R_Game_GetWindowExtent (const struct R_Game_PipelineContextCreateInfo* pCreateIn
     return extent;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeRenderPass (struct R_Game_PipelineContext* pContext)
 {
     R_CSTL_TRACE_SCOPE ();
@@ -123,11 +123,11 @@ R_Game_InitializeRenderPass (struct R_Game_PipelineContext* pContext)
     renderPassCreateInfo.pDependencies = &dependency;
     renderPassCreateInfo.dependencyCount = 1;
 
-    enum R_CVulkanError err = R_CVulkan_NewRenderPass (&pContext->renderPass, &renderPassCreateInfo);
+    enum R_CVulkan_Error err = R_CVulkan_NewRenderPass (&pContext->renderPass, &renderPassCreateInfo);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeRenderPass: Failed to create render pass");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
 
@@ -137,7 +137,7 @@ R_Game_InitializeRenderPass (struct R_Game_PipelineContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeImageViews (
     struct R_Game_PipelineContext* pContext,
     VkImage*                       pSwapchainImages,
@@ -163,11 +163,11 @@ R_Game_InitializeImageViews (
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        enum R_CVulkanError imgErr = R_CVulkan_NewImageView (&imageView, &imageViewCreateInfo);
+        enum R_CVulkan_Error imgErr = R_CVulkan_NewImageView (&imageView, &imageViewCreateInfo);
         if (imgErr != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeImageViews: Failed to create image view %u", i);
-            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (imgErr));
+            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (imgErr));
             R_CSTL_LOG_ERROR ("  Image handle: %p", (void*)pSwapchainImages[i]);
             R_CSTL_LOG_ERROR ("  Format: %d", swapchainFormat);
             return imgErr;
@@ -178,7 +178,7 @@ R_Game_InitializeImageViews (
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
 {
     R_CSTL_TRACE_SCOPE ();
@@ -254,11 +254,11 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
 
         struct R_CVulkan_ImageView imageView;
         {
-            enum R_CVulkanError err = R_CVulkan_NewImageView (&imageView, &imageViewCreateInfo);
+            enum R_CVulkan_Error err = R_CVulkan_NewImageView (&imageView, &imageViewCreateInfo);
             if (err != R_CVULKAN_OK)
             {
                 R_CSTL_LOG_ERROR ("R_Game_InitializeFramebuffers: Failed to create image view %u", i);
-                R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+                R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
                 R_CSTL_LOG_ERROR ("  Image handle: %p", (void*)pSwapchainImages[i]);
                 R_CSTL_HeapFree (pSwapchainImages);
                 return err;
@@ -284,12 +284,12 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
         framebufferCreateInfo.height = swapchainExtent.height;
         framebufferCreateInfo.layers = 1;
         {
-            enum R_CVulkanError err
+            enum R_CVulkan_Error err
                 = R_CVulkan_NewFramebuffer (&pContext->pFramebuffers[i], &framebufferCreateInfo);
             if (err != R_CVULKAN_OK)
             {
                 R_CSTL_LOG_ERROR ("R_Game_InitializeFramebuffers: Failed to create framebuffer %u", i);
-                R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+                R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
                 R_CSTL_LOG_ERROR ("  Width: %u", framebufferCreateInfo.width);
                 R_CSTL_LOG_ERROR ("  Height: %u", framebufferCreateInfo.height);
                 R_CSTL_LOG_ERROR ("  - Attachment count: %u", framebufferCreateInfo.attachmentCount);
@@ -307,12 +307,12 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulkan_Surface* pSurface)
 {
     R_CSTL_TRACE_SCOPE ();
     struct R_CVulkan_QueueFamilyIndices indices;
-    enum R_CVulkanError                 err;
+    enum R_CVulkan_Error                 err;
     VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -331,7 +331,7 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to find queue families");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
     R_CSTL_LOG_DEBUG ("R_Game_InitializeQueues: Queue family indices found");
@@ -345,7 +345,7 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to create graphics queue");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         R_CSTL_LOG_ERROR ("  Queue family index: %u", indices.graphicsFamily);
         return err;
     }
@@ -353,7 +353,7 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to create compute queue");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         R_CSTL_LOG_ERROR ("  Queue family index: %u", indices.computeFamily);
         goto r_cleanup_queue3;
     }
@@ -361,7 +361,7 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to create transfer queue");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         R_CSTL_LOG_ERROR ("  Queue family index: %u", indices.transferFamily);
         goto r_cleanup_queue2;
     }
@@ -371,7 +371,7 @@ R_Game_InitializeQueues (struct R_Game_PipelineContext* pContext, struct R_CVulk
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeQueues: Failed to create present queue");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         R_CSTL_LOG_ERROR ("  Queue family index: %u", indices.presentFamily);
         goto r_cleanup_queue1;
     }
@@ -390,11 +390,11 @@ r_cleanup_queue4:
     return err;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeCommandPools (struct R_Game_PipelineContext* pContext, struct R_CVulkan_Surface* pSurface)
 {
     struct R_CVulkan_QueueFamilyIndices indices;
-    enum R_CVulkanError                 err;
+    enum R_CVulkan_Error                 err;
     VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -411,7 +411,7 @@ R_Game_InitializeCommandPools (struct R_Game_PipelineContext* pContext, struct R
         &indices);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to find queue families: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to find queue families: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
     err = R_CVulkan_NewCommandPool (
@@ -421,7 +421,7 @@ R_Game_InitializeCommandPools (struct R_Game_PipelineContext* pContext, struct R
         0);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create graphics command pool: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to create graphics command pool: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
 
@@ -432,7 +432,7 @@ R_Game_InitializeCommandPools (struct R_Game_PipelineContext* pContext, struct R
         0);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create compute command pool: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to create compute command pool: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
 
@@ -443,7 +443,7 @@ R_Game_InitializeCommandPools (struct R_Game_PipelineContext* pContext, struct R
         0);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create transfer command pool: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to create transfer command pool: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
 
@@ -455,7 +455,7 @@ R_Game_InitializeVulkanCore (
     struct R_Game_PipelineContext*                 pContext,
     const struct R_Game_PipelineContextCreateInfo* pCreateInfo)
 {
-    enum R_CVulkanError                 error;
+    enum R_CVulkan_Error                 error;
     struct R_CVulkan_InstanceCreateInfo instanceCreateInfo = {0};
     instanceCreateInfo.pApplicationName = pCreateInfo->pApplicationName;
     {
@@ -463,7 +463,7 @@ R_Game_InitializeVulkanCore (
         if (error != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan instance");
-            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
+            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (error));
             return error;
         }
     }
@@ -522,7 +522,7 @@ R_Game_InitializeVulkanCore (
     if (error != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan surface");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (error));
         goto r_cleanup_surface_allocation;
     }
 #endif
@@ -534,7 +534,7 @@ R_Game_InitializeVulkanCore (
     if (error != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanCore: Failed to create Vulkan device");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (error));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (error));
         goto r_cleanup_surface;
     }
     return R_GAME_OK;
@@ -553,26 +553,26 @@ static enum R_GameError
 R_Game_InitializeVulkanResources (struct R_Game_PipelineContext* pContext)
 {
     R_CSTL_TRACE_SCOPE ();
-    enum R_CVulkanError err;
+    enum R_CVulkan_Error err;
     err = R_Game_InitializeQueues (pContext, pContext->pSurface);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanResources: Queue initialization failed");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_INITIALIZATION_FAILED;
     }
     err = R_Game_InitializeCommandPools (pContext, pContext->pSurface);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanResources: Command pool initialization failed");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         goto r_cleanup_queues;
     }
     err = R_Game_InitializeSyncPrimitives (pContext);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanResources: Sync primitives initialization failed");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         goto r_cleanup_command_pool;
     }
     return R_GAME_OK;
@@ -590,23 +590,23 @@ r_cleanup_queues:
     return R_GAME_ERROR_INITIALIZATION_FAILED;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext)
 {
-    enum R_CVulkanError err;
+    enum R_CVulkan_Error err;
 #if !defined(R_CVULKAN_HEADLESS)
     err = R_CVulkan_NewSemaphore (&pContext->imageAvailableSemaphore, &pContext->device, 0, 0);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create image available semaphore");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
     err = R_CVulkan_NewSemaphore (&pContext->renderFinishedSemaphore, &pContext->device, 0, 0);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create render finished semaphore");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
 
@@ -614,7 +614,7 @@ R_Game_InitializeSyncPrimitives (struct R_Game_PipelineContext* pContext)
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("R_Game_InitializeSyncPrimitives: Failed to create in-flight fence");
-        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
         return err;
     }
     R_CSTL_LOG_DEBUG ("R_Game_InitializeSyncPrimitives: In-flight fence created");
@@ -647,29 +647,29 @@ R_Game_InitializeVulkanSwapchain (
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
     {
-        enum R_CVulkanError err = R_CVulkan_NewSwapchain (&pContext->swapchain, &swapchainCreateInfo);
+        enum R_CVulkan_Error err = R_CVulkan_NewSwapchain (&pContext->swapchain, &swapchainCreateInfo);
         if (err != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanSwapchain: Failed to create swapchain");
-            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
             return R_GAME_ERROR_INITIALIZATION_FAILED;
         }
     }
     {
-        enum R_CVulkanError err = R_Game_InitializeRenderPass (pContext);
+        enum R_CVulkan_Error err = R_Game_InitializeRenderPass (pContext);
         if (err != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanSwapchain: Render pass initialization failed");
-            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
             goto r_cleanup_swapchain;
         }
     }
     {
-        enum R_CVulkanError err = R_Game_InitializeFramebuffers (pContext);
+        enum R_CVulkan_Error err = R_Game_InitializeFramebuffers (pContext);
         if (err != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("R_Game_InitializeVulkanSwapchain: Framebuffer initialization failed");
-            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkanErrorToString (err));
+            R_CSTL_LOG_ERROR ("  Error: %s", R_CVulkan_ErrorToString (err));
             goto r_cleanup_render_pass;
         }
     }

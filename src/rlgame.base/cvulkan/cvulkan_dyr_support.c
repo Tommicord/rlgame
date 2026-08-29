@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_DYRCreateRenderPass (
     struct R_CVulkan_DYRRenderPass*                 pDYRRenderPass,
     const struct R_CVulkan_DYRRenderPassCreateInfo* pCreateInfo)
@@ -17,16 +17,9 @@ R_CVulkan_DYRCreateRenderPass (
     R_CVULKAN_ASSERT (pCreateInfo->pDevice);
     R_CVULKAN_ASSERT (pCreateInfo->colorAttachmentCount > 0);
     R_CVULKAN_ASSERT (pCreateInfo->pColorAttachmentFormats);
-#if defined(R_CVULKAN_DEBUG)
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_DYRCreateRenderPass: Device not initialized");
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
+
     VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
     R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-
 #if defined(R_CVULKAN_DEBUG)
     if (logicalDevice == VK_NULL_HANDLE)
     {
@@ -34,7 +27,7 @@ R_CVulkan_DYRCreateRenderPass (
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
 #endif
-    enum R_CVulkanError error;
+    enum R_CVulkan_Error error;
     pDYRRenderPass->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pDYRRenderPass->handle = VK_NULL_HANDLE;

@@ -111,7 +111,7 @@ struct R_CVulkan_DefragStats
  * @param pConfig Configuration parameters (can be NULL for defaults)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DefragInitialize (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DefragInitialize (
     struct R_CVulkan_DefragContext*      pContext,
     struct R_CVulkan_MemoryAllocator*    pAllocator,
     const struct R_CVulkan_DefragConfig* pConfig);
@@ -127,7 +127,7 @@ R_CVULKAN_API void R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pCon
  * @param pContext Pointer to defragmentation context
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext);
 
 /**
  * @brief Execute a single defragmentation pass
@@ -135,7 +135,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_DefragBegin (struct R_CVulkan_Defrag
  * @param commandBuffer Vulkan command buffer for GPU operations (can be VK_NULL_HANDLE for CPU)
  * @return R_CVULKAN_OK on success, R_CVULKAN_ERROR_INCOMPLETE if more passes needed, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
 /**
@@ -144,7 +144,7 @@ R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommand
  * @param pStats Pointer to receive statistics (can be NULL)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_DefragStats* pStats);
 
 /**
@@ -154,7 +154,7 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
  * fragmented)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation);
 
 /**
@@ -163,7 +163,7 @@ R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pCo
  * @param pNeeded Pointer to receive whether defragmentation is needed
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* pNeeded);
 
 /**
@@ -171,7 +171,7 @@ R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* p
  * @param pBackend Pointer to receive available backend
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend);
 
 /**

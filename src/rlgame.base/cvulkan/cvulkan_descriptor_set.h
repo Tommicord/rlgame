@@ -35,7 +35,6 @@ struct R_CVulkan_DescriptorSetLayout
 {
         VkDescriptorSetLayout handle; /**< Raw Vulkan descriptor set layout handle */
         VkDevice              device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -46,7 +45,6 @@ struct R_CVulkan_DescriptorPool
         VkDescriptorPool handle; /**< Raw Vulkan descriptor pool handle */
         VkDevice         device; /**< Associated device */
         uint32_t         maxSets; /**< Maximum number of descriptor sets */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -56,7 +54,6 @@ struct R_CVulkan_DescriptorSet
 {
         VkDescriptorSet handle; /**< Raw Vulkan descriptor set handle */
         VkDevice        device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -65,7 +62,7 @@ struct R_CVulkan_DescriptorSet
  * @param pCreateInfo Descriptor set layout creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDescriptorSetLayout (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorSetLayout (
     struct R_CVulkan_DescriptorSetLayout*                 layout,
     const struct R_CVulkan_DescriptorSetLayoutCreateInfo* pCreateInfo);
 
@@ -81,7 +78,7 @@ R_CVULKAN_API void R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_Descrip
  * @param pCreateInfo Descriptor pool creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewDescriptorPool (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDescriptorPool (
     struct R_CVulkan_DescriptorPool*                 pool,
     const struct R_CVulkan_DescriptorPoolCreateInfo* pCreateInfo);
 
@@ -99,7 +96,7 @@ R_CVULKAN_API void R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPo
  * @param outSets Pointer to receive the allocated descriptor sets
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_DescriptorSetAllocate (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DescriptorSetAllocate (
     const struct R_CVulkan_DescriptorPool* pool,
     const VkDescriptorSetLayout*           layouts,
     uint32_t                               layoutCount,
@@ -146,5 +143,3 @@ R_CVulkan_DescriptorPoolGetHandle (const struct R_CVulkan_DescriptorPool* pool);
 R_CVULKAN_API VkDevice R_CVulkan_DescriptorPoolGetDevice (const struct R_CVulkan_DescriptorPool* pool);
 
 R_CVULKAN_API uint32_t R_CVulkan_DescriptorPoolGetMaxSets (const struct R_CVulkan_DescriptorPool* pool);
-
-R_CVULKAN_API int R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pool);

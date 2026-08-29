@@ -42,7 +42,7 @@ struct R_GameRendererLayer
         char*                     pName;
         uint32_t                  priority;
         uint32_t                  flags;
-        const void*               pUserData;
+        void*                     pUserData;
         R_GameLifecycleRender     renderCallback;
         R_GameLifecycleBeforePass beforePassCallback;
         R_GameLifecycleAfterPass  afterPassCallback;
@@ -160,10 +160,10 @@ R_GameRenderer_WaitForFence (
     struct R_CVulkan_Fence*  pFence,
     uint64_t                 timeout)
 {
-    enum R_CVulkanError err = R_CVulkan_FenceWait (pDevice, pFence, 1, true, timeout);
+    enum R_CVulkan_Error err = R_CVulkan_FenceWait (pDevice, pFence, 1, true, timeout);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
     return R_GAME_OK;
@@ -347,16 +347,16 @@ R_GameRenderer_RemoveResourceByHandle (struct R_GameRendererSubsystem* pSubsyste
 static int
 R_GameRenderer_WaitAndResetFence (struct R_CVulkan_Device* pDevice, struct R_CVulkan_Fence* pFence)
 {
-    enum R_CVulkanError err = R_CVulkan_FenceWait (pDevice, pFence, 1, true, UINT64_MAX);
+    enum R_CVulkan_Error err = R_CVulkan_FenceWait (pDevice, pFence, 1, true, UINT64_MAX);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to wait for fence: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
     err = R_CVulkan_FenceReset (pDevice, pFence, 1);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to reset fence: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to reset fence: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
 
@@ -366,7 +366,7 @@ R_GameRenderer_WaitAndResetFence (struct R_CVulkan_Device* pDevice, struct R_CVu
 static int
 R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineContext, uint32_t* pImageIndex)
 {
-    enum R_CVulkanError err = R_CVulkan_SwapchainAcquireNextImage (
+    enum R_CVulkan_Error err = R_CVulkan_SwapchainAcquireNextImage (
         &pPipelineContext->swapchain,
         UINT64_MAX,
         R_CVulkan_SemaphoreGetHandle (&pPipelineContext->imageAvailableSemaphore),
@@ -374,7 +374,7 @@ R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineCo
         pImageIndex);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to acquire next image: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to acquire next image: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
     return R_GAME_OK;
@@ -383,10 +383,10 @@ R_GameRenderer_AcquireSwapchainImage (struct R_Game_PipelineContext* pPipelineCo
 static int
 R_GameRenderer_RenderLayer (struct R_GameRendererLayer* pLayer, struct R_CVulkan_CommandBuffer* pCmdBuffer)
 {
-    enum R_CVulkanError err = R_CVulkan_BeginCommandBuffer (pCmdBuffer, 0, NULL);
+    enum R_CVulkan_Error err = R_CVulkan_BeginCommandBuffer (pCmdBuffer, 0, NULL);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to begin command buffer: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to begin command buffer: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
     }
 
@@ -407,7 +407,7 @@ R_GameRenderer_RenderLayer (struct R_GameRendererLayer* pLayer, struct R_CVulkan
     err = R_CVulkan_EndCommandBuffer (pCmdBuffer);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to end command buffer: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to end command buffer: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
     }
     return R_GAME_OK;
@@ -423,7 +423,7 @@ R_GameRenderer_SubmitCommandBuffers (
     struct R_CVulkan_Fence*          pInFlightFence)
 {
     VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    enum R_CVulkanError  err = R_CVulkan_QueueSubmit (
+    enum R_CVulkan_Error  err = R_CVulkan_QueueSubmit (
         pGraphicsQueue,
         *ppCommandBuffers,
         commandBufferCount,
@@ -435,7 +435,7 @@ R_GameRenderer_SubmitCommandBuffers (
         pInFlightFence);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to submit command buffers: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to submit command buffers: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
     return R_GAME_OK;
@@ -450,7 +450,7 @@ R_GameRenderer_PresentImage (
 {
     VkSwapchainKHR swapchainHandle = R_CVulkan_SwapchainGetHandle (&swapchain);
 
-    enum R_CVulkanError err = R_CVulkan_QueuePresent (
+    enum R_CVulkan_Error err = R_CVulkan_QueuePresent (
         pPresentQueue,
         &swapchainHandle,
         1,
@@ -459,7 +459,7 @@ R_GameRenderer_PresentImage (
         1);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to present image: %s", R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to present image: %s", R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
     return R_GAME_OK;
@@ -524,24 +524,21 @@ R_GameRenderer_WorkerThreadProc (void* pParam)
             task.commandBufferIndex,
             &cmdBuffer);
 
-        enum R_CVulkanError err = R_CVulkan_BeginCommandBuffer (&cmdBuffer, 0, NULL);
+        enum R_CVulkan_Error err = R_CVulkan_BeginCommandBuffer (&cmdBuffer, 0, NULL);
         if (err == R_CVULKAN_OK)
         {
             if (layer.beforePassCallback)
             {
                 layer.beforePassCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
             }
-
             if (layer.renderCallback)
             {
                 layer.renderCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
             }
-
             if (layer.afterPassCallback)
             {
                 layer.afterPassCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
             }
-
             R_CVulkan_EndCommandBuffer (&cmdBuffer);
             R_CSTL_ArrayTypedSetAtUnchecked (
                 pFrame->pCommandBufferArray,
@@ -773,7 +770,7 @@ R_GameRenderer_InitializeCommandBuffers (
     for (uint32_t bufIdx = 0; bufIdx < R_GAME_RENDERER_MAX_COMMAND_BUFFERS_PER_FRAME; ++bufIdx)
     {
         struct R_CVulkan_CommandBuffer cmdBuffer = {0};
-        enum R_CVulkanError            err = R_CVulkan_NewCommandBuffer (
+        enum R_CVulkan_Error            err = R_CVulkan_NewCommandBuffer (
             &cmdBuffer,
             pDevice,
             R_CVulkan_CommandPoolGetHandle (pGraphicsPool),
@@ -784,7 +781,7 @@ R_GameRenderer_InitializeCommandBuffers (
                 "Failed to create command buffer %u for frame %u: %s",
                 bufIdx,
                 frameIdx,
-                R_CVulkanErrorToString (err));
+                R_CVulkan_ErrorToString (err));
             return R_GAME_ERROR_COMMAND_BUFFER_FAILED;
         }
 
@@ -817,13 +814,13 @@ R_GameRenderer_InitializeSemaphore (
     }
     memset (pFrame->pRenderFinishedSemaphore, 0, sizeof (struct R_CVulkan_Semaphore));
 
-    enum R_CVulkanError err = R_CVulkan_NewSemaphore (pFrame->pRenderFinishedSemaphore, pDevice, 0, 0);
+    enum R_CVulkan_Error err = R_CVulkan_NewSemaphore (pFrame->pRenderFinishedSemaphore, pDevice, 0, 0);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR (
             "Failed to create semaphore for frame %u: %s",
             frameIdx,
-            R_CVulkanErrorToString (err));
+            R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
 
@@ -844,10 +841,10 @@ R_GameRenderer_InitializeFence (
     }
     memset (pFrame->pInFlightFence, 0, sizeof (struct R_CVulkan_Fence));
 
-    enum R_CVulkanError err = R_CVulkan_NewFence (pFrame->pInFlightFence, pDevice, true);
+    enum R_CVulkan_Error err = R_CVulkan_NewFence (pFrame->pInFlightFence, pDevice, true);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create fence for frame %u: %s", frameIdx, R_CVulkanErrorToString (err));
+        R_CSTL_LOG_ERROR ("Failed to create fence for frame %u: %s", frameIdx, R_CVulkan_ErrorToString (err));
         return R_GAME_ERROR_FAILED;
     }
 

@@ -39,7 +39,6 @@ struct R_CVulkan_Instance
         VkValidationFeatureEnableEXT enabledValidationFeatures[4]; /**< Enabled validation features */
         uint32_t                     enabledValidationFeatureCount; /**< Count of enabled features */
 #endif
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -56,7 +55,7 @@ struct R_CVulkan_Instance
  * - R_CVULKAN_ERROR_EXTENSION_NOT_FOUND: Required extension not available
  * - R_CVULKAN_ERROR_INCOMPATIBLE_DRIVER: Vulkan driver version incompatible
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewInstance (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
     const struct R_CVulkan_InstanceCreateInfo* pCreateInfo);
 
@@ -75,10 +74,3 @@ R_CVULKAN_API void R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstanc
  * @return Vulkan instance handle, or VK_NULL_HANDLE if not initialized
  */
 R_CVULKAN_API VkInstance R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance);
-
-/**
- * @brief Check if the instance is initialized
- * @param pInstance Pointer to instance
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_InstanceIsInitialized (const struct R_CVulkan_Instance* pInstance);

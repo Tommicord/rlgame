@@ -23,10 +23,10 @@ static const uint32_t g_validationLayerCount = 0;
 static const char*    g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_deviceExtensions);
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures);
 
-static enum R_CVulkanError R_CVulkan_CheckExtensionAvailability (
+static enum R_CVulkan_Error R_CVulkan_CheckExtensionAvailability (
     const char*      pExtensionName,
     VkPhysicalDevice physicalDevice,
     bool*            pIsAvailable);
@@ -57,7 +57,7 @@ R_CVulkan_DebugCallback (
 #endif
 
 #if defined(R_CVULKAN_DEBUG)
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {0};
@@ -83,8 +83,8 @@ R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pD
     VkResult result = func (instance, &createInfo, NULL, pDebugMessenger);
     if (result != VK_SUCCESS)
     {
-        enum R_CVulkanError error = R_CVulkan_ResultToError (result);
-        R_CSTL_LOG_ERROR ("Failed to create debug messenger: %s", R_CVulkanErrorToString (error));
+        enum R_CVulkan_Error error = R_CVulkan_ResultToError (result);
+        R_CSTL_LOG_ERROR ("Failed to create debug messenger: %s", R_CVulkan_ErrorToString (error));
         return error;
     }
     return R_CVULKAN_OK;
@@ -151,7 +151,7 @@ R_CVulkan_CheckValidationLayerSupport (void)
 }
 #endif
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_CheckExtensionAvailability (
     const char*      pExtensionName,
     VkPhysicalDevice physicalDevice,
@@ -258,7 +258,7 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
     return ppStrings;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures)
 {
     R_CVULKAN_ASSERT (ppExtensions);
@@ -269,7 +269,7 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
     bool                hasPortability = false;
-    enum R_CVulkanError err = R_CVulkan_CheckExtensionAvailability (
+    enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
         VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
         VK_NULL_HANDLE,
         &hasPortability);
@@ -327,7 +327,7 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
     const struct R_CVulkan_InstanceCreateInfo* pCreateInfo)
@@ -348,7 +348,7 @@ R_CVulkan_NewInstance (
     
 #endif
 
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
 #if defined(R_CVULKAN_DEBUG)
     bool validationLayersSupported = R_CVulkan_CheckValidationLayerSupport ();
     if (!validationLayersSupported)
@@ -415,7 +415,7 @@ R_CVulkan_NewInstance (
     result = R_CVulkan_BuildInstanceExtensions (&pExtensions, hasValidationFeatures);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", R_CVulkanErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", R_CVulkan_ErrorToString (result));
         goto cvulkan_cleanup;
     }
     R_CVULKAN_ASSERT (pCreateInfo->pApplicationName);
@@ -476,10 +476,10 @@ R_CVulkan_NewInstance (
 
     if (result1 != VK_SUCCESS)
     {
-        enum R_CVulkanError err = R_CVulkan_ResultToError (result1);
+        enum R_CVulkan_Error err = R_CVulkan_ResultToError (result1);
         R_CSTL_LOG_ERROR (
             "Failed to create Vulkan instance: %s. Check Vulkan driver installation.",
-            R_CVulkanErrorToString (err));
+            R_CVulkan_ErrorToString (err));
         result = err;
         goto cvulkan_cleanup;
     }
@@ -488,7 +488,7 @@ R_CVulkan_NewInstance (
     result = R_CVulkan_SetupDebugMessenger (pInstance->handle, &pInstance->debugMessenger);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to setup debug messenger: %s", R_CVulkanErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to setup debug messenger: %s", R_CVulkan_ErrorToString (result));
         goto cvulkan_cleanup;
     }
 #endif
@@ -529,16 +529,4 @@ R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance)
     R_CVULKAN_ASSERT (pInstance);
 #endif
     return pInstance->handle;
-}
-
-R_CVULKAN_API int
-R_CVulkan_InstanceIsInitialized (const struct R_CVulkan_Instance* pInstance)
-{
-#if defined(R_CVULKAN_DEBUG)
-    R_CVULKAN_ASSERT (pInstance);
-    return 1;
-#else
-    (void)pInstance;
-    return 1;
-#endif
 }

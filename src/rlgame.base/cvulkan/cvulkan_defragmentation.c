@@ -53,45 +53,45 @@ extern cudaError_t R_CVulkan_DefragCudaLaunchUpdateMetadata (
     cudaStream_t stream);
 #endif
 
-static enum R_CVulkanError R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkanError R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkanError R_CVulkan_DefragEnsureCapacity (
+static enum R_CVulkan_Error R_CVulkan_DefragEnsureCapacity (
     void**    ppBuffer,
     uint32_t* pCapacity,
     uint32_t  requiredCount,
     uint32_t  elementSize);
 
 #ifdef R_OPENCL
-static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
+static enum R_CVulkan_Error R_CVulkan_DefragExecuteKernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -103,7 +103,7 @@ static enum R_CVulkanError R_CVulkan_DefragExecuteKernel (
     const size_t* pArgSizes,
     uint32_t      argCount,
     size_t        globalWorkSize);
-static enum R_CVulkanError R_CVulkan_DefragCreateProgram (
+static enum R_CVulkan_Error R_CVulkan_DefragCreateProgram (
     cl_context   context,
     cl_device_id device,
     const void*  pBinaryData,
@@ -130,7 +130,7 @@ R_CVulkan_DefragSetDefaultConfig (struct R_CVulkan_DefragConfig* pConfig)
     R_CSTL_TRACE_RETURN ();
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -168,13 +168,13 @@ R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend)
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragInitialize (
     struct R_CVulkan_DefragContext*      pContext,
     struct R_CVulkan_MemoryAllocator*    pAllocator,
     const struct R_CVulkan_DefragConfig* pConfig)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
 
     R_CSTL_TRACE_FUNCTION ();
 
@@ -329,10 +329,10 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
     R_CSTL_TRACE_RETURN ();
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
 {
-    enum R_CVulkanError               result = R_CVULKAN_OK;
+    enum R_CVulkan_Error               result = R_CVULKAN_OK;
     struct R_CVulkan_MemoryAllocator* pAllocator = pContext->pAllocator;
 
     R_CSTL_TRACE_FUNCTION ();
@@ -378,11 +378,11 @@ R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #if defined(R_CUDA)
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cudaError_t         cudaError = cudaSuccess;
     void*               dBlockMetadata = NULL;
 
@@ -455,11 +455,11 @@ r_cvulkan_cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_context          context = (cl_context)pContext->pBackendContext;
     cl_mem              dBlockMetadata = NULL;
@@ -556,7 +556,7 @@ r_cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
 {
     struct R_CVulkan_DefragBlockMetadata* metadataArray
@@ -590,11 +590,11 @@ R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cudaError_t         cudaError = cudaSuccess;
     void*               dBlockMetadata = NULL;
     void*               dMoves = NULL;
@@ -717,11 +717,11 @@ cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
 #if defined(R_OPENCL)
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_context          context = (cl_context)pContext->pBackendContext;
     cl_command_queue    queue = NULL;
@@ -920,7 +920,7 @@ r_cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
 {
     struct R_CVulkan_DefragBlockMetadata* metadataArray
@@ -969,7 +969,7 @@ R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
             {
                 if (pContext->moveCount >= pContext->moveCapacity)
                 {
-                    enum R_CVulkanError result = R_CVulkan_DefragEnsureCapacity (
+                    enum R_CVulkan_Error result = R_CVulkan_DefragEnsureCapacity (
                         &pContext->pMoves,
                         &pContext->moveCapacity,
                         pContext->moveCount + 1,
@@ -1001,7 +1001,7 @@ R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
@@ -1009,7 +1009,7 @@ R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCo
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
@@ -1017,18 +1017,18 @@ R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, Vk
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteMovesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)commandBuffer;
     return R_CVulkan_DefragApplyMovesToAllocator (pContext);
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cudaError_t         cudaError = cudaSuccess;
     void*               dBlockMetadata = NULL;
     void*               dMoves = NULL;
@@ -1123,11 +1123,11 @@ r_cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_context          context = (cl_context)pContext->pBackendContext;
     cl_command_queue    queue = NULL;
@@ -1307,7 +1307,7 @@ r_cleanup:
 #endif
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext)
 {
     struct R_CVulkan_DefragBlockMetadata* metadataArray
@@ -1342,7 +1342,7 @@ R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext)
     return R_CVULKAN_OK;
 }
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
 {
     struct R_CVulkan_MemoryAllocator* pAllocator = pContext->pAllocator;
@@ -1406,7 +1406,7 @@ R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
 }
 
 #ifdef R_OPENCL
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragExecuteKernel (
     cl_context    context,
     cl_device_id  device,
@@ -1420,7 +1420,7 @@ R_CVulkan_DefragExecuteKernel (
     uint32_t      argCount,
     size_t        globalWorkSize)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_command_queue    queue = NULL;
     cl_program          program = NULL;
@@ -1509,7 +1509,7 @@ r_cleanup:
 #endif
 
 #ifdef R_OPENCL
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragCreateProgram (
     cl_context   context,
     cl_device_id device,
@@ -1519,7 +1519,7 @@ R_CVulkan_DefragCreateProgram (
     cl_program*  outProgram,
     cl_kernel*   outKernel)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_program          program = NULL;
     cl_kernel           kernel = NULL;
@@ -1559,7 +1559,7 @@ r_cleanup:
 }
 #endif
 
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_DefragEnsureCapacity (
     void**    ppBuffer,
     uint32_t* pCapacity,
@@ -1589,10 +1589,10 @@ R_CVulkan_DefragEnsureCapacity (
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
 
     R_CSTL_TRACE_FUNCTION ();
 
@@ -1642,10 +1642,10 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
     return result;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
 
     R_CSTL_TRACE_FUNCTION ();
 
@@ -1746,7 +1746,7 @@ R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommand
     return R_CVULKAN_ERROR_INCOMPLETE;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_DefragStats* pStats)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -1794,7 +1794,7 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation)
 {
     if (!pContext || !pFragmentation)
@@ -1825,10 +1825,10 @@ R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pCo
     return R_CVULKAN_OK;
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* pNeeded)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     float               fragmentation = 0.0f;
 
     if (!pContext || !pNeeded)

@@ -46,8 +46,7 @@ struct R_CVulkan_Image
         VkImageType           imageType; /**< Image type (1D, 2D, 3D) */
         VkSampleCountFlagBits samples; /**< Number of samples */
         VkImageTiling         tiling; /**< Image tiling mode */
-        R_CVULKAN_DEBUG_FIELD
-} R_CVulkan_Image;
+};
 
 /**
  * @brief Initialize an image
@@ -55,7 +54,7 @@ struct R_CVulkan_Image
  * @param pCreateInfo Image creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo);
 
 /**
@@ -74,7 +73,7 @@ R_CVULKAN_API void R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage);
  * @param dstStageMask Destination pipeline stage mask
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageTransitionLayout (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageTransitionLayout (
     struct R_CVulkan_Image* pImage,
     VkCommandBuffer         commandBuffer,
     VkImageLayout           oldLayout,
@@ -91,7 +90,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageTransitionLayout (
  * @param commandBuffer Command buffer to record the copy on (raw handle)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_ImageCopyData (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ImageCopyData (
     struct R_CVulkan_Image* pImage,
     const void*             data,
     VkDeviceSize            dataSize,

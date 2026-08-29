@@ -320,7 +320,7 @@ TEST_F (CvulkanDefragTest, MaxPassesLogic)
 TEST_F (CvulkanDefragTest, GetAvailableBackend)
 {
     enum R_CVulkan_DefragBackend backend = R_CVULKAN_DEFRAG_BACKEND_NONE;
-    enum R_CVulkanError          result = R_CVulkan_DefragGetAvailableBackend (&backend);
+    enum R_CVulkan_Error          result = R_CVulkan_DefragGetAvailableBackend (&backend);
 
     // Should succeed and return a valid backend
     EXPECT_EQ (R_CVULKAN_OK, result);
@@ -344,7 +344,7 @@ TEST_F (CvulkanDefragTest, InitializeCleanup)
     R_CVulkan_DefragSetDefaultConfig (&config);
 
     // Initialize defrag context
-    enum R_CVulkanError result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
+    enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
 
     // May fail without proper Vulkan setup, but we can test the CPU backend path
     if (result == R_CVULKAN_OK)
@@ -375,7 +375,7 @@ TEST_F (CvulkanDefragTest, IsNeeded)
     R_CVulkan_DefragSetDefaultConfig (&config);
 
     // Initialize defrag context
-    enum R_CVulkanError result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
+    enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
 
     if (result == R_CVULKAN_OK)
     {
@@ -409,7 +409,7 @@ TEST_F (CvulkanDefragTest, GetFragmentationLevel)
     R_CVulkan_DefragSetDefaultConfig (&config);
 
     // Initialize defrag context
-    enum R_CVulkanError result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
+    enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
 
     if (result == R_CVULKAN_OK)
     {
@@ -443,7 +443,7 @@ TEST_F (CvulkanDefragTest, BeginEnd)
     R_CVulkan_DefragSetDefaultConfig (&config);
 
     // Initialize defrag context
-    enum R_CVulkanError result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
+    enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
 
     if (result == R_CVULKAN_OK)
     {

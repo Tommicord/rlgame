@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*                 pFramebuffer,
     const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
@@ -18,10 +18,6 @@ R_CVulkan_NewFramebuffer (
     R_CVULKAN_ASSERT (pCreateInfo->attachmentCount > 0);
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
     if (pCreateInfo->width == 0 || pCreateInfo->height == 0 || pCreateInfo->layers == 0)
     {
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;

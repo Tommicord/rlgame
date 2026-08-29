@@ -90,7 +90,7 @@ R_CVulkan_MemValGetState (const struct R_CVulkan_MemoryAllocator* pAllocator)
 }
 
 #ifdef R_OPENCL
-static enum R_CVulkanError
+static enum R_CVulkan_Error
 R_CVulkan_MemValExecuteKernel (
     cl_context    context,
     cl_device_id  device,
@@ -104,7 +104,7 @@ R_CVulkan_MemValExecuteKernel (
     uint32_t      argCount,
     size_t        globalWorkSize)
 {
-    enum R_CVulkanError result = R_CVULKAN_OK;
+    enum R_CVulkan_Error result = R_CVULKAN_OK;
     cl_int              error = CL_SUCCESS;
     cl_program          program = NULL;
     cl_kernel           kernel = NULL;
@@ -670,7 +670,7 @@ R_CVulkan_MemValRefreshHealthOpenCL (struct R_CVulkan_MemoryAllocator* pAllocato
     size_t argSizes[]
         = {sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_mem)};
 
-    enum R_CVulkanError result = R_CVulkan_MemValExecuteKernel (
+    enum R_CVulkan_Error result = R_CVulkan_MemValExecuteKernel (
         context,
         device,
         "R_CVulkan_MemValAnalyzeBlocksKernel",
@@ -838,7 +838,7 @@ R_CVulkan_MemValRefreshHealth (struct R_CVulkan_MemoryAllocator* pAllocator)
     R_CVulkan_MemValRefreshHealthCPU (pAllocator);
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemValInitialize (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
@@ -989,7 +989,7 @@ R_CVulkan_MemValNotifyAllocationFailure (
     R_CVulkan_MemValRefreshHealth ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemValShouldDefragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded)
 {
 #if defined(R_CVULKAN_DEBUG)
@@ -1009,7 +1009,7 @@ R_CVulkan_MemValNotifyDefragmentationComplete (struct R_CVulkan_MemoryAllocator*
     R_CVulkan_MemValRefreshHealth (pAllocator);
 }
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemValGetStats (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     struct R_CVulkan_MemValStats*           pStats)

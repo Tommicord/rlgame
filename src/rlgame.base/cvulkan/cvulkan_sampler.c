@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-R_CVULKAN_API enum R_CVulkanError
+R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*                 pSampler,
     const struct R_CVulkan_SamplerCreateInfo* pCreateInfo)
@@ -15,23 +15,8 @@ R_CVulkan_NewSampler (
     R_CVULKAN_ASSERT (pSampler);
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CVULKAN_ASSERT (pCreateInfo->pDevice);
-#if defined(R_CVULKAN_DEBUG)
-    if (!pSampler || !pCreateInfo || !pCreateInfo->pDevice)
-    {
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    }
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
 
     pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
-#if defined(R_CVULKAN_DEBUG)
-    pSampler->handle = VK_NULL_HANDLE;
-    
-#endif
-
     VkSamplerCreateInfo samplerInfo = {0};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = pCreateInfo->magFilter;

@@ -28,7 +28,6 @@ struct R_CVulkan_RenderPass
 {
         VkRenderPass handle; /**< Raw Vulkan render pass handle */
         VkDevice     device; /**< Associated device */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -37,7 +36,7 @@ struct R_CVulkan_RenderPass
  * @param pCreateInfo Render pass creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewRenderPass (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewRenderPass (
     struct R_CVulkan_RenderPass*                 pRenderPass,
     const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo);
 

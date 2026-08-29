@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_NewPipelineLayout (
     struct R_CVulkan_PipelineLayout**                ppLayout,
     const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo)
@@ -16,26 +16,8 @@ R_CVulkan_NewPipelineLayout (
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CVULKAN_ASSERT (pCreateInfo->pDevice);
 
-#if defined(R_CVULKAN_DEBUG)
-    if (!ppLayout || !pCreateInfo || !pCreateInfo->pDevice)
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewPipelineLayout: NULL pointer detected");
-        R_CSTL_LOG_ERROR ("  ppLayout: %p", (void*)ppLayout);
-        R_CSTL_LOG_ERROR ("  pCreateInfo: %p", (void*)pCreateInfo);
-        R_CSTL_LOG_ERROR ("  pCreateInfo->pDevice: %p", (void*)(pCreateInfo ? pCreateInfo->pDevice : NULL));
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    }
-
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewPipelineLayout: Device not initialized");
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
-
     VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
     R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-
 #if defined(R_CVULKAN_DEBUG)
     if (logicalDevice == VK_NULL_HANDLE)
     {
@@ -90,7 +72,7 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
     R_CSTL_HeapFree (pLayout);
 }
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_NewGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
@@ -109,23 +91,8 @@ R_CVulkan_NewGraphicsPipeline (
     R_CVULKAN_ASSERT (pCreateInfo->pMultisampleInfo);
     R_CVULKAN_ASSERT (pCreateInfo->pColorBlendInfo);
 
-#if defined(R_CVULKAN_DEBUG)
-    if (!pPipeline || !pCreateInfo || !pCreateInfo->pDevice) return R_CVULKAN_ERROR_NULL_POINTER;
-    if (pCreateInfo->pipelineLayout == VK_NULL_HANDLE) return R_CVULKAN_ERROR_NULL_POINTER;
-    if (pCreateInfo->pRenderPass == VK_NULL_HANDLE) return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!pCreateInfo->pStages || pCreateInfo->stageCount == 0) return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
     VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
     R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-
 #if defined(R_CVULKAN_DEBUG)
     if (logicalDevice == VK_NULL_HANDLE)
     {
@@ -175,7 +142,7 @@ R_CVulkan_NewGraphicsPipeline (
     return R_CVULKAN_OK;
 }
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_NewDynamicGraphicsPipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
     const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo)
@@ -215,24 +182,12 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         R_CSTL_LOG_ERROR ("  stageCount: %u", pCreateInfo->stageCount);
         return R_CVULKAN_ERROR_NULL_POINTER;
     }
-    if (!pCreateInfo->pVertexInputInfo || !pCreateInfo->pInputAssemblyInfo || !pCreateInfo->pViewportInfo)
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!pCreateInfo->pRasterizationInfo || !pCreateInfo->pMultisampleInfo || !pCreateInfo->pColorBlendInfo)
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!pCreateInfo->pColorAttachmentFormats) return R_CVULKAN_ERROR_NULL_POINTER;
-    if (!R_CVulkan_DeviceIsInitialized (pCreateInfo->pDevice))
-    {
-        R_CSTL_LOG_ERROR ("R_CVulkan_NewDynamicGraphicsPipeline: Device not initialized");
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
     if (!R_CVulkan_DeviceIsDynamicRenderingSupported (pCreateInfo->pDevice))
     {
         R_CSTL_LOG_WARN ("R_CVulkan_NewDynamicGraphicsPipeline: Dynamic rendering not supported by device");
         R_CSTL_LOG_WARN ("  Falling back to traditional render pass approach using DYR support");
 
-        struct R_CVulkan_DYRRenderPass dyrRenderPass;
-        memset (&dyrRenderPass, 0, sizeof (dyrRenderPass));
-
+        struct R_CVulkan_DYRRenderPass dyrRenderPass = {0};
         struct R_CVulkan_DYRRenderPassCreateInfo dyrCreateInfo = {0};
         dyrCreateInfo.pDevice = pCreateInfo->pDevice;
         dyrCreateInfo.colorAttachmentCount = pCreateInfo->colorAttachmentCount;
@@ -240,7 +195,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         dyrCreateInfo.depthAttachmentFormat = pCreateInfo->depthAttachmentFormat;
         dyrCreateInfo.stencilAttachmentFormat = pCreateInfo->stencilAttachmentFormat;
 
-        enum R_CVulkanError dyrResult = R_CVulkan_DYRCreateRenderPass (&dyrRenderPass, &dyrCreateInfo);
+        enum R_CVulkan_Error dyrResult = R_CVulkan_DYRCreateRenderPass (&dyrRenderPass, &dyrCreateInfo);
         if (dyrResult != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR (
@@ -252,7 +207,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         struct R_CVulkan_GraphicsPipelineCreateInfo fallbackCreateInfo = *pCreateInfo;
         fallbackCreateInfo.pRenderPass = R_CVulkan_DYRRenderPassGetHandle (&dyrRenderPass);
 
-        enum R_CVulkanError pipelineResult = R_CVulkan_NewGraphicsPipeline (pPipeline, &fallbackCreateInfo);
+        enum R_CVulkan_Error pipelineResult = R_CVulkan_NewGraphicsPipeline (pPipeline, &fallbackCreateInfo);
 
         R_CVulkan_DYRDeleteRenderPass (&dyrRenderPass);
 
@@ -328,7 +283,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
     return R_CVULKAN_OK;
 }
 
-enum R_CVulkanError
+enum R_CVulkan_Error
 R_CVulkan_NewComputePipeline (
     struct R_CVulkan_Pipeline*             pPipeline,
     const struct R_CVulkan_Device*         pDevice,
@@ -340,20 +295,8 @@ R_CVulkan_NewComputePipeline (
     R_CVULKAN_ASSERT (pipelineLayout != VK_NULL_HANDLE);
     R_CVULKAN_ASSERT (pStage);
 
-#if defined(R_CVULKAN_DEBUG)
-    if (!pPipeline || !pDevice || pipelineLayout == VK_NULL_HANDLE || !pStage)
-    {
-        return R_CVULKAN_ERROR_NULL_POINTER;
-    }
-
-    if (!R_CVulkan_DeviceIsInitialized (pDevice))
-    {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
-    }
-#endif
     VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pDevice);
     R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
-
 #if defined(R_CVULKAN_DEBUG)
     if (logicalDevice == VK_NULL_HANDLE)
     {

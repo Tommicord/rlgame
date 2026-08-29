@@ -21,10 +21,8 @@
 #if defined(R_CVULKAN_DEBUG)
 #include <assert.h>
 #define R_CVULKAN_ASSERT(condition)        assert (condition)
-#define R_CVULKAN_ALWAYS_ASSERT(condition) assert (condition)
 #else
 #define R_CVULKAN_ASSERT(condition)        ((void)0)
-#define R_CVULKAN_ALWAYS_ASSERT(condition) ((void)0)
 #endif
 
 #if defined(R_COMPILER_MSVC)
@@ -45,45 +43,10 @@
 #define R_CVULKAN_API
 #endif
 
-#define R_CVULKAN_DEBUG_FIELD
-#define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) (1)
-
-#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
-    do                                                                                                       \
-    {                                                                                                        \
-        if (!(ptr))                                                                                          \
-        {                                                                                                    \
-            return R_CVULKAN_ERROR_NULL_POINTER;                                                             \
-        }                                                                                                    \
-    } while (0)
-
-#define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)                                                                 \
-    do                                                                                                       \
-    {                                                                                                        \
-        if (!(obj))                                                                                          \
-        {                                                                                                    \
-            return R_CVULKAN_ERROR_NULL_POINTER;                                                             \
-        }                                                                                                    \
-    } while (0)
-
-#define R_CVULKAN_VALIDATE_COMMAND_BUFFER(cmdBuf)                                                            \
-    do                                                                                                       \
-    {                                                                                                        \
-        if (!(cmdBuf) || !(cmdBuf)->record)                                                                  \
-        {                                                                                                    \
-            return R_CVULKAN_ERROR_NOT_INITIALIZED;                                                          \
-        }                                                                                                    \
-    } while (0)
-
-#define R_CVULKAN_VALIDATE_GETTER(ptr)                                                                       \
-    do                                                                                                       \
-    {                                                                                                        \
-    } while (0)
-
 /**
  * @brief R_CVulkan wrapper error codes
  */
-enum R_CVulkanError
+enum R_CVulkan_Error
 {
     R_CVULKAN_OK = 0, /**< Success */
     R_CVULKAN_ERROR_FAILED = -1, /**< General failure */
@@ -134,14 +97,14 @@ enum R_CVulkanError
  * @param error The R_CVulkan error code
  * @return Static string describing the error, or "Unknown error" if not recognized
  */
-R_CVULKAN_API const char* R_CVulkanErrorToString (enum R_CVulkanError error);
+R_CVULKAN_API const char* R_CVulkan_ErrorToString (enum R_CVulkan_Error error);
 
 /**
  * @brief Convert Vulkan result to R_CVulkan errorcode
  * @param result Vulkan result code
  * @return Corresponding R_CVulkan error code
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_ResultToError (const VkResult result);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ResultToError (const VkResult result);
 
 /**
  * @brief Get human-readable string for Vulkan result code

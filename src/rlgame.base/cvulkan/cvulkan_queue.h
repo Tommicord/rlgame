@@ -20,7 +20,6 @@ struct R_CVulkan_Queue
         VkDevice device; /**< Associated device */
         uint32_t queueFamilyIndex; /**< Queue family index */
         uint32_t queueIndex; /**< Queue index within family */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -31,7 +30,7 @@ struct R_CVulkan_Queue
  * @param queueIndex Queue index within family
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewQueue (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewQueue (
     struct R_CVulkan_Queue*        pQueue,
     const struct R_CVulkan_Device* pDevice,
     uint32_t                       queueFamilyIndex,
@@ -56,7 +55,7 @@ R_CVULKAN_API void R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue);
  * @param pFence Optional fence to signal when submission completes
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueueSubmit (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueSubmit (
     struct R_CVulkan_Queue*               pQueue,
     const struct R_CVulkan_CommandBuffer* pCommandBuffers,
     uint32_t                              commandBufferCount,
@@ -77,7 +76,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueueSubmit (
  * @param waitSemaphoreCount Number of wait semaphores
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueuePresent (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
     struct R_CVulkan_Queue*           pQueue,
     const VkSwapchainKHR*             pSwapchains,
     uint32_t                          swapchainCount,
@@ -90,7 +89,7 @@ R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueuePresent (
  * @param queue Pointer to queue
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the raw Vulkan queue handle
@@ -119,10 +118,3 @@ R_CVULKAN_API uint32_t R_CVulkan_QueueGetFamilyIndex (const struct R_CVulkan_Que
  * @return Queue index within family, or 0 if not initialized
  */
 R_CVULKAN_API uint32_t R_CVulkan_QueueGetIndex (const struct R_CVulkan_Queue* pQueue);
-
-/**
- * @brief Check if the queue is initialized
- * @param queue Pointer to queue
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_QueueIsInitialized (const struct R_CVulkan_Queue* pQueue);

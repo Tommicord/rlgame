@@ -65,7 +65,6 @@ struct R_CVulkan_Surface
 {
         VkSurfaceKHR handle; /**< Raw Vulkan surface handle */
         VkInstance   instance; /**< Associated Vulkan instance */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -81,7 +80,7 @@ struct R_CVulkan_Surface
  * - R_CVULKAN_ERROR_NOT_INITIALIZED: Instance not initialized
  * - R_CVULKAN_ERROR_SURFACE_CREATE_FAILED: Failed to create surface (check window handles)
  */
-R_CVULKAN_API enum R_CVulkanError R_CVulkan_NewSurface (
+R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
     const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo);
 
@@ -104,10 +103,3 @@ R_CVULKAN_API VkSurfaceKHR R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Su
  * @return Vulkan instance handle, or VK_NULL_HANDLE if not initialized
  */
 R_CVULKAN_API VkInstance R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface);
-
-/**
- * @brief Check if the surface is initialized
- * @param pSurface Pointer to surface
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_SurfaceIsInitialized (const struct R_CVulkan_Surface* pSurface);
