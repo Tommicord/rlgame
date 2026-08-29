@@ -17,10 +17,8 @@ file(GLOB         MAIN_HEADERS          CONFIGURE_DEPENDS src/rlgame.base/*.h)
 file(GLOB         RPACK_SOURCES         CONFIGURE_DEPENDS consoletools/rpack/*.c)
 file(GLOB         RPACK_HEADERS         CONFIGURE_DEPENDS consoletools/rpack/*.h)
 file(GLOB         RPACK_CUDA_SOURCES    CONFIGURE_DEPENDS src/rlgame.compsrc/rpack_mipmap.cu)
-file(GLOB_RECURSE MICROBIT_SOURCES      CONFIGURE_DEPENDS consoletools/microbit/**/*.c)
-file(GLOB_RECURSE MICROBIT_HEADERS      CONFIGURE_DEPENDS consoletools/microbit/**/*.h)
-file(GLOB         R_MICROBIT_SOURCES    CONFIGURE_DEPENDS consoletools/microbit/spirvrunner/*.c)
-file(GLOB         R_MICROBIT_HEADERS    CONFIGURE_DEPENDS consoletools/microbit/spirvrunner/*.h)
+file(GLOB_RECURSE MICROBIT_SOURCES      CONFIGURE_DEPENDS consoletools/microbit/*.c)
+file(GLOB_RECURSE MICROBIT_HEADERS      CONFIGURE_DEPENDS consoletools/microbit/*.h)
 if(NOT CUDA_FOUND)
   set(RPACK_CUDA_SOURCES)
 endif()
@@ -119,14 +117,13 @@ if(CUDA_FOUND)
   target_link_libraries(rlgame.base.rpack PUBLIC CUDA::CUDA)
 endif()
 
-add_library(rlgame.base.microbit SHARED ${MICROBIT_SOURCES} ${MICROBIT_HEADERS})
-set_common_output_directories(rlgame.base.microbit)
-set_base_include_directories(rlgame.base.microbit)
-target_compile_definitions(rlgame.base.microbit PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_MICROBIT_BUILDING_DLL)
-apply_gpu_backend(rlgame.base.microbit)
+add_library(rlgame.microbit SHARED ${MICROBIT_SOURCES} ${MICROBIT_HEADERS})
+set_common_output_directories(rlgame.microbit)
+set_base_include_directories(rlgame.microbit)
+target_compile_definitions(rlgame.microbit PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_MICROBIT_BUILDING_DLL)
 
 target_link_libraries(
-  rlgame.base.microbit
+  rlgame.microbit
   PUBLIC
   rlgame.base.cstl
 )

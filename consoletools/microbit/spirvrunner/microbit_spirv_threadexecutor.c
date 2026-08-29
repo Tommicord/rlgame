@@ -55,7 +55,6 @@ static void
 R_Microbit_SpirvThreadExecutorWorker (void* pData)
 {
     struct R_Microbit_SpirvThreadExecutor* pExecutor = (struct R_Microbit_SpirvThreadExecutor*)pData;
-
     for (;;)
     {
         R_Microbit_SpirvThreadExecutorLock (pExecutor);
@@ -148,7 +147,7 @@ R_Microbit_SpirvThreadExecutorSubmit (
     R_Microbit_SpirvThreadExecutorTask     task,
     void*                                  pUserData)
 {
-    if (!pExecutor || !task) return -1;
+    R_MICROBIT_ASSERT(pExecutor);
     R_Microbit_SpirvThreadExecutorLock (pExecutor);
     if (pExecutor->shuttingDown || pExecutor->failed)
     {
@@ -172,7 +171,7 @@ R_Microbit_SpirvThreadExecutorSubmit (
 int
 R_Microbit_SpirvThreadExecutorWait (struct R_Microbit_SpirvThreadExecutor* pExecutor)
 {
-    if (!pExecutor) return -1;
+    R_MICROBIT_ASSERT(pExecutor);
     R_Microbit_SpirvThreadExecutorLock (pExecutor);
     while (pExecutor->queueCount != 0u || pExecutor->activeTasks != 0u)
         R_CSTL_ConditionWait (pExecutor->pTaskComplete, pExecutor->pMutex);
@@ -184,7 +183,7 @@ R_Microbit_SpirvThreadExecutorWait (struct R_Microbit_SpirvThreadExecutor* pExec
 void
 R_Microbit_DeleteSpirvThreadExecutor (struct R_Microbit_SpirvThreadExecutor* pExecutor)
 {
-    if (!pExecutor) return;
+    R_MICROBIT_ASSERT(pExecutor);
     R_Microbit_SpirvThreadExecutorWait (pExecutor);
     R_Microbit_SpirvThreadExecutorLock (pExecutor);
     pExecutor->shuttingDown = 1u;

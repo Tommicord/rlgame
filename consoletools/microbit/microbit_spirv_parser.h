@@ -4,42 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "microbit/microbit_platform.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_log.h"
-
-#if defined(_WIN32) || defined(_WIN64)
-#define MICROBIT_SPIRV_PLATFORM_WINDOWS 1
-#elif defined(__linux__)
-#define MICROBIT_SPIRV_PLATFORM_LINUX 1
-#elif defined(__APPLE__)
-#include <TargetConditionals.h>
-#if TARGET_OS_MAC
-#define MICROBIT_SPIRV_PLATFORM_MACOS 1
-#endif
-#elif defined(__ANDROID__)
-#define MICROBIT_SPIRV_PLATFORM_ANDROID 1
-#endif
-
-#if defined(R_DEVMODE)
-#define MICROBIT_SPIRV_DEBUG
-#endif
-
-#if defined(MICROBIT_SPIRV_DEBUG)
-#include <assert.h>
-#define MICROBIT_SPIRV_ASSERT(condition) assert (condition)
-#else
-#define MICROBIT_SPIRV_ASSERT(condition) ((void)0)
-#endif
-
-#if defined(_WIN32)
-#ifdef MICROBIT_SPIRV_BUILDING_DLL
-#define MICROBIT_SPIRV_API __declspec (dllexport)
-#else
-#define MICROBIT_SPIRV_API __declspec (dllimport)
-#endif
-#else
-#define MICROBIT_SPIRV_API
-#endif
 
 enum R_Microbit_SpirvParserError
 {
@@ -55,7 +22,7 @@ enum R_Microbit_SpirvParserError
     MICROBIT_SPIRV_ERROR_UNKNOWN = -99
 };
 
-MICROBIT_SPIRV_API const char* R_Microbit_SpirvParser_ErrorToString (enum R_Microbit_SpirvParserError error);
+R_MICROBIT_API const char* R_Microbit_SpirvParserErrorToString (enum R_Microbit_SpirvParserError error);
 
 #define MICROBIT_SPIRV_MAGIC_NUMBER     0x07230203
 #define MICROBIT_SPIRV_VERSION_1_5      0x00010500
@@ -90,7 +57,7 @@ enum R_Microbit_SpirvParserOpcode
     MICROBIT_SPIRV_OP_FUNCTION = 54,
     MICROBIT_SPIRV_OP_FUNCTION_PARAMETER = 55,
     MICROBIT_SPIRV_OP_FUNCTION_END = 56,
-    MICROBIT_SPIRV_OP_LABEL = 57,
+    MICROBIT_SPIRV_OP_LABEL = 248,
     MICROBIT_SPIRV_OP_ACCESS_CHAIN = 65,
     MICROBIT_SPIRV_OP_ENTRY_POINT = 58,
     MICROBIT_SPIRV_OP_EXECUTION_MODE = 52,
@@ -111,74 +78,74 @@ enum R_Microbit_SpirvParserOpcode
     MICROBIT_SPIRV_OP_DECORATION_STD140 = 64,
     MICROBIT_SPIRV_OP_DECORATION_STD430 = 65,
     MICROBIT_SPIRV_OP_DECORATION_RELAXED_PRECISION = 44,
-    MICROBIT_SPIRV_OP_RETURN = 9,
-    MICROBIT_SPIRV_OP_RETURN_VALUE = 10,
-    MICROBIT_SPIRV_OP_FUNCTION_CALL = 59,
+    MICROBIT_SPIRV_OP_RETURN = 253,
+    MICROBIT_SPIRV_OP_RETURN_VALUE = 254,
+    MICROBIT_SPIRV_OP_FUNCTION_CALL = 57,
     MICROBIT_SPIRV_OP_LOAD = 61,
     MICROBIT_SPIRV_OP_STORE = 62,
-    MICROBIT_SPIRV_OP_COMPOSITE_EXTRACT = 79,
-    MICROBIT_SPIRV_OP_COMPOSITE_INSERT = 80,
+    MICROBIT_SPIRV_OP_COMPOSITE_EXTRACT = 81,
+    MICROBIT_SPIRV_OP_COMPOSITE_INSERT = 82,
     MICROBIT_SPIRV_OP_COMPOSITE_CONSTRUCT = 80,
     MICROBIT_SPIRV_OP_VECTOR_EXTRACT_DYNAMIC = 77,
     MICROBIT_SPIRV_OP_VECTOR_INSERT_DYNAMIC = 78,
     MICROBIT_SPIRV_OP_COPY_MEMORY = 182,
     MICROBIT_SPIRV_OP_COPY_OBJECT = 182,
-    MICROBIT_SPIRV_OP_CONVERT_F_TO_U = 113,
-    MICROBIT_SPIRV_OP_CONVERT_F_TO_S = 114,
-    MICROBIT_SPIRV_OP_CONVERT_S_TO_F = 115,
-    MICROBIT_SPIRV_OP_CONVERT_U_TO_F = 116,
-    MICROBIT_SPIRV_OP_U_CONVERT = 119,
-    MICROBIT_SPIRV_OP_S_CONVERT = 120,
-    MICROBIT_SPIRV_OP_F_CONVERT = 121,
-    MICROBIT_SPIRV_OP_BITCAST = 50,
+    MICROBIT_SPIRV_OP_CONVERT_F_TO_U = 109,
+    MICROBIT_SPIRV_OP_CONVERT_F_TO_S = 110,
+    MICROBIT_SPIRV_OP_CONVERT_S_TO_F = 111,
+    MICROBIT_SPIRV_OP_CONVERT_U_TO_F = 112,
+    MICROBIT_SPIRV_OP_U_CONVERT = 113,
+    MICROBIT_SPIRV_OP_S_CONVERT = 114,
+    MICROBIT_SPIRV_OP_F_CONVERT = 115,
+    MICROBIT_SPIRV_OP_BITCAST = 119,
     MICROBIT_SPIRV_OP_SNORM_TO_U = 50,
     MICROBIT_SPIRV_OP_UNORM_TO_F = 50,
     MICROBIT_SPIRV_OP_FNegate = 127,
-    MICROBIT_SPIRV_OP_FAdd = 124,
-    MICROBIT_SPIRV_OP_FSub = 125,
-    MICROBIT_SPIRV_OP_FMul = 126,
-    MICROBIT_SPIRV_OP_FDiv = 128,
-    MICROBIT_SPIRV_OP_FMod = 133,
-    MICROBIT_SPIRV_OP_FRem = 129,
+    MICROBIT_SPIRV_OP_FAdd = 129,
+    MICROBIT_SPIRV_OP_FSub = 131,
+    MICROBIT_SPIRV_OP_FMul = 133,
+    MICROBIT_SPIRV_OP_FDiv = 136,
+    MICROBIT_SPIRV_OP_FMod = 141,
+    MICROBIT_SPIRV_OP_FRem = 140,
     MICROBIT_SPIRV_OP_IN_BOUNDS_ACCESS_CHAIN = 66,
     MICROBIT_SPIRV_OP_PTR_ACCESS_CHAIN = 67,
     MICROBIT_SPIRV_OP_IN_BOUNDS_PTR_ACCESS_CHAIN = 68,
-    MICROBIT_SPIRV_OP_IAdd = 193,
-    MICROBIT_SPIRV_OP_ISub = 194,
-    MICROBIT_SPIRV_OP_IMul = 195,
-    MICROBIT_SPIRV_OP_UDiv = 196,
-    MICROBIT_SPIRV_OP_SDiv = 197,
-    MICROBIT_SPIRV_OP_UMod = 198,
-    MICROBIT_SPIRV_OP_SRem = 199,
-    MICROBIT_SPIRV_OP_SMod = 200,
-    MICROBIT_SPIRV_OP_FORD_EQUAL = 130,
-    MICROBIT_SPIRV_OP_FORD_NOT_EQUAL = 131,
-    MICROBIT_SPIRV_OP_FORD_LESS_THAN = 132,
-    MICROBIT_SPIRV_OP_FORD_GREATER_THAN = 133,
-    MICROBIT_SPIRV_OP_FORD_LESS_THAN_EQUAL = 134,
-    MICROBIT_SPIRV_OP_FORD_GREATER_THAN_EQUAL = 135,
-    MICROBIT_SPIRV_OP_FUNORDERED_EQUAL = 136,
-    MICROBIT_SPIRV_OP_FUNORDERED_NOT_EQUAL = 137,
-    MICROBIT_SPIRV_OP_FUNORDERED_LESS_THAN = 138,
-    MICROBIT_SPIRV_OP_FUNORDERED_GREATER_THAN = 139,
-    MICROBIT_SPIRV_OP_FUNORDERED_LESS_THAN_EQUAL = 140,
-    MICROBIT_SPIRV_OP_FUNORDERED_GREATER_THAN_EQUAL = 141,
+    MICROBIT_SPIRV_OP_IAdd = 128,
+    MICROBIT_SPIRV_OP_ISub = 130,
+    MICROBIT_SPIRV_OP_IMul = 132,
+    MICROBIT_SPIRV_OP_UDiv = 134,
+    MICROBIT_SPIRV_OP_SDiv = 135,
+    MICROBIT_SPIRV_OP_UMod = 137,
+    MICROBIT_SPIRV_OP_SRem = 138,
+    MICROBIT_SPIRV_OP_SMod = 139,
+    MICROBIT_SPIRV_OP_FORD_EQUAL = 180,
+    MICROBIT_SPIRV_OP_FORD_NOT_EQUAL = 181,
+    MICROBIT_SPIRV_OP_FORD_LESS_THAN = 182,
+    MICROBIT_SPIRV_OP_FORD_GREATER_THAN = 183,
+    MICROBIT_SPIRV_OP_FORD_LESS_THAN_EQUAL = 184,
+    MICROBIT_SPIRV_OP_FORD_GREATER_THAN_EQUAL = 185,
+    MICROBIT_SPIRV_OP_FUNORDERED_EQUAL = 186,
+    MICROBIT_SPIRV_OP_FUNORDERED_NOT_EQUAL = 187,
+    MICROBIT_SPIRV_OP_FUNORDERED_LESS_THAN = 188,
+    MICROBIT_SPIRV_OP_FUNORDERED_GREATER_THAN = 189,
+    MICROBIT_SPIRV_OP_FUNORDERED_LESS_THAN_EQUAL = 190,
+    MICROBIT_SPIRV_OP_FUNORDERED_GREATER_THAN_EQUAL = 191,
     MICROBIT_SPIRV_OP_LOGICAL_EQUAL = 171,
     MICROBIT_SPIRV_OP_LOGICAL_NOT_EQUAL = 172,
     MICROBIT_SPIRV_OP_LOGICAL_OR = 175,
     MICROBIT_SPIRV_OP_LOGICAL_AND = 174,
     MICROBIT_SPIRV_OP_LOGICAL_NOT = 173,
     MICROBIT_SPIRV_OP_SELECT = 162,
-    MICROBIT_SPIRV_OP_I_EQUAL = 163,
-    MICROBIT_SPIRV_OP_I_NOT_EQUAL = 164,
-    MICROBIT_SPIRV_OP_U_LESS_THAN = 165,
-    MICROBIT_SPIRV_OP_S_LESS_THAN = 166,
-    MICROBIT_SPIRV_OP_U_GREATER_THAN = 167,
-    MICROBIT_SPIRV_OP_S_GREATER_THAN = 168,
-    MICROBIT_SPIRV_OP_U_LESS_THAN_EQUAL = 169,
-    MICROBIT_SPIRV_OP_S_LESS_THAN_EQUAL = 170,
-    MICROBIT_SPIRV_OP_U_GREATER_THAN_EQUAL = 171,
-    MICROBIT_SPIRV_OP_S_GREATER_THAN_EQUAL = 172,
+    MICROBIT_SPIRV_OP_I_EQUAL = 170,
+    MICROBIT_SPIRV_OP_I_NOT_EQUAL = 171,
+    MICROBIT_SPIRV_OP_U_LESS_THAN = 172,
+    MICROBIT_SPIRV_OP_S_LESS_THAN = 173,
+    MICROBIT_SPIRV_OP_U_GREATER_THAN = 174,
+    MICROBIT_SPIRV_OP_S_GREATER_THAN = 175,
+    MICROBIT_SPIRV_OP_U_LESS_THAN_EQUAL = 176,
+    MICROBIT_SPIRV_OP_S_LESS_THAN_EQUAL = 177,
+    MICROBIT_SPIRV_OP_U_GREATER_THAN_EQUAL = 178,
+    MICROBIT_SPIRV_OP_S_GREATER_THAN_EQUAL = 179,
     MICROBIT_SPIRV_OP_SHIFT_LEFT_LOGICAL = 173,
     MICROBIT_SPIRV_OP_SHIFT_RIGHT_LOGICAL = 174,
     MICROBIT_SPIRV_OP_SHIFT_RIGHT_ARITHMETIC = 175,
@@ -395,6 +362,19 @@ struct R_Microbit_SpirvParserResult
         uint32_t                                 valueBitcount;
         int8_t                                   valueSign;
         struct R_Microbit_SpirvParserImageInfo*  pImageInfo;
+        uint8_t                                  cpuValueTag;
+        uint8_t                                  cpuComponentCount;
+        uint16_t                                 cpuWordCount;
+        uint32_t                                 cpuWords[16];
+        uint32_t                                 cpuPointerTarget;
+        uint32_t                                 cpuElementType;
+        uint32_t                                 cpuElementCount;
+        uint32_t                                 cpuByteSize;
+        uint32_t                                 cpuAlignment;
+        uint32_t                                 cpuArrayStride;
+        uint32_t                                 cpuMatrixStride;
+        uint32_t                                 cpuMemberCount;
+        uint32_t                                 cpuMemberOffsets[16];
 };
 
 struct R_Microbit_SpirvParserEntryPoint
@@ -498,9 +478,9 @@ struct R_Microbit_SpirvParserState
         uint32_t*                             pFunctionStackReturns;
         uint32_t*                             pFunctionStackCfg;
         uint32_t*                             pFunctionStackCfgParent;
-        void (*emitVertex) (R_Microbit_SpirvParserStatePtr pState, uint32_t stream);
-        void (*endPrimitive) (R_Microbit_SpirvParserStatePtr pState, uint32_t stream);
-        void (*controlBarrier) (
+        void (*pEmitVertex) (R_Microbit_SpirvParserStatePtr pState, uint32_t stream);
+        void (*pEndPrimitive) (R_Microbit_SpirvParserStatePtr pState, uint32_t stream);
+        void (*pControlBarrier) (
             R_Microbit_SpirvParserStatePtr pState,
             uint32_t                       execution,
             uint32_t                       memory,
@@ -518,62 +498,63 @@ struct R_Microbit_SpirvParserState
         char*                                    pCurrentFile;
         uint32_t                                 currentLine;
         uint32_t                                 currentColumn;
+        uint32_t                                 currentLabel;
+        uint32_t                                 previousLabel;
         uint32_t                                 instructionCount;
         void*                                    pAnalyzer;
         void*                                    pUserData;
 };
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserContext* R_Microbit_NewSpirvParserContext (void);
-MICROBIT_SPIRV_API void R_Microbit_DeleteSpirvParserContext (struct R_Microbit_SpirvParserContext* pCtx);
+R_MICROBIT_API struct R_Microbit_SpirvParserContext* R_Microbit_NewSpirvParserContext (void);
+R_MICROBIT_API void R_Microbit_DeleteSpirvParserContext (struct R_Microbit_SpirvParserContext* pCtx);
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserProgram* R_Microbit_NewSpirvParserProgram (
+R_MICROBIT_API struct R_Microbit_SpirvParserProgram* R_Microbit_NewSpirvParserProgram (
     struct R_Microbit_SpirvParserContext* pCtx,
     const uint32_t*                       pSpv,
     size_t                                spvLength);
-MICROBIT_SPIRV_API char*
+R_MICROBIT_API char*
 R_Microbit_SpirvParserProgramAddExtension (struct R_Microbit_SpirvParserProgram* pProg, uint32_t length);
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserEntryPoint*
-R_Microbit_SpirvParserProgramCreateEntryPoint (struct R_Microbit_SpirvParserProgram* pProg);
-MICROBIT_SPIRV_API void
+R_MICROBIT_API struct R_Microbit_SpirvParserEntryPoint*
+R_Microbit_NewSpirvParserProgramEntryPoint (struct R_Microbit_SpirvParserProgram* pProg);
+R_MICROBIT_API void
 R_Microbit_SpirvParserProgramAddCapability (struct R_Microbit_SpirvParserProgram* pProg, uint32_t cap);
-MICROBIT_SPIRV_API void R_Microbit_DeleteSpirvParserProgram (struct R_Microbit_SpirvParserProgram* pProg);
+R_MICROBIT_API void R_Microbit_DeleteSpirvParserProgram (struct R_Microbit_SpirvParserProgram* pProg);
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserState*
+R_MICROBIT_API struct R_Microbit_SpirvParserState*
                         R_Microbit_NewSpirvParserState (struct R_Microbit_SpirvParserProgram* pProg);
-MICROBIT_SPIRV_API void R_Microbit_DeleteSpirvParserState (struct R_Microbit_SpirvParserState* pState);
-MICROBIT_SPIRV_API void R_Microbit_SpirvParserStateSetExtension (
+R_MICROBIT_API void R_Microbit_DeleteSpirvParserState (struct R_Microbit_SpirvParserState* pState);
+R_MICROBIT_API void R_Microbit_SpirvParserStateSetExtension (
     struct R_Microbit_SpirvParserState* pState,
     const char*                         pName,
     void*                               pExt);
-MICROBIT_SPIRV_API void R_Microbit_SpirvParserStateCallFunction (struct R_Microbit_SpirvParserState* pState);
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void R_Microbit_SpirvParserStateCallFunction (struct R_Microbit_SpirvParserState* pState);
+R_MICROBIT_API void
 R_Microbit_SpirvParserStatePrepare (struct R_Microbit_SpirvParserState* pState, uint32_t fnLocation);
-MICROBIT_SPIRV_API void R_Microbit_SpirvParserStateSetFragCoord (
+R_MICROBIT_API void R_Microbit_SpirvParserStateSetFragCoord (
     struct R_Microbit_SpirvParserState* pState,
     float                               x,
     float                               y,
     float                               z,
     float                               w);
-MICROBIT_SPIRV_API void R_Microbit_SpirvParserStateStepOpcode (struct R_Microbit_SpirvParserState* pState);
-MICROBIT_SPIRV_API void R_Microbit_SpirvParserStateStepInto (struct R_Microbit_SpirvParserState* pState);
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void R_Microbit_SpirvParserStateStepOpcode (struct R_Microbit_SpirvParserState* pState);
+R_MICROBIT_API void R_Microbit_SpirvParserStateStepInto (struct R_Microbit_SpirvParserState* pState);
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateJumpTo (struct R_Microbit_SpirvParserState* pState, uint32_t line);
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateJumpToInstruction (struct R_Microbit_SpirvParserState* pState, uint32_t inst);
-MICROBIT_SPIRV_API uint32_t
+R_MICROBIT_API uint32_t
 R_Microbit_SpirvParserStateGetResultLocation (struct R_Microbit_SpirvParserState* pState, const char* pName);
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult*
+R_MICROBIT_API struct R_Microbit_SpirvParserResult*
 R_Microbit_SpirvParserStateGetResult (struct R_Microbit_SpirvParserState* pState, const char* pName);
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult*
+R_MICROBIT_API struct R_Microbit_SpirvParserResult*
 R_Microbit_SpirvParserStateGetResultWithValue (struct R_Microbit_SpirvParserState* pState, const char* pName);
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult* R_Microbit_SpirvParserStateGetLocalResult (
+R_MICROBIT_API struct R_Microbit_SpirvParserResult* R_Microbit_SpirvParserStateGetLocalResult (
     struct R_Microbit_SpirvParserState*  pState,
     struct R_Microbit_SpirvParserResult* pFn,
     const char*                          pName);
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserMember* R_Microbit_SpirvParserStateGetObjectMember (
+R_MICROBIT_API struct R_Microbit_SpirvParserMember* R_Microbit_SpirvParserStateGetObjectMember (
     struct R_Microbit_SpirvParserState*  pState,
     struct R_Microbit_SpirvParserResult* pVar,
     const char*                          pMemberName);
-
-MICROBIT_SPIRV_API enum R_Microbit_SpirvParserError
+R_MICROBIT_API enum R_Microbit_SpirvParserError
 R_Microbit_SpirvParserValidateHeader (const uint32_t* pData, size_t dataLength);

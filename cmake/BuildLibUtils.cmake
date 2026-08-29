@@ -31,6 +31,7 @@ function(link_base_libraries EXECUTABLE)
     rlgame.base.cvulkan 
     rlgame.base.game 
     rlgame.client.render
+    rlgame.microbit
     rlgame.base.entry)
   target_link_libraries(${EXECUTABLE} PRIVATE ${LIBRARIES})
 endfunction()

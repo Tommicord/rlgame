@@ -1,4 +1,5 @@
 #include "microbit/spirvrunner/microbit_spirv_texelimage.h"
+#include "microbit/microbit_platform.h"
 
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 
@@ -54,7 +55,7 @@ R_SpirvTexelImageFloatToHalf (float value)
     uint32_t bits;
     memcpy (&bits, &value, sizeof (bits));
     uint32_t sign = (bits >> 16u) & 0x8000u;
-    int      exponent = (int)((bits >> 23u) & 0xFFu) - 127 + 15;
+    const int exponent = (int)((bits >> 23u) & 0xFFu) - 127 + 15;
     uint32_t mantissa = bits & 0x7FFFFFu;
     if (exponent <= 0)
     {
@@ -69,7 +70,7 @@ R_SpirvTexelImageFloatToHalf (float value)
 static float
 R_SpirvTexelImageHalfToFloat (uint16_t value)
 {
-    uint32_t sign = ((uint32_t)value & 0x8000u) << 16u;
+    const uint32_t sign = ((uint32_t)value & 0x8000u) << 16u;
     uint32_t exponent = ((uint32_t)value >> 10u) & 0x1Fu;
     uint32_t mantissa = value & 0x3FFu;
     uint32_t bits;
@@ -110,6 +111,7 @@ R_SpirvTexelImageCreateBuffer (
     uint32_t                           depth,
     enum R_Microbit_SpirvTextureFormat format)
 {
+    R_MICROBIT_ASSERT (ppPixels);
     size_t pixelStride = R_SpirvTexelImagePixelStride (format);
     if (!ppPixels || !pLevelStride || !width || !height || !depth || !pixelStride)
         return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
@@ -125,64 +127,64 @@ R_SpirvTexelImageCreateBuffer (
 
 int
 R_Microbit_SpirvTexture2DCreate (
-    struct R_Microbit_SpirvTexture2D*     texture,
-    uint32_t                              width,
-    uint32_t                              height,
-    enum R_Microbit_SpirvTextureFormat    format,
-    struct R_Microbit_SpirvCpuThreadPool* pool)
+    struct R_Microbit_SpirvTexture2D*      pTexture,
+    uint32_t                               width,
+    uint32_t                               height,
+    enum R_Microbit_SpirvTextureFormat     format,
+    struct R_Microbit_SpirvThreadExecutor* pool)
 {
-    if (!texture) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    memset (texture, 0, sizeof (*texture));
+    R_MICROBIT_ASSERT (pTexture);
+    memset (pTexture, 0, sizeof (*pTexture));
     int result
-        = R_SpirvTexelImageCreateBuffer (&texture->pPixels, &texture->levelStride, width, height, 1u, format);
+        = R_SpirvTexelImageCreateBuffer (&pTexture->pPixels, &pTexture->levelStride, width, height, 1u, format);
     if (result != MICROBIT_SPIRV_TEXTURE_OK) return result;
-    texture->width = width;
-    texture->height = height;
-    texture->mipLevels = 1u;
-    texture->format = format;
-    texture->pixelStride = R_SpirvTexelImagePixelStride (format);
-    texture->pPool = pool;
-    texture->addressU = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
-    texture->addressV = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
+    pTexture->width = width;
+    pTexture->height = height;
+    pTexture->mipLevels = 1u;
+    pTexture->format = format;
+    pTexture->pixelStride = R_SpirvTexelImagePixelStride (format);
+    pTexture->pPool = pool;
+    pTexture->addressU = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
+    pTexture->addressV = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
     return result;
 }
 
 void
-R_Microbit_SpirvTexture2DDelete (struct R_Microbit_SpirvTexture2D* texture)
+R_Microbit_SpirvTexture2DDelete (struct R_Microbit_SpirvTexture2D* pTexture)
 {
-    if (!texture) return;
-    R_CSTL_HeapFree (texture->pPixels);
-    memset (texture, 0, sizeof (*texture));
+
+    R_CSTL_HeapFree (pTexture->pPixels);
+    memset (pTexture, 0, sizeof (*pTexture));
 }
 
 int
 R_Microbit_SpirvTexture3DCreate (
-    struct R_Microbit_SpirvTexture3D*     texture,
-    uint32_t                              width,
-    uint32_t                              height,
-    uint32_t                              depth,
-    enum R_Microbit_SpirvTextureFormat    format,
-    struct R_Microbit_SpirvCpuThreadPool* pool)
+    struct R_Microbit_SpirvTexture3D*      pTexture,
+    uint32_t                               width,
+    uint32_t                               height,
+    uint32_t                               depth,
+    enum R_Microbit_SpirvTextureFormat     format,
+    struct R_Microbit_SpirvThreadExecutor* pPool)
 {
-    if (!texture) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    memset (texture, 0, sizeof (*texture));
+    if (!pTexture) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
+    memset (pTexture, 0, sizeof (*pTexture));
     int result = R_SpirvTexelImageCreateBuffer (
-        &texture->pPixels,
-        &texture->levelStride,
+        &pTexture->pPixels,
+        &pTexture->levelStride,
         width,
         height,
         depth,
         format);
     if (result != MICROBIT_SPIRV_TEXTURE_OK) return result;
-    texture->width = width;
-    texture->height = height;
-    texture->depth = depth;
-    texture->format = format;
-    texture->pixelStride = R_SpirvTexelImagePixelStride (format);
-    texture->pPool = pool;
-    texture->addressU = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
-    texture->addressV = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
-    texture->addressW = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
+    pTexture->width = width;
+    pTexture->height = height;
+    pTexture->depth = depth;
+    pTexture->format = format;
+    pTexture->pixelStride = R_SpirvTexelImagePixelStride (format);
+    pTexture->pPool = pPool;
+    pTexture->addressU = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
+    pTexture->addressV = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
+    pTexture->addressW = MICROBIT_SPIRV_TEXTURE_ADDRESS_CLAMP;
     return result;
 }
 
@@ -208,246 +210,256 @@ R_SpirvTexelImageAddress (float value, enum R_Microbit_SpirvTextureAddressMode m
 
 static void
 R_SpirvTexelImageReadPixel (
-    const uint8_t*                     pixel,
+    const uint8_t*                     pPixel,
     enum R_Microbit_SpirvTextureFormat format,
-    R_Microbit_SpirvVec4*              color)
+    R_Microbit_SpirvVec4*              pVec)
 {
     size_t channels = R_SpirvTexelImageChannels (format);
-    color->x = color->y = color->z = 0.0f;
-    color->w = 1.0f;
+    pVec->x = pVec->y = pVec->z = 0.0f;
+    pVec->w = 1.0f;
     for (size_t i = 0; i < channels; ++i)
-        (&color->x)[i] = format <= MICROBIT_SPIRV_TEXTURE_BGRA8_UNORM ? pixel[i] / 255.0f
-                         : format <= MICROBIT_SPIRV_TEXTURE_RGBA16_FLOAT
-                             ? R_SpirvTexelImageHalfToFloat (((const uint16_t*)pixel)[i])
-                             : ((const float*)pixel)[i];
+        (&pVec->x)[i] = format <= MICROBIT_SPIRV_TEXTURE_BGRA8_UNORM ? pPixel[i] / 255.0f
+                        : format <= MICROBIT_SPIRV_TEXTURE_RGBA16_FLOAT
+                            ? R_SpirvTexelImageHalfToFloat (((const uint16_t*)pPixel)[i])
+                            : ((const float*)pPixel)[i];
     if (format == MICROBIT_SPIRV_TEXTURE_BGRA8_UNORM)
     {
-        float b = color->x;
-        color->x = color->z;
-        color->z = b;
+        float b = pVec->x;
+        pVec->x = pVec->z;
+        pVec->z = b;
     }
 }
 
 static void
 R_SpirvTexelImageWritePixel (
-    uint8_t*                           pixel,
+    uint8_t*                           pPixel,
     enum R_Microbit_SpirvTextureFormat format,
-    R_Microbit_SpirvVec4               color)
+    R_Microbit_SpirvVec4               vec)
 {
     if (format == MICROBIT_SPIRV_TEXTURE_BGRA8_UNORM)
     {
-        float b = color.x;
-        color.x = color.z;
-        color.z = b;
+        float b = vec.x;
+        vec.x = vec.z;
+        vec.z = b;
     }
     size_t channels = R_SpirvTexelImageChannels (format);
     for (size_t i = 0; i < channels; ++i)
     {
-        float value = (&color.x)[i];
+        float value = (&vec.x)[i];
         if (format <= MICROBIT_SPIRV_TEXTURE_BGRA8_UNORM)
-            pixel[i] = (uint8_t)lrintf (R_SpirvTexelImageClamp01 (value) * 255.0f);
+            pPixel[i] = (uint8_t)lrintf (R_SpirvTexelImageClamp01 (value) * 255.0f);
         else if (format <= MICROBIT_SPIRV_TEXTURE_RGBA16_FLOAT)
-            ((uint16_t*)pixel)[i] = R_SpirvTexelImageFloatToHalf (value);
-        else ((float*)pixel)[i] = value;
+            ((uint16_t*)pPixel)[i] = R_SpirvTexelImageFloatToHalf (value);
+        else ((float*)pPixel)[i] = value;
     }
 }
 
 int
 R_Microbit_SpirvTexture2DRead (
-    const struct R_Microbit_SpirvTexture2D* texture,
+    const struct R_Microbit_SpirvTexture2D* pTexture,
     uint32_t                                x,
     uint32_t                                y,
-    R_Microbit_SpirvVec4*                   color)
+    R_Microbit_SpirvVec4*                   pVec)
 {
-    if (!texture || !color) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    if (x >= texture->width || y >= texture->height) return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
+    R_MICROBIT_ASSERT (pTexture);
+    R_MICROBIT_ASSERT (pVec);
+    if (x >= pTexture->width || y >= pTexture->height) return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
     R_SpirvTexelImageReadPixel (
-        texture->pPixels + ((size_t)y * texture->width + x) * texture->pixelStride,
-        texture->format,
-        color);
+        pTexture->pPixels + ((size_t)y * pTexture->width + x) * pTexture->pixelStride,
+        pTexture->format,
+        pVec);
     return 0;
 }
 int
 R_Microbit_SpirvTexture2DWrite (
-    struct R_Microbit_SpirvTexture2D* texture,
+    struct R_Microbit_SpirvTexture2D* pTexture,
     uint32_t                          x,
     uint32_t                          y,
-    R_Microbit_SpirvVec4              color)
+    R_Microbit_SpirvVec4              pVec)
 {
-    if (!texture) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    if (x >= texture->width || y >= texture->height) return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
+    R_MICROBIT_ASSERT (pTexture);
+    if (x >= pTexture->width || y >= pTexture->height) return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
     R_SpirvTexelImageWritePixel (
-        texture->pPixels + ((size_t)y * texture->width + x) * texture->pixelStride,
-        texture->format,
-        color);
+        pTexture->pPixels + ((size_t)y * pTexture->width + x) * pTexture->pixelStride,
+        pTexture->format,
+        pVec);
     return 0;
 }
 int
 R_Microbit_SpirvTexture3DRead (
-    const struct R_Microbit_SpirvTexture3D* texture,
+    const struct R_Microbit_SpirvTexture3D* pTexture,
     uint32_t                                x,
     uint32_t                                y,
     uint32_t                                z,
-    R_Microbit_SpirvVec4*                   color)
+    R_Microbit_SpirvVec4*                   pVec)
 {
-    if (!texture || !color) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    if (x >= texture->width || y >= texture->height || z >= texture->depth)
+    R_MICROBIT_ASSERT (pTexture);
+    R_MICROBIT_ASSERT (pVec);
+    if (x >= pTexture->width || y >= pTexture->height || z >= pTexture->depth)
         return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
-    size_t index = ((size_t)z * texture->height + y) * texture->width + x;
-    R_SpirvTexelImageReadPixel (texture->pPixels + index * texture->pixelStride, texture->format, color);
+    size_t index = ((size_t)z * pTexture->height + y) * pTexture->width + x;
+    R_SpirvTexelImageReadPixel (pTexture->pPixels + index * pTexture->pixelStride, pTexture->format, pVec);
     return 0;
 }
 int
 R_Microbit_SpirvTexture3DWrite (
-    struct R_Microbit_SpirvTexture3D* texture,
+    struct R_Microbit_SpirvTexture3D* pTexture,
     uint32_t                          x,
     uint32_t                          y,
     uint32_t                          z,
-    R_Microbit_SpirvVec4              color)
+    R_Microbit_SpirvVec4              pVec)
 {
-    if (!texture) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    if (x >= texture->width || y >= texture->height || z >= texture->depth)
+    R_MICROBIT_ASSERT (pTexture);
+    if (x >= pTexture->width || y >= pTexture->height || z >= pTexture->depth)
         return MICROBIT_SPIRV_TEXTURE_ERROR_BOUNDS;
-    size_t index = ((size_t)z * texture->height + y) * texture->width + x;
-    R_SpirvTexelImageWritePixel (texture->pPixels + index * texture->pixelStride, texture->format, color);
+    size_t index = ((size_t)z * pTexture->height + y) * pTexture->width + x;
+    R_SpirvTexelImageWritePixel (pTexture->pPixels + index * pTexture->pixelStride, pTexture->format, pVec);
     return 0;
 }
 
 int
 R_Microbit_SpirvTexture2DSampleLod (
-    const struct R_Microbit_SpirvTexture2D* texture,
+    const struct R_Microbit_SpirvTexture2D* pTexture,
     float                                   u,
     float                                   v,
     float                                   lod,
     enum R_Microbit_SpirvTextureFilter      filter,
-    R_Microbit_SpirvVec4*                   color)
+    R_Microbit_SpirvVec4*                   pVec)
 {
     (void)lod;
-    if (!texture || !color) return MICROBIT_SPIRV_TEXTURE_ERROR_INVALID_ARGUMENT;
-    u = R_SpirvTexelImageAddress (u, texture->addressU);
-    v = R_SpirvTexelImageAddress (v, texture->addressV);
+    R_MICROBIT_ASSERT (pTexture);
+    R_MICROBIT_ASSERT (pVec);
+    u = R_SpirvTexelImageAddress (u, pTexture->addressU);
+    v = R_SpirvTexelImageAddress (v, pTexture->addressV);
     if (filter == MICROBIT_SPIRV_TEXTURE_FILTER_NEAREST)
         return R_Microbit_SpirvTexture2DRead (
-            texture,
-            (uint32_t)floorf (u * (texture->width - 1u) + 0.5f),
-            (uint32_t)floorf (v * (texture->height - 1u) + 0.5f),
-            color);
-    float    fx = u * (texture->width - 1u), fy = v * (texture->height - 1u);
+            pTexture,
+            (uint32_t)floorf (u * (pTexture->width - 1u) + 0.5f),
+            (uint32_t)floorf (v * (pTexture->height - 1u) + 0.5f),
+            pVec);
+    float    fx = u * (pTexture->width - 1u);
+    float    fy = v * (pTexture->height - 1u);
     uint32_t x0 = (uint32_t)floorf (fx), y0 = (uint32_t)floorf (fy),
-             x1 = x0 + 1u < texture->width ? x0 + 1u : x0, y1 = y0 + 1u < texture->height ? y0 + 1u : y0;
+             x1 = x0 + 1u < pTexture->width ? x0 + 1u : x0, y1 = y0 + 1u < pTexture->height ? y0 + 1u : y0;
     R_Microbit_SpirvVec4 a, b, c, d;
-    R_Microbit_SpirvTexture2DRead (texture, x0, y0, &a);
-    R_Microbit_SpirvTexture2DRead (texture, x1, y0, &b);
-    R_Microbit_SpirvTexture2DRead (texture, x0, y1, &c);
-    R_Microbit_SpirvTexture2DRead (texture, x1, y1, &d);
-    float tx = fx - x0, ty = fy - y0;
+    R_Microbit_SpirvTexture2DRead (pTexture, x0, y0, &a);
+    R_Microbit_SpirvTexture2DRead (pTexture, x1, y0, &b);
+    R_Microbit_SpirvTexture2DRead (pTexture, x0, y1, &c);
+    R_Microbit_SpirvTexture2DRead (pTexture, x1, y1, &d);
+    float tx = fx - x0;
+    float ty = fy - y0;
     for (int i = 0; i < 4; ++i)
     {
         float ab = (&a.x)[i] + ((&b.x)[i] - (&a.x)[i]) * tx;
         float cd = (&c.x)[i] + ((&d.x)[i] - (&c.x)[i]) * tx;
-        (&color->x)[i] = ab + (cd - ab) * ty;
+        (&pVec->x)[i] = ab + (cd - ab) * ty;
     }
     return 0;
 }
 int
 R_Microbit_SpirvTexture2DSample (
-    const struct R_Microbit_SpirvTexture2D* texture,
+    const struct R_Microbit_SpirvTexture2D* pTexture,
     float                                   u,
     float                                   v,
     enum R_Microbit_SpirvTextureFilter      filter,
-    R_Microbit_SpirvVec4*                   color)
+    R_Microbit_SpirvVec4*                   pVec)
 {
-    return R_Microbit_SpirvTexture2DSampleLod (texture, u, v, 0.0f, filter, color);
+    return R_Microbit_SpirvTexture2DSampleLod (pTexture, u, v, 0.0f, filter, pVec);
 }
 int
 R_Microbit_SpirvTexture3DSample (
-    const struct R_Microbit_SpirvTexture3D* texture,
+    const struct R_Microbit_SpirvTexture3D* pTexture,
     float                                   u,
     float                                   v,
     float                                   w,
-    R_Microbit_SpirvVec4*                   color)
+    R_Microbit_SpirvVec4*                   pVec)
 {
-    if (!texture || !color) return -1;
-    u = R_SpirvTexelImageAddress (u, texture->addressU);
-    v = R_SpirvTexelImageAddress (v, texture->addressV);
-    w = R_SpirvTexelImageAddress (w, texture->addressW);
+    if (!pTexture || !pVec) return -1;
+    u = R_SpirvTexelImageAddress (u, pTexture->addressU);
+    v = R_SpirvTexelImageAddress (v, pTexture->addressV);
+    w = R_SpirvTexelImageAddress (w, pTexture->addressW);
     return R_Microbit_SpirvTexture3DRead (
-        texture,
-        (uint32_t)floorf (u * (texture->width - 1u) + 0.5f),
-        (uint32_t)floorf (v * (texture->height - 1u) + 0.5f),
-        (uint32_t)floorf (w * (texture->depth - 1u) + 0.5f),
-        color);
+        pTexture,
+        (uint32_t)floorf (u * (pTexture->width - 1u) + 0.5f),
+        (uint32_t)floorf (v * (pTexture->height - 1u) + 0.5f),
+        (uint32_t)floorf (w * (pTexture->depth - 1u) + 0.5f),
+        pVec);
 }
 
 int
-R_Microbit_SpirvTexture2DFill (struct R_Microbit_SpirvTexture2D* texture, R_Microbit_SpirvVec4 color)
+R_Microbit_SpirvTexture2DFill (struct R_Microbit_SpirvTexture2D* pTexture, R_Microbit_SpirvVec4 vec)
 {
-    if (!texture) return -1;
-    for (uint32_t y = 0; y < texture->height; ++y)
-        for (uint32_t x = 0; x < texture->width; ++x)
-            R_Microbit_SpirvTexture2DWrite (texture, x, y, color);
+    if (!pTexture) return -1;
+    for (uint32_t y = 0; y < pTexture->height; ++y)
+        for (uint32_t x = 0; x < pTexture->width; ++x)
+            R_Microbit_SpirvTexture2DWrite (pTexture, x, y, vec);
     return 0;
 }
 
-typedef struct
+struct R_SpirvTexelImageTile
 {
-        struct R_Microbit_SpirvTexture2D*   texture;
+        struct R_Microbit_SpirvTexture2D*   pTexture;
         uint32_t                            x, y, width, height;
-        R_Microbit_SpirvTextureTileFunction function;
+        R_Microbit_SpirvTextureTileCallback function;
         void*                               userData;
-} R_SpirvTexelImageTile;
+};
+
 static void
-R_SpirvTexelImageRunTile (void* data)
+R_SpirvTexelImageRunTile (void* pData)
 {
-    R_SpirvTexelImageTile* tile = (R_SpirvTexelImageTile*)data;
+    const struct R_SpirvTexelImageTile* tile = (struct R_SpirvTexelImageTile*)pData;
     tile->function (tile->userData, tile->x, tile->y, tile->width, tile->height);
 }
 int
 R_Microbit_SpirvTexture2DForEachTile (
-    struct R_Microbit_SpirvTexture2D*   texture,
+    struct R_Microbit_SpirvTexture2D*   pTexture,
     uint32_t                            tileWidth,
     uint32_t                            tileHeight,
-    R_Microbit_SpirvTextureTileFunction function,
-    void*                               userData)
+    R_Microbit_SpirvTextureTileCallback function,
+    void*                               pUserData)
 {
-    if (!texture || !tileWidth || !tileHeight || !function) return -1;
-    uint32_t               capacity = texture->pPool ? 4u : 0u;
-    R_SpirvTexelImageTile* tasks
-        = (R_SpirvTexelImageTile*)R_CSTL_HeapAlloc ((capacity ? capacity : 1u) * sizeof (*tasks));
+    R_MICROBIT_ASSERT (pTexture);
+    R_MICROBIT_ASSERT (tileWidth);
+    R_MICROBIT_ASSERT (tileHeight);
+    R_MICROBIT_ASSERT (pUserData);
+    if (!pTexture || !tileWidth || !tileHeight || !function) return -1;
+    const uint32_t                capacity = pTexture->pPool ? 4u : 0u;
+    struct R_SpirvTexelImageTile* tasks
+        = (struct R_SpirvTexelImageTile*)R_CSTL_HeapAlloc ((capacity ? capacity : 1u) * sizeof (*tasks));
     if (!tasks) return -2;
     uint32_t count = 0;
-    for (uint32_t y = 0; y < texture->height; y += tileHeight)
-        for (uint32_t x = 0; x < texture->width; x += tileWidth)
+    for (uint32_t y = 0; y < pTexture->height; y += tileHeight)
+        for (uint32_t x = 0; x < pTexture->width; x += tileWidth)
         {
-            R_SpirvTexelImageTile tile
-                = {texture,
-                   x,
-                   y,
-                   x + tileWidth > texture->width ? texture->width - x : tileWidth,
-                   y + tileHeight > texture->height ? texture->height - y : tileHeight,
-                   function,
-                   userData};
-            if (texture->pPool)
+            struct R_SpirvTexelImageTile tile
+                = {.pTexture = pTexture,
+                   .x = x,
+                   .y = y,
+                   .width = x + tileWidth > pTexture->width ? pTexture->width - x : tileWidth,
+                   .height = y + tileHeight > pTexture->height ? pTexture->height - y : tileHeight,
+                   .function = function,
+                   .userData = pUserData};
+            if (pTexture->pPool)
             {
                 tasks[count++] = tile;
                 if (count == capacity)
                 {
                     for (uint32_t i = 0; i < count; ++i)
-                        R_Microbit_SpirvCpuThreadPoolSubmit (
-                            texture->pPool,
+                        R_Microbit_SpirvThreadExecutorSubmit (
+                            pTexture->pPool,
                             R_SpirvTexelImageRunTile,
                             &tasks[i]);
-                    R_Microbit_SpirvCpuThreadPoolWait (texture->pPool);
+                    R_Microbit_SpirvThreadExecutorWait (pTexture->pPool);
                     count = 0;
                 }
             }
-            else function (userData, tile.x, tile.y, tile.width, tile.height);
+            else function (pUserData, tile.x, tile.y, tile.width, tile.height);
         }
-    if (texture->pPool && count)
+    if (pTexture->pPool && count)
     {
         for (uint32_t i = 0; i < count; ++i)
-            R_Microbit_SpirvCpuThreadPoolSubmit (texture->pPool, R_SpirvTexelImageRunTile, &tasks[i]);
-        R_Microbit_SpirvCpuThreadPoolWait (texture->pPool);
+            R_Microbit_SpirvThreadExecutorSubmit (pTexture->pPool, R_SpirvTexelImageRunTile, &tasks[i]);
+        R_Microbit_SpirvThreadExecutorWait (pTexture->pPool);
     }
     R_CSTL_HeapFree (tasks);
     return 0;

@@ -2,27 +2,6 @@
 
 #include "microbit/microbit_spirv_parser.h"
 
-#if defined(_WIN32)
-#ifdef R_MICROBIT_SPIRV_RUNNER_BUILDING_DLL
-#define MICROBIT_SPIRV_RUNNER_API __declspec (dllexport)
-#else
-#define MICROBIT_SPIRV_RUNNER_API __declspec (dllimport)
-#endif
-#else
-#define MICROBIT_SPIRV_RUNNER_API
-#endif
-
-#if defined(R_DEVMODE)
-#define MICROBIT_SPIRV_RUNNER_DEBUG
-#endif
-
-#if defined(MICROBIT_SPIRV_RUNNER_DEBUG)
-#include <assert.h>
-#define MICROBIT_SPIRV_RUNNER_ASSERT(condition) assert (condition)
-#else
-#define MICROBIT_SPIRV_RUNNER_ASSERT(condition) ((void)0)
-#endif
-
 enum R_Microbit_SpirvRunnerError
 {
     MICROBIT_SPIRV_RUNNER_OK = 0,
@@ -36,7 +15,7 @@ enum R_Microbit_SpirvRunnerError
     MICROBIT_SPIRV_RUNNER_ERROR_UNKNOWN = -99
 };
 
-MICROBIT_SPIRV_RUNNER_API const char*
+R_MICROBIT_API const char*
 R_Microbit_SpirvRunnerErrorToString (enum R_Microbit_SpirvRunnerError error);
 
 struct R_Microbit_SpirvRunnerContext
@@ -67,29 +46,29 @@ struct R_Microbit_SpirvRunnerExecution
         uint8_t                               didComplete;
 };
 
-MICROBIT_SPIRV_RUNNER_API struct R_Microbit_SpirvRunnerContext* R_Microbit_NewSpirvRunnerContext (void);
+R_MICROBIT_API struct R_Microbit_SpirvRunnerContext* R_Microbit_NewSpirvRunnerContext (void);
 
-MICROBIT_SPIRV_RUNNER_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvRunnerContext (struct R_Microbit_SpirvRunnerContext* pContext);
 
-MICROBIT_SPIRV_RUNNER_API enum R_Microbit_SpirvRunnerError R_Microbit_NewSpirvRunnerProgram (
+R_MICROBIT_API enum R_Microbit_SpirvRunnerError R_Microbit_NewSpirvRunnerProgram (
     struct R_Microbit_SpirvRunnerContext*  pContext,
     struct R_Microbit_SpirvParserProgram*  pProgram,
     uint32_t                               entryPoint,
     struct R_Microbit_SpirvRunnerProgram** ppRunnerProgram);
 
-MICROBIT_SPIRV_RUNNER_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvRunnerProgram (struct R_Microbit_SpirvRunnerProgram* pRunnerProgram);
 
-MICROBIT_SPIRV_RUNNER_API enum R_Microbit_SpirvRunnerError R_Microbit_NewSpirvRunnerExecution (
+R_MICROBIT_API enum R_Microbit_SpirvRunnerError R_Microbit_NewSpirvRunnerExecution (
     struct R_Microbit_SpirvRunnerProgram*    pRunnerProgram,
     struct R_Microbit_SpirvRunnerExecution** ppExecution);
 
-MICROBIT_SPIRV_RUNNER_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvRunnerExecution (struct R_Microbit_SpirvRunnerExecution* pExecution);
 
-MICROBIT_SPIRV_RUNNER_API enum R_Microbit_SpirvRunnerError
+R_MICROBIT_API enum R_Microbit_SpirvRunnerError
 R_Microbit_SpirvRunnerExecute (struct R_Microbit_SpirvRunnerExecution* pExecution, uint32_t maxInstructions);
 
-MICROBIT_SPIRV_RUNNER_API enum R_Microbit_SpirvRunnerError
+R_MICROBIT_API enum R_Microbit_SpirvRunnerError
 R_Microbit_SpirvRunnerStep (struct R_Microbit_SpirvRunnerExecution* pExecution);

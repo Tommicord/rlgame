@@ -1,4 +1,5 @@
 #include "microbit/microbit_spirv_parser.h"
+#include "microbit/microbit_platform.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 #include "rlgame.base/cstl/cstl_log.h"
 
@@ -12,18 +13,18 @@
 static size_t
 R_Microbit_SpirvParserGetInstructionWordCount (const uint32_t* pInstruction, size_t availableWords)
 {
-    MICROBIT_SPIRV_ASSERT (pInstruction != NULL);
-    MICROBIT_SPIRV_ASSERT (availableWords > 0u);
+    R_MICROBIT_ASSERT (pInstruction != NULL);
+    R_MICROBIT_ASSERT (availableWords > 0u);
 
     uint32_t encodedWordCount = (pInstruction[0] >> MICROBIT_SPIRV_WORD_COUNT_SHIFT) & 0xFFFFu;
-    MICROBIT_SPIRV_ASSERT (encodedWordCount >= 1u);
-    MICROBIT_SPIRV_ASSERT (encodedWordCount <= availableWords);
+    R_MICROBIT_ASSERT (encodedWordCount >= 1u);
+    R_MICROBIT_ASSERT (encodedWordCount <= availableWords);
 
     return (size_t)encodedWordCount;
 }
 
-MICROBIT_SPIRV_API const char*
-R_Microbit_SpirvParser_ErrorToString (enum R_Microbit_SpirvParserError error)
+R_MICROBIT_API const char*
+R_Microbit_SpirvParserErrorToString (enum R_Microbit_SpirvParserError error)
 {
     switch (error)
     {
@@ -51,11 +52,11 @@ R_Microbit_SpirvParser_ErrorToString (enum R_Microbit_SpirvParserError error)
     }
 }
 
-MICROBIT_SPIRV_API enum R_Microbit_SpirvParserError
+R_MICROBIT_API enum R_Microbit_SpirvParserError
 R_Microbit_SpirvParserValidateHeader (const uint32_t* pData, size_t dataLength)
 {
-    MICROBIT_SPIRV_ASSERT (pData);
-    MICROBIT_SPIRV_ASSERT (dataLength >= 5);
+    R_MICROBIT_ASSERT (pData);
+    R_MICROBIT_ASSERT (dataLength >= 5);
 
     uint32_t magic = pData[0];
     if (magic != MICROBIT_SPIRV_MAGIC_NUMBER)
@@ -78,7 +79,7 @@ R_Microbit_SpirvParserValidateHeader (const uint32_t* pData, size_t dataLength)
     return MICROBIT_SPIRV_OK;
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserContext*
+R_MICROBIT_API struct R_Microbit_SpirvParserContext*
 R_Microbit_NewSpirvParserContext (void)
 {
     struct R_Microbit_SpirvParserContext* pCtx = (struct R_Microbit_SpirvParserContext*)R_CSTL_HeapAlloc (
@@ -93,22 +94,22 @@ R_Microbit_NewSpirvParserContext (void)
     return pCtx;
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvParserContext (struct R_Microbit_SpirvParserContext* pCtx)
 {
-    MICROBIT_SPIRV_ASSERT (pCtx);
+    R_MICROBIT_ASSERT (pCtx);
     R_CSTL_HeapFree (pCtx);
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserProgram*
+R_MICROBIT_API struct R_Microbit_SpirvParserProgram*
 R_Microbit_NewSpirvParserProgram (
     struct R_Microbit_SpirvParserContext* pCtx,
     const uint32_t*                       pSpv,
     size_t                                spvLength)
 {
-    MICROBIT_SPIRV_ASSERT (pCtx);
-    MICROBIT_SPIRV_ASSERT (pSpv);
-    MICROBIT_SPIRV_ASSERT (spvLength >= 5);
+    R_MICROBIT_ASSERT (pCtx);
+    R_MICROBIT_ASSERT (pSpv);
+    R_MICROBIT_ASSERT (spvLength >= 5);
 
     enum R_Microbit_SpirvParserError validation = R_Microbit_SpirvParserValidateHeader (pSpv, spvLength);
     if (validation != MICROBIT_SPIRV_OK)
@@ -151,10 +152,10 @@ R_Microbit_NewSpirvParserProgram (
     return pProg;
 }
 
-MICROBIT_SPIRV_API char*
+R_MICROBIT_API char*
 R_Microbit_SpirvParserProgramAddExtension (struct R_Microbit_SpirvParserProgram* pProg, uint32_t length)
 {
-    MICROBIT_SPIRV_ASSERT (pProg);
+    R_MICROBIT_ASSERT (pProg);
 
     pProg->extensionCount++;
     pProg->ppExtensions
@@ -163,21 +164,19 @@ R_Microbit_SpirvParserProgramAddExtension (struct R_Microbit_SpirvParserProgram*
     {
         return NULL;
     }
-
     char* pExt = (char*)R_CSTL_HeapAlloc (length * sizeof (uint32_t) + 1);
     if (!pExt)
     {
         return NULL;
     }
-
     pProg->ppExtensions[pProg->extensionCount - 1] = pExt;
     return pExt;
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserEntryPoint*
+R_MICROBIT_API struct R_Microbit_SpirvParserEntryPoint*
 R_Microbit_NewSpirvParserProgramEntryPoint (struct R_Microbit_SpirvParserProgram* pProg)
 {
-    MICROBIT_SPIRV_ASSERT (pProg);
+    R_MICROBIT_ASSERT (pProg);
 
     pProg->entryPointCount++;
     pProg->pEntryPoints = (struct R_Microbit_SpirvParserEntryPoint*)R_CSTL_HeapRealloc (
@@ -191,10 +190,10 @@ R_Microbit_NewSpirvParserProgramEntryPoint (struct R_Microbit_SpirvParserProgram
     return &pProg->pEntryPoints[pProg->entryPointCount - 1];
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserProgramAddCapability (struct R_Microbit_SpirvParserProgram* pProg, uint32_t cap)
 {
-    MICROBIT_SPIRV_ASSERT (pProg);
+    R_MICROBIT_ASSERT (pProg);
 
     pProg->capabilityCount++;
     pProg->pCapabilities
@@ -205,7 +204,7 @@ R_Microbit_SpirvParserProgramAddCapability (struct R_Microbit_SpirvParserProgram
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvParserProgram (struct R_Microbit_SpirvParserProgram* pProg)
 {
     if (!pProg)
@@ -266,10 +265,10 @@ R_Microbit_DeleteSpirvParserProgram (struct R_Microbit_SpirvParserProgram* pProg
     R_CSTL_HeapFree (pProg);
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserState*
+R_MICROBIT_API struct R_Microbit_SpirvParserState*
 R_Microbit_NewSpirvParserState (struct R_Microbit_SpirvParserProgram* pProg)
 {
-    MICROBIT_SPIRV_ASSERT (pProg);
+    R_MICROBIT_ASSERT (pProg);
 
     struct R_Microbit_SpirvParserState* pState
         = (struct R_Microbit_SpirvParserState*)R_CSTL_HeapAlloc (sizeof (struct R_Microbit_SpirvParserState));
@@ -313,7 +312,7 @@ R_Microbit_NewSpirvParserState (struct R_Microbit_SpirvParserProgram* pProg)
     while (pState->pCodeCurrent < pCodeEnd)
     {
         size_t remainingWords = (size_t)(pCodeEnd - pState->pCodeCurrent);
-        MICROBIT_SPIRV_ASSERT (remainingWords > 0u);
+        R_MICROBIT_ASSERT (remainingWords > 0u);
 
         uint32_t        opcodeData = MICROBIT_SPIRV_READ_WORD (pState->pCodeCurrent);
         uint32_t        encodedWordCount = (opcodeData >> MICROBIT_SPIRV_WORD_COUNT_SHIFT) & 0xFFFFu;
@@ -341,14 +340,10 @@ R_Microbit_NewSpirvParserState (struct R_Microbit_SpirvParserProgram* pProg)
     return pState;
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_DeleteSpirvParserState (struct R_Microbit_SpirvParserState* pState)
 {
-    if (!pState)
-    {
-        return;
-    }
-
+    R_MICROBIT_ASSERT(pState);
     if (pState->pResults)
     {
         for (uint32_t i = 0; i <= pState->pOwner->bound; i++)
@@ -421,18 +416,17 @@ R_Microbit_DeleteSpirvParserState (struct R_Microbit_SpirvParserState* pState)
     {
         R_Microbit_DeleteSpirvParserState (pState->pDerivativeGroupD);
     }
-
     R_CSTL_HeapFree (pState);
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateSetExtension (
     struct R_Microbit_SpirvParserState* pState,
     const char*                         pName,
     void*                               pExt)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pName);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pName);
 
     struct R_Microbit_SpirvParserResult* pResult = R_Microbit_SpirvParserStateGetResult (pState, pName);
     if (pResult)
@@ -441,11 +435,11 @@ R_Microbit_SpirvParserStateSetExtension (
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStatePrepare (struct R_Microbit_SpirvParserState* pState, uint32_t fnLocation)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (fnLocation < pState->pOwner->bound);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (fnLocation < pState->pOwner->bound);
 
     pState->pCodeCurrent = pState->pResults[fnLocation].pSourceLocation;
     pState->pCurrentFunction = &pState->pResults[fnLocation];
@@ -475,7 +469,7 @@ R_Microbit_SpirvParserStatePrepare (struct R_Microbit_SpirvParserState* pState, 
     pState->instructionCount = 0;
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateSetFragCoord (
     struct R_Microbit_SpirvParserState* pState,
     float                               x,
@@ -483,7 +477,7 @@ R_Microbit_SpirvParserStateSetFragCoord (
     float                               z,
     float                               w)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState);
 
     pState->fragCoord[0] = x;
     pState->fragCoord[1] = y;
@@ -491,11 +485,11 @@ R_Microbit_SpirvParserStateSetFragCoord (
     pState->fragCoord[3] = w;
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateStepOpcode (struct R_Microbit_SpirvParserState* pState)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pState->pCodeCurrent);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState->pCodeCurrent);
 
     uint32_t opcodeData = MICROBIT_SPIRV_READ_WORD (pState->pCodeCurrent);
     uint32_t wordCount
@@ -522,10 +516,10 @@ R_Microbit_SpirvParserStateStepOpcode (struct R_Microbit_SpirvParserState* pStat
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateStepInto (struct R_Microbit_SpirvParserState* pState)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState);
 
     uint32_t ln = pState->currentLine;
     while (ln == pState->currentLine && pState->pCodeCurrent)
@@ -534,10 +528,10 @@ R_Microbit_SpirvParserStateStepInto (struct R_Microbit_SpirvParserState* pState)
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateJumpTo (struct R_Microbit_SpirvParserState* pState, uint32_t line)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState);
 
     while (line != pState->currentLine && pState->pCodeCurrent)
     {
@@ -545,10 +539,10 @@ R_Microbit_SpirvParserStateJumpTo (struct R_Microbit_SpirvParserState* pState, u
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateJumpToInstruction (struct R_Microbit_SpirvParserState* pState, uint32_t inst)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState);
 
     while (pState->instructionCount < inst && pState->pCodeCurrent)
     {
@@ -556,11 +550,11 @@ R_Microbit_SpirvParserStateJumpToInstruction (struct R_Microbit_SpirvParserState
     }
 }
 
-MICROBIT_SPIRV_API void
+R_MICROBIT_API void
 R_Microbit_SpirvParserStateCallFunction (struct R_Microbit_SpirvParserState* pState)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pState->pCodeCurrent);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pState->pCodeCurrent);
 
     const uint32_t* pCurCode = pState->pCodeCurrent;
 
@@ -592,11 +586,11 @@ R_Microbit_SpirvParserStateCallFunction (struct R_Microbit_SpirvParserState* pSt
     }
 }
 
-MICROBIT_SPIRV_API uint32_t
+R_MICROBIT_API uint32_t
 R_Microbit_SpirvParserStateGetResultLocation (struct R_Microbit_SpirvParserState* pState, const char* pName)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pName);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pName);
 
     for (uint32_t i = 0; i < pState->pOwner->bound; i++)
     {
@@ -609,11 +603,11 @@ R_Microbit_SpirvParserStateGetResultLocation (struct R_Microbit_SpirvParserState
     return (uint32_t)-1;
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult*
+R_MICROBIT_API struct R_Microbit_SpirvParserResult*
 R_Microbit_SpirvParserStateGetResult (struct R_Microbit_SpirvParserState* pState, const char* pName)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pName);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pName);
 
     uint32_t location = R_Microbit_SpirvParserStateGetResultLocation (pState, pName);
     if (location == (uint32_t)-1)
@@ -624,21 +618,21 @@ R_Microbit_SpirvParserStateGetResult (struct R_Microbit_SpirvParserState* pState
     return &pState->pResults[location];
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult*
+R_MICROBIT_API struct R_Microbit_SpirvParserResult*
 R_Microbit_SpirvParserStateGetResultWithValue (struct R_Microbit_SpirvParserState* pState, const char* pName)
 {
     return R_Microbit_SpirvParserStateGetResult (pState, pName);
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserResult*
+R_MICROBIT_API struct R_Microbit_SpirvParserResult*
 R_Microbit_SpirvParserStateGetLocalResult (
     struct R_Microbit_SpirvParserState*  pState,
     struct R_Microbit_SpirvParserResult* pFn,
     const char*                          pName)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pFn);
-    MICROBIT_SPIRV_ASSERT (pName);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pFn);
+    R_MICROBIT_ASSERT (pName);
 
     for (uint32_t i = 0; i < pState->pOwner->bound; i++)
     {
@@ -654,15 +648,15 @@ R_Microbit_SpirvParserStateGetLocalResult (
     return NULL;
 }
 
-MICROBIT_SPIRV_API struct R_Microbit_SpirvParserMember*
+R_MICROBIT_API struct R_Microbit_SpirvParserMember*
 R_Microbit_SpirvParserStateGetObjectMember (
     struct R_Microbit_SpirvParserState*  pState,
     struct R_Microbit_SpirvParserResult* pVar,
     const char*                          pMemberName)
 {
-    MICROBIT_SPIRV_ASSERT (pState);
-    MICROBIT_SPIRV_ASSERT (pVar);
-    MICROBIT_SPIRV_ASSERT (pMemberName);
+    R_MICROBIT_ASSERT (pState);
+    R_MICROBIT_ASSERT (pVar);
+    R_MICROBIT_ASSERT (pMemberName);
 
     for (uint32_t i = 0; i < pVar->memberNameCount; i++)
     {

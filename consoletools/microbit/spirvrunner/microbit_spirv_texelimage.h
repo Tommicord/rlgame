@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "microbit/spirvrunner/microbit_spirv_cpu.h"
+#include "microbit/spirvrunner/microbit_spirv_threadexecutor.h"
 #include "microbit/spirvrunner/microbit_spirv_vecx.h"
 
 enum R_Microbit_SpirvTextureFormat
@@ -55,7 +55,7 @@ struct R_Microbit_SpirvTexture2D
         uint8_t*                                pPixels;
         size_t                                  pixelStride;
         size_t                                  levelStride;
-        struct R_Microbit_SpirvCpuThreadPool*   pPool;
+        struct R_Microbit_SpirvThreadExecutor* pPool;
         enum R_Microbit_SpirvTextureAddressMode addressU;
         enum R_Microbit_SpirvTextureAddressMode addressV;
 };
@@ -69,79 +69,79 @@ struct R_Microbit_SpirvTexture3D
         uint8_t*                                pPixels;
         size_t                                  pixelStride;
         size_t                                  levelStride;
-        struct R_Microbit_SpirvCpuThreadPool*   pPool;
+        struct R_Microbit_SpirvThreadExecutor* pPool;
         enum R_Microbit_SpirvTextureAddressMode addressU;
         enum R_Microbit_SpirvTextureAddressMode addressV;
         enum R_Microbit_SpirvTextureAddressMode addressW;
 };
 
 int R_Microbit_SpirvTexture2DCreate (
-    struct R_Microbit_SpirvTexture2D*     texture,
+    struct R_Microbit_SpirvTexture2D*     pTexture,
     uint32_t                              width,
     uint32_t                              height,
     enum R_Microbit_SpirvTextureFormat    format,
-    struct R_Microbit_SpirvCpuThreadPool* pool);
-void R_Microbit_SpirvTexture2DDelete (struct R_Microbit_SpirvTexture2D* texture);
+    struct R_Microbit_SpirvThreadExecutor* pool);
+void R_Microbit_SpirvTexture2DDelete (struct R_Microbit_SpirvTexture2D* pTexture);
 int  R_Microbit_SpirvTexture3DCreate (
-     struct R_Microbit_SpirvTexture3D*     texture,
+     struct R_Microbit_SpirvTexture3D*     pTexture,
      uint32_t                              width,
      uint32_t                              height,
      uint32_t                              depth,
      enum R_Microbit_SpirvTextureFormat    format,
-     struct R_Microbit_SpirvCpuThreadPool* pool);
+    struct R_Microbit_SpirvThreadExecutor* pPool);
 void R_Microbit_SpirvTexture3DDelete (struct R_Microbit_SpirvTexture3D* texture);
 int  R_Microbit_SpirvTexture2DRead (
-     const struct R_Microbit_SpirvTexture2D* texture,
+     const struct R_Microbit_SpirvTexture2D* pTexture,
      uint32_t                                x,
      uint32_t                                y,
-     R_Microbit_SpirvVec4*                   color);
+     R_Microbit_SpirvVec4*                   pVec);
 int R_Microbit_SpirvTexture2DWrite (
-    struct R_Microbit_SpirvTexture2D* texture,
+    struct R_Microbit_SpirvTexture2D* pTexture,
     uint32_t                          x,
     uint32_t                          y,
-    R_Microbit_SpirvVec4              color);
+    R_Microbit_SpirvVec4              pVec);
 int R_Microbit_SpirvTexture3DRead (
-    const struct R_Microbit_SpirvTexture3D* texture,
+    const struct R_Microbit_SpirvTexture3D* pTexture,
     uint32_t                                x,
     uint32_t                                y,
     uint32_t                                z,
-    R_Microbit_SpirvVec4*                   color);
+    R_Microbit_SpirvVec4*                   pVec);
 int R_Microbit_SpirvTexture3DWrite (
-    struct R_Microbit_SpirvTexture3D* texture,
+    struct R_Microbit_SpirvTexture3D* pTexture,
     uint32_t                          x,
     uint32_t                          y,
     uint32_t                          z,
-    R_Microbit_SpirvVec4              color);
+    R_Microbit_SpirvVec4              pVec);
 int R_Microbit_SpirvTexture2DSample (
-    const struct R_Microbit_SpirvTexture2D* texture,
+    const struct R_Microbit_SpirvTexture2D* pTexture,
     float                                   u,
     float                                   v,
     enum R_Microbit_SpirvTextureFilter      filter,
-    R_Microbit_SpirvVec4*                   color);
+    R_Microbit_SpirvVec4*                   pVec);
 int R_Microbit_SpirvTexture2DSampleLod (
-    const struct R_Microbit_SpirvTexture2D* texture,
+    const struct R_Microbit_SpirvTexture2D* pTexture,
     float                                   u,
     float                                   v,
     float                                   lod,
     enum R_Microbit_SpirvTextureFilter      filter,
-    R_Microbit_SpirvVec4*                   color);
+    R_Microbit_SpirvVec4*                   pVec);
 int R_Microbit_SpirvTexture3DSample (
-    const struct R_Microbit_SpirvTexture3D* texture,
+    const struct R_Microbit_SpirvTexture3D* pTexture,
     float                                   u,
     float                                   v,
     float                                   w,
-    R_Microbit_SpirvVec4*                   color);
-int R_Microbit_SpirvTexture2DFill (struct R_Microbit_SpirvTexture2D* texture, R_Microbit_SpirvVec4 color);
+    R_Microbit_SpirvVec4*                   pVec);
+int R_Microbit_SpirvTexture2DFill (struct R_Microbit_SpirvTexture2D* pTexture, R_Microbit_SpirvVec4 vec);
 
-typedef void (*R_Microbit_SpirvTextureTileFunction) (
+typedef void (*R_Microbit_SpirvTextureTileCallback) (
     void*    userData,
     uint32_t x,
     uint32_t y,
     uint32_t width,
     uint32_t height);
 int R_Microbit_SpirvTexture2DForEachTile (
-    struct R_Microbit_SpirvTexture2D*   texture,
+    struct R_Microbit_SpirvTexture2D*   pTexture,
     uint32_t                            tileWidth,
     uint32_t                            tileHeight,
-    R_Microbit_SpirvTextureTileFunction function,
-    void*                               userData);
+    R_Microbit_SpirvTextureTileCallback function,
+    void*                               pUserData);
