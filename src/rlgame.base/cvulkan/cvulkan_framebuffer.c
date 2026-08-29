@@ -34,7 +34,7 @@ R_CVulkan_NewFramebuffer (
     pFramebuffer->height = pCreateInfo->height;
     pFramebuffer->attachmentCount = pCreateInfo->attachmentCount;
 #if defined(R_CVULKAN_DEBUG)
-    pFramebuffer->booted = false;
+    
 #endif
     VkFramebufferCreateInfo framebufferInfo = {0};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -53,7 +53,7 @@ R_CVulkan_NewFramebuffer (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pFramebuffer->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -70,7 +70,7 @@ R_CVulkan_DeleteFramebuffer (struct R_CVulkan_Framebuffer* pFramebuffer)
     pFramebuffer->width = 0;
     pFramebuffer->height = 0;
     pFramebuffer->attachmentCount = 0;
-    pFramebuffer->booted = false;
+    
 #endif
 }
 
@@ -133,7 +133,7 @@ R_CVulkan_FramebufferIsInitialized (const struct R_CVulkan_Framebuffer* pFramebu
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
-    return pFramebuffer->booted;
+    return 1;
 #else
     (void)pFramebuffer;
     return 1;

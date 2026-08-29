@@ -15,9 +15,7 @@ struct R_CVulkan_CommandBuffer
         VkCommandBuffer handle; /**< Raw Vulkan command buffer handle */
         VkCommandPool   pool; /**< Associated command pool */
         VkDevice        device; /**< Associated device */
-#if defined(R_CVULKAN_DEBUG)
-        bool record; /**< Whether currently recording */
-#endif
+        bool            record; /**< Whether currently recording */
         R_CVULKAN_DEBUG_FIELD
 };
 

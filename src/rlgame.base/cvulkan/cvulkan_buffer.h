@@ -33,8 +33,6 @@ struct R_CVulkan_Buffer
         VkBufferUsageFlags    usage; /**< Buffer usage flags */
         VkMemoryPropertyFlags properties; /**< Memory property flags */
         void*                 pMapped; /**< Mapped memory pointer (if mapped) */
-        bool                  isMapped; /**< Whether memory is currently mapped */
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
@@ -155,17 +153,3 @@ R_CVULKAN_API VkMemoryPropertyFlags R_CVulkan_BufferGetProperties (const struct 
  * @return Mapped memory pointer, or NULL if not mapped
  */
 R_CVULKAN_API void* R_CVulkan_BufferGetMapped (const struct R_CVulkan_Buffer* pBuffer);
-
-/**
- * @brief Check if the buffer is currently mapped
- * @param pBuffer Pointer to buffer
- * @return 1 if mapped, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_BufferIsMapped (const struct R_CVulkan_Buffer* pBuffer);
-
-/**
- * @brief Check if the buffer is initialized
- * @param pBuffer Pointer to buffer
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int R_CVulkan_BufferIsInitialized (const struct R_CVulkan_Buffer* pBuffer);

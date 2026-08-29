@@ -24,7 +24,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
     pFence->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
     pFence->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pFence->booted = false;
+    
 #endif
 
     VkFenceCreateInfo fenceInfo = {0};
@@ -38,7 +38,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pFence->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -51,7 +51,7 @@ R_CVulkan_DeleteFence (struct R_CVulkan_Fence* pFence)
     vkDestroyFence (pFence->device, pFence->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
     pFence->device = VK_NULL_HANDLE;
-    pFence->booted = false;
+    
 #endif
 }
 
@@ -88,14 +88,11 @@ R_CVulkan_FenceWait (
 
     for (uint32_t i = 0; i < fenceCount; ++i)
     {
-#if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pFences[i].booted);
-        if (!pFences[i].booted || pFences[i].handle == VK_NULL_HANDLE)
+        if (pFences[i].handle == VK_NULL_HANDLE)
         {
             R_CSTL_HeapFree (nativeFences);
             return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
-#endif
         nativeFences[i] = pFences[i].handle;
     }
 
@@ -152,14 +149,11 @@ R_CVulkan_FenceReset (
 
     for (uint32_t i = 0; i < fenceCount; ++i)
     {
-#if defined(R_CVULKAN_DEBUG)
-        R_CVULKAN_ASSERT (pFences[i].booted);
-        if (!pFences[i].booted || pFences[i].handle == VK_NULL_HANDLE)
+        if (pFences[i].handle == VK_NULL_HANDLE)
         {
             R_CSTL_HeapFree (nativeFences);
             return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
-#endif
         nativeFences[i] = pFences[i].handle;
     }
 
@@ -198,8 +192,8 @@ R_CVulkan_FenceGetStatus (
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
 
-    R_CVULKAN_ASSERT (pFence->booted);
-    if (!pFence->booted || pFence->handle == VK_NULL_HANDLE)
+    
+    if (!pFence->handle == VK_NULL_HANDLE)
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -246,7 +240,7 @@ R_CVulkan_FenceIsInitialized (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFence);
-    return pFence->booted;
+    return 1;
 #else
     (void)pFence;
     return 1;

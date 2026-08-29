@@ -28,7 +28,6 @@
     {
       "name": "linux-debug",
       "displayName": "Linux Debug",
-      "inherits": "ninja-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -36,7 +35,6 @@
     {
       "name": "linux-release",
       "displayName": "Linux Release",
-      "inherits": "ninja-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "RL_BUILD": "ON"
@@ -45,7 +43,6 @@
     {
       "name": "macos-debug",
       "displayName": "macOS Debug",
-      "inherits": "ninja-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -53,7 +50,6 @@
     {
       "name": "macos-release",
       "displayName": "macOS Release",
-      "inherits": "ninja-vcpkg",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }

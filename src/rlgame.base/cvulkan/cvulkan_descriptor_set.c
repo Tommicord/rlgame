@@ -31,7 +31,7 @@ R_CVulkan_NewDescriptorSetLayout (
     pLayout->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
     pLayout->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pLayout->booted = false;
+    
 #endif
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {0};
@@ -46,7 +46,7 @@ R_CVulkan_NewDescriptorSetLayout (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pLayout->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -71,7 +71,7 @@ R_CVulkan_DeleteDescriptorSetLayout (struct R_CVulkan_DescriptorSetLayout* pLayo
 
     pLayout->device = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pLayout->booted = false;
+    
 #endif
 }
 
@@ -104,7 +104,7 @@ R_CVulkan_NewDescriptorPool (
     pPool->handle = VK_NULL_HANDLE;
     pPool->maxSets = pCreateInfo->maxSets;
 #if defined(R_CVULKAN_DEBUG)
-    pPool->booted = false;
+    
 #endif
 
     VkDescriptorPoolCreateInfo poolInfo = {0};
@@ -121,7 +121,7 @@ R_CVulkan_NewDescriptorPool (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pPool->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -147,7 +147,7 @@ R_CVulkan_DeleteDescriptorPool (struct R_CVulkan_DescriptorPool* pPool)
     pPool->device = VK_NULL_HANDLE;
     pPool->maxSets = 0;
 #if defined(R_CVULKAN_DEBUG)
-    pPool->booted = false;
+    
 #endif
 }
 
@@ -169,7 +169,7 @@ R_CVulkan_DescriptorSetAllocate (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!pPool->booted)
+    
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -206,7 +206,7 @@ R_CVulkan_DescriptorSetFree (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!pPool->booted)
+    
     {
         return;
     }
@@ -270,7 +270,7 @@ R_CVulkan_DescriptorSetLayoutIsInitialized (const struct R_CVulkan_DescriptorSet
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pLayout);
-    return pLayout->booted;
+    return 1;
 #else
     (void)pLayout;
     return 1;
@@ -309,7 +309,7 @@ R_CVulkan_DescriptorPoolIsInitialized (const struct R_CVulkan_DescriptorPool* pP
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pPool);
-    return pPool->booted;
+    return 1;
 #else
     (void)pPool;
     return 1;

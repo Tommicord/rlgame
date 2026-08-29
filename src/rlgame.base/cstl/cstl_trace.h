@@ -80,9 +80,8 @@ R_CSTL_API void R_CSTL_TraceFunctionExit (
 #if defined(R_CSTL_TRACE_ENABLED)
 
 #if defined(__GNUC__) || defined(__clang__)
-/* GCC/Clang: Use __attribute__((cleanup)) */
 static inline void
-_CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
+_CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
 {
     uint64_t duration = R_CSTL_TraceGetTimestamp () - *pTraceStart;
     R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, duration);
@@ -98,7 +97,6 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__)
 
 #elif defined(_MSC_VER)
-/* MSVC: Manual cleanup required */
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
     uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
     R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
@@ -133,7 +131,6 @@ _CSTL_TraceScopeCleanup (uint64_t* pTraceStart)
     }
 
 #else
-
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
     uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
     R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__)

@@ -26,7 +26,7 @@ R_CVulkan_NewImageView (
     pImageView->image = pCreateInfo->image;
     pImageView->format = pCreateInfo->format;
 #if defined(R_CVULKAN_DEBUG)
-    pImageView->booted = false;
+    
 #endif
     VkImageViewCreateInfo viewInfo = {0};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -43,7 +43,7 @@ R_CVulkan_NewImageView (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pImageView->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -55,7 +55,7 @@ R_CVulkan_DeleteImageView (struct R_CVulkan_ImageView* pImageView)
 
     vkDestroyImageView (pImageView->device, pImageView->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-    pImageView->booted = false;
+    
 #endif
 }
 
@@ -100,7 +100,7 @@ R_CVulkan_ImageViewIsInitialized (const struct R_CVulkan_ImageView* pImageView)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImageView);
-    return pImageView->booted;
+    return 1;
 #else
     (void)pImageView;
     return 1;

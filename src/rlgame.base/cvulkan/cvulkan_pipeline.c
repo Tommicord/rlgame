@@ -53,7 +53,7 @@ R_CVulkan_NewPipelineLayout (
     pLayout->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pLayout->handle = VK_NULL_HANDLE;
-    pLayout->booted = false;
+    
 #endif
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
@@ -71,7 +71,7 @@ R_CVulkan_NewPipelineLayout (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pLayout->booted = true;
+    
 #endif
     *ppLayout = pLayout;
     return R_CVULKAN_OK;
@@ -85,7 +85,7 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
     vkDestroyPipelineLayout (pLayout->device, pLayout->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
     pLayout->device = VK_NULL_HANDLE;
-    pLayout->booted = false;
+    
 #endif
     R_CSTL_HeapFree (pLayout);
 }
@@ -136,7 +136,7 @@ R_CVulkan_NewGraphicsPipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    pPipeline->booted = false;
+    
 #endif
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {0};
@@ -170,7 +170,7 @@ R_CVulkan_NewGraphicsPipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pPipeline->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -272,7 +272,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    pPipeline->booted = false;
+    
 #endif
 
     VkPipelineRenderingCreateInfoKHR renderingCreateInfo = {0};
@@ -320,7 +320,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pPipeline->booted = true;
+    
     R_CSTL_LOG_INFO ("R_CVulkan_NewDynamicGraphicsPipeline: Graphics pipeline created");
     R_CSTL_LOG_INFO ("  Handle: %p", (void*)pPipeline->handle);
     R_CSTL_LOG_INFO ("  Shader stage count: %u", pCreateInfo->stageCount);
@@ -364,7 +364,7 @@ R_CVulkan_NewComputePipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    pPipeline->booted = false;
+    
 #endif
 
     VkComputePipelineCreateInfo pipelineInfo = {0};
@@ -387,7 +387,7 @@ R_CVulkan_NewComputePipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pPipeline->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -411,7 +411,7 @@ R_CVulkan_DeletePipeline (struct R_CVulkan_Pipeline* pPipeline)
     }
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->device = VK_NULL_HANDLE;
-    pPipeline->booted = false;
+    
 #endif
 }
 
@@ -437,7 +437,7 @@ int
 R_CVulkan_PipelineLayoutIsInitialized (const struct R_CVulkan_PipelineLayout* pLayout)
 {
 #if defined(R_CVULKAN_DEBUG)
-    return pLayout->booted;
+    return 1;
 #else
     (void)pLayout;
     return 1;
@@ -466,7 +466,7 @@ int
 R_CVulkan_PipelineIsInitialized (const struct R_CVulkan_Pipeline* pPipeline)
 {
 #if defined(R_CVULKAN_DEBUG)
-    return pPipeline->booted;
+    return 1;
 #else
     (void)pPipeline;
     return 1;

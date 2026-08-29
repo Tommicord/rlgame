@@ -45,15 +45,12 @@
 #define R_CVULKAN_API
 #endif
 
-#if defined(R_CVULKAN_DEBUG)
-#include <stdbool.h>
-#define R_CVULKAN_DEBUG_FIELD                 bool booted;
-#define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) ((pObj)->booted)
+#define R_CVULKAN_DEBUG_FIELD
+#define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) (1)
 
 #define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
     do                                                                                                       \
     {                                                                                                        \
-        R_CVULKAN_ASSERT (ptr);                                                                              \
         if (!(ptr))                                                                                          \
         {                                                                                                    \
             return R_CVULKAN_ERROR_NULL_POINTER;                                                             \
@@ -63,21 +60,16 @@
 #define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)                                                                 \
     do                                                                                                       \
     {                                                                                                        \
-        R_CVULKAN_ASSERT ((obj));                                                                            \
-        R_CVULKAN_ASSERT ((obj)->booted);                                                                    \
-        if (!(obj) || !(obj)->booted)                                                                        \
+        if (!(obj))                                                                                          \
         {                                                                                                    \
-            return R_CVULKAN_ERROR_NOT_INITIALIZED;                                                          \
+            return R_CVULKAN_ERROR_NULL_POINTER;                                                             \
         }                                                                                                    \
     } while (0)
 
 #define R_CVULKAN_VALIDATE_COMMAND_BUFFER(cmdBuf)                                                            \
     do                                                                                                       \
     {                                                                                                        \
-        R_CVULKAN_ASSERT ((cmdBuf));                                                                         \
-        R_CVULKAN_ASSERT ((cmdBuf)->booted);                                                                 \
-        R_CVULKAN_ASSERT ((cmdBuf)->record);                                                                 \
-        if (!(cmdBuf) || !(cmdBuf)->booted || !(cmdBuf)->record)                                             \
+        if (!(cmdBuf) || !(cmdBuf)->record)                                                                  \
         {                                                                                                    \
             return R_CVULKAN_ERROR_NOT_INITIALIZED;                                                          \
         }                                                                                                    \
@@ -86,24 +78,7 @@
 #define R_CVULKAN_VALIDATE_GETTER(ptr)                                                                       \
     do                                                                                                       \
     {                                                                                                        \
-        R_CVULKAN_ASSERT ((ptr));                                                                            \
     } while (0)
-
-#else
-#define R_CVULKAN_DEBUG_FIELD
-#define R_CVULKAN_IS_INITIALIZED_RETURN(pObj) (1)
-#define R_CVULKAN_VALIDATE_PARAM(ptr)                                                                        \
-    do                                                                                                       \
-    {                                                                                                        \
-        if (!(ptr))                                                                                          \
-        {                                                                                                    \
-            return R_CVULKAN_ERROR_NULL_POINTER;                                                             \
-        }                                                                                                    \
-    } while (0)
-#define R_CVULKAN_VALIDATE_PARAM_BOOTED(obj)      ((void)0)
-#define R_CVULKAN_VALIDATE_COMMAND_BUFFER(cmdBuf) ((void)0)
-#define R_CVULKAN_VALIDATE_GETTER(ptr)            ((void)0)
-#endif
 
 /**
  * @brief R_CVulkan wrapper error codes

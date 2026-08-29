@@ -274,7 +274,7 @@ R_CVulkan_DefragInitialize (
         }
     }
 #endif
-    pContext->booted = true;
+    
     R_CSTL_LOG_INFO ("Defrag context initialized successfully");
     R_CSTL_TRACE_RETURN ();
     return R_CVULKAN_OK;
@@ -325,7 +325,7 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
         pContext->pMoves = NULL;
     }
 
-    pContext->booted = false;
+    
     R_CSTL_TRACE_RETURN ();
 }
 
@@ -1596,9 +1596,9 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
 
     R_CSTL_TRACE_FUNCTION ();
 
-    if (!pContext || !pContext->booted)
+    if (!pContext)
     {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        return R_CVULKAN_ERROR_NULL_POINTER;
     }
 
     pContext->currentPass = 0;
@@ -1649,9 +1649,9 @@ R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommand
 
     R_CSTL_TRACE_FUNCTION ();
 
-    if (!pContext || !pContext->booted)
+    if (!pContext)
     {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        return R_CVULKAN_ERROR_NULL_POINTER;
     }
 
     if (pContext->currentPass >= pContext->config.maxPasses)
@@ -1751,9 +1751,9 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
 {
     R_CSTL_TRACE_FUNCTION ();
 
-    if (!pContext || !pContext->booted)
+    if (!pContext)
     {
-        return R_CVULKAN_ERROR_NOT_INITIALIZED;
+        return R_CVULKAN_ERROR_NULL_POINTER;
     }
 
     if (pStats)

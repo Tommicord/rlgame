@@ -438,7 +438,7 @@ R_CSTL_API int R_CSTL_ArraySort (
         size_t _offset = (index) * sizeof (Type);                                                            \
         if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                          \
         {                                                                                                    \
-            uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                     \
+            const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                               \
             memcpy (_pData + _offset, pValue, sizeof (Type));                                                \
         }                                                                                                    \
     } while (0)

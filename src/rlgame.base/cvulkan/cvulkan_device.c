@@ -343,7 +343,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     }
     pDevice->physicalDevice = VK_NULL_HANDLE;
     pDevice->logicalDevice = VK_NULL_HANDLE;
-    pDevice->booted = false;
+    
 #endif
 
     if (pCreateInfo->pInstance == NULL)
@@ -403,7 +403,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pDevice->booted = true;
+    
 #endif
 
     struct R_CVulkan_QueueFamilyIndices indices;
@@ -469,7 +469,7 @@ R_CVulkan_DeleteDevice (struct R_CVulkan_Device* pDevice)
     pDevice->physicalDevice = VK_NULL_HANDLE;
     pDevice->surface = VK_NULL_HANDLE;
     pDevice->pInstance = NULL;
-    pDevice->booted = false;
+    
 #endif
 }
 
@@ -532,7 +532,7 @@ R_CVulkan_DeviceIsInitialized (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
-    return pDevice->booted;
+    return 1;
 #else
     (void)pDevice;
     return 1;

@@ -36,7 +36,7 @@ R_CVulkan_NewQueue (
     pQueue->queueFamilyIndex = queueFamilyIndex;
     pQueue->queueIndex = queueIndex;
 #if defined(R_CVULKAN_DEBUG)
-    pQueue->booted = false;
+    
 #endif
     vkGetDeviceQueue (pQueue->device, queueFamilyIndex, queueIndex, &pQueue->handle);
 
@@ -46,7 +46,7 @@ R_CVulkan_NewQueue (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pQueue->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -66,7 +66,7 @@ R_CVulkan_DeleteQueue (struct R_CVulkan_Queue* pQueue)
     pQueue->device = VK_NULL_HANDLE;
     pQueue->queueFamilyIndex = 0;
     pQueue->queueIndex = 0;
-    pQueue->booted = false;
+    
 #else
     (void)pQueue;
 #endif
@@ -340,7 +340,7 @@ R_CVulkan_QueueIsInitialized (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pQueue);
-    return pQueue->booted;
+    return 1;
 #else
     (void)pQueue;
     return 1;

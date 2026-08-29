@@ -384,7 +384,7 @@ R_CVulkan_NewSwapchain (
     pSwapchain->extent.height = 0;
     pSwapchain->imageCount = 0;
 #if defined(R_CVULKAN_DEBUG)
-    pSwapchain->booted = false;
+    
 #endif
 
     VkPhysicalDevice physicalDevice = R_CVulkan_DeviceGetPhysicalDevice (pCreateInfo->pDevice);
@@ -508,7 +508,7 @@ R_CVulkan_NewSwapchain (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pSwapchain->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -532,7 +532,7 @@ R_CVulkan_DeleteSwapchain (struct R_CVulkan_Swapchain* pSwapchain)
     pSwapchain->extent.width = 0;
     pSwapchain->extent.height = 0;
     pSwapchain->imageCount = 0;
-    pSwapchain->booted = false;
+    
 #else
     if (pSwapchain->handle != VK_NULL_HANDLE)
     {
@@ -634,7 +634,7 @@ R_CVulkan_SwapchainIsInitialized (const struct R_CVulkan_Swapchain* pSwapchain)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pSwapchain);
-    return pSwapchain->booted;
+    return 1;
 #else
     (void)pSwapchain;
     return pSwapchain->handle != VK_NULL_HANDLE ? 1 : 0;

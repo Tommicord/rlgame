@@ -280,7 +280,7 @@ R_DetectCapabilities (struct R_Capabilities* pCapabilities)
     }
     else if (pCapabilities->hasX11Support)
     {
-        // Legacy GPU or no Wayland - use X11
+        // Legacy GPU or no Wayland, here use X11
         chosenBackend = R_WINDOW_BACKEND_X11;
         R_CSTL_LOG_INFO ("Chosen backend: X11 (legacy GPU or no Wayland)");
     }
@@ -296,7 +296,6 @@ R_DetectCapabilities (struct R_Capabilities* pCapabilities)
         R_CSTL_LOG_ERROR ("No suitable window backend found");
         chosenBackend = R_WINDOW_BACKEND_NONE;
     }
-
     g_currentBackend = chosenBackend;
     return chosenBackend;
 }

@@ -345,7 +345,7 @@ R_CVulkan_NewInstance (
     }
     pInstance->handle = VK_NULL_HANDLE;
     pInstance->debugMessenger = VK_NULL_HANDLE;
-    pInstance->booted = false;
+    
 #endif
 
     enum R_CVulkanError result = R_CVULKAN_OK;
@@ -494,14 +494,14 @@ R_CVulkan_NewInstance (
 #endif
 
 #if defined(R_CVULKAN_DEBUG)
-    pInstance->booted = true;
+    
 #endif
     R_CSTL_TRACE_SCOPE_EXIT ();
     return R_CVULKAN_OK;
 
 cvulkan_cleanup:
 #if defined(R_CVULKAN_DEBUG)
-    pInstance->booted = false;
+    
     R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
@@ -518,7 +518,7 @@ R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstance)
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-    pInstance->booted = false;
+    
 #endif
 }
 
@@ -536,7 +536,7 @@ R_CVulkan_InstanceIsInitialized (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pInstance);
-    return pInstance->booted;
+    return 1;
 #else
     (void)pInstance;
     return 1;

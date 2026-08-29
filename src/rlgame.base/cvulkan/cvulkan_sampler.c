@@ -29,7 +29,7 @@ R_CVulkan_NewSampler (
     pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
 #if defined(R_CVULKAN_DEBUG)
     pSampler->handle = VK_NULL_HANDLE;
-    pSampler->booted = false;
+    
 #endif
 
     VkSamplerCreateInfo samplerInfo = {0};
@@ -55,7 +55,7 @@ R_CVulkan_NewSampler (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pSampler->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -79,7 +79,7 @@ R_CVulkan_DeleteSampler (struct R_CVulkan_Sampler* pSampler)
     }
 #if defined(R_CVULKAN_DEBUG)
     pSampler->device = VK_NULL_HANDLE;
-    pSampler->booted = false;
+    
 #endif
 }
 
@@ -106,7 +106,7 @@ R_CVulkan_SamplerIsInitialized (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pSampler);
-    return pSampler->booted;
+    return 1;
 #else
     (void)pSampler;
     return 1;

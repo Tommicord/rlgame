@@ -669,7 +669,8 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
 {
     (void)pAppInfo;
     struct R_GameState* pGameState = (struct R_GameState*)pUserData;
-    if (!R_GameState_IsInitialized (pGameState))
+    static bool runFlag = false;
+    if (!runFlag)
     {
         struct R_GameStateCreateInfo createInfo = {0};
         createInfo.pApplicationName = R_CSTL_StringData (pAppInfo->pApplicationName);
@@ -680,25 +681,24 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             g_windowHandle.waylandWindow = R_InitWaylandWindow ((struct R_ApplicationInfo*)pAppInfo, &waylandStyle);
             if (!g_windowHandle.waylandWindow)
             {
-                R_CSTL_LOG_ERROR ("GameLoopCallback: Failed to initialize Wayland window handle");
+                R_CSTL_LOG_ERROR ("Failed to initialize Wayland window handle");
                 return false;
             }
-            R_CSTL_LOG_INFO ("GameLoopCallback: Wayland window initialized");
+            R_CSTL_LOG_INFO ("Wayland window initialized");
             int windowWidth = 0, windowHeight = 0;
             R_WaylandWindowWaitForConfig (g_windowHandle.waylandWindow, &windowWidth, &windowHeight);
             R_CSTL_LOG_INFO (
-                "GameLoopCallback: Window dimensions received: %dx%d",
+                "Window dimensions received: %dx%d",
                 windowWidth,
                 windowHeight);
-
             struct wl_display* display = R_WaylandWindowGetDisplay (g_windowHandle.waylandWindow);
             struct wl_surface* surface = R_WaylandWindowGetSurface (g_windowHandle.waylandWindow);
-            R_CSTL_LOG_INFO ("GameLoopCallback: Wayland display pointer: %p", (void*)display);
-            R_CSTL_LOG_INFO ("GameLoopCallback: Wayland surface pointer: %p", (void*)surface);
+            R_CSTL_LOG_INFO ("Wayland display pointer: %p", (void*)display);
+            R_CSTL_LOG_INFO ("Wayland surface pointer: %p", (void*)surface);
 
             if (!display || !surface)
             {
-                R_CSTL_LOG_ERROR ("GameLoopCallback: Invalid Wayland display or surface pointer");
+                R_CSTL_LOG_ERROR ("Invalid Wayland display or surface pointer");
                 R_DestroyWaylandWindow (g_windowHandle.waylandWindow);
                 g_windowHandle.waylandWindow = NULL;
                 return false;
@@ -798,6 +798,7 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             }
             return false;
         }
+        runFlag = true;
         return true;
     }
     // TODO: Add game update and render calls here later
@@ -811,10 +812,7 @@ R_GameLoopCleanup (struct R_GameState* pGameState)
 {
     R_CSTL_TRACE_FUNCTION ();
 
-    if (R_GameState_IsInitialized (pGameState))
-    {
-        R_GameState_Cleanup (pGameState);
-    }
+    R_GameState_Cleanup (pGameState);
     if (g_currentBackend == R_WINDOW_BACKEND_WAYLAND && g_windowHandle.waylandWindow)
     {
         R_DestroyWaylandWindow (g_windowHandle.waylandWindow);
@@ -877,7 +875,7 @@ R_MainProvider_Run (struct R_MainProvider* pProvider)
 
         if (R_GameLoop_IsPaused (pProvider))
         {
-            usleep (1000); // Sleep for 1ms during pause
+            usleep (1000);
             if (clock_gettime (CLOCK_MONOTONIC, &lastTime) != 0)
             {
                 R_CSTL_LOG_ERROR ("clock_gettime failed during pause");

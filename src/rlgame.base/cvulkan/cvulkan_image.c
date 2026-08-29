@@ -40,7 +40,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
     pImage->samples = pCreateInfo->samples;
     pImage->tiling = pCreateInfo->tiling;
 #if defined(R_CVULKAN_DEBUG)
-    pImage->booted = false;
+    
 #endif
     VkImageCreateInfo imageInfo = {0};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -89,7 +89,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
     pImage->size = memRequirements.size;
     pImage->currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 #if defined(R_CVULKAN_DEBUG)
-    pImage->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -118,7 +118,7 @@ R_CVulkan_ImageTransitionLayout (
     R_CVULKAN_ASSERT (pImage);
     R_CVULKAN_ASSERT (commandBuffer != VK_NULL_HANDLE);
 #if defined(R_CVULKAN_DEBUG)
-    if (!pImage->booted)
+    
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -177,7 +177,7 @@ R_CVulkan_ImageCopyData (
         return R_CVULKAN_ERROR_NULL_POINTER;
     }
 
-    if (!pImage->booted)
+    
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -277,7 +277,7 @@ R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
-    return pImage->booted;
+    return 1;
 #else
     (void)pImage;
     return 1;

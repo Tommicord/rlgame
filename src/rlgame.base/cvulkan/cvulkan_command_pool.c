@@ -29,7 +29,7 @@ R_CVulkan_NewCommandPool (
     pCommandPool->handle = VK_NULL_HANDLE;
     pCommandPool->queueFamilyIndex = queueFamilyIndex;
 #if defined(R_CVULKAN_DEBUG)
-    pCommandPool->booted = false;
+    
 #endif
 
     VkCommandPoolCreateInfo poolInfo = {0};
@@ -44,7 +44,7 @@ R_CVulkan_NewCommandPool (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pCommandPool->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -68,7 +68,7 @@ R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool)
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pCommandPool->booted = false;
+    
 #endif
     pCommandPool->device = VK_NULL_HANDLE;
     pCommandPool->queueFamilyIndex = 0;
@@ -85,8 +85,8 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkComman
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    R_CVULKAN_ASSERT (pCommandPool->booted);
-    if (!pCommandPool->booted)
+    
+    
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -112,8 +112,8 @@ R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    R_CVULKAN_ASSERT (pCommandPool->booted);
-    if (!pCommandPool->booted)
+    
+    
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -154,7 +154,7 @@ R_CVulkan_CommandPoolIsInitialized (const struct R_CVulkan_CommandPool* pCommand
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pCommandPool);
-    return pCommandPool->booted;
+    return 1;
 #else
     (void)pCommandPool;
     return 1;

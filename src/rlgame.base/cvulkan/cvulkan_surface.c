@@ -57,7 +57,7 @@ R_CVulkan_NewSurface (
     pSurface->instance = instance;
     pSurface->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pSurface->booted = false;
+    
 #endif
 
     VkResult result = VK_ERROR_UNKNOWN;
@@ -214,7 +214,7 @@ R_CVulkan_NewSurface (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pSurface->booted = true;
+    
 #endif
     R_CSTL_TRACE_SCOPE_EXIT ();
     return R_CVULKAN_OK;
@@ -228,7 +228,7 @@ R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
     vkDestroySurfaceKHR (pSurface->instance, pSurface->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
     pSurface->instance = VK_NULL_HANDLE;
-    pSurface->booted = false;
+    
 #endif
 }
 
@@ -241,7 +241,7 @@ R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!pSurface->booted)
+    
     {
         return VK_NULL_HANDLE;
     }
@@ -259,7 +259,7 @@ R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    if (!pSurface->booted)
+    
     {
         return VK_NULL_HANDLE;
     }

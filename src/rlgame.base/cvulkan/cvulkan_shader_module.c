@@ -69,7 +69,7 @@ R_CVulkan_NewShaderModule (
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
     pShaderModule->handle = VK_NULL_HANDLE;
-    pShaderModule->booted = false;
+    
 #endif
     pShaderModule->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
     pShaderModule->codeSize = codeSize;
@@ -88,7 +88,7 @@ R_CVulkan_NewShaderModule (
         return R_CVULKAN_ERROR_SHADER_MODULE_CREATE_FAILED;
     }
 #if defined(R_CVULKAN_DEBUG)
-    pShaderModule->booted = true;
+    
     R_CSTL_LOG_INFO ("R_CVulkan_NewShaderModule: Shader module created");
     R_CSTL_LOG_INFO ("  Code size: %zu bytes", codeSize);
     R_CSTL_LOG_INFO ("  Handle: %p", (void*)pShaderModule->handle);
@@ -121,7 +121,7 @@ R_CVulkan_DeleteShaderModule (struct R_CVulkan_ShaderModule* pShaderModule)
     pShaderModule->handle = VK_NULL_HANDLE;
     pShaderModule->device = VK_NULL_HANDLE;
     pShaderModule->codeSize = 0;
-    pShaderModule->booted = false;
+    
 #endif
 }
 
@@ -157,7 +157,7 @@ R_CVulkan_ShaderModuleIsInitialized (const struct R_CVulkan_ShaderModule* pShade
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pShaderModule);
-    return pShaderModule->booted;
+    return 1;
 #else
     return true;
 #endif

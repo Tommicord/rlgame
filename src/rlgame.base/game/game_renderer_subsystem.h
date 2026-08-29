@@ -93,7 +93,7 @@ struct R_GameRendererSubsystemEntry
         int                               isVisible;
         float                             blendFactor;
 };
-struct R_GameRendererManager;
+struct R_Game_RendererManager;
 
 R_GAME_API struct R_GameRendererSubsystem*
                     R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem);
@@ -174,25 +174,25 @@ R_GAME_API void R_GameRendererLifecycle_RegisterRender (R_GameLifecycleRender ca
 R_GAME_API void R_GameRendererLifecycle_RegisterStop (R_GameLifecycleStop callback);
 R_GAME_API void R_GameRendererLifecycle_RegisterOver (R_GameLifecycleOver callback);
 
-R_GAME_API struct R_GameRendererManager*
+R_GAME_API struct R_Game_RendererManager*
                R_GameRenderer_NewManager (struct R_Game_PipelineContext* pPipelineContext);
-R_GAME_API int R_GameRenderer_DeleteManager (struct R_GameRendererManager* pManager);
+R_GAME_API int R_GameRenderer_DeleteManager (struct R_Game_RendererManager* pManager);
 R_GAME_API int R_GameRenderer_AddSubsystem (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        priority,
     uint32_t                        flags,
     float                           blendFactor);
 R_GAME_API int R_GameRenderer_RemoveSubsystem (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem);
 R_GAME_API int R_GameRenderer_SetSubsystemVisible (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     int                             visible);
 R_GAME_API int R_GameRenderer_SetSubsystemBlendFactor (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     float                           blendFactor);
-R_GAME_API int R_GameRenderer_ComposeFrame (struct R_GameRendererManager* pManager);
-R_GAME_API int R_GameRenderer_PresentFrame (struct R_GameRendererManager* pManager);
+R_GAME_API int R_GameRenderer_ComposeFrame (struct R_Game_RendererManager* pManager);
+R_GAME_API int R_GameRenderer_PresentFrame (struct R_Game_RendererManager* pManager);

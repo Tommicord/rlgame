@@ -38,7 +38,7 @@ R_CVulkan_NewRenderPass (
     pRenderPass->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
     pRenderPass->handle = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pRenderPass->booted = false;
+    
 #endif
 
     VkRenderPassCreateInfo renderPassInfo = {0};
@@ -57,7 +57,7 @@ R_CVulkan_NewRenderPass (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pRenderPass->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -82,7 +82,7 @@ R_CVulkan_DeleteRenderPass (struct R_CVulkan_RenderPass* pRenderPass)
 
     pRenderPass->device = VK_NULL_HANDLE;
 #if defined(R_CVULKAN_DEBUG)
-    pRenderPass->booted = false;
+    
 #endif
 }
 
@@ -108,7 +108,7 @@ R_CVULKAN_API int
 R_CVulkan_RenderPassIsInitialized (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
-    return pRenderPass->booted;
+    return 1;
 #else
     (void)pRenderPass;
     return 1;

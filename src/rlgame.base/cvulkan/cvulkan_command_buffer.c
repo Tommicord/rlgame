@@ -35,7 +35,7 @@ R_CVulkan_NewCommandBuffer (
     pCommandBuffer->device = device;
 #if defined(R_CVULKAN_DEBUG)
     pCommandBuffer->record = 0;
-    pCommandBuffer->booted = false;
+    
 #endif
 
     VkCommandBufferAllocateInfo allocInfo = {0};
@@ -51,7 +51,7 @@ R_CVulkan_NewCommandBuffer (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    pCommandBuffer->booted = true;
+    
 #endif
     return R_CVULKAN_OK;
 }
@@ -75,7 +75,7 @@ R_CVulkan_DeleteCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer)
     }
 #if defined(R_CVULKAN_DEBUG)
     pCommandBuffer->record = 0;
-    pCommandBuffer->booted = false;
+    
 #endif
     pCommandBuffer->pool = VK_NULL_HANDLE;
     pCommandBuffer->device = VK_NULL_HANDLE;
@@ -584,7 +584,7 @@ int
 R_CVulkan_CommandBufferIsInitialized (const struct R_CVulkan_CommandBuffer* pCommandBuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
-    return pCommandBuffer->booted;
+    return 1;
 #else
     return true;
 #endif

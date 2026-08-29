@@ -35,7 +35,6 @@ struct R_GameRendererFrame
         struct R_CVulkan_Fence*     pInFlightFence;
         uint32_t                    resourceIndex;
         uint64_t                    frameNumber;
-        R_GAME_DEBUG_FIELD
 };
 
 struct R_GameRendererLayer
@@ -47,7 +46,6 @@ struct R_GameRendererLayer
         R_GameLifecycleRender     renderCallback;
         R_GameLifecycleBeforePass beforePassCallback;
         R_GameLifecycleAfterPass  afterPassCallback;
-        R_GAME_DEBUG_FIELD
 };
 
 struct R_GameRendererResource
@@ -58,7 +56,6 @@ struct R_GameRendererResource
         uint64_t    size;
         uint32_t    refCount;
         char*       pName;
-        R_GAME_DEBUG_FIELD
 };
 
 struct R_GameRendererLifecycle
@@ -74,7 +71,6 @@ struct R_GameRendererLifecycle
         R_GameLifecycleRender     renderCallback;
         R_GameLifecycleStop       stopCallback;
         R_GameLifecycleOver       overCallback;
-        R_GAME_DEBUG_FIELD
 };
 
 struct R_GameRendererSubsystem
@@ -96,10 +92,9 @@ struct R_GameRendererSubsystem
         R_GAME_MUTEX                     resourceArrayMutex;
 
         uint32_t state;
-        R_GAME_DEBUG_FIELD
 };
 
-struct R_GameRendererManager
+struct R_Game_RendererManager
 {
         struct R_GameRendererSubsystemEntry subsystems[R_GAME_RENDERER_MAX_SUBSYSTEMS];
         uint32_t                            subsystemCount;
@@ -112,7 +107,6 @@ struct R_GameRendererManager
         uint32_t                            swapchainImageCount;
         uint32_t                            currentSwapchainIndex;
         R_GAME_MUTEX                        managerMutex;
-        int                                 booted;
 };
 static struct R_CSTL_BytecodeDecoder* g_pBytecodeDecoder = NULL;
 
@@ -890,9 +884,6 @@ R_GameRenderer_InitializeFrame (
 
         pFrame->frameNumber = 0;
         pFrame->resourceIndex = 0;
-#if defined(R_GAME_DEBUG)
-        pFrame->booted = true;
-#endif
     }
 
     R_CSTL_LOG_INFO ("Frame data initialized for %u frames", pSubsystem->maxFramesInFlight);
@@ -985,36 +976,22 @@ R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem)
         return NULL;
     }
 
-#if defined(R_GAME_DEBUG)
-    pSubsystem->booted = true;
-#endif
-    return pSubsystem;
+return pSubsystem;
 }
 
 R_GAME_API int
 R_GameRenderer_DeleteSubsystem (struct R_GameRendererSubsystem* pSubsystem)
 {
-#if defined(R_GAME_DEBUG)
     if (pSubsystem == NULL)
     {
         return R_GAME_ERROR_NULL_POINTER;
     }
-
-    if (!pSubsystem->booted)
-    {
-        return R_GAME_ERROR_NOT_INITIALIZED;
-    }
-#endif
     R_GameRenderer_CleanupFrame (pSubsystem);
     R_GameRenderer_CleanupLayers (pSubsystem);
     R_GameRenderer_CleanupResources (pSubsystem);
     R_GameRenderer_ShutdownThreadPool (pSubsystem);
     R_GAME_MUTEX_DESTROY (&pSubsystem->layerArrayMutex);
     R_GAME_MUTEX_DESTROY (&pSubsystem->resourceArrayMutex);
-
-#if defined(R_GAME_DEBUG)
-    pSubsystem->booted = false;
-#endif
 
     R_CSTL_HeapFree (pSubsystem);
     R_GameRenderer_ShutdownBytecodeDecoder ();
@@ -1026,24 +1003,10 @@ R_GameRenderer_SetPipelineContext (
     struct R_GameRendererSubsystem* pSubsystem,
     struct R_Game_PipelineContext*  pPipelineContext)
 {
-#if defined(R_GAME_DEBUG)
     if (pSubsystem == NULL || pPipelineContext == NULL)
     {
         R_CSTL_LOG_ERROR ("Invalid parameters for SetPipelineContext");
         return R_GAME_ERROR_INVALID_ARGUMENT;
-    }
-
-    if (!pSubsystem->booted)
-    {
-        R_CSTL_LOG_ERROR ("Renderer subsystem not initialized");
-        return R_GAME_ERROR_NOT_INITIALIZED;
-    }
-#endif
-
-    if (!R_Game_PipelineContextIsInitialized (pPipelineContext))
-    {
-        R_CSTL_LOG_ERROR ("Pipeline context is not initialized");
-        return R_GAME_ERROR_RENDERER_NOT_SET;
     }
 
     pSubsystem->pPipelineContext = pPipelineContext;
@@ -1649,37 +1612,35 @@ R_GameRenderer_SetFrameResource (
     return R_GAME_OK;
 }
 
-R_GAME_API struct R_GameRendererManager*
+R_GAME_API struct R_Game_RendererManager*
 R_GameRenderer_NewManager (struct R_Game_PipelineContext* pPipelineContext)
 {
     R_CSTL_TRACE_FUNCTION ();
     R_GAME_VALIDATE_PARAM (pPipelineContext);
 
-    struct R_GameRendererManager* pManager
-        = (struct R_GameRendererManager*)R_CSTL_HeapAlloc (sizeof (struct R_GameRendererManager));
+    struct R_Game_RendererManager* pManager
+        = (struct R_Game_RendererManager*)R_CSTL_HeapAlloc (sizeof (struct R_Game_RendererManager));
     if (pManager == NULL)
     {
         R_CSTL_TRACE_RETURN ();
         return NULL;
     }
 
-    memset (pManager, 0, sizeof (struct R_GameRendererManager));
+    memset (pManager, 0, sizeof (struct R_Game_RendererManager));
     pManager->pPipelineContext = pPipelineContext;
     pManager->subsystemCount = 0;
     pManager->swapchainImageCount = 0;
     pManager->currentSwapchainIndex = 0;
-    pManager->booted = 0;
 
     R_GAME_MUTEX_INIT (&pManager->managerMutex);
 
-    pManager->booted = 1;
     R_CSTL_TRACE_POINT ("manager_created");
     R_CSTL_TRACE_RETURN ();
     return pManager;
 }
 
 R_GAME_API int
-R_GameRenderer_DeleteManager (struct R_GameRendererManager* pManager)
+R_GameRenderer_DeleteManager (struct R_Game_RendererManager* pManager)
 {
     R_CSTL_TRACE_FUNCTION ();
     R_GAME_VALIDATE_PARAM (pManager);
@@ -1707,7 +1668,7 @@ R_GameRenderer_DeleteManager (struct R_GameRendererManager* pManager)
 
 R_GAME_API int
 R_GameRenderer_AddSubsystem (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     uint32_t                        priority,
     uint32_t                        flags,
@@ -1744,7 +1705,7 @@ R_GameRenderer_AddSubsystem (
 
 R_GAME_API int
 R_GameRenderer_RemoveSubsystem (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -1782,7 +1743,7 @@ R_GameRenderer_RemoveSubsystem (
 
 R_GAME_API int
 R_GameRenderer_SetSubsystemVisible (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     int                             visible)
 {
@@ -1811,7 +1772,7 @@ R_GameRenderer_SetSubsystemVisible (
 
 R_GAME_API int
 R_GameRenderer_SetSubsystemBlendFactor (
-    struct R_GameRendererManager*   pManager,
+    struct R_Game_RendererManager*   pManager,
     struct R_GameRendererSubsystem* pSubsystem,
     float                           blendFactor)
 {
@@ -1838,7 +1799,7 @@ R_GameRenderer_SetSubsystemBlendFactor (
 }
 
 R_GAME_API int
-R_GameRenderer_ComposeFrame (struct R_GameRendererManager* pManager)
+R_GameRenderer_ComposeFrame (struct R_Game_RendererManager* pManager)
 {
     R_GAME_VALIDATE_PARAM (pManager);
     R_GAME_VALIDATE_PARAM_BOOTED (pManager);
@@ -1860,7 +1821,7 @@ R_GameRenderer_ComposeFrame (struct R_GameRendererManager* pManager)
 }
 
 R_GAME_API int
-R_GameRenderer_PresentFrame (struct R_GameRendererManager* pManager)
+R_GameRenderer_PresentFrame (struct R_Game_RendererManager* pManager)
 {
     R_GAME_VALIDATE_PARAM (pManager);
     R_GAME_VALIDATE_PARAM_BOOTED (pManager);

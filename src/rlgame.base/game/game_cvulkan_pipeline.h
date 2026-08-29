@@ -87,14 +87,13 @@ struct R_Game_PipelineContext
         struct R_CVulkan_Framebuffer* pFramebuffers;
         uint32_t                      framebufferCount;
         uint32_t                      currentFrameIndex;
-        R_CVULKAN_DEBUG_FIELD
 };
 
 /**
  * @brief Initialize the Vulkan pipeline context
  *
  * @param pContext Pointer to the pipeline context to initialize
- * @param surface Vulkan surface (VK_NULL_HANDLE in headless mode)
+ * @param pCreateInfo create info
  * @return CVULKAN_API R_CVULKAN_OK on success, error code otherwise
  */
 R_GAME_API enum R_GameError R_Game_NewPipelineContext (
@@ -178,14 +177,6 @@ R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pCo
  * @return Pointer to the device
  */
 R_GAME_API struct R_CVulkan_Device* R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
-
-/**
- * @brief Check if the context is initialized
- *
- * @param pContext Pointer to the pipeline context
- * @return 1 if initialized, 0 otherwise
- */
-R_GAME_API int R_Game_PipelineContextIsInitialized (const struct R_Game_PipelineContext* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
 R_Game_PipelineContextGetImageAvailableSemaphore (struct R_Game_PipelineContext* pContext);
