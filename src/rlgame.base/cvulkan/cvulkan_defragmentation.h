@@ -57,9 +57,9 @@ enum R_CVulkan_DefragMoveOperation
 };
 
 /**
- * @brief Configuration for defragmentation
+ * @brief Settingsuration for defragmentation
  */
-struct R_CVulkan_DefragConfig
+struct R_CVulkan_DefragSettings
 {
         uint32_t                     mergeFactor;
         uint64_t                     maxBytesPerPass;
@@ -73,7 +73,7 @@ struct R_CVulkan_DefragConfig
 struct R_CVulkan_DefragContext
 {
         struct R_CVulkan_MemoryAllocator* pAllocator;
-        struct R_CVulkan_DefragConfig     config;
+        struct R_CVulkan_DefragSettings     config;
         enum R_CVulkan_DefragBackend      backend;
         uint32_t                          currentPass;
         uint32_t                          totalMoves;
@@ -108,13 +108,13 @@ struct R_CVulkan_DefragStats
  * @brief Initialize defragmentation context
  * @param pContext Pointer to context to initialize
  * @param pAllocator Pointer to memory allocator
- * @param pConfig Configuration parameters (can be NULL for defaults)
+ * @param pSettings Settingsuration parameters (can be NULL for defaults)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DefragInitialize (
     struct R_CVulkan_DefragContext*      pContext,
     struct R_CVulkan_MemoryAllocator*    pAllocator,
-    const struct R_CVulkan_DefragConfig* pConfig);
+    const struct R_CVulkan_DefragSettings* pSettings);
 
 /**
  * @brief Cleanup defragmentation context
@@ -176,6 +176,6 @@ R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend);
 
 /**
  * @brief Set default configuration
- * @param pConfig Pointer to config to set defaults
+ * @param pSettings Pointer to config to set defaults
  */
-R_CVULKAN_API void R_CVulkan_DefragSetDefaultConfig (struct R_CVulkan_DefragConfig* pConfig);
+R_CVULKAN_API void R_CVulkan_DefragSetDefaultSettings (struct R_CVulkan_DefragSettings* pSettings);

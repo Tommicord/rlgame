@@ -33,7 +33,7 @@ struct R_Pack_InputImage
 /**
  * @brief Encoder configuration
  */
-struct R_Pack_EncoderConfig
+struct R_Pack_EncoderSettings
 {
         uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_PACK_DEFAULT_MAX_ATLAS_WIDTH) */
         uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_PACK_DEFAULT_MAX_ATLAS_HEIGHT) */
@@ -56,7 +56,7 @@ struct R_Pack_EncoderConfig
  */
 struct R_Pack_Encoder
 {
-        struct R_Pack_EncoderConfig    config;
+        struct R_Pack_EncoderSettings    config;
         struct R_Pack_Header*          pHeader;
         struct R_Pack_HashEntry*       pHashTable;
         struct R_Pack_ColorEntry*      pColorTable;
@@ -78,7 +78,7 @@ struct R_Pack_Encoder
  * @param config Encoder configuration (NULL for defaults)
  * @return Encoder instance or NULL on failure
  */
-R_PACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig);
+R_PACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderSettings* pSettings);
 
 /**
  * @brief Destroy encoder instance

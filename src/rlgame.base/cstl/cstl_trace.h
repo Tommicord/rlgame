@@ -17,9 +17,9 @@
  */
 
 /**
- * @brief Configuration for trace logging
+ * @brief Settingsuration for trace logging
  */
-struct R_CSTL_TraceConfig
+struct R_CSTL_TraceSettings
 {
         uint8_t enableFunctionEntryExit : 1; /**< Enable automatic function entry/exit logging */
         uint8_t enablePerformanceTiming : 1; /**< Enable performance timing for traced functions */
@@ -41,7 +41,7 @@ R_CSTL_API void R_CSTL_TraceLogEnvironmentInfo (void);
  * @brief Get current trace configuration
  * @return Current trace configuration
  */
-R_CSTL_API const struct R_CSTL_TraceConfig* R_CSTL_TraceGetConfig (void);
+R_CSTL_API const struct R_CSTL_TraceSettings* R_CSTL_TraceGetSettings (void);
 
 /**
  * @brief Set minimum duration for performance logging

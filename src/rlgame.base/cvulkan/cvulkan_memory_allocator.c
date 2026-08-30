@@ -475,7 +475,7 @@ static enum R_CVulkan_Error R_CVulkan_MemoryAllocatorValidateDefragContext (
 
 static enum R_CVulkan_Error R_CVulkan_MemoryAllocatorCreateDefragContext (
     struct R_CVulkan_MemoryAllocator*    pAllocator,
-    const struct R_CVulkan_DefragConfig* pConfig,
+    const struct R_CVulkan_DefragSettings* pSettings,
     struct R_CVulkan_DefragContext**     ppContext);
 
 static void R_CVulkan_MemoryAllocatorDestroyDefragContext (struct R_CVulkan_DefragContext* pContext);
@@ -484,7 +484,7 @@ R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_MemoryAllocatorBeginDefragmentation (
     struct R_CVulkan_MemoryAllocator*    pAllocator,
     struct R_CVulkan_DefragContext**     ppContext,
-    const struct R_CVulkan_DefragConfig* pConfig)
+    const struct R_CVulkan_DefragSettings* pSettings)
 {
     enum R_CVulkan_Error result = R_CVULKAN_OK;
 
@@ -496,7 +496,7 @@ R_CVulkan_MemoryAllocatorBeginDefragmentation (
         return R_CVULKAN_ERROR_NULL_POINTER;
     }
 
-    result = R_CVulkan_MemoryAllocatorCreateDefragContext (pAllocator, pConfig, ppContext);
+    result = R_CVulkan_MemoryAllocatorCreateDefragContext (pAllocator, pSettings, ppContext);
     if (result != R_CVULKAN_OK)
     {
         return result;
@@ -627,7 +627,7 @@ R_CVulkan_MemoryAllocatorValidateDefragContext (
 static enum R_CVulkan_Error
 R_CVulkan_MemoryAllocatorCreateDefragContext (
     struct R_CVulkan_MemoryAllocator*    pAllocator,
-    const struct R_CVulkan_DefragConfig* pConfig,
+    const struct R_CVulkan_DefragSettings* pSettings,
     struct R_CVulkan_DefragContext**     ppContext)
 {
     enum R_CVulkan_Error             result = R_CVULKAN_OK;
@@ -639,7 +639,7 @@ R_CVulkan_MemoryAllocatorCreateDefragContext (
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
 
-    result = R_CVulkan_DefragInitialize (pContext, pAllocator, pConfig);
+    result = R_CVulkan_DefragInitialize (pContext, pAllocator, pSettings);
     if (result != R_CVULKAN_OK)
     {
         R_CSTL_HeapFree (pContext);

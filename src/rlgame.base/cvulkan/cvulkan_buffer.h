@@ -10,7 +10,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for buffer creation
+ * @brief Settingsuration parameters for buffer creation
  */
 struct R_CVulkan_BufferCreateInfo
 {

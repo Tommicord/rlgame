@@ -9,7 +9,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for sampler creation
+ * @brief Settingsuration parameters for sampler creation
  */
 struct R_CVulkan_SamplerCreateInfo
 {

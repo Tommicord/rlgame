@@ -14,46 +14,47 @@
 #define R_PACK_INITIAL_PIXEL_INDEX_TABLE_SIZE 65536
 #define R_PACK_DEFAULT_WORKER_COUNT           0
 
-static const struct R_Pack_EncoderConfig R_PACK_DEFAULT_CONFIG
-    = {R_PACK_DEFAULT_ATLAS_WIDTH,
-       R_PACK_DEFAULT_ATLAS_HEIGHT,
-       R_PACK_DEFAULT_PADDING,
-       0,
-       R_PACK_DEFAULT_SIMILARITY_THRESHOLD,
-       0.0f,
-       R_PACK_DEFAULT_WORKER_COUNT,
-       0,
-       0,
-       0};
+static const struct R_Pack_EncoderSettings s_defaultEncoderSettings
+    = {.maxAtlasWidth = R_PACK_DEFAULT_ATLAS_WIDTH,
+       .maxAtlasHeight = R_PACK_DEFAULT_ATLAS_HEIGHT,
+       .padding = R_PACK_DEFAULT_PADDING,
+       .border = 0,
+       .similarityThreshold = R_PACK_DEFAULT_SIMILARITY_THRESHOLD,
+       .alphaThreshold = 0.0f,
+       .workerCount = R_PACK_DEFAULT_WORKER_COUNT,
+       .maxTextures = 0,
+       .powerOfTwo = 0,
+       .enableRotation = 0};
 
 static uint32_t
 R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
 
 struct R_Pack_PixelWorkTask
 {
-        struct R_Pack_Encoder*          pEncoder;
+        struct R_Pack_Encoder* pEncoder;
         const struct R_Pack_InputImage* pImage;
-        uint32_t                        startY;
-        uint32_t                        endY;
-        uint32_t*                       pOutPixelCount;
-        int*                            pOutError;
+        uint32_t startY;
+        uint32_t endY;
+        uint32_t* pOutPixelCount;
+        int* pOutError;
 };
 
 static void
 R_Pack_ProcessPixelRowWorker (void* pData)
 {
+    R_PACK_ASSERT (pData);
     struct R_Pack_PixelWorkTask* pTask = (struct R_Pack_PixelWorkTask*)pData;
-    uint32_t                     pixelCount = 0;
+    uint32_t pixelCount = 0;
 
     for (uint32_t y = pTask->startY; y < pTask->endY; ++y)
     {
         for (uint32_t x = 0; x < pTask->pImage->width; ++x)
         {
             uint32_t pixelIndex = y * pTask->pImage->stride + x * 4;
-            uint8_t  r = pTask->pImage->pPixels[pixelIndex];
-            uint8_t  g = pTask->pImage->pPixels[pixelIndex + 1];
-            uint8_t  b = pTask->pImage->pPixels[pixelIndex + 2];
-            uint8_t  a = pTask->pImage->pPixels[pixelIndex + 3];
+            uint8_t r = pTask->pImage->pPixels[pixelIndex];
+            uint8_t g = pTask->pImage->pPixels[pixelIndex + 1];
+            uint8_t b = pTask->pImage->pPixels[pixelIndex + 2];
+            uint8_t a = pTask->pImage->pPixels[pixelIndex + 3];
 
             uint8_t yuvY, yuvYExp, yuvU, yuvV;
             R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
@@ -68,7 +69,7 @@ R_Pack_ProcessPixelRowWorker (void* pData)
             R_CSTL_MutexLock (pTask->pEncoder->pMutex);
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
-                const uint32_t                 newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
+                const uint32_t newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
                 struct R_Pack_PixelIndexEntry* pNewTable
                     = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
                         pTask->pEncoder->pPixelIndexTable,
@@ -102,24 +103,20 @@ R_Pack_ProcessPixelRowWorker (void* pData)
 }
 
 struct R_Pack_Encoder*
-R_Pack_NewEncoder (const struct R_Pack_EncoderConfig* pConfig)
+R_Pack_NewEncoder (const struct R_Pack_EncoderSettings* pSettings)
 {
+    R_PACK_ASSERT (pSettings);
     struct R_Pack_Encoder* pEncoder
         = (struct R_Pack_Encoder*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Encoder));
-    if (!pEncoder)
-    {
-        return NULL;
-    }
-
     memset (pEncoder, 0, sizeof (struct R_Pack_Encoder));
 
-    if (pConfig)
+    if (pSettings)
     {
-        pEncoder->config = *pConfig;
+        pEncoder->config = *pSettings;
     }
     else
     {
-        pEncoder->config = R_PACK_DEFAULT_CONFIG;
+        pEncoder->config = s_defaultEncoderSettings;
     }
 
     if (pEncoder->config.maxAtlasWidth == 0 || pEncoder->config.maxAtlasHeight == 0
@@ -251,8 +248,8 @@ R_Pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, 
     }
     else
     {
-        int   exp = 0;
-        float mantissa = frexp (yf, &exp);
+        int exp = 0;
+        float mantissa = frexpf (yf, &exp);
         *pY = (uint8_t)(mantissa * 255.0f);
         *pYExp = (uint8_t)(exp + 127);
     }
@@ -294,7 +291,7 @@ R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp,
     for (uint32_t i = 0; i < pEncoder->colorTableCount; ++i)
     {
         struct R_Pack_ColorEntry* pEntry = &pEncoder->pColorTable[i];
-        float                     similarity = R_Pack_GetColorSimilarity (
+        float similarity = R_Pack_GetColorSimilarity (
             y,
             u,
             v,
@@ -310,7 +307,7 @@ R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp,
 
     if (pEncoder->colorTableCount >= pEncoder->colorTableCapacity)
     {
-        uint32_t                  newCapacity = pEncoder->colorTableCapacity * 2;
+        uint32_t newCapacity = pEncoder->colorTableCapacity << 1u;
         struct R_Pack_ColorEntry* pNewTable = (struct R_Pack_ColorEntry*)R_CSTL_HeapRealloc (
             pEncoder->pColorTable,
             newCapacity * sizeof (struct R_Pack_ColorEntry));
@@ -337,17 +334,14 @@ R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp,
 static enum R_Pack_Error
 R_Pack_ValidateInputImage (const struct R_Pack_InputImage* pImage)
 {
-    if (!pImage || !pImage->pPixels || !pImage->pName)
-    {
-        return R_PACK_ERROR_INVALID_ARGUMENT;
-    }
-
+    R_PACK_ASSERT (pImage);
+    R_PACK_ASSERT (pImage->pPixels);
+    R_PACK_ASSERT (pImage->pName);
     if (pImage->width == 0 || pImage->height == 0)
     {
         return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
-
-    if (pImage->width > SIZE_MAX / 4 || pImage->stride < pImage->width * 4)
+    if (pImage->stride < pImage->width * 4)
     {
         return R_PACK_ERROR_INVALID_DIMENSIONS;
     }
@@ -358,8 +352,10 @@ R_Pack_ValidateInputImage (const struct R_Pack_InputImage* pImage)
 static enum R_Pack_Error
 R_Pack_ExpandHashTable (struct R_Pack_Encoder* pEncoder, uint32_t* pOutTextureIndex)
 {
+    R_PACK_ASSERT (pEncoder);
+    R_PACK_ASSERT (pOutTextureIndex);
     R_CSTL_MutexLock (pEncoder->pMutex);
-    uint32_t textureIndex = pEncoder->pHeader->textureCount;
+    const uint32_t textureIndex = pEncoder->pHeader->textureCount;
 
     if (textureIndex == 0)
     {
@@ -390,15 +386,18 @@ R_Pack_ExpandHashTable (struct R_Pack_Encoder* pEncoder, uint32_t* pOutTextureIn
 
 static void
 R_Pack_GetAtlasPosition (
-    struct R_Pack_Encoder*          pEncoder,
+    struct R_Pack_Encoder* pEncoder,
     const struct R_Pack_InputImage* pImage,
-    uint32_t                        textureIndex,
-    uint32_t*                       pOutX,
-    uint32_t*                       pOutY)
+    uint32_t textureIndex,
+    uint32_t* pOutX,
+    uint32_t* pOutY)
 {
+    R_PACK_ASSERT (pEncoder);
+    R_PACK_ASSERT (pImage);
+    R_PACK_ASSERT (pOutX);
+    R_PACK_ASSERT (pOutY);
     uint32_t currentX = 0;
     uint32_t currentY = 0;
-
     if (textureIndex > 0)
     {
         const struct R_Pack_HashEntry* pPrevEntry = &pEncoder->pHashTable[textureIndex - 1];
@@ -421,11 +420,12 @@ R_Pack_GetAtlasPosition (
 static void
 R_Pack_UpdateAtlasDimensions (
     struct R_Pack_Encoder* pEncoder,
-    uint32_t               currentX,
-    uint32_t               currentY,
-    uint32_t               imageWidth,
-    uint32_t               imageHeight)
+    uint32_t currentX,
+    uint32_t currentY,
+    uint32_t imageWidth,
+    uint32_t imageHeight)
 {
+    R_PACK_ASSERT (pEncoder);
     R_CSTL_MutexLock (pEncoder->pMutex);
     uint32_t atlasWidth = currentX + imageWidth;
     uint32_t atlasHeight = currentY + imageHeight;
@@ -443,15 +443,16 @@ R_Pack_UpdateAtlasDimensions (
 static enum R_Pack_Error
 R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
+    R_PACK_ASSERT (pEncoder);
     for (uint32_t y = 0; y < pImage->height; ++y)
     {
         for (uint32_t x = 0; x < pImage->width; ++x)
         {
             uint32_t pixelIndex = y * pImage->stride + x * 4;
-            uint8_t  r = pImage->pPixels[pixelIndex];
-            uint8_t  g = pImage->pPixels[pixelIndex + 1];
-            uint8_t  b = pImage->pPixels[pixelIndex + 2];
-            uint8_t  a = pImage->pPixels[pixelIndex + 3];
+            uint8_t r = pImage->pPixels[pixelIndex];
+            uint8_t g = pImage->pPixels[pixelIndex + 1];
+            uint8_t b = pImage->pPixels[pixelIndex + 2];
+            uint8_t a = pImage->pPixels[pixelIndex + 3];
 
             uint8_t yuvY, yuvYExp, yuvU, yuvV;
             R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
@@ -465,7 +466,7 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
             R_CSTL_MutexLock (pEncoder->pMutex);
             if (pEncoder->pixelIndexTableCount >= pEncoder->pixelIndexTableCapacity)
             {
-                uint32_t                       newCapacity = pEncoder->pixelIndexTableCapacity * 2;
+                uint32_t newCapacity = pEncoder->pixelIndexTableCapacity * 2;
                 struct R_Pack_PixelIndexEntry* pNewTable
                     = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
                         pEncoder->pPixelIndexTable,
@@ -498,11 +499,12 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
 static enum R_Pack_Error
 R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
-    uint32_t                     rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
+    R_PACK_ASSERT (pEncoder);
+    uint32_t rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
     struct R_Pack_PixelWorkTask* pTasks = (struct R_Pack_PixelWorkTask*)R_CSTL_HeapAlloc (
         pEncoder->actualWorkerCount * sizeof (struct R_Pack_PixelWorkTask));
     uint32_t* pPixelCounts = (uint32_t*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (uint32_t));
-    int*      pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
+    int* pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
 
     if (!pTasks || !pPixelCounts || !pErrors)
     {
@@ -511,7 +513,6 @@ R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Input
         if (pErrors) R_CSTL_HeapFree (pErrors);
         return R_PACK_ERROR_OUT_OF_MEMORY;
     }
-
     memset (pErrors, 0, pEncoder->actualWorkerCount * sizeof (int));
 
     for (uint32_t i = 0; i < pEncoder->actualWorkerCount; ++i)
@@ -558,6 +559,7 @@ R_Pack_ProcessPixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Input
 static enum R_Pack_Error
 R_Pack_ProcessImagePixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
+    R_PACK_ASSERT (pEncoder);
     if (pEncoder->actualWorkerCount > 1 && pImage->height > 100)
     {
         return R_Pack_ProcessPixels (pEncoder, pImage);
@@ -571,10 +573,7 @@ R_Pack_ProcessImagePixels (struct R_Pack_Encoder* pEncoder, const struct R_Pack_
 enum R_Pack_Error
 R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
-    if (!pEncoder)
-    {
-        return R_PACK_ERROR_INVALID_ARGUMENT;
-    }
+    R_PACK_ASSERT (pEncoder);
     enum R_Pack_Error error = R_Pack_ValidateInputImage (pImage);
     if (error != R_PACK_OK)
     {
@@ -630,10 +629,8 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
 uint64_t
 R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder)
 {
-    if (!pEncoder || !pEncoder->pHeader)
-    {
-        return 0;
-    }
+    R_PACK_ASSERT (pEncoder);
+    R_PACK_ASSERT (pEncoder->pHeader);
 
     uint64_t hashTableSize = (uint64_t)pEncoder->pHeader->textureCount * sizeof (struct R_Pack_HashEntry);
     uint64_t colorTableSize = (uint64_t)pEncoder->colorTableCount * sizeof (struct R_Pack_ColorEntry);
@@ -652,14 +649,13 @@ R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder)
 enum R_Pack_Error
 R_Pack_EncoderEncode (
     struct R_Pack_Encoder* pEncoder,
-    uint8_t*               pOutputBuffer,
-    uint64_t               outputBufferSize,
-    uint64_t*              pBytesWritten)
+    uint8_t* pOutputBuffer,
+    uint64_t outputBufferSize,
+    uint64_t* pBytesWritten)
 {
-    if (!pEncoder || !pEncoder->pHeader || !pOutputBuffer)
-    {
-        return R_PACK_ERROR_INVALID_ARGUMENT;
-    }
+    R_PACK_ASSERT (pEncoder);
+    R_PACK_ASSERT (pOutputBuffer);
+    R_PACK_ASSERT (pBytesWritten);
 
     uint64_t requiredSize = R_Pack_EncoderGetRequiredSize (pEncoder);
     if (outputBufferSize < requiredSize)

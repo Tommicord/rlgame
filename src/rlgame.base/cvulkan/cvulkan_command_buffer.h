@@ -18,7 +18,7 @@ struct R_CVulkan_CommandBuffer
 };
 
 /**
- * @brief Configuration parameters for pipeline barrier
+ * @brief Settingsuration parameters for pipeline barrier
  */
 struct R_CVulkan_PipelineBarrierInfo
 {
@@ -34,7 +34,7 @@ struct R_CVulkan_PipelineBarrierInfo
 };
 
 /**
- * @brief Configuration parameters for beginning a render pass
+ * @brief Settingsuration parameters for beginning a render pass
  */
 struct R_CVulkan_RenderPassBeginInfo
 {
@@ -47,7 +47,7 @@ struct R_CVulkan_RenderPassBeginInfo
 };
 
 /**
- * @brief Configuration for a single dynamic rendering attachment
+ * @brief Settingsuration for a single dynamic rendering attachment
  */
 struct R_CVulkan_DynamicRenderingAttachmentInfo
 {
@@ -62,7 +62,7 @@ struct R_CVulkan_DynamicRenderingAttachmentInfo
 };
 
 /**
- * @brief Configuration parameters for dynamic rendering
+ * @brief Settingsuration parameters for dynamic rendering
  */
 struct R_CVulkan_DynamicRenderingInfo
 {

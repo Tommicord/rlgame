@@ -16,7 +16,7 @@
  */
 
 /**
- * @brief Configuration parameters for instance creation
+ * @brief Settingsuration parameters for instance creation
  */
 struct R_CVulkan_InstanceCreateInfo
 {

@@ -55,7 +55,7 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgJsonGlob: '${{ github.workspace }}/vcpkg.json'
 
-      - name: Configure
+      - name: Settingsure
         run: cmake --preset ${{ matrix.preset }}
 
       - name: Build

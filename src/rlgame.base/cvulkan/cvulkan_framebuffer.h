@@ -9,7 +9,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for framebuffer creation
+ * @brief Settingsuration parameters for framebuffer creation
  */
 struct R_CVulkan_FramebufferCreateInfo
 {

@@ -8,7 +8,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for render pass creation
+ * @brief Settingsuration parameters for render pass creation
  */
 struct R_CVulkan_RenderPassCreateInfo
 {

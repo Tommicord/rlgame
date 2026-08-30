@@ -38,7 +38,7 @@ R_CSTL_API uint64_t R_CSTL_LogGetDroppedCount (void);
 
 R_CSTL_API const char* R_CSTL_LogLevelName (enum R_CSTL_LogLevel level);
 
-// Configure log flags
+// Settingsure log flags
 R_CSTL_API void     R_CSTL_LogSetFlags (uint32_t flags);
 R_CSTL_API uint32_t R_CSTL_LogGetFlags (void);
 

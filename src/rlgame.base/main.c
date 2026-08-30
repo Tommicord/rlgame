@@ -681,7 +681,7 @@ R_GameLoopCallback (const struct R_ApplicationInfo* pAppInfo, void* pUserData)
             }
             R_CSTL_LOG_INFO ("Wayland window initialized");
             int windowWidth = 0, windowHeight = 0;
-            R_WaylandWindowWaitForConfig (g_windowHandle.waylandWindow, &windowWidth, &windowHeight);
+            R_WaylandWindowWaitForSettings (g_windowHandle.waylandWindow, &windowWidth, &windowHeight);
             R_CSTL_LOG_INFO ("Window dimensions received: %dx%d", windowWidth, windowHeight);
             struct wl_display* display = R_WaylandWindowGetDisplay (g_windowHandle.waylandWindow);
             struct wl_surface* surface = R_WaylandWindowGetSurface (g_windowHandle.waylandWindow);

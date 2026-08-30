@@ -6,7 +6,7 @@ android {
     namespace = "net.rlgame"
     compileSdk = 34
 
-    defaultConfig {
+    defaultSettings {
         applicationId = "net.rlgame"
         minSdk = 24
         targetSdk = 34

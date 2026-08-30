@@ -980,7 +980,7 @@ R_WaylandWindowGetDisplay (R_WaylandWindow window)
 }
 
 R_ENTRY_API void
-R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight)
+R_WaylandWindowWaitForSettings (R_WaylandWindow window, int* pWidth, int* pHeight)
 {
     struct R_WaylandWindowState* state = (struct R_WaylandWindowState*)window;
     if (!state) return;
@@ -988,7 +988,7 @@ R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight)
     wl_display_flush (state->display);
     if (wl_display_roundtrip (state->display) < 0)
     {
-        R_CSTL_LOG_ERROR ("R_WaylandWindowWaitForConfig: Failed to complete Wayland roundtrip");
+        R_CSTL_LOG_ERROR ("R_WaylandWindowWaitForSettings: Failed to complete Wayland roundtrip");
         if (pWidth) *pWidth = 0;
         if (pHeight) *pHeight = 0;
         return;
@@ -1003,7 +1003,7 @@ R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight)
     if (pWidth) *pWidth = state->width;
     if (pHeight) *pHeight = state->height;
 
-    R_CSTL_LOG_INFO ("R_WaylandWindowWaitForConfig: Window size set to %dx%d", state->width, state->height);
+    R_CSTL_LOG_INFO ("R_WaylandWindowWaitForSettings: Window size set to %dx%d", state->width, state->height);
 }
 
 R_ENTRY_API void

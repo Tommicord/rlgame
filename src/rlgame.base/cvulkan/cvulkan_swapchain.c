@@ -278,7 +278,7 @@ R_CVulkan_ChooseCompositeAlpha (
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_ConfigureQueueFamilies (
+R_CVulkan_SettingsureQueueFamilies (
     VkPhysicalDevice          physicalDevice,
     VkSurfaceKHR              surface,
     VkSwapchainCreateInfoKHR* pCreateInfo)
@@ -450,7 +450,7 @@ R_CVulkan_NewSwapchain (
     createInfo.imageUsage
         = pCreateInfo->imageUsage != 0 ? pCreateInfo->imageUsage : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    err = R_CVulkan_ConfigureQueueFamilies (physicalDevice, surface, &createInfo);
+    err = R_CVulkan_SettingsureQueueFamilies (physicalDevice, surface, &createInfo);
     if (err != R_CVULKAN_OK)
     {
         R_CSTL_HeapFree (pFormats);

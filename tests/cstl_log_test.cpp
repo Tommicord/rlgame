@@ -121,10 +121,10 @@ TEST_F (CstlLogTest, ShutdownDrainsPendingMessages)
 
 TEST_F (CstlLogTest, DroppedCountStartsAtZero) { EXPECT_EQ (0u, R_CSTL_LogGetDroppedCount ()); }
 
-TEST_F (CstlLogTest, TraceGetConfigReturnsValidConfig)
+TEST_F (CstlLogTest, TraceGetSettingsReturnsValidSettings)
 {
-    const struct R_CSTL_TraceConfig* pConfig = R_CSTL_TraceGetConfig ();
-    ASSERT_NE (nullptr, pConfig);
+    const struct R_CSTL_TraceSettings* pSettings = R_CSTL_TraceGetSettings ();
+    ASSERT_NE (nullptr, pSettings);
 }
 
 TEST_F (CstlLogTest, TraceSetMinDuration)

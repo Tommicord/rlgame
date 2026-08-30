@@ -8,7 +8,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for descriptor set layout creation
+ * @brief Settingsuration parameters for descriptor set layout creation
  */
 struct R_CVulkan_DescriptorSetLayoutCreateInfo
 {
@@ -18,7 +18,7 @@ struct R_CVulkan_DescriptorSetLayoutCreateInfo
 };
 
 /**
- * @brief Configuration parameters for descriptor pool creation
+ * @brief Settingsuration parameters for descriptor pool creation
  */
 struct R_CVulkan_DescriptorPoolCreateInfo
 {

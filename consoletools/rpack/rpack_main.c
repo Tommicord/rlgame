@@ -15,36 +15,36 @@
 #include <math.h>
 
 static void
-R_Pack_LogConfigurationWarnings (const struct R_Pack_EncoderConfig* pConfig)
+R_Pack_LogSettingsurationWarnings (const struct R_Pack_EncoderSettings* pSettings)
 {
-    uint64_t atlasBytes = (uint64_t)pConfig->maxAtlasWidth * pConfig->maxAtlasHeight * 2;
+    uint64_t atlasBytes = (uint64_t)pSettings->maxAtlasWidth * pSettings->maxAtlasHeight * 2;
     if (atlasBytes > 32ULL * 1024ULL * 1024ULL)
     {
         R_CSTL_LOG_WARN (
             "Atlas limit is %ux%u (%.1f MiB); large images may exhaust the rpack heap",
-            pConfig->maxAtlasWidth,
-            pConfig->maxAtlasHeight,
+            pSettings->maxAtlasWidth,
+            pSettings->maxAtlasHeight,
             (double)atlasBytes / (1024.0 * 1024.0));
     }
-    if (pConfig->border != 0)
+    if (pSettings->border != 0)
     {
         R_CSTL_LOG_WARN (
             "Border size %u was requested but border pixels are not encoded yet",
-            pConfig->border);
+            pSettings->border);
     }
-    if (pConfig->powerOfTwo)
+    if (pSettings->powerOfTwo)
     {
         R_CSTL_LOG_WARN ("Power-of-two atlas sizing was requested but is not implemented yet");
     }
-    if (pConfig->enableRotation)
+    if (pSettings->enableRotation)
     {
         R_CSTL_LOG_WARN ("Texture rotation was requested but is not implemented yet");
     }
-    if (pConfig->alphaThreshold > 0.0f)
+    if (pSettings->alphaThreshold > 0.0f)
     {
         R_CSTL_LOG_WARN (
             "Alpha threshold %.3f was requested but alpha masking is not implemented yet",
-            pConfig->alphaThreshold);
+            pSettings->alphaThreshold);
     }
 }
 
@@ -80,7 +80,7 @@ static int
 R_Pack_ParseArguments (
     int                          argc,
     char**                       argv,
-    struct R_Pack_EncoderConfig* pConfig,
+    struct R_Pack_EncoderSettings* pSettings,
     char**                       ppOutputPath,
     struct R_CSTL_Array**        ppInputPaths,
     int*                         pVerbose,
@@ -97,18 +97,18 @@ R_Pack_ParseArguments (
     *pQuiet = 0;
     *pMipmap = 0;
 
-    if (pConfig)
+    if (pSettings)
     {
-        pConfig->maxAtlasWidth = R_PACK_DEFAULT_MAX_ATLAS_WIDTH;
-        pConfig->maxAtlasHeight = R_PACK_DEFAULT_MAX_ATLAS_HEIGHT;
-        pConfig->padding = R_PACK_DEFAULT_PADDING;
-        pConfig->border = R_PACK_DEFAULT_BORDER;
-        pConfig->similarityThreshold = R_PACK_DEFAULT_SIMILARITY_THRESHOLD;
-        pConfig->alphaThreshold = R_PACK_DEFAULT_ALPHA_THRESHOLD;
-        pConfig->workerCount = R_PACK_DEFAULT_WORKER_COUNT;
-        pConfig->maxTextures = R_PACK_DEFAULT_MAX_TEXTURES;
-        pConfig->powerOfTwo = R_PACK_DEFAULT_POWER_OF_TWO;
-        pConfig->enableRotation = R_PACK_DEFAULT_ENABLE_ROTATION;
+        pSettings->maxAtlasWidth = R_PACK_DEFAULT_MAX_ATLAS_WIDTH;
+        pSettings->maxAtlasHeight = R_PACK_DEFAULT_MAX_ATLAS_HEIGHT;
+        pSettings->padding = R_PACK_DEFAULT_PADDING;
+        pSettings->border = R_PACK_DEFAULT_BORDER;
+        pSettings->similarityThreshold = R_PACK_DEFAULT_SIMILARITY_THRESHOLD;
+        pSettings->alphaThreshold = R_PACK_DEFAULT_ALPHA_THRESHOLD;
+        pSettings->workerCount = R_PACK_DEFAULT_WORKER_COUNT;
+        pSettings->maxTextures = R_PACK_DEFAULT_MAX_TEXTURES;
+        pSettings->powerOfTwo = R_PACK_DEFAULT_POWER_OF_TWO;
+        pSettings->enableRotation = R_PACK_DEFAULT_ENABLE_ROTATION;
     }
     for (int i = 1; i < argc; ++i)
     {
@@ -133,9 +133,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --width requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->maxAtlasWidth = (uint32_t)atoi (argv[++i]);
+                pSettings->maxAtlasWidth = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-H") == 0 || strcmp (argv[i], "--height") == 0)
@@ -145,9 +145,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --height requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->maxAtlasHeight = (uint32_t)atoi (argv[++i]);
+                pSettings->maxAtlasHeight = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-p") == 0 || strcmp (argv[i], "--padding") == 0)
@@ -157,9 +157,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --padding requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->padding = (uint32_t)atoi (argv[++i]);
+                pSettings->padding = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-t") == 0 || strcmp (argv[i], "--threshold") == 0)
@@ -169,9 +169,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --threshold requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->similarityThreshold = (float)atof (argv[++i]);
+                pSettings->similarityThreshold = (float)atof (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-j") == 0 || strcmp (argv[i], "--workers") == 0)
@@ -181,9 +181,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --workers requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->workerCount = (uint32_t)atoi (argv[++i]);
+                pSettings->workerCount = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-b") == 0 || strcmp (argv[i], "--border") == 0)
@@ -193,9 +193,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --border requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->border = (uint32_t)atoi (argv[++i]);
+                pSettings->border = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "-v") == 0 || strcmp (argv[i], "--verbose") == 0)
@@ -208,16 +208,16 @@ R_Pack_ParseArguments (
         }
         else if (strcmp (argv[i], "--power-of-two") == 0)
         {
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->powerOfTwo = 1;
+                pSettings->powerOfTwo = 1;
             }
         }
         else if (strcmp (argv[i], "--rotate") == 0)
         {
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->enableRotation = 1;
+                pSettings->enableRotation = 1;
             }
         }
         else if (strcmp (argv[i], "--alpha-threshold") == 0)
@@ -227,9 +227,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --alpha-threshold requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->alphaThreshold = (float)atof (argv[++i]);
+                pSettings->alphaThreshold = (float)atof (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "--max-textures") == 0)
@@ -239,9 +239,9 @@ R_Pack_ParseArguments (
                 fprintf (stderr, "\033[1;31mError: --max-textures requires an argument\033[0m\n");
                 return -1;
             }
-            if (pConfig)
+            if (pSettings)
             {
-                pConfig->maxTextures = (uint32_t)atoi (argv[++i]);
+                pSettings->maxTextures = (uint32_t)atoi (argv[++i]);
             }
         }
         else if (strcmp (argv[i], "--mipmap") == 0)
@@ -303,7 +303,7 @@ main (int argc, char** argv)
         R_CSTL_HeapShutdown ();
         return EXIT_SUCCESS;
     }
-    struct R_Pack_EncoderConfig config = {0};
+    struct R_Pack_EncoderSettings config = {0};
     char*                       pOutputPath = NULL;
     struct R_CSTL_Array*        pInputPaths = NULL;
     struct R_Pack_Encoder*      pEncoder = NULL;
@@ -332,7 +332,7 @@ main (int argc, char** argv)
     }
     (void)quiet;
     R_CSTL_LOG_INFO ("Packing assets as RPACK");
-    R_Pack_LogConfigurationWarnings (&config);
+    R_Pack_LogSettingsurationWarnings (&config);
 
     pEncoder = R_Pack_NewEncoder (&config);
     if (!pEncoder)

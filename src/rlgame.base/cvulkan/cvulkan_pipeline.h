@@ -9,7 +9,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for pipeline layout creation
+ * @brief Settingsuration parameters for pipeline layout creation
  */
 struct R_CVulkan_PipelineLayoutCreateInfo
 {
@@ -21,7 +21,7 @@ struct R_CVulkan_PipelineLayoutCreateInfo
 };
 
 /**
- * @brief Configuration parameters for graphics pipeline creation
+ * @brief Settingsuration parameters for graphics pipeline creation
  */
 struct R_CVulkan_GraphicsPipelineCreateInfo
 {

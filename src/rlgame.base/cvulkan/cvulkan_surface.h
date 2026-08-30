@@ -35,7 +35,7 @@ enum R_CVulkan_LinuxBackend
 };
 
 /**
- * @brief Configuration parameters for surface creation
+ * @brief Settingsuration parameters for surface creation
  */
 struct R_CVulkan_SurfaceCreateInfo
 {

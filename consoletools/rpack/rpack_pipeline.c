@@ -15,7 +15,7 @@ static void
 R_Pack_LogImageWarnings (
     const char*                        pPath,
     const struct R_Pack_InputImage*    pImage,
-    const struct R_Pack_EncoderConfig* pConfig)
+    const struct R_Pack_EncoderSettings* pSettings)
 {
     uint64_t imageBytes = (uint64_t)pImage->width * pImage->height * 4;
     if (imageBytes > 16ULL * 1024ULL * 1024ULL)
@@ -27,15 +27,15 @@ R_Pack_LogImageWarnings (
             pImage->height,
             (double)imageBytes / (1024.0 * 1024.0));
     }
-    if (pImage->width > pConfig->maxAtlasWidth || pImage->height > pConfig->maxAtlasHeight)
+    if (pImage->width > pSettings->maxAtlasWidth || pImage->height > pSettings->maxAtlasHeight)
     {
         R_CSTL_LOG_WARN (
             "Image %s (%ux%u) exceeds the configured atlas limit %ux%u and will be skipped",
             pPath,
             pImage->width,
             pImage->height,
-            pConfig->maxAtlasWidth,
-            pConfig->maxAtlasHeight);
+            pSettings->maxAtlasWidth,
+            pSettings->maxAtlasHeight);
     }
 }
 
@@ -234,7 +234,7 @@ R_Pack_MakeVariantPath (const char* pOutputPath, uint32_t size, char** ppVariant
 
 R_PACK_API int
 R_Pack_EncodeMipmapVariants (
-    const struct R_Pack_EncoderConfig* pConfig,
+    const struct R_Pack_EncoderSettings* pSettings,
     const struct R_CSTL_Array*         pInputPaths,
     const char*                        pOutputPath)
 {
@@ -252,7 +252,7 @@ R_Pack_EncodeMipmapVariants (
             return -1;
         }
 
-        struct R_Pack_Encoder* pVariantEncoder = R_Pack_NewEncoder (pConfig);
+        struct R_Pack_Encoder* pVariantEncoder = R_Pack_NewEncoder (pSettings);
         if (!pVariantEncoder)
         {
             R_CSTL_LOG_ERROR (
@@ -267,7 +267,7 @@ R_Pack_EncodeMipmapVariants (
             pVariantEncoder,
             pInputPaths,
             mipmapSizes[i],
-            pConfig->workerCount);
+            pSettings->workerCount);
         if (successCount == 0 || R_Pack_EncodeAndWrite (pVariantEncoder, pVariantPath) != 0)
         {
             R_CSTL_LOG_WARN ("Mipmap level %ux%u was not generated", mipmapSizes[i], mipmapSizes[i]);

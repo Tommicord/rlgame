@@ -9,7 +9,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for image creation
+ * @brief Settingsuration parameters for image creation
  */
 struct R_CVulkan_ImageCreateInfo
 {

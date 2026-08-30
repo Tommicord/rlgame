@@ -17,7 +17,7 @@ struct R_CVulkan_DYRRenderPass
 };
 
 /**
- * @brief Configuration parameters for creating a fallback render pass from dynamic rendering info
+ * @brief Settingsuration parameters for creating a fallback render pass from dynamic rendering info
  */
 struct R_CVulkan_DYRRenderPassCreateInfo
 {

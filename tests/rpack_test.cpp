@@ -38,7 +38,7 @@ protected:
 
     static std::vector<uint8_t> Encode (R_Pack_OwnedImage* pImage, uint32_t maxTextures = 0)
     {
-        R_Pack_EncoderConfig config = {};
+        R_Pack_EncoderSettings config = {};
         config.maxAtlasWidth = 16;
         config.maxAtlasHeight = 16;
         config.padding = 1;
@@ -130,7 +130,7 @@ TEST_F (RPackTest, RejectsInvalidHeaderMagicAndOffsets)
 
 TEST_F (RPackTest, RejectsOverlappingTexturesAndDuplicateNames)
 {
-    R_Pack_EncoderConfig config = {};
+    R_Pack_EncoderSettings config = {};
     config.maxAtlasWidth = 16;
     config.maxAtlasHeight = 16;
     config.padding = 0;
@@ -169,7 +169,7 @@ TEST_F (RPackTest, ValidatorReportsCorruptPixelEntry)
 
 TEST_F (RPackTest, ValidatorRejectsOverlappingAtlasRectangles)
 {
-    R_Pack_EncoderConfig config = {};
+    R_Pack_EncoderSettings config = {};
     config.maxAtlasWidth = 16;
     config.maxAtlasHeight = 16;
     config.padding = 1;
@@ -195,7 +195,7 @@ TEST_F (RPackTest, ValidatorRejectsOverlappingAtlasRectangles)
 TEST_F (RPackTest, EnforcesTextureLimitAndOutputBufferSize)
 {
     R_Pack_OwnedImage image = MakeImage ("limited");
-    R_Pack_EncoderConfig config = {};
+    R_Pack_EncoderSettings config = {};
     config.maxAtlasWidth = 16;
     config.maxAtlasHeight = 16;
     config.maxTextures = 1;

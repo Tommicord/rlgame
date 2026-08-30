@@ -8,7 +8,7 @@
 struct R_CVulkan_Device;
 
 /**
- * @brief Configuration parameters for image view creation
+ * @brief Settingsuration parameters for image view creation
  */
 struct R_CVulkan_ImageViewCreateInfo
 {

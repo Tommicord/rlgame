@@ -36,7 +36,7 @@ enum R_Game_LinuxBackend
 };
 
 /**
- * @brief Configuration parameters for pipeline context creation
+ * @brief Settingsuration parameters for pipeline context creation
  */
 struct R_Game_PipelineContextCreateInfo
 {

@@ -28,7 +28,7 @@ class CvulkanDefragTest : public ::testing::Test
         {
         }
 
-        struct R_CVulkan_DefragConfig        config;
+        struct R_CVulkan_DefragSettings        config;
         struct R_CVulkan_DefragContext       context;
         struct R_CVulkan_DefragStats         stats;
         struct R_CVulkan_DefragBlockMetadata blockMetadata;
@@ -53,7 +53,7 @@ TEST_F (CvulkanDefragTest, MoveOperationEnumValues)
 }
 
 // Test config structure initialization
-TEST_F (CvulkanDefragTest, ConfigInitialization)
+TEST_F (CvulkanDefragTest, SettingsInitialization)
 {
     EXPECT_EQ (0, config.mergeFactor);
     EXPECT_EQ (0, config.maxBytesPerPass);
@@ -62,9 +62,9 @@ TEST_F (CvulkanDefragTest, ConfigInitialization)
 }
 
 // Test default config
-TEST_F (CvulkanDefragTest, DefaultConfig)
+TEST_F (CvulkanDefragTest, DefaultSettings)
 {
-    R_CVulkan_DefragSetDefaultConfig (&config);
+    R_CVulkan_DefragSetDefaultSettings (&config);
 
     // Check that default values are set to reasonable values
     EXPECT_GT (config.mergeFactor, 0);
@@ -341,7 +341,7 @@ TEST_F (CvulkanDefragTest, InitializeCleanup)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultConfig (&config);
+    R_CVulkan_DefragSetDefaultSettings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -372,7 +372,7 @@ TEST_F (CvulkanDefragTest, IsNeeded)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultConfig (&config);
+    R_CVulkan_DefragSetDefaultSettings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -406,7 +406,7 @@ TEST_F (CvulkanDefragTest, GetFragmentationLevel)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultConfig (&config);
+    R_CVulkan_DefragSetDefaultSettings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -440,7 +440,7 @@ TEST_F (CvulkanDefragTest, BeginEnd)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultConfig (&config);
+    R_CVulkan_DefragSetDefaultSettings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);

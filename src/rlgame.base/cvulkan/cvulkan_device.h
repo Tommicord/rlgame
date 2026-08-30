@@ -14,7 +14,7 @@ struct R_CVulkan_Surface;
 struct R_CVulkan_Instance;
 
 /**
- * @brief Configuration parameters for device creation
+ * @brief Settingsuration parameters for device creation
  * The instance must be created separately using R_CVulkan_NewInstance before creating a device.
  */
 struct R_CVulkan_DeviceCreateInfo

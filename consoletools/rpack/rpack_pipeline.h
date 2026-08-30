@@ -24,7 +24,7 @@ R_PACK_API int R_Pack_HasExtension (const char* pPath, const char* pExtension);
 R_PACK_API int R_Pack_MakeVariantPath (const char* pOutputPath, uint32_t size, char** ppVariantPath);
 
 R_PACK_API int R_Pack_EncodeMipmapVariants (
-    const struct R_Pack_EncoderConfig* pConfig,
+    const struct R_Pack_EncoderSettings* pSettings,
     const struct R_CSTL_Array*         pInputPaths,
     const char*                        pOutputPath);
 

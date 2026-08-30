@@ -19,7 +19,7 @@ struct R_CVulkan_Surface;
  */
 
 /**
- * @brief Configuration parameters for swapchain creation
+ * @brief Settingsuration parameters for swapchain creation
  */
 struct R_CVulkan_SwapchainCreateInfo
 {

@@ -43,7 +43,7 @@ function(link_wayland TARGET)
 
     pkg_check_modules(WAYLAND_PROTOCOLS_LIB wayland-protocols IMPORTED_TARGET)
     if(WAYLAND_PROTOCOLS_LIB_FOUND)
-      target_link_libraries(${TARGET} PRIVATE PkgConfig::WAYLAND_PROTOCOLS_LIB)
+      target_link_libraries(${TARGET} PRIVATE  PkgConfig::WAYLAND_PROTOCOLS_LIB)
     endif()
   endif()
 endfunction()

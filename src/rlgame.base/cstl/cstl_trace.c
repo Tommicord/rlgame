@@ -19,23 +19,23 @@
 #define R_CSTL_THREAD_LOCAL
 #endif
 
-static struct R_CSTL_TraceConfig g_traceConfig
+static struct R_CSTL_TraceSettings g_traceSettings
     = {.enableFunctionEntryExit = true,
        .enablePerformanceTiming = true,
        .minDurationMicroseconds = true,
        .enableCallDepthIndentation = true};
 static R_CSTL_THREAD_LOCAL int g_traceCallDepth = 0;
 
-R_CSTL_API const struct R_CSTL_TraceConfig*
-R_CSTL_TraceGetConfig (void)
+R_CSTL_API const struct R_CSTL_TraceSettings*
+R_CSTL_TraceGetSettings (void)
 {
-    return &g_traceConfig;
+    return &g_traceSettings;
 }
 
 R_CSTL_API void
 R_CSTL_TraceSetMinDuration (uint64_t microseconds)
 {
-    g_traceConfig.minDurationMicroseconds = microseconds;
+    g_traceSettings.minDurationMicroseconds = microseconds;
 }
 
 #define R_CSTL_TRACE_MICROTIME (1000)
@@ -76,14 +76,14 @@ R_CSTL_TraceGetTimestamp (void)
 R_CSTL_API void
 R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint32_t lineNumber)
 {
-    if (!g_traceConfig.enableFunctionEntryExit)
+    if (!g_traceSettings.enableFunctionEntryExit)
     {
         return;
     }
     const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
     R_CSTL_LOG_TRACE ("  Enter: %s (%s:%u)", functionName, shortFileName, lineNumber);
 
-    if (g_traceConfig.enableCallDepthIndentation)
+    if (g_traceSettings.enableCallDepthIndentation)
     {
         g_traceCallDepth++;
     }
@@ -96,23 +96,23 @@ R_CSTL_TraceFunctionExit (
     uint32_t    lineNumber,
     uint64_t    durationMicroseconds)
 {
-    if (!g_traceConfig.enableFunctionEntryExit)
+    if (!g_traceSettings.enableFunctionEntryExit)
     {
         return;
     }
 
-    if (g_traceConfig.enablePerformanceTiming && durationMicroseconds < g_traceConfig.minDurationMicroseconds)
+    if (g_traceSettings.enablePerformanceTiming && durationMicroseconds < g_traceSettings.minDurationMicroseconds)
     {
         return;
     }
 
-    if (g_traceConfig.enableCallDepthIndentation && g_traceCallDepth > 0)
+    if (g_traceSettings.enableCallDepthIndentation && g_traceCallDepth > 0)
     {
         g_traceCallDepth--;
     }
 
     const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
-    if (g_traceConfig.enablePerformanceTiming)
+    if (g_traceSettings.enablePerformanceTiming)
     {
         if (durationMicroseconds < R_CSTL_TRACE_MICROTIME)
         {

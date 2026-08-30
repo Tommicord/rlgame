@@ -58,7 +58,6 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 PointerAlignment: Left
 SpaceInEmptyParentheses: false
-SpacesInAngles: false
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false

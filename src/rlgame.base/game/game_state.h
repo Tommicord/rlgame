@@ -46,7 +46,7 @@ enum R_Game_LinuxBackend
 };
 
 /**
- * @brief Configuration parameters for game state initialization
+ * @brief Settingsuration parameters for game state initialization
  */
 struct R_GameStateCreateInfo
 {

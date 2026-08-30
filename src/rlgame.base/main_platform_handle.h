@@ -573,7 +573,7 @@ R_ENTRY_API xcb_connection_t* R_XCBWindowGetConnection (R_XCBWindow window);
  * @param pWidth Output pointer for width (can be NULL)
  * @param pHeight Output pointer for height (can be NULL)
  */
-R_ENTRY_API void R_WaylandWindowWaitForConfig (R_WaylandWindow window, int* pWidth, int* pHeight);
+R_ENTRY_API void R_WaylandWindowWaitForSettings (R_WaylandWindow window, int* pWidth, int* pHeight);
 
 /**
  * @brief Destroys the Wayland window
