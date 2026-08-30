@@ -78,8 +78,7 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
             || pEntry->atlasOffsetY > pHeader->atlasHeight
             || pEntry->height > pHeader->atlasHeight - pEntry->atlasOffsetY
             || pEntry->colorTableIndex >= pHeader->colorTableSize
-            || pEntry->pixelIndexTableOffset > pHeader->pixelIndexTableSize
-            || texturePixels > pHeader->pixelIndexTableSize - pEntry->pixelIndexTableOffset)
+            || pEntry->pixelIndexTableOffset > pHeader->pixelIndexTableSize)
         {
             return R_Pack_ValidationFail (
                 pReport,
@@ -120,7 +119,10 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
             }
         }
 
-        for (uint64_t j = 0; j < texturePixels; ++j)
+        // Validate RLE pixel index entries
+        uint64_t totalPixelsCovered = 0;
+        uint64_t j = 0;
+        while (totalPixelsCovered < texturePixels && pEntry->pixelIndexTableOffset + j < pHeader->pixelIndexTableSize)
         {
             uint64_t                             pixelIndex = pEntry->pixelIndexTableOffset + j;
             const struct R_Pack_PixelIndexEntry* pPixel = &pPixels[pixelIndex];
@@ -135,8 +137,24 @@ R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pac
                     i,
                     j);
             }
-            (void)pColors;
+            
+            uint64_t pixelsInRun = (uint64_t)pPixel->runWidth * pPixel->runHeight;
+            totalPixelsCovered += pixelsInRun;
+            j++;
         }
+        
+        // Check if RLE entries covered all pixels
+        if (totalPixelsCovered != texturePixels)
+        {
+            return R_Pack_ValidationFail (
+                pReport,
+                R_PACK_ERROR_INVALID_DATA,
+                pHeader->pixelIndexTableOffset + pEntry->pixelIndexTableOffset * sizeof (struct R_Pack_PixelIndexEntry),
+                i,
+                0);
+        }
+        
+        (void)pColors;
     }
 
     return 1;

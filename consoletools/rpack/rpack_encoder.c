@@ -22,9 +22,7 @@ static const struct R_Pack_EncoderSettings s_defaultEncoderSettings
        .similarityThreshold = R_PACK_DEFAULT_SIMILARITY_THRESHOLD,
        .alphaThreshold = 0.0f,
        .workerCount = R_PACK_DEFAULT_WORKER_COUNT,
-       .maxTextures = 0,
-       .powerOfTwo = 0,
-       .enableRotation = 0};
+       .maxTextures = 0};
 
 static uint32_t
 R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v);
@@ -48,24 +46,38 @@ R_Pack_ProcessPixelRowWorker (void* pData)
 
     for (uint32_t y = pTask->startY; y < pTask->endY; ++y)
     {
-        for (uint32_t x = 0; x < pTask->pImage->width; ++x)
+        uint32_t x = 0;
+        while (x < pTask->pImage->width)
         {
-            uint32_t pixelIndex = y * pTask->pImage->stride + x * 4;
-            uint8_t r = pTask->pImage->pPixels[pixelIndex];
-            uint8_t g = pTask->pImage->pPixels[pixelIndex + 1];
-            uint8_t b = pTask->pImage->pPixels[pixelIndex + 2];
-            uint8_t a = pTask->pImage->pPixels[pixelIndex + 3];
-
+            const uint8_t* pCurrentPixel = pTask->pImage->pPixels + y * pTask->pImage->stride + x * 4;
+            uint8_t r = pCurrentPixel[0];
+            uint8_t g = pCurrentPixel[1];
+            uint8_t b = pCurrentPixel[2];
+            
             uint8_t yuvY, yuvYExp, yuvU, yuvV;
             R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
-
+            
             uint32_t colorIndex = R_Pack_FindOrAddColor (pTask->pEncoder, yuvY, yuvYExp, yuvU, yuvV);
             if (colorIndex == UINT32_MAX)
             {
                 *pTask->pOutError = 1;
                 return;
             }
-
+            
+            uint32_t runWidth = 1;
+            while (x + runWidth < pTask->pImage->width && runWidth < 63)
+            {
+                const uint8_t* pNextPixel = pTask->pImage->pPixels + y * pTask->pImage->stride + (x + runWidth) * 4;
+                if (pNextPixel[0] == r && pNextPixel[1] == g && pNextPixel[2] == b)
+                {
+                    runWidth++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
             R_CSTL_MutexLock (pTask->pEncoder->pMutex);
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
@@ -89,13 +101,15 @@ R_Pack_ProcessPixelRowWorker (void* pData)
                 = &pTask->pEncoder->pPixelIndexTable[pTask->pEncoder->pixelIndexTableCount];
             pPixelEntry->colorIndex = (uint16_t)colorIndex;
             pPixelEntry->exponent = 1;
-            pPixelEntry->runWidth = 1;
+            pPixelEntry->runWidth = (uint8_t)runWidth;
             pPixelEntry->runHeight = 1;
 
             R_CSTL_MutexLock (pTask->pEncoder->pMutex);
             pTask->pEncoder->pixelIndexTableCount++;
             R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
-            pixelCount++;
+
+            pixelCount += runWidth;
+            x += runWidth;
         }
     }
 
@@ -459,66 +473,69 @@ static enum R_Pack_Error
 R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     R_PACK_ASSERT (pEncoder);
-    const uint32_t BATCH_SIZE = 256;
-    uint32_t pixelCount = pImage->width * pImage->height;
-
-    uint64_t requiredCapacity = pEncoder->pixelIndexTableCount + pixelCount;
-    if (requiredCapacity > pEncoder->pixelIndexTableCapacity)
+    
+    uint32_t x = 0;
+    uint32_t y = 0;
+    
+    while (y < pImage->height)
     {
-        uint32_t newCapacity = pEncoder->pixelIndexTableCapacity;
-        while (newCapacity < requiredCapacity && newCapacity < UINT32_MAX / 2)
-        {
-            newCapacity = newCapacity * 2;
-        }
+        const uint8_t* pCurrentPixel = pImage->pPixels + y * pImage->stride + x * 4;
+        uint8_t r = pCurrentPixel[0];
+        uint8_t g = pCurrentPixel[1];
+        uint8_t b = pCurrentPixel[2];
         
-        R_CSTL_MutexLock (pEncoder->pMutex);
-        if (newCapacity > pEncoder->pixelIndexTableCapacity)
+        uint8_t yuvY, yuvYExp, yuvU, yuvV;
+        R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
+        
+        uint32_t colorIndex = R_Pack_FindOrAddColor (pEncoder, yuvY, yuvYExp, yuvU, yuvV);
+        if (colorIndex == UINT32_MAX)
         {
+            return R_PACK_ERROR_OUT_OF_MEMORY;
+        }
+        uint32_t runWidth = 1;
+        while (x + runWidth < pImage->width && runWidth < 63)
+        {
+            const uint8_t* pNextPixel = pImage->pPixels + y * pImage->stride + (x + runWidth) * 4;
+            if (pNextPixel[0] == r && pNextPixel[1] == g && pNextPixel[2] == b)
+            {
+                runWidth++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        uint32_t runHeight = 1;
+        if (pEncoder->pixelIndexTableCount >= pEncoder->pixelIndexTableCapacity)
+        {
+            const uint32_t newCapacity = pEncoder->pixelIndexTableCapacity * 2;
             struct R_Pack_PixelIndexEntry* pNewTable
                 = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
                     pEncoder->pPixelIndexTable,
                     newCapacity * sizeof (struct R_Pack_PixelIndexEntry));
             if (!pNewTable)
             {
-                R_CSTL_MutexUnlock (pEncoder->pMutex);
                 return R_PACK_ERROR_OUT_OF_MEMORY;
             }
             pEncoder->pPixelIndexTable = pNewTable;
             pEncoder->pixelIndexTableCapacity = newCapacity;
         }
-        R_CSTL_MutexUnlock (pEncoder->pMutex);
-    }
-    for (uint32_t y = 0; y < pImage->height; ++y)
-    {
-        const uint8_t* pRowStart = pImage->pPixels + y * pImage->stride;
-        for (uint32_t x = 0; x < pImage->width; ++x)
+        struct R_Pack_PixelIndexEntry* pPixelEntry
+            = &pEncoder->pPixelIndexTable[pEncoder->pixelIndexTableCount];
+        pPixelEntry->colorIndex = (uint16_t)colorIndex;
+        pPixelEntry->exponent = 1;
+        pPixelEntry->runWidth = (uint8_t)runWidth;
+        pPixelEntry->runHeight = 1;
+        pEncoder->pixelIndexTableCount++;
+        
+        x += runWidth;
+        if (x >= pImage->width)
         {
-            const uint8_t* pPixel = pRowStart + x * 4;
-            uint8_t r = pPixel[0];
-            uint8_t g = pPixel[1];
-            uint8_t b = pPixel[2];
-            // Alpha is not used in color conversion but kept for potential future use
-            uint8_t yuvY, yuvYExp, yuvU, yuvV;
-            R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
-
-            uint32_t colorIndex = R_Pack_FindOrAddColor (pEncoder, yuvY, yuvYExp, yuvU, yuvV);
-            if (colorIndex == UINT32_MAX)
-            {
-                return R_PACK_ERROR_OUT_OF_MEMORY;
-            }
-
-            struct R_Pack_PixelIndexEntry* pPixelEntry
-                = &pEncoder->pPixelIndexTable[pEncoder->pixelIndexTableCount];
-            pPixelEntry->colorIndex = (uint16_t)colorIndex;
-            pPixelEntry->exponent = 1;
-            pPixelEntry->runWidth = 1;
-            pPixelEntry->runHeight = 1;
-
-            R_CSTL_MutexLock (pEncoder->pMutex);
-            pEncoder->pixelIndexTableCount++;
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
+            x = 0;
+            y++;
         }
     }
+    
     return R_PACK_OK;
 }
 
@@ -735,18 +752,14 @@ R_Pack_EncoderEncode (
     {
         *pBytesWritten = offset;
     }
-
     memcpy (pOutputBuffer, pEncoder->pHeader, sizeof (struct R_Pack_Header));
-
     return R_PACK_OK;
 }
 
 uint32_t
 R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder)
 {
-    if (!pEncoder || !pEncoder->pHeader)
-    {
-        return 0;
-    }
+    R_PACK_ASSERT(pEncoder);
+    R_PACK_ASSERT(pEncoder->pHeader);
     return pEncoder->pHeader->textureCount;
 }

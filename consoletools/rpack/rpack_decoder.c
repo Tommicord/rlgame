@@ -187,45 +187,61 @@ R_Pack_DecoderDecodeTexture (
     const struct R_Pack_ColorEntry* pColorTable = pDecoder->pColorTable;
     const struct R_Pack_PixelIndexEntry* pPixelIndexTable = pDecoder->pPixelIndexTable;
 
-    // Process pixels in scanline order for better cache locality
-    for (uint32_t y = 0; y < pEntry->height; ++y)
+    // Process RLE-encoded pixel index table (horizontal-only RLE)
+    uint32_t currentX = 0;
+    uint32_t currentY = 0;
+    uint32_t tableIndex = 0;
+    
+    while (currentY < pEntry->height && tableIndex < pDecoder->pHeader->pixelIndexTableSize)
     {
-        uint32_t rowOffset = y * pEntry->width;
-        uint8_t* pRowOutput = pOutputBuffer + rowOffset * 4;
-        
-        for (uint32_t x = 0; x < pEntry->width; ++x)
+        if (startIndex + tableIndex >= pDecoder->pHeader->pixelIndexTableSize)
         {
-            uint32_t pixelIndex = rowOffset + x;
-            
-            if (startIndex + pixelIndex >= pDecoder->pHeader->pixelIndexTableSize)
-            {
-                return R_PACK_ERROR_INVALID_DATA;
-            }
-
-            const struct R_Pack_PixelIndexEntry* pPixelEntry = &pPixelIndexTable[startIndex + pixelIndex];
-            if (pPixelEntry->colorIndex >= pDecoder->pHeader->colorTableSize)
-            {
-                return R_PACK_ERROR_INVALID_DATA;
-            }
-
-            const struct R_Pack_ColorEntry* pColorEntry = &pColorTable[pPixelEntry->colorIndex];
-
-            uint8_t r, g, b;
-            R_Pack_YUVToRGBA (
-                pColorEntry->luminance,
-                pColorEntry->luminanceExp,
-                pColorEntry->chrominanceU,
-                pColorEntry->chrominanceV,
-                &r,
-                &g,
-                &b);
-
-            uint8_t* pOutputPixel = pRowOutput + x * 4;
-            pOutputPixel[0] = r;
-            pOutputPixel[1] = g;
-            pOutputPixel[2] = b;
-            pOutputPixel[3] = 255;
+            return R_PACK_ERROR_INVALID_DATA;
         }
+
+        const struct R_Pack_PixelIndexEntry* pPixelEntry = &pPixelIndexTable[startIndex + tableIndex];
+        if (pPixelEntry->colorIndex >= pDecoder->pHeader->colorTableSize)
+        {
+            return R_PACK_ERROR_INVALID_DATA;
+        }
+
+        const struct R_Pack_ColorEntry* pColorEntry = &pColorTable[pPixelEntry->colorIndex];
+
+        uint8_t r, g, b;
+        R_Pack_YUVToRGBA (
+            pColorEntry->luminance,
+            pColorEntry->luminanceExp,
+            pColorEntry->chrominanceU,
+            pColorEntry->chrominanceV,
+            &r,
+            &g,
+            &b);
+        
+        // Expand horizontal RLE run
+        uint32_t runWidth = pPixelEntry->runWidth;
+        
+        for (uint32_t rx = 0; rx < runWidth && currentX + rx < pEntry->width; ++rx)
+        {
+            uint32_t outputX = currentX + rx;
+            uint32_t outputIndex = (currentY * pEntry->width + outputX) * 4;
+            
+            pOutputBuffer[outputIndex + 0] = r;
+            pOutputBuffer[outputIndex + 1] = g;
+            pOutputBuffer[outputIndex + 2] = b;
+            pOutputBuffer[outputIndex + 3] = 255;
+        }
+        
+        // Advance position
+        currentX += runWidth;
+        
+        // Move to next row if we reached the end of current row
+        if (currentX >= pEntry->width)
+        {
+            currentX = 0;
+            currentY++;
+        }
+        
+        tableIndex++;
     }
 
     if (pBytesWritten)
