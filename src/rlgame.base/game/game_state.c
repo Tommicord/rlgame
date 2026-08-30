@@ -53,8 +53,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
         R_Game_PipelineContextDelete (&pState->context);
         return R_CVULKAN_ERROR_FAILED;
     }
-
-    R_CSTL_LOG_INFO ("GameState: Initialized successfully");
+    R_CSTL_LOG_INFO ("GameState: Initialized");
     return R_CVULKAN_OK;
 }
 R_GAME_API void
@@ -98,6 +97,5 @@ R_GameState_RenderFrame (struct R_GameState* pState)
     {
         return R_GAME_ERROR_FAILED;
     }
-
     return R_GAME_OK;
 }

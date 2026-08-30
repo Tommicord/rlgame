@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "rlgame.base/consoletools/microbit/microbit_spirv_parser.h"
+#include "microbit/microbit_spirv_parser.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 }
 
 namespace {
 
-constexpr size_t kTestHeapSize = 256 * 1024;
+constexpr size_t kTestHeapSize = 4 * 1024 * 1024;
 
 class MicrobitSpirvParserDecorationsTest : public ::testing::Test {
 protected:

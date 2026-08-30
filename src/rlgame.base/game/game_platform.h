@@ -16,15 +16,10 @@
 
 #if defined(R_CVULKAN_DEBUG)
 #include <assert.h>
-#define R_GAME_CVULKAN_ASSERT(condition)        assert (condition)
-#define R_GAME_CVULKAN_ALWAYS_ASSERT(condition) assert (condition)
+#define R_GAME_ASSERT(condition)        assert (condition)
 #else
-#define R_GAME_CVULKAN_ASSERT(condition)        ((void)0)
-#define R_GAME_CVULKAN_ALWAYS_ASSERT(condition) ((void)0)
+#define R_GAME_ASSERT(condition)        ((void)0)
 #endif
-
-#define R_GAME_DEBUG_FIELD
-#define R_GAME_ASSERT(condition) ((void)0)
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -151,15 +146,3 @@ R_GAME_API const char* R_GameErrorToString (enum R_GameError error);
 #define R_GAME_RENDERER_LAYER_FLAG_ENABLED            0x01
 #define R_GAME_RENDERER_LAYER_FLAG_TRANSPARENT        0x02
 #define R_GAME_RENDERER_LAYER_FLAG_POST_PROCESS       0x04
-
-#define R_GAME_VALIDATE_PARAM(Data)                                                                          \
-    do                                                                                                       \
-    {                                                                                                        \
-        R_GAME_ASSERT (Data);                                                                                \
-    } while (0)
-
-#define R_GAME_VALIDATE_PARAM_BOOTED(Data)                                                                   \
-    do                                                                                                       \
-    {                                                                                                        \
-        R_GAME_ASSERT (Data);                                                                                \
-    } while (0)

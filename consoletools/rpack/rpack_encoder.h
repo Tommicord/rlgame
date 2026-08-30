@@ -40,7 +40,7 @@ struct R_Pack_EncoderConfig
         uint32_t padding; /**< Padding between textures (default: R_PACK_DEFAULT_PADDING) */
         uint32_t border; /**< Border size around textures (default: R_PACK_DEFAULT_BORDER) */
         float    similarityThreshold; /**< Color similarity threshold (default:
-                          R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
+                    R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
         float alphaThreshold; /**< Alpha threshold for transparency (default:
                                  R_PACK_DEFAULT_ALPHA_THRESHOLD) */
         uint32_t workerCount; /**< Number of worker threads (default: R_PACK_DEFAULT_WORKER_COUNT =

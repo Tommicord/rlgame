@@ -117,17 +117,6 @@ if(CUDA_FOUND)
   target_link_libraries(rlgame.base.rpack PUBLIC CUDA::CUDA)
 endif()
 
-add_library(rlgame.microbit SHARED ${MICROBIT_SOURCES} ${MICROBIT_HEADERS})
-set_common_output_directories(rlgame.microbit)
-set_base_include_directories(rlgame.microbit)
-target_compile_definitions(rlgame.microbit PUBLIC $<$<CONFIG:Debug>:R_CSTL_HEAP_DEBUG> R_MICROBIT_BUILDING_DLL)
-
-target_link_libraries(
-  rlgame.microbit
-  PUBLIC
-  rlgame.base.cstl
-)
-
 add_library(rlgame.client.render SHARED ${CLIENT_RENDER_SOURCES} ${CLIENT_RENDER_HEADERS})
 set_common_output_directories(rlgame.client.render)
 set_base_include_directories(rlgame.client.render)

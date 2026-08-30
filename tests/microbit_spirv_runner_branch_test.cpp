@@ -8,7 +8,7 @@ extern "C" {
 
 namespace {
 
-constexpr size_t kTestHeapSize = 256 * 1024;
+constexpr size_t kTestHeapSize = 4 * 1024 * 1024;
 
 class MicrobitSpirvRunnerBranchTest : public ::testing::Test {
 protected:

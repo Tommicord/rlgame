@@ -141,7 +141,6 @@ R_DetectVulkanCapabilities (struct R_Capabilities* pCapabilities)
     // - Dedicated GPU (not integrated)
     // - Recent driver version
     // - Good feature support
-
     bool isDiscrete = (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
     bool isIntegrated = (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU);
 

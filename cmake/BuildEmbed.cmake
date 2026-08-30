@@ -84,6 +84,13 @@ set(SHADERS
   src/rlgame.shader/test_triangle.vert
   src/rlgame.shader/test_triangle3d.frag
   src/rlgame.shader/test_triangle3d.vert
+  src/rlgame.shader/test_compute.vert
+  src/rlgame.shader/test_compute.comp
+  src/rlgame.shader/test_mesh.vert
+  src/rlgame.shader/test_pbr.frag
+  src/rlgame.shader/test_geometry.geom
+  src/rlgame.shader/test_tess.tesc
+  src/rlgame.shader/test_tess.tese
 )
 
 file(GLOB KERNEL_CUDA_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/rlgame.compsrc/*.cu")

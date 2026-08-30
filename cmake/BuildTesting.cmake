@@ -20,15 +20,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     ${CMAKE_CURRENT_SOURCE_DIR}/deps/stb
   )
 
-  target_link_libraries(
-    rlgame_test
-    PRIVATE
-    GTest::gtest_main
-    rlgame.base.cstl
-    rlgame.base.cvulkan
-    rlgame.base.rpack
-    rlgame.microbit
-  )
+  link_base_libraries(rlgame_test)
   target_compile_definitions(rlgame_test PRIVATE R_CSTL_HEAP_DEBUG)
 
   set_common_output_directories(rlgame_test)
@@ -55,8 +47,6 @@ target_link_libraries(
   PRIVATE
   benchmark::benchmark
   benchmark::benchmark_main
-  rlgame.base.cstl
-  rlgame.base.cvulkan
 )
-
+link_base_libraries(rlgame_bench)
 set_common_output_directories(rlgame_bench)

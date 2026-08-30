@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #include "rlgame.base/game/game_platform.h"
-#include "rlgame.base/game/game_cvulkan_pipeline.h"
+#include "rlgame.base/game/game_pipeline.h"
 #include "rlgame.base/cstl/cstl_stack.h"
 
 typedef void (*R_GameLifecycleConstruct) (

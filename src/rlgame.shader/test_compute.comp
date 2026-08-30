@@ -1,0 +1,41 @@
+#version 450
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0, rgba32f) uniform image2D outputImage;
+layout(set = 0, binding = 1) uniform sampler2D inputSampler;
+layout(set = 0, binding = 2) uniform texture2D inputTexture;
+
+layout(push_constant) uniform PushConstants {
+    vec2 resolution;
+    float time;
+    int mode;
+} pc;
+
+void main() {
+    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 dims = imageSize(outputImage);
+    
+    if (pixelCoords.x >= dims.x || pixelCoords.y >= dims.y) {
+        return;
+    }
+    
+    vec2 uv = vec2(pixelCoords) / pc.resolution;
+    vec4 color = vec4(0.0);
+    
+    if (pc.mode == 0) {
+        // Simple gradient
+        color = vec4(uv.x, uv.y, 0.5 + 0.5 * sin(pc.time), 1.0);
+    } else if (pc.mode == 1) {
+        // Checkerboard pattern
+        float checker = mod(floor(uv.x * 16.0) + floor(uv.y * 16.0), 2.0);
+        color = vec4(vec3(checker), 1.0);
+    } else if (pc.mode == 2) {
+        // Circular wave
+        float dist = length(uv - 0.5);
+        float wave = sin(dist * 50.0 - pc.time * 5.0) * 0.5 + 0.5;
+        color = vec4(wave, wave * 0.5, wave * 0.25, 1.0);
+    }
+    
+    imageStore(outputImage, pixelCoords, color);
+}

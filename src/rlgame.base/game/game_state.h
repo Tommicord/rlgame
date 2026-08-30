@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.h>
 
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
-#include "rlgame.base/game/game_cvulkan_pipeline.h"
+#include "rlgame.base/game/game_pipeline.h"
 #include "rlgame.base/game/game_platform.h"
 #include "rlgame.base/game/game_renderer_subsystem.h"
 

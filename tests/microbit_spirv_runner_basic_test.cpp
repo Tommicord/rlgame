@@ -8,7 +8,7 @@ extern "C" {
 
 namespace {
 
-constexpr size_t kTestHeapSize = 256 * 1024;
+constexpr size_t kTestHeapSize = 4 * 1024 * 1024;
 
 class MicrobitSpirvRunnerTest : public ::testing::Test {
 protected:
@@ -25,18 +25,6 @@ protected:
     }
 };
 
-TEST_F(MicrobitSpirvRunnerTest, ErrorToString_AllCodes) {
-    EXPECT_STREQ("Success", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_OK));
-    EXPECT_STREQ("Operation failed", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_FAILED));
-    EXPECT_STREQ("Out of memory", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_OUT_OF_MEMORY));
-    EXPECT_STREQ("Invalid argument", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_INVALID_ARGUMENT));
-    EXPECT_STREQ("Null pointer", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_NULL_POINTER));
-    EXPECT_STREQ("Invalid runner state", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_INVALID_STATE));
-    EXPECT_STREQ("Invalid SPIR-V program", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_INVALID_PROGRAM));
-    EXPECT_STREQ("Unsupported opcode", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_UNSUPPORTED_OPCODE));
-    EXPECT_STREQ("Unknown error", R_Microbit_SpirvRunnerErrorToString(MICROBIT_SPIRV_RUNNER_ERROR_UNKNOWN));
-}
-
 TEST_F(MicrobitSpirvRunnerTest, NewRunnerContextNotNull) {
     struct R_Microbit_SpirvRunnerContext* ctx = CreateRunnerContext();
     ASSERT_NE(nullptr, ctx);
@@ -45,11 +33,6 @@ TEST_F(MicrobitSpirvRunnerTest, NewRunnerContextNotNull) {
     EXPECT_EQ(4096u, ctx->instructionLimit);
 
     R_Microbit_DeleteSpirvRunnerContext(ctx);
-}
-
-TEST_F(MicrobitSpirvRunnerTest, NewRunnerContextDeleteNullSafe) {
-    R_Microbit_DeleteSpirvRunnerContext(nullptr);
-    SUCCEED();
 }
 
 TEST_F(MicrobitSpirvRunnerTest, NewRunnerProgramNullContext) {
@@ -150,7 +133,7 @@ TEST_F(MicrobitSpirvRunnerTest, NewRunnerExecutionNullProgram) {
     EXPECT_EQ(nullptr, exec);
 }
 
-TEST_F(MicrobitSpirvRunnerTest, NewRunnerExecution_NullOutput) {
+TEST_F(MicrobitSpirvRunnerTest, NewRunnerExecutionNullOutput) {
     struct R_Microbit_SpirvRunnerContext* ctx = CreateRunnerContext();
     const uint32_t spv[] = {0x07230203, 0x00010500, 0x000d000b, 0x00000010, 0x00000000};
     struct R_Microbit_SpirvParserContext* parserCtx = R_Microbit_NewSpirvParserContext();

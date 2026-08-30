@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "rlgame.base/consoletools/microbit/microbit_spirv_parser.h"
+#include "microbit/microbit_spirv_parser.h"
 #include "rlgame.base/cstl/cstl_heap_allocator.h"
 }
 
 namespace {
 
-constexpr size_t kTestHeapSize = 256 * 1024;
+constexpr size_t kTestHeapSize = 4 * 1024 * 1024;
 
 class MicrobitSpirvParserEntryPointTest : public ::testing::Test {
 protected:
@@ -55,7 +55,7 @@ TEST_F(MicrobitSpirvParserEntryPointTest, EntryPoint_Vertex) {
     };
     struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 35);
 
-    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_SpirvParserProgramCreateEntryPoint(prog);
+    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_NewSpirvParserProgramEntryPoint(prog);
     ASSERT_NE(nullptr, ep);
     ep->execModel = MICROBIT_SPIRV_EXECUTION_MODEL_VERTEX;
     ep->id = 0x11;
@@ -77,7 +77,7 @@ TEST_F(MicrobitSpirvParserEntryPointTest, EntryPoint_Fragment) {
     };
     struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 7);
 
-    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_SpirvParserProgramCreateEntryPoint(prog);
+    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_NewSpirvParserProgramEntryPoint(prog);
     ASSERT_NE(nullptr, ep);
     ep->execModel = MICROBIT_SPIRV_EXECUTION_MODEL_FRAGMENT;
     ep->id = 0x10;
@@ -98,7 +98,7 @@ TEST_F(MicrobitSpirvParserEntryPointTest, EntryPoint_Compute) {
     };
     struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 7);
 
-    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_SpirvParserProgramCreateEntryPoint(prog);
+    struct R_Microbit_SpirvParserEntryPoint* ep = R_Microbit_NewSpirvParserProgramEntryPoint(prog);
     ASSERT_NE(nullptr, ep);
     ep->execModel = MICROBIT_SPIRV_EXECUTION_MODEL_GL_COMPUTE;
     ep->id = 0x20;
@@ -124,13 +124,13 @@ TEST_F(MicrobitSpirvParserEntryPointTest, MultipleEntryPoints) {
     };
     struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 7);
 
-    struct R_Microbit_SpirvParserEntryPoint* ep1 = R_Microbit_SpirvParserProgramCreateEntryPoint(prog);
+    struct R_Microbit_SpirvParserEntryPoint* ep1 = R_Microbit_NewSpirvParserProgramEntryPoint(prog);
     ASSERT_NE(nullptr, ep1);
     ep1->execModel = MICROBIT_SPIRV_EXECUTION_MODEL_VERTEX;
     ep1->id = 0x10;
     ep1->name = strdup("vert_main");
 
-    struct R_Microbit_SpirvParserEntryPoint* ep2 = R_Microbit_SpirvParserProgramCreateEntryPoint(prog);
+    struct R_Microbit_SpirvParserEntryPoint* ep2 = R_Microbit_NewSpirvParserProgramEntryPoint(prog);
     ASSERT_NE(nullptr, ep2);
     ep2->execModel = MICROBIT_SPIRV_EXECUTION_MODEL_FRAGMENT;
     ep2->id = 0x20;

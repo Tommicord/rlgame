@@ -1023,7 +1023,7 @@ R_GAME_API int
 R_GameRenderer_SubsystemStart (struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
 
     if (pSubsystem->pPipelineContext == NULL)
     {
@@ -1042,7 +1042,7 @@ R_GAME_API int
 R_GameRenderer_SubsystemStop (struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
 
     R_GameRenderer_WaitForFrame (pSubsystem);
 
@@ -1056,7 +1056,7 @@ R_GAME_API int
 R_GameRenderer_SubsystemPause (struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
 
     if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
     {
@@ -1075,7 +1075,7 @@ R_GAME_API int
 R_GameRenderer_SubsystemResume (struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
 
     if (pSubsystem->state != R_GAME_RENDERER_STATE_PAUSED)
     {
@@ -1093,8 +1093,8 @@ R_GameRenderer_SubsystemResume (struct R_GameRendererSubsystem* pSubsystem)
 R_GAME_API int
 R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pSubsystem->pPipelineContext);
 
     if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
     {
@@ -1122,8 +1122,8 @@ R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem)
 R_GAME_API int
 R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pSubsystem->pPipelineContext);
 
     if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
     {
@@ -1204,8 +1204,8 @@ R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem)
 R_GAME_API int
 R_GameRenderer_EndFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pSubsystem->pPipelineContext);
 
     if (pSubsystem->state != R_GAME_RENDERER_STATE_RUNNING)
     {
@@ -1248,8 +1248,8 @@ R_GameRenderer_EndFrame (struct R_GameRendererSubsystem* pSubsystem)
 R_GAME_API int
 R_GameRenderer_WaitForFrame (struct R_GameRendererSubsystem* pSubsystem)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pSubsystem->pPipelineContext);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pSubsystem->pPipelineContext);
 
     struct R_Game_PipelineContext* pPipelineContext = pSubsystem->pPipelineContext;
     struct R_CVulkan_Queue*        pQueue = R_Game_PipelineContextGetPresentQueue (pPipelineContext);
@@ -1275,8 +1275,8 @@ R_GameRenderer_AddLayer (
     uint32_t                        flags,
     void*                           pUserData)
 {
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pName);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pName);
 
     size_t currentLayerCount
         = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
@@ -1323,7 +1323,7 @@ R_GameRenderer_AddLayer (
 R_GAME_API int
 R_GameRenderer_RemoveLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
 
@@ -1346,7 +1346,7 @@ R_GameRenderer_RemoveLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t
 R_GAME_API int
 R_GameRenderer_SetLayerEnabled (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex, int enabled)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
 
@@ -1367,7 +1367,7 @@ R_GameRenderer_SetLayerRenderCallback (
     uint32_t                        layerIndex,
     R_GameLifecycleRender           callback)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
 
@@ -1387,7 +1387,7 @@ R_GameRenderer_SetLayerBeforePassCallback (
     uint32_t                        layerIndex,
     R_GameLifecycleBeforePass       callback)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
 
@@ -1407,7 +1407,7 @@ R_GameRenderer_SetLayerAfterPassCallback (
     uint32_t                        layerIndex,
     R_GameLifecycleAfterPass        callback)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
 
@@ -1424,7 +1424,7 @@ R_GameRenderer_SetLayerAfterPassCallback (
 R_GAME_API struct R_GameRendererLayer*
 R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     size_t layerCount = R_CSTL_ArrayLength (pSubsystem->pLayerArray) / sizeof (struct R_GameRendererLayer);
     R_GAME_ASSERT (layerIndex < layerCount);
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
@@ -1441,7 +1441,7 @@ R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t la
 R_GAME_API int
 R_GameRenderer_SortLayers (struct R_GameRendererSubsystem* pSubsystem)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     int result = R_CSTL_ArraySort (
         pSubsystem->pLayerArray,
@@ -1460,8 +1460,7 @@ R_GameRenderer_RegisterResource (
     uint64_t                        size,
     const char*                     pName)
 {
-    R_GAME_VALIDATE_PARAM_BOOTED (pSubsystem);
-    R_GAME_VALIDATE_PARAM (pResource);
+    R_GAME_ASSERT (pResource);
 
     size_t currentResourceCount
         = R_CSTL_ArrayLength (pSubsystem->pResourceArray) / sizeof (struct R_GameRendererResource);
@@ -1470,7 +1469,6 @@ R_GameRenderer_RegisterResource (
         R_CSTL_LOG_ERROR ("Maximum number of resources reached");
         return 0;
     }
-
     struct R_GameRendererResource newResource = {0};
     newResource.type = type;
     newResource.pResource = pResource;
@@ -1482,7 +1480,7 @@ R_GameRenderer_RegisterResource (
     }
     if (pName)
     {
-        size_t nameLen = strlen (pName);
+        const size_t nameLen = strlen (pName);
         newResource.pName = (char*)R_CSTL_HeapAlloc (nameLen + 1);
         if (newResource.pName == NULL)
         {
@@ -1490,7 +1488,6 @@ R_GameRenderer_RegisterResource (
         }
         memcpy (newResource.pName, pName, nameLen + 1);
     }
-
     R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
     int result = R_CSTL_ArrayPushData (
         pSubsystem->pResourceArray,
@@ -1512,8 +1509,8 @@ R_GameRenderer_RegisterResource (
 R_GAME_API int
 R_GameRenderer_UnregisterResource (struct R_GameRendererSubsystem* pSubsystem, uint64_t handle)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (handle != 0);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (handle != 0);
     size_t foundIndex = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
     if (foundIndex == SIZE_MAX)
     {
@@ -1539,8 +1536,8 @@ R_GameRenderer_UnregisterResource (struct R_GameRendererSubsystem* pSubsystem, u
 R_GAME_API const void*
 R_GameRenderer_GetResource (struct R_GameRendererSubsystem* pSubsystem, uint64_t handle)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (handle != 0);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (handle != 0);
     size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
     if (index == SIZE_MAX)
     {
@@ -1558,8 +1555,8 @@ R_GameRenderer_GetResource (struct R_GameRendererSubsystem* pSubsystem, uint64_t
 R_GAME_API uint32_t
 R_GameRenderer_GetResourceType (struct R_GameRendererSubsystem* pSubsystem, uint64_t handle)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (handle != 0);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (handle != 0);
 
     size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
     if (index == SIZE_MAX)
@@ -1578,8 +1575,8 @@ R_GameRenderer_GetResourceType (struct R_GameRendererSubsystem* pSubsystem, uint
 R_GAME_API uint64_t
 R_GameRenderer_GetResourceSize (struct R_GameRendererSubsystem* pSubsystem, uint64_t handle)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM (handle != 0);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (handle != 0);
 
     size_t index = R_GameRenderer_FindResourceIndexByHandle (pSubsystem, handle);
     if (index == SIZE_MAX)
@@ -1601,7 +1598,7 @@ R_GameRenderer_SetFrameResource (
     uint32_t                        frameIndex,
     uint32_t                        bufferIndex)
 {
-    R_GAME_VALIDATE_PARAM (pSubsystem);
+    R_GAME_ASSERT (pSubsystem);
     R_GAME_ASSERT (frameIndex < pSubsystem->maxFramesInFlight);
 
     struct R_GameRendererFrame* pFrame = &pSubsystem->pFrames[frameIndex];
@@ -1613,7 +1610,7 @@ R_GAME_API struct R_Game_RendererManager*
 R_GameRenderer_NewManager (struct R_Game_PipelineContext* pPipelineContext)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM (pPipelineContext);
+    R_GAME_ASSERT (pPipelineContext);
 
     struct R_Game_RendererManager* pManager
         = (struct R_Game_RendererManager*)R_CSTL_HeapAlloc (sizeof (struct R_Game_RendererManager));
@@ -1640,8 +1637,8 @@ R_GAME_API int
 R_GameRenderer_DeleteManager (struct R_Game_RendererManager* pManager)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1672,9 +1669,9 @@ R_GameRenderer_AddSubsystem (
     float                           blendFactor)
 {
     R_CSTL_TRACE_FUNCTION_CTX ("priority=%u, blend=%f", priority, blendFactor);
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1706,9 +1703,9 @@ R_GameRenderer_RemoveSubsystem (
     struct R_GameRendererSubsystem* pSubsystem)
 {
     R_CSTL_TRACE_FUNCTION ();
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1745,9 +1742,9 @@ R_GameRenderer_SetSubsystemVisible (
     int                             visible)
 {
     R_CSTL_TRACE_FUNCTION_CTX ("visible=%d", visible);
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1774,9 +1771,9 @@ R_GameRenderer_SetSubsystemBlendFactor (
     float                           blendFactor)
 {
     R_CSTL_TRACE_FUNCTION_CTX ("blendFactor=%f", blendFactor);
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM (pSubsystem);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pSubsystem);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1798,8 +1795,8 @@ R_GameRenderer_SetSubsystemBlendFactor (
 R_GAME_API int
 R_GameRenderer_ComposeFrame (struct R_Game_RendererManager* pManager)
 {
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 
@@ -1820,8 +1817,8 @@ R_GameRenderer_ComposeFrame (struct R_Game_RendererManager* pManager)
 R_GAME_API int
 R_GameRenderer_PresentFrame (struct R_Game_RendererManager* pManager)
 {
-    R_GAME_VALIDATE_PARAM (pManager);
-    R_GAME_VALIDATE_PARAM_BOOTED (pManager);
+    R_GAME_ASSERT (pManager);
+    R_GAME_ASSERT (pManager);
 
     R_GAME_MUTEX_LOCK (&pManager->managerMutex);
 

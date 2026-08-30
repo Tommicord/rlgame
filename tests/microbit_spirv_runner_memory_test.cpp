@@ -8,7 +8,7 @@ extern "C" {
 
 namespace {
 
-constexpr size_t kTestHeapSize = 256 * 1024;
+constexpr size_t kTestHeapSize = 4 * 1024 * 1024;
 
 class MicrobitSpirvRunnerMemoryTest : public ::testing::Test {
 protected:
@@ -59,16 +59,18 @@ TEST_F(MicrobitSpirvRunnerMemoryTest, VariablePrivate) {
         0x00020013, 0x00000001,
         0x00040017, 0x0000000d, 0x00000019, 0x00000000,
         0x00040036, 0x0000000e, 0x0000000d, 0x0000000c,
-        0x00040036, 0x0000000f, 0x00000014, 0x0000000c,
+        0x00040036, 0x00000014, 0x0000000f, 0x0000000c,  // OpFunction %func (result type 0x14, function 0x0f, control 0x0c)
+        0x0003003e, 0x00000015,  // OpLabel %label15
         0x00040021, 0x00000007, 0x00000014, 0x00000000,  // OpVariable %ptr Function
         0x00050051, 0x00000007, 0x00000010, 0x00000005, 0x00000000,  // OpStore
         0x0004003d, 0x00000007, 0x00000011, 0x00000010,  // OpLoad
         0x000200f8, 0x0000000f,
+        0x00030036, 0x0000000f, 0x00000001,  // OpEntryPoint Vertex %func "main"
     };
 
     struct R_Microbit_SpirvRunnerContext* ctx = CreateContext();
-    struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 41);
-    struct R_Microbit_SpirvRunnerProgram* rprog = CreateRunnerProgram(ctx, prog, 0x0e);
+    struct R_Microbit_SpirvParserProgram* prog = CreateProgram(ctx, spv, 46);
+    struct R_Microbit_SpirvRunnerProgram* rprog = CreateRunnerProgram(ctx, prog, 0x0f);
     struct R_Microbit_SpirvRunnerExecution* exec = CreateExecution(rprog);
 
     ASSERT_NE(nullptr, exec);

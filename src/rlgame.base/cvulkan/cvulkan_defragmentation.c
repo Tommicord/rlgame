@@ -275,7 +275,7 @@ R_CVulkan_DefragInitialize (
     }
 #endif
     
-    R_CSTL_LOG_INFO ("Defrag context initialized successfully");
+    R_CSTL_LOG_INFO ("Defrag context initialized");
     R_CSTL_TRACE_RETURN ();
     return R_CVULKAN_OK;
 

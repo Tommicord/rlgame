@@ -1,4 +1,4 @@
-#include "rlgame.base/game/game_cvulkan_pipeline.h"
+#include "rlgame.base/game/game_pipeline.h"
 #include "rlgame.base/game/game_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_instance.h"
 #include "rlgame.base/cvulkan/cvulkan_device.h"
@@ -300,7 +300,7 @@ R_Game_InitializeFramebuffers (struct R_Game_PipelineContext* pContext)
         }
     }
     R_CSTL_HeapFree (pSwapchainImages);
-    R_CSTL_LOG_INFO ("R_Game_InitializeFramebuffers: Framebuffers initialized successfully");
+    R_CSTL_LOG_INFO ("R_Game_InitializeFramebuffers: Framebuffers initialized");
     R_CSTL_LOG_INFO ("  Total framebuffers: %u", imageCount);
     R_CSTL_LOG_INFO ("  Extent: %ux%u", swapchainExtent.width, swapchainExtent.height);
 
@@ -689,16 +689,14 @@ R_Game_NewPipelineContext (
     struct R_Game_PipelineContext*                 pContext,
     const struct R_Game_PipelineContextCreateInfo* pCreateInfo)
 {
+    R_CVULKAN_ASSERT (pContext);
+    R_CVULKAN_ASSERT (pCreateInfo);
     R_CSTL_TRACE_SCOPE ();
 
     R_CSTL_LOG_INFO ("R_Game_NewPipelineContext: Starting pipeline context initialization");
     R_CSTL_LOG_INFO (
         "  Application name: %s",
         pCreateInfo->pApplicationName ? pCreateInfo->pApplicationName : "NULL");
-
-    R_CVULKAN_ASSERT (pContext);
-    R_CVULKAN_ASSERT (pCreateInfo);
-
     enum R_GameError err;
     err = R_Game_InitializeVulkanCore (pContext, pCreateInfo);
     if (err != R_GAME_OK)
@@ -722,7 +720,7 @@ R_Game_NewPipelineContext (
     }
 #endif
     pContext->currentFrameIndex = 0;
-    R_CSTL_LOG_INFO ("R_Game_NewPipelineContext: Pipeline context initialized successfully");
+    R_CSTL_LOG_INFO ("R_Game_NewPipelineContext: Pipeline context initialized");
     return R_GAME_OK;
 
 #if !defined(R_CVULKAN_HEADLESS)
@@ -755,12 +753,6 @@ R_GAME_API void
 R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext)
 {
     R_CVULKAN_ASSERT (pContext);
-#if defined(R_CVULKAN_DEBUG)
-    if (!pContext)
-    {
-        return;
-    }
-#endif
     if (pContext->pFramebuffers)
     {
         for (uint32_t i = 0; i < pContext->framebufferCount; ++i)
@@ -783,7 +775,6 @@ R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext)
     R_CVulkan_DeleteFence (&pContext->inFlightFence);
     R_CVulkan_DeleteSwapchain (&pContext->swapchain);
 #endif
-
     R_CVulkan_DeleteCommandPool (&pContext->graphicsCommandPool);
     R_CVulkan_DeleteCommandPool (&pContext->computeCommandPool);
     R_CVulkan_DeleteCommandPool (&pContext->transferCommandPool);
@@ -794,7 +785,6 @@ R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext)
         R_CSTL_HeapFree (pContext->pSurface);
         pContext->pSurface = NULL;
     }
-
     R_CVulkan_DeleteDevice (&pContext->device);
     R_CVulkan_DeleteInstance (&pContext->instance);
 }
@@ -802,107 +792,83 @@ R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext)
 R_GAME_API struct R_CVulkan_Queue*
 R_Game_PipelineContextGetGraphicsQueue (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->graphicsQueue;
 }
 
 R_GAME_API struct R_CVulkan_Queue*
 R_Game_PipelineContextGetComputeQueue (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->computeQueue;
 }
 
 R_GAME_API struct R_CVulkan_Queue*
 R_Game_PipelineContextGetTransferQueue (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->transferQueue;
 }
 
 R_GAME_API struct R_CVulkan_Queue*
 R_Game_PipelineContextGetPresentQueue (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->presentQueue;
 }
 
 R_GAME_API struct R_CVulkan_CommandPool*
 R_Game_PipelineContextGetGraphicsCommandPool (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->graphicsCommandPool;
 }
 
 R_GAME_API struct R_CVulkan_CommandPool*
 R_Game_PipelineContextGetComputeCommandPool (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->computeCommandPool;
 }
 
 R_GAME_API struct R_CVulkan_CommandPool*
 R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->transferCommandPool;
 }
 
 R_GAME_API struct R_CVulkan_Device*
 R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->device;
 }
 
 R_GAME_API struct R_CVulkan_Semaphore*
 R_Game_PipelineContextGetImageAvailableSemaphore (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->imageAvailableSemaphore;
 }
 
 R_GAME_API struct R_CVulkan_Semaphore*
 R_Game_PipelineContextGetRenderFinishedSemaphore (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->renderFinishedSemaphore;
 }
 
 R_GAME_API struct R_CVulkan_Fence*
 R_Game_PipelineContextGetInFlightFence (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->inFlightFence;
 }
 
 R_GAME_API uint32_t*
 R_Game_PipelineContextGetCurrentFrameIndex (struct R_Game_PipelineContext* pContext)
 {
-#if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pContext);
-#endif
     return &pContext->currentFrameIndex;
 }

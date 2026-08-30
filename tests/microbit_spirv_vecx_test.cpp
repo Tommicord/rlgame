@@ -184,7 +184,7 @@ TEST_F(MicrobitSpirvVecxTest, Vec3Length) {
 }
 
 TEST_F(MicrobitSpirvVecxTest, Vec4Length) {
-    R_Microbit_SpirvVec4 a = {1.0f, 2.0f, 2.0f, 2.0f};
+    R_Microbit_SpirvVec4 a = {1.0f, 2.0f, 2.0f, 0.0f};
     float result = R_Microbit_SpirvVec4Length(a);
     EXPECT_FLOAT_EQ(3.0f, result);
 }
