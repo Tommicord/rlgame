@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "rpack_platform.h"
+#include "rpack/rpack_platform.h"
 
 enum R_Pack_MipmapFilter
 {
@@ -17,22 +17,10 @@ enum R_Pack_MipmapError
     R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT = -1,
     R_PACK_MIPMAP_ERROR_INITIALIZATION = -2,
     R_PACK_MIPMAP_ERROR_DISPATCH = -3,
-    R_PACK_MIPMAP_ERROR_UNSUPPORTED = -4
+    R_PACK_MIPMAP_ERROR_UNSUPPORTED = -4,
+    R_PACK_MIPMAP_ERROR_UNKNOWN = -99,
 };
-
 struct R_Pack_MipmapContext;
-
-#if defined(R_DEVMODE)
-#include <assert.h>
-#define R_PACK_MIPMAP_VALIDATE(condition, error)                                                             \
-    do                                                                                                       \
-    {                                                                                                        \
-        assert (condition);                                                                                  \
-        if (!(condition)) return (error);                                                                    \
-    } while (0)
-#else
-#define R_PACK_MIPMAP_VALIDATE(condition, error) ((void)0)
-#endif
 
 R_PACK_API int R_Pack_MipmapInitialize (
     void*                         pContext,

@@ -47,8 +47,6 @@ struct R_Pack_EncoderSettings
                                  auto-detect) */
         uint32_t maxTextures; /**< Maximum number of textures to pack (default:
                                  R_PACK_DEFAULT_MAX_TEXTURES = unlimited) */
-        uint8_t powerOfTwo; /**< Force power of two dimensions (default: R_PACK_DEFAULT_POWER_OF_TWO) */
-        uint8_t enableRotation; /**< Enable texture rotation (default: R_PACK_DEFAULT_ENABLE_ROTATION) */
 };
 
 /**

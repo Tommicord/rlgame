@@ -249,3 +249,226 @@ TEST_F (RPackTest, ColorConversionProducesBoundedChannels)
     EXPECT_LE (b, 255);
     EXPECT_LT (R_Pack_GetColorSimilarity (y, u, v, y, u, v), 0.0001f);
 }
+
+TEST_F (RPackTest, HandlesMinimalImageSize)
+{
+    std::array<uint8_t, 4> pixels = {255, 0, 0, 255};
+    R_Pack_OwnedImage image = {};
+    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 1, 1, 4, "minimal", &image), R_PACK_OK);
+    
+    std::vector<uint8_t> packed = Encode (&image);
+    R_Pack_DeleteOwnedImage (&image);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+}
+
+TEST_F (RPackTest, HandlesMaximumTextureLimit)
+{
+    R_Pack_EncoderSettings config = {};
+    config.maxAtlasWidth = 16;
+    config.maxAtlasHeight = 16;
+    config.padding = 1;
+    config.similarityThreshold = 0.0f;
+    config.maxTextures = 2;
+    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    ASSERT_NE (encoder, nullptr);
+    
+    R_Pack_OwnedImage image1 = MakeImage ("image1");
+    R_Pack_OwnedImage image2 = MakeImage ("image2");
+    R_Pack_OwnedImage image3 = MakeImage ("image3");
+    
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image1.image), R_PACK_OK);
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image2.image), R_PACK_OK);
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image3.image), R_PACK_ERROR_INVALID_DIMENSIONS);
+    
+    R_Pack_DeleteEncoder (encoder);
+    R_Pack_DeleteOwnedImage (&image1);
+    R_Pack_DeleteOwnedImage (&image2);
+    R_Pack_DeleteOwnedImage (&image3);
+}
+
+TEST_F (RPackTest, HandlesZeroPadding)
+{
+    R_Pack_EncoderSettings config = {};
+    config.maxAtlasWidth = 16;
+    config.maxAtlasHeight = 16;
+    config.padding = 0;
+    config.similarityThreshold = 0.0f;
+    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    ASSERT_NE (encoder, nullptr);
+    
+    R_Pack_OwnedImage image = MakeImage ("no-padding");
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    
+    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    std::vector<uint8_t> output (size);
+    uint64_t written = 0;
+    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    
+    R_Pack_DeleteEncoder (encoder);
+    R_Pack_DeleteOwnedImage (&image);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+}
+
+TEST_F (RPackTest, HandlesLargePadding)
+{
+    R_Pack_EncoderSettings config = {};
+    config.maxAtlasWidth = 32;
+    config.maxAtlasHeight = 32;
+    config.padding = 10;
+    config.similarityThreshold = 0.0f;
+    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    ASSERT_NE (encoder, nullptr);
+    
+    R_Pack_OwnedImage image = MakeImage ("large-padding");
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    
+    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    std::vector<uint8_t> output (size);
+    uint64_t written = 0;
+    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    
+    R_Pack_DeleteEncoder (encoder);
+    R_Pack_DeleteOwnedImage (&image);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+}
+
+TEST_F (RPackTest, RejectsImageExceedingAtlasSize)
+{
+    R_Pack_EncoderSettings config = {};
+    config.maxAtlasWidth = 8;
+    config.maxAtlasHeight = 8;
+    config.padding = 0;
+    config.similarityThreshold = 0.0f;
+    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    ASSERT_NE (encoder, nullptr);
+    
+    std::array<uint8_t, 16> pixels = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255};
+    R_Pack_OwnedImage image = {};
+    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 4, 4, 16, "too-large", &image), R_PACK_OK);
+    
+    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_ERROR_INVALID_DIMENSIONS);
+    
+    R_Pack_DeleteEncoder (encoder);
+    R_Pack_DeleteOwnedImage (&image);
+}
+
+TEST_F (RPackTest, HandlesSingleColorImage)
+{
+    std::array<uint8_t, 16> pixels = {128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255};
+    R_Pack_OwnedImage image = {};
+    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, "single-color", &image), R_PACK_OK);
+    
+    std::vector<uint8_t> packed = Encode (&image);
+    R_Pack_DeleteOwnedImage (&image);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+    
+    // Verify color table is minimal for single color
+    R_Pack_Decoder* decoder = R_Pack_NewDecoder (packed.data (), packed.size ());
+    ASSERT_NE (decoder, nullptr);
+    EXPECT_EQ (decoder->pHeader->colorTableSize, 1u);
+    R_Pack_DeleteDecoder (decoder);
+}
+
+TEST_F (RPackTest, HandlesBlackAndWhiteImage)
+{
+    std::array<uint8_t, 16> pixels = {0, 0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 255, 255, 255, 255, 255};
+    R_Pack_OwnedImage image = {};
+    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 2, 2, 8, "bw", &image), R_PACK_OK);
+    
+    std::vector<uint8_t> packed = Encode (&image);
+    R_Pack_DeleteOwnedImage (&image);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+}
+
+TEST_F (RPackTest, HashFunctionProducesUniqueValues)
+{
+    const char* strings[] = {"test1", "test2", "test3", "different", "strings"};
+    uint64_t hashes[5];
+    
+    for (int i = 0; i < 5; ++i)
+    {
+        hashes[i] = R_Pack_Hash64String (strings[i], 0);
+    }
+    
+    // Check that all hashes are different
+    for (int i = 0; i < 5; ++i)
+    {
+        for (int j = i + 1; j < 5; ++j)
+        {
+            EXPECT_NE (hashes[i], hashes[j]) << "Hash collision between " << strings[i] << " and " << strings[j];
+        }
+    }
+}
+
+TEST_F (RPackTest, HashFunctionWithSeedProducesDifferentValues)
+{
+    const char* testStr = "test";
+    uint64_t hash1 = R_Pack_Hash64String (testStr, 0);
+    uint64_t hash2 = R_Pack_Hash64String (testStr, 42);
+    
+    EXPECT_NE (hash1, hash2);
+}
+
+TEST_F (RPackTest, ColorSimilarityIsSymmetric)
+{
+    uint8_t y1 = 128, u1 = 8, v1 = 8;
+    uint8_t y2 = 64, u2 = 4, v2 = 4;
+    
+    float sim1 = R_Pack_GetColorSimilarity (y1, u1, v1, y2, u2, v2);
+    float sim2 = R_Pack_GetColorSimilarity (y2, u2, v2, y1, u1, v1);
+    
+    EXPECT_FLOAT_EQ (sim1, sim2);
+}
+
+TEST_F (RPackTest, ColorSimilarityZeroForIdenticalColors)
+{
+    uint8_t y = 128, u = 8, v = 8;
+    
+    float sim = R_Pack_GetColorSimilarity (y, u, v, y, u, v);
+    
+    EXPECT_FLOAT_EQ (sim, 0.0f);
+}
+
+TEST_F (RPackTest, HandlesEmptyEncoder)
+{
+    R_Pack_EncoderSettings config = {};
+    config.maxAtlasWidth = 16;
+    config.maxAtlasHeight = 16;
+    config.padding = 1;
+    config.similarityThreshold = 0.0f;
+    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    ASSERT_NE (encoder, nullptr);
+    
+    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    EXPECT_GT (size, 0u);
+    
+    std::vector<uint8_t> output (size);
+    uint64_t written = 0;
+    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    
+    R_Pack_DeleteEncoder (encoder);
+
+    R_Pack_ValidationReport report = {};
+    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    EXPECT_EQ (report.error, R_PACK_OK);
+    
+    R_Pack_Decoder* decoder = R_Pack_NewDecoder (output.data (), output.size ());
+    ASSERT_NE (decoder, nullptr);
+    EXPECT_EQ (R_Pack_DecoderGetTextureCount (decoder), 0u);
+    R_Pack_DeleteDecoder (decoder);
+}

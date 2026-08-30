@@ -288,6 +288,12 @@ R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp,
 {
     R_CSTL_MutexLock (pEncoder->pMutex);
 
+    // Cache-friendly linear search with early exit
+    // For better cache locality, we process the color table sequentially
+    const float threshold = pEncoder->config.similarityThreshold;
+    uint32_t bestMatch = UINT32_MAX;
+    float bestSimilarity = threshold;
+    
     for (uint32_t i = 0; i < pEncoder->colorTableCount; ++i)
     {
         struct R_Pack_ColorEntry* pEntry = &pEncoder->pColorTable[i];
@@ -298,13 +304,22 @@ R_Pack_FindOrAddColor (struct R_Pack_Encoder* pEncoder, uint8_t y, uint8_t yExp,
             pEntry->luminance,
             pEntry->chrominanceU,
             pEntry->chrominanceV);
-        if (similarity < pEncoder->config.similarityThreshold)
+        if (similarity < 0.01f)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
             return i;
         }
+        if (similarity < bestSimilarity)
+        {
+            bestSimilarity = similarity;
+            bestMatch = i;
+        }
     }
-
+    if (bestMatch != UINT32_MAX)
+    {
+        R_CSTL_MutexUnlock (pEncoder->pMutex);
+        return bestMatch;
+    }
     if (pEncoder->colorTableCount >= pEncoder->colorTableCapacity)
     {
         uint32_t newCapacity = pEncoder->colorTableCapacity << 1u;
@@ -444,16 +459,45 @@ static enum R_Pack_Error
 R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage)
 {
     R_PACK_ASSERT (pEncoder);
+    const uint32_t BATCH_SIZE = 256;
+    uint32_t pixelCount = pImage->width * pImage->height;
+
+    uint64_t requiredCapacity = pEncoder->pixelIndexTableCount + pixelCount;
+    if (requiredCapacity > pEncoder->pixelIndexTableCapacity)
+    {
+        uint32_t newCapacity = pEncoder->pixelIndexTableCapacity;
+        while (newCapacity < requiredCapacity && newCapacity < UINT32_MAX / 2)
+        {
+            newCapacity = newCapacity * 2;
+        }
+        
+        R_CSTL_MutexLock (pEncoder->pMutex);
+        if (newCapacity > pEncoder->pixelIndexTableCapacity)
+        {
+            struct R_Pack_PixelIndexEntry* pNewTable
+                = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
+                    pEncoder->pPixelIndexTable,
+                    newCapacity * sizeof (struct R_Pack_PixelIndexEntry));
+            if (!pNewTable)
+            {
+                R_CSTL_MutexUnlock (pEncoder->pMutex);
+                return R_PACK_ERROR_OUT_OF_MEMORY;
+            }
+            pEncoder->pPixelIndexTable = pNewTable;
+            pEncoder->pixelIndexTableCapacity = newCapacity;
+        }
+        R_CSTL_MutexUnlock (pEncoder->pMutex);
+    }
     for (uint32_t y = 0; y < pImage->height; ++y)
     {
+        const uint8_t* pRowStart = pImage->pPixels + y * pImage->stride;
         for (uint32_t x = 0; x < pImage->width; ++x)
         {
-            uint32_t pixelIndex = y * pImage->stride + x * 4;
-            uint8_t r = pImage->pPixels[pixelIndex];
-            uint8_t g = pImage->pPixels[pixelIndex + 1];
-            uint8_t b = pImage->pPixels[pixelIndex + 2];
-            uint8_t a = pImage->pPixels[pixelIndex + 3];
-
+            const uint8_t* pPixel = pRowStart + x * 4;
+            uint8_t r = pPixel[0];
+            uint8_t g = pPixel[1];
+            uint8_t b = pPixel[2];
+            // Alpha is not used in color conversion but kept for potential future use
             uint8_t yuvY, yuvYExp, yuvU, yuvV;
             R_Pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
 
@@ -462,24 +506,6 @@ R_Pack_ProcessPixelsSerial (struct R_Pack_Encoder* pEncoder, const struct R_Pack
             {
                 return R_PACK_ERROR_OUT_OF_MEMORY;
             }
-
-            R_CSTL_MutexLock (pEncoder->pMutex);
-            if (pEncoder->pixelIndexTableCount >= pEncoder->pixelIndexTableCapacity)
-            {
-                uint32_t newCapacity = pEncoder->pixelIndexTableCapacity * 2;
-                struct R_Pack_PixelIndexEntry* pNewTable
-                    = (struct R_Pack_PixelIndexEntry*)R_CSTL_HeapRealloc (
-                        pEncoder->pPixelIndexTable,
-                        newCapacity * sizeof (struct R_Pack_PixelIndexEntry));
-                if (!pNewTable)
-                {
-                    R_CSTL_MutexUnlock (pEncoder->pMutex);
-                    return R_PACK_ERROR_OUT_OF_MEMORY;
-                }
-                pEncoder->pPixelIndexTable = pNewTable;
-                pEncoder->pixelIndexTableCapacity = newCapacity;
-            }
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
 
             struct R_Pack_PixelIndexEntry* pPixelEntry
                 = &pEncoder->pPixelIndexTable[pEncoder->pixelIndexTableCount];

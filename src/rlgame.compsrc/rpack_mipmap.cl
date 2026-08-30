@@ -7,7 +7,7 @@
  * @param dstWidth Destination width
  * @param dstHeight Destination height
  */
-__kernel void R_RPack_MipmapBoxFilterKernel (
+__kernel void R_Pack_MipmapBoxFilterKernel (
     __global const uchar4* srcPixels,
     __global uchar4* dstPixels,
     const uint srcWidth,
@@ -69,7 +69,7 @@ __kernel void R_RPack_MipmapBoxFilterKernel (
  * @param dstHeight Destination height
  * @param sigma Gaussian sigma value
  */
-__kernel void R_RPack_MipmapGaussianFilterKernel (
+__kernel void R_Pack_MipmapGaussianFilterKernel (
     __global const uchar4* srcPixels,
     __global uchar4* dstPixels,
     const uint srcWidth,

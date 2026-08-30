@@ -2,7 +2,12 @@ Language: Cpp
 BasedOnStyle: GNU
 AccessModifierOffset: -4
 AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  AcrossEmptyLines: false
+  AcrossComments: false
 AlignConsecutiveTableGenDefinitionColons: true
 AlignTrailingComments: false
 AlignConsecutiveBitFields: true

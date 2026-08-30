@@ -26,26 +26,6 @@ R_Pack_LogSettingsurationWarnings (const struct R_Pack_EncoderSettings* pSetting
             pSettings->maxAtlasHeight,
             (double)atlasBytes / (1024.0 * 1024.0));
     }
-    if (pSettings->border != 0)
-    {
-        R_CSTL_LOG_WARN (
-            "Border size %u was requested but border pixels are not encoded yet",
-            pSettings->border);
-    }
-    if (pSettings->powerOfTwo)
-    {
-        R_CSTL_LOG_WARN ("Power-of-two atlas sizing was requested but is not implemented yet");
-    }
-    if (pSettings->enableRotation)
-    {
-        R_CSTL_LOG_WARN ("Texture rotation was requested but is not implemented yet");
-    }
-    if (pSettings->alphaThreshold > 0.0f)
-    {
-        R_CSTL_LOG_WARN (
-            "Alpha threshold %.3f was requested but alpha masking is not implemented yet",
-            pSettings->alphaThreshold);
-    }
 }
 
 static void
@@ -59,17 +39,12 @@ R_Pack_PrintHelp ()
     printf ("  -w, --width SIZE            = Maximum atlas width in pixels (default: 4096).\n");
     printf ("  -H, --height SIZE           = Maximum atlas height in pixels (default: 4096).\n");
     printf ("  -p, --padding SIZE          = Padding between textures in pixels (default: 1).\n");
-    printf ("  -b, --border SIZE           = Border size around textures in pixels (default: 0).\n");
-    printf ("  -t, --threshold FLOAT       = Color similarity threshold 0.0-1.0 (default: 0.1).\n");
+    printf ("  -t, --threshold FLOAT       = Color similarity threshold 0.0-1.0 (default: 0.125).\n");
     printf ("                                Lower values = more colors, higher = fewer colors.\n");
     printf ("  -j, --workers COUNT         = Number of worker threads (default: 0 = auto).\n");
-    printf ("                                et to 1 for single-threaded mode.\n");
+    printf ("                                Set to 1 for single-threaded mode.\n");
     printf ("  -v, --verbose               = Enable verbose output with detailed progress.\n");
     printf ("  -q, --quiet                 = Suppress all non-error output.\n");
-    printf ("  --power-of-two              = Force atlas dimensions to be power of two.\n");
-    printf ("  --rotate                    = Enable texture rotation for better packing.\n");
-    printf ("  --alpha-threshold FLOAT     = Alpha threshold 0.0-1.0 (default: 0.0).\n");
-    printf ("                               Pixels below this alpha are considered transparent.\n");
     printf ("  --max-textures COUNT        = Maximum number of textures to pack (default: unlimited).\n");
     printf ("  --mipmap                    = Generate 64x64 through 1x1 RPACK variants.\n");
     printf ("  --help                      = Print this help message and exit.\n");
@@ -78,14 +53,14 @@ R_Pack_PrintHelp ()
 
 static int
 R_Pack_ParseArguments (
-    int                          argc,
-    char**                       argv,
+    int                            argc,
+    char**                         argv,
     struct R_Pack_EncoderSettings* pSettings,
-    char**                       ppOutputPath,
-    struct R_CSTL_Array**        ppInputPaths,
-    int*                         pVerbose,
-    int*                         pQuiet,
-    int*                         pMipmap)
+    char**                         ppOutputPath,
+    struct R_CSTL_Array**          ppInputPaths,
+    int*                           pVerbose,
+    int*                           pQuiet,
+    int*                           pMipmap)
 {
     *ppOutputPath = NULL;
     *ppInputPaths = R_CSTL_NewArray ();
@@ -107,8 +82,6 @@ R_Pack_ParseArguments (
         pSettings->alphaThreshold = R_PACK_DEFAULT_ALPHA_THRESHOLD;
         pSettings->workerCount = R_PACK_DEFAULT_WORKER_COUNT;
         pSettings->maxTextures = R_PACK_DEFAULT_MAX_TEXTURES;
-        pSettings->powerOfTwo = R_PACK_DEFAULT_POWER_OF_TWO;
-        pSettings->enableRotation = R_PACK_DEFAULT_ENABLE_ROTATION;
     }
     for (int i = 1; i < argc; ++i)
     {
@@ -186,18 +159,6 @@ R_Pack_ParseArguments (
                 pSettings->workerCount = (uint32_t)atoi (argv[++i]);
             }
         }
-        else if (strcmp (argv[i], "-b") == 0 || strcmp (argv[i], "--border") == 0)
-        {
-            if (i + 1 >= argc)
-            {
-                fprintf (stderr, "\033[1;31mError: --border requires an argument\033[0m\n");
-                return -1;
-            }
-            if (pSettings)
-            {
-                pSettings->border = (uint32_t)atoi (argv[++i]);
-            }
-        }
         else if (strcmp (argv[i], "-v") == 0 || strcmp (argv[i], "--verbose") == 0)
         {
             *pVerbose = 1;
@@ -205,32 +166,6 @@ R_Pack_ParseArguments (
         else if (strcmp (argv[i], "-q") == 0 || strcmp (argv[i], "--quiet") == 0)
         {
             *pQuiet = 1;
-        }
-        else if (strcmp (argv[i], "--power-of-two") == 0)
-        {
-            if (pSettings)
-            {
-                pSettings->powerOfTwo = 1;
-            }
-        }
-        else if (strcmp (argv[i], "--rotate") == 0)
-        {
-            if (pSettings)
-            {
-                pSettings->enableRotation = 1;
-            }
-        }
-        else if (strcmp (argv[i], "--alpha-threshold") == 0)
-        {
-            if (i + 1 >= argc)
-            {
-                fprintf (stderr, "\033[1;31mError: --alpha-threshold requires an argument\033[0m\n");
-                return -1;
-            }
-            if (pSettings)
-            {
-                pSettings->alphaThreshold = (float)atof (argv[++i]);
-            }
         }
         else if (strcmp (argv[i], "--max-textures") == 0)
         {
@@ -304,13 +239,13 @@ main (int argc, char** argv)
         return EXIT_SUCCESS;
     }
     struct R_Pack_EncoderSettings config = {0};
-    char*                       pOutputPath = NULL;
-    struct R_CSTL_Array*        pInputPaths = NULL;
-    struct R_Pack_Encoder*      pEncoder = NULL;
-    int                         verbose = 0;
-    int                         quiet = 0;
-    int                         mipmap = 0;
-    int                         result = EXIT_FAILURE;
+    char*                         pOutputPath = NULL;
+    struct R_CSTL_Array*          pInputPaths = NULL;
+    struct R_Pack_Encoder*        pEncoder = NULL;
+    int                           verbose = 0;
+    int                           quiet = 0;
+    int                           mipmap = 0;
+    int                           result = EXIT_FAILURE;
 
     int parseResult
         = R_Pack_ParseArguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
@@ -330,21 +265,13 @@ main (int argc, char** argv)
     {
         R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_TRACE);
     }
-    (void)quiet;
+    if (quiet)
+    {
+        R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_ERROR);
+    }
     R_CSTL_LOG_INFO ("Packing assets as RPACK");
     R_Pack_LogSettingsurationWarnings (&config);
 
-    pEncoder = R_Pack_NewEncoder (&config);
-    if (!pEncoder)
-    {
-        goto r_cleanup_logging;
-    }
-    uint32_t successCount = R_Pack_EncodeInputImagesThreaded (pEncoder, pInputPaths, 0, config.workerCount);
-    if (successCount == 0)
-    {
-        R_CSTL_LOG_ERROR ("No images were processed");
-        goto r_cleanup_encoder;
-    }
     size_t      inputCount = 0;
     size_t      inputOffset = 0;
     size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
@@ -356,8 +283,20 @@ main (int argc, char** argv)
         ++inputCount;
         inputOffset += pathLength + 1;
     }
-    R_CSTL_LOG_INFO ("Processed %u/%zu images", successCount, inputCount);
+    pEncoder = R_Pack_NewEncoder (&config);
+    if (!pEncoder)
+    {
+        goto r_cleanup_logging;
+    }
 
+    R_CSTL_LOG_INFO ("Encoding %zu image(s)", inputCount);
+    uint32_t successCount = R_Pack_EncodeInputImagesThreaded (pEncoder, pInputPaths, 0, config.workerCount);
+
+    if (successCount == 0)
+    {
+        R_CSTL_LOG_ERROR ("No images were processed");
+        goto r_cleanup_encoder;
+    }
     if (R_Pack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
     {
         goto r_cleanup_encoder;
