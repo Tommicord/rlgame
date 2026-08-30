@@ -16,7 +16,7 @@ struct R_Pack_JpegHuffman
 
 struct R_Pack_JpegDecoder
 {
-        const uint8_t*            data;
+        const uint8_t*            pData;
         size_t                    size;
         size_t                    offset;
         uint32_t                  width;
@@ -46,7 +46,7 @@ static int
 R_Pack_JpegReadByte (struct R_Pack_JpegDecoder* pDecoder, uint8_t* pValue)
 {
     if (pDecoder->offset >= pDecoder->size) return 0;
-    *pValue = pDecoder->data[pDecoder->offset++];
+    *pValue = pDecoder->pData[pDecoder->offset++];
     return 1;
 }
 
@@ -339,15 +339,19 @@ R_Pack_JpegParse (struct R_Pack_JpegDecoder* pDecoder)
 enum R_Pack_Error
 R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImage* pImage)
 {
-    if (!pData || !pImage || dataSize < 4) return R_PACK_ERROR_INVALID_ARGUMENT;
+    R_PACK_ASSERT(pImage);
+    R_PACK_ASSERT(pData);
+    if (dataSize < 4)
+        return R_PACK_ERROR_INVALID_ARGUMENT;
     memset (pImage, 0, sizeof (*pImage));
-    struct R_Pack_JpegDecoder decoder = {.data = pData, .size = dataSize};
+    struct R_Pack_JpegDecoder decoder = {.pData = pData, .size = dataSize};
     if (!R_Pack_JpegParse (&decoder))
         return decoder.unsupported ? R_PACK_ERROR_UNSUPPORTED_FORMAT : R_PACK_ERROR_INVALID_FORMAT;
     if (!decoder.width || !decoder.height || decoder.width > UINT32_MAX / 4
         || (size_t)decoder.width * 4 > SIZE_MAX / decoder.height)
         return R_PACK_ERROR_INVALID_FORMAT;
-    size_t stride = (size_t)decoder.width * 4, outputSize = stride * decoder.height;
+    size_t stride = (size_t)decoder.width * 4;
+    size_t outputSize = stride * decoder.height;
     pImage->pPixels = R_CSTL_HeapAlloc (outputSize);
     if (!pImage->pPixels) return R_PACK_ERROR_OUT_OF_MEMORY;
     pImage->width = decoder.width;
@@ -359,7 +363,8 @@ R_Pack_JpegDecode (const uint8_t* pData, size_t dataSize, struct R_Pack_JpegImag
         if (decoder.horizontal[i] > maxH) maxH = decoder.horizontal[i];
         if (decoder.vertical[i] > maxV) maxV = decoder.vertical[i];
     }
-    uint32_t mcuWidth = maxH * 8, mcuHeight = maxV * 8;
+    uint32_t mcuWidth = maxH * 8;
+    uint32_t mcuHeight = maxV * 8;
     uint8_t  blocks[3][4][64];
     int16_t  coefficients[64];
     for (uint32_t my = 0; my < decoder.height; my += mcuHeight)
