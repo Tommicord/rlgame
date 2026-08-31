@@ -48,12 +48,12 @@ struct r_game_pipeline_context_create_info
         HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
         enum r_game_linux_backend linuxBackend;
-        struct wl_display*       pDisplay;
-        struct wl_surface*       pSurface;
-        Display*                 pX11Display;
-        Window                   x11Window;
-        xcb_connection_t*        pXCBConnection;
-        xcb_window_t             xcbWindow;
+        struct wl_display*        pDisplay;
+        struct wl_surface*        pSurface;
+        Display*                  pX11Display;
+        Window                    x11Window;
+        xcb_connection_t*         pXCBConnection;
+        xcb_window_t              xcbWindow;
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow;
 #elif defined(R_CVULKAN_PLATFORM_MACOS)
@@ -97,7 +97,7 @@ struct r_game_pipeline_context
  * @return CVULKAN_API R_CVULKAN_OK on success, error code otherwise
  */
 R_GAME_API enum r_game_error r_game_new_pipeline_context (
-    struct r_game_pipeline_context*                 pContext,
+    struct r_game_pipeline_context*                   pContext,
     const struct r_game_pipeline_context_create_info* pCreateInfo);
 
 /**
@@ -176,7 +176,8 @@ r_game_pipeline_context_get_transfer_command_pool (struct r_game_pipeline_contex
  * @param pContext Pointer to the pipeline context
  * @return Pointer to the device
  */
-R_GAME_API struct R_CVulkan_Device* r_game_pipeline_context_get_device (struct r_game_pipeline_context* pContext);
+R_GAME_API struct R_CVulkan_Device*
+r_game_pipeline_context_get_device (struct r_game_pipeline_context* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
 r_game_pipeline_context_get_image_available_semaphore (struct r_game_pipeline_context* pContext);
@@ -187,4 +188,5 @@ r_game_pipeline_context_get_render_finished_semaphore (struct r_game_pipeline_co
 R_GAME_API struct R_CVulkan_Fence*
 r_game_pipeline_context_get_in_flight_fence (struct r_game_pipeline_context* pContext);
 
-R_GAME_API uint32_t* r_game_pipeline_context_get_current_frame_index (struct r_game_pipeline_context* pContext);
+R_GAME_API uint32_t*
+r_game_pipeline_context_get_current_frame_index (struct r_game_pipeline_context* pContext);

@@ -12,7 +12,9 @@ struct r_pack_validation_report
         uint64_t          pixelIndex;
 };
 
-R_PACK_API int
-r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_pack_validation_report* pReport);
+R_PACK_API int r_pack_validate_packed_data (
+    const uint8_t*                   pData,
+    uint64_t                         dataSize,
+    struct r_pack_validation_report* pReport);
 
 R_PACK_API int r_pack_validate_packed_file (const char* pPath, struct r_pack_validation_report* pReport);

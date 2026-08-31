@@ -793,7 +793,7 @@ struct R_CSTL_ArrayStackFrame
     static void R_CSTL_ArrayIntrosortU32##Suffix (uint32_t* pBase, long left, long right, int depthLimit)    \
     {                                                                                                        \
         struct R_CSTL_ArrayStackFrame stack[64] = {0}; /* Sufficient for log2(2^64) depth */                 \
-        int                    stackTop = 0;                                                                 \
+        int                           stackTop = 0;                                                          \
                                                                                                              \
         stack[stackTop].left = left;                                                                         \
         stack[stackTop].right = right;                                                                       \

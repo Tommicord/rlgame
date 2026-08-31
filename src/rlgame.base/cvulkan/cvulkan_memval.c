@@ -105,10 +105,10 @@ R_CVulkan_MemValExecuteKernel (
     size_t        globalWorkSize)
 {
     enum R_CVulkan_Error result = R_CVULKAN_OK;
-    cl_int              error = CL_SUCCESS;
-    cl_program          program = NULL;
-    cl_kernel           kernel = NULL;
-    cl_command_queue    queue = NULL;
+    cl_int               error = CL_SUCCESS;
+    cl_program           program = NULL;
+    cl_kernel            kernel = NULL;
+    cl_command_queue     queue = NULL;
 
     queue = clCreateCommandQueue (context, device, 0, &error);
     if (error != CL_SUCCESS || !queue)

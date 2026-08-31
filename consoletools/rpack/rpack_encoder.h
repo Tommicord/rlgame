@@ -40,7 +40,7 @@ struct r_pack_encoder_settings
         uint32_t padding; /**< Padding between textures (default: R_PACK_DEFAULT_PADDING) */
         uint32_t border; /**< Border size around textures (default: R_PACK_DEFAULT_BORDER) */
         float    similarityThreshold; /**< Color similarity threshold (default:
-                    R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
+                 R_PACK_DEFAULT_SIMILARITY_THRESHOLD) */
         float alphaThreshold; /**< Alpha threshold for transparency (default:
                                  R_PACK_DEFAULT_ALPHA_THRESHOLD) */
         uint32_t workerCount; /**< Number of worker threads (default: R_PACK_DEFAULT_WORKER_COUNT =
@@ -54,21 +54,21 @@ struct r_pack_encoder_settings
  */
 struct r_pack_encoder
 {
-        struct r_pack_encoder_settings    config;
-        struct r_pack_header*          pHeader;
-        struct r_pack_hash_entry*       pHashTable;
-        struct r_pack_color_entry*      pColorTable;
+        struct r_pack_encoder_settings   config;
+        struct r_pack_header*            pHeader;
+        struct r_pack_hash_entry*        pHashTable;
+        struct r_pack_color_entry*       pColorTable;
         struct r_pack_pixel_index_entry* pPixelIndexTable;
-        uint32_t                       colorTableCapacity;
-        uint32_t                       colorTableCount;
-        uint32_t                       pixelIndexTableCapacity;
-        uint32_t                       pixelIndexTableCount;
-        uint8_t*                       pAtlasData;
-        uint64_t                       atlasDataSize;
-        struct R_CSTL_Mutex*           pMutex;
-        struct R_CSTL_Thread**         ppWorkerThreads;
-        uint32_t                       actualWorkerCount;
-        volatile int                   workersActive;
+        uint32_t                         colorTableCapacity;
+        uint32_t                         colorTableCount;
+        uint32_t                         pixelIndexTableCapacity;
+        uint32_t                         pixelIndexTableCount;
+        uint8_t*                         pAtlasData;
+        uint64_t                         atlasDataSize;
+        struct R_CSTL_Mutex*             pMutex;
+        struct R_CSTL_Thread**           ppWorkerThreads;
+        uint32_t                         actualWorkerCount;
+        volatile int                     workersActive;
 };
 
 /**

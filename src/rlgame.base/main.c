@@ -145,7 +145,7 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
             R_CSTL_LOG_INFO ("Existing subprocesses: %d", existingProcessCount);                             \
             for (int i = 0; i < existingProcessCount; i++)                                                   \
             {                                                                                                \
-                struct r_process_info pProcess = (Info).pExistingProcesses[i];                                \
+                struct r_process_info       pProcess = (Info).pExistingProcesses[i];                         \
                 const struct R_CSTL_String* pNameString = pProcess.pName;                                    \
                 const char* pProcessName = pNameString ? R_CSTL_StringData (pNameString) : "(unknown)";      \
                 R_CSTL_LOG_INFO (                                                                            \
@@ -153,8 +153,7 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
                     i,                                                                                       \
                     pProcess.pid,                                                                            \
                     pProcessName,                                                                            \
-                    (double)pProcess.memoryBytes / R_APP_GB_BINARY                                           \
-                );                                                                                           \
+                    (double)pProcess.memoryBytes / R_APP_GB_BINARY);                                         \
             }                                                                                                \
         }                                                                                                    \
     } while (0)
@@ -165,7 +164,7 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
 static bool g_runFlag = false;
 
 static struct r_process_info* r_collect_processes (size_t* outCount, int argc, char** argv);
-static uint32_t r_get_current_pid ();
+static uint32_t               r_get_current_pid ();
 
 void
 r_initialize_application_info (struct r_application_info* info, int argc, char** argv)
@@ -203,8 +202,8 @@ void
 r_build_command_line (struct r_application_info* info, int argc, char** argv)
 {
     struct R_CSTL_StringBuilder* pBuilder = NULL;
-    struct R_CSTL_String* pCmdString = NULL;
-    char* cmd = NULL;
+    struct R_CSTL_String*        pCmdString = NULL;
+    char*                        cmd = NULL;
 
     if (!info || argc <= 0 || !argv) return;
 
@@ -244,14 +243,18 @@ r_populate_application_info (struct r_application_info* info, int argc, char** a
     r_build_command_line (info, argc, argv);
     r_fill_memory_info (&info->memory);
 
-    size_t count = 0;
+    size_t                 count = 0;
     struct r_process_info* pProcs = r_collect_processes (&count, argc, argv);
     info->pExistingProcesses = pProcs;
     info->existingProcessCount = count;
 }
 
 void
-r_assign_process_name (struct r_process_info* pProc, const struct R_CSTL_String* pExePath, int argc, char** argv)
+r_assign_process_name (
+    struct r_process_info*      pProc,
+    const struct R_CSTL_String* pExePath,
+    int                         argc,
+    char**                      argv)
 {
     if (!pProc) return;
     if (pExePath)
@@ -328,7 +331,7 @@ struct r_process_info*
 r_collect_processes (size_t* outCount, int argc, char** argv)
 {
     struct r_process_info* arr = NULL;
-    char* exe = NULL;
+    char*                  exe = NULL;
 
     if (!outCount) return NULL;
 
@@ -367,11 +370,11 @@ void
 r_launch_main_provider (r_game_callback pExecCallback, const void* pUserData)
 {
     const struct r_application_info* pAppInfo = (const struct r_application_info*)pUserData;
-    struct r_main_provider provider = {
-        .pExecCallback = pExecCallback,
-        .pAppInfo = pAppInfo,
-        .pUserData = (void*)pUserData,
-        .stateFlags = R_GAMELOOP_STATE_NONE,
+    struct r_main_provider           provider = {
+                  .pExecCallback = pExecCallback,
+                  .pAppInfo = pAppInfo,
+                  .pUserData = (void*)pUserData,
+                  .stateFlags = R_GAMELOOP_STATE_NONE,
     };
     r_main_provider_Run (&provider);
 }
@@ -438,7 +441,7 @@ r_main_provider_Run (struct r_main_provider* pProvider)
     R_CSTL_LOG_INFO (
         "GameLoop: Timer initialized, frequency=%llu Hz",
         (unsigned long long)frequency.QuadPart);
-    MSG msg;
+    MSG      msg;
     uint64_t frameCount = 0;
     while (r_game_loop_is_running (pProvider) && !r_game_loop_is_destroyed (pProvider))
     {
@@ -517,7 +520,7 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
     R_APP_INIT ();
 
     struct r_application_info info;
-    LPSTR cmd = GetCommandLineA ();
+    LPSTR                     cmd = GetCommandLineA ();
     r_populate_application_info (&info, 0, NULL);
 
     if (!r_init_win_main (hInstance, &info, nCmdShow))
@@ -529,7 +532,7 @@ wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmd
     R_APP_LOG_HEAP_STATS ();
     R_APP_LOG_INFO (info);
 
-    struct r_game_state gameState = {0};
+    struct r_game_state    gameState = {0};
     struct r_main_provider provider = {
         .pExecCallback = r_game_loop_callback,
         .pAppInfo = &info,
@@ -588,12 +591,12 @@ r_fill_memory_info (struct r_memory_info* out)
 static char*
 r_get_executable_path ()
 {
-    char buf[NAME_MAX + 1];
+    char    buf[NAME_MAX + 1];
     ssize_t len = readlink ("/proc/self/exe", buf, sizeof (buf) - 1);
     if (len <= 0) return NULL;
     buf[len] = 0x00;
     size_t allocLen = len + 1;
-    char* copy = (char*)R_CSTL_HeapAlloc (allocLen);
+    char*  copy = (char*)R_CSTL_HeapAlloc (allocLen);
     if (copy)
     {
         memcpy (copy, buf, allocLen);
@@ -606,8 +609,8 @@ static struct r_process_info*
 r_collect_processes (size_t* outCount, int argc, char** argv)
 {
     struct r_process_info* arr = NULL;
-    struct R_CSTL_String* exe = NULL;
-    FILE* fs = NULL;
+    struct R_CSTL_String*  exe = NULL;
+    FILE*                  fs = NULL;
 
     if (!outCount) return NULL;
 
@@ -823,11 +826,11 @@ void
 r_launch_main_provider (r_game_callback pExecCallback, const void* pUserData)
 {
     const struct r_application_info* pAppInfo = (const struct r_application_info*)pUserData;
-    struct r_main_provider provider = {
-        .pExecCallback = pExecCallback,
-        .pAppInfo = pAppInfo,
-        .pUserData = (void*)pUserData,
-        .stateFlags = R_GAMELOOP_STATE_NONE,
+    struct r_main_provider           provider = {
+                  .pExecCallback = pExecCallback,
+                  .pAppInfo = pAppInfo,
+                  .pUserData = (void*)pUserData,
+                  .stateFlags = R_GAMELOOP_STATE_NONE,
     };
     r_main_provider_Run (&provider);
 }
@@ -930,7 +933,7 @@ main (int argc, char** argv)
         R_CSTL_TRACE_RETURN ();
         return EXIT_FAILURE;
     }
-    struct r_game_state gameState = {0};
+    struct r_game_state    gameState = {0};
     struct r_main_provider provider = {
         .pExecCallback = r_game_loop_callback,
         .pAppInfo = &info,

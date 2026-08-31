@@ -154,7 +154,8 @@ r_pack_validate_header (const struct r_pack_header* pHeader)
         || pHeader->colorTableSize != 0
                && colorTableSize / sizeof (struct r_pack_color_entry) != pHeader->colorTableSize
         || pHeader->pixelIndexTableSize != 0
-               && pixelIndexTableSize / sizeof (struct r_pack_pixel_index_entry) != pHeader->pixelIndexTableSize
+               && pixelIndexTableSize / sizeof (struct r_pack_pixel_index_entry)
+                      != pHeader->pixelIndexTableSize
         || atlasDataSize / 2 != (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight
         || pHeader->dataOffset > UINT64_MAX - atlasDataSize)
     {

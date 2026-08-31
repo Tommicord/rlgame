@@ -16,30 +16,30 @@ struct r_pack_jpeg_huffman
 
 struct r_pack_jpeg_decoder
 {
-        const uint8_t*            pData;
-        size_t                    size;
-        size_t                    offset;
-        uint32_t                  width;
-        uint32_t                  height;
-        uint8_t                   components;
-        uint8_t                   ids[3];
-        uint8_t                   horizontal[3];
-        uint8_t                   vertical[3];
-        uint8_t                   quant[3];
-        uint16_t                  quantTables[2][64];
-        uint8_t                   quantPresent[2];
+        const uint8_t*             pData;
+        size_t                     size;
+        size_t                     offset;
+        uint32_t                   width;
+        uint32_t                   height;
+        uint8_t                    components;
+        uint8_t                    ids[3];
+        uint8_t                    horizontal[3];
+        uint8_t                    vertical[3];
+        uint8_t                    quant[3];
+        uint16_t                   quantTables[2][64];
+        uint8_t                    quantPresent[2];
         struct r_pack_jpeg_huffman dc[2];
         struct r_pack_jpeg_huffman ac[2];
-        uint8_t                   dcPresent[2];
-        uint8_t                   acPresent[2];
-        uint8_t                   unsupported;
-        uint8_t                   scanComponent[3];
-        uint8_t                   scanDc[3];
-        uint8_t                   scanAc[3];
-        uint8_t                   scanCount;
-        uint32_t                  bitBuffer;
-        uint8_t                   bits;
-        int16_t                   dcPredictor[3];
+        uint8_t                    dcPresent[2];
+        uint8_t                    acPresent[2];
+        uint8_t                    unsupported;
+        uint8_t                    scanComponent[3];
+        uint8_t                    scanDc[3];
+        uint8_t                    scanAc[3];
+        uint8_t                    scanCount;
+        uint32_t                   bitBuffer;
+        uint8_t                    bits;
+        int16_t                    dcPredictor[3];
 };
 
 static int
@@ -62,9 +62,9 @@ r_pack_jpeg_read16 (struct r_pack_jpeg_decoder* pDecoder, uint16_t* pValue)
 static int
 r_pack_jpeg_build_huffman (
     struct r_pack_jpeg_huffman* pTable,
-    const uint8_t*             pCounts,
-    const uint8_t*             pValues,
-    uint16_t                   valueCount)
+    const uint8_t*              pCounts,
+    const uint8_t*              pValues,
+    uint16_t                    valueCount)
 {
     uint16_t code = 0;
     uint16_t value = 0;
@@ -108,7 +108,7 @@ static int
 r_pack_jpeg_huffman_value (
     struct r_pack_jpeg_decoder*       pDecoder,
     const struct r_pack_jpeg_huffman* pTable,
-    uint8_t*                         pValue)
+    uint8_t*                          pValue)
 {
     uint32_t code = 0;
     for (uint8_t length = 1; length <= 16; ++length)
@@ -140,7 +140,8 @@ r_pack_jpeg_decode_block (struct r_pack_jpeg_decoder* pDecoder, uint8_t componen
 {
     memset (pBlock, 0, 64 * sizeof (*pBlock));
     uint8_t dcSymbol;
-    if (!r_pack_jpeg_huffman_value (pDecoder, &pDecoder->dc[pDecoder->scanDc[component]], &dcSymbol)) return 0;
+    if (!r_pack_jpeg_huffman_value (pDecoder, &pDecoder->dc[pDecoder->scanDc[component]], &dcSymbol))
+        return 0;
     uint32_t bits = 0;
     if (dcSymbol && !r_pack_jpeg_read_bits (pDecoder, dcSymbol, &bits)) return 0;
     pDecoder->dcPredictor[component] += r_pack_jpeg_extend (bits, dcSymbol);
@@ -207,8 +208,8 @@ static int
 r_pack_jpeg_parse (struct r_pack_jpeg_decoder* pDecoder)
 {
     uint8_t marker;
-    if (!r_pack_jpeg_read_byte (pDecoder, &marker) || marker != 0xFF || !r_pack_jpeg_read_byte (pDecoder, &marker)
-        || marker != 0xD8)
+    if (!r_pack_jpeg_read_byte (pDecoder, &marker) || marker != 0xFF
+        || !r_pack_jpeg_read_byte (pDecoder, &marker) || marker != 0xD8)
         return 0;
     for (;;)
     {
@@ -339,10 +340,9 @@ r_pack_jpeg_parse (struct r_pack_jpeg_decoder* pDecoder)
 enum r_pack_error
 r_pack_jpeg_decode (const uint8_t* pData, size_t dataSize, struct r_pack_jpeg_image* pImage)
 {
-    R_PACK_ASSERT(pImage);
-    R_PACK_ASSERT(pData);
-    if (dataSize < 4)
-        return R_PACK_ERROR_INVALID_ARGUMENT;
+    R_PACK_ASSERT (pImage);
+    R_PACK_ASSERT (pData);
+    if (dataSize < 4) return R_PACK_ERROR_INVALID_ARGUMENT;
     memset (pImage, 0, sizeof (*pImage));
     struct r_pack_jpeg_decoder decoder = {.pData = pData, .size = dataSize};
     if (!r_pack_jpeg_parse (&decoder))

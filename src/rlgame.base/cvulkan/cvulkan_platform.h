@@ -20,9 +20,9 @@
 
 #if defined(R_CVULKAN_DEBUG)
 #include <assert.h>
-#define R_CVULKAN_ASSERT(condition)        assert (condition)
+#define R_CVULKAN_ASSERT(condition) assert (condition)
 #else
-#define R_CVULKAN_ASSERT(condition)        ((void)0)
+#define R_CVULKAN_ASSERT(condition) ((void)0)
 #endif
 
 #if defined(R_COMPILER_MSVC)

@@ -26,7 +26,7 @@ R_CVulkan_NewDescriptorSetLayout (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }

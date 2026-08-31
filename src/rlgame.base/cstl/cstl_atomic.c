@@ -214,7 +214,12 @@ R_CSTL_AtomicInt32Decrement (R_CSTL_AtomicInt32* pAtomic)
 R_CSTL_API int
 R_CSTL_AtomicInt32CompareExchange (R_CSTL_AtomicInt32* pAtomic, int expected, int desired)
 {
-    atomic_compare_exchange_strong_explicit (pAtomic, &expected, desired, memory_order_seq_cst, memory_order_seq_cst);
+    atomic_compare_exchange_strong_explicit (
+        pAtomic,
+        &expected,
+        desired,
+        memory_order_seq_cst,
+        memory_order_seq_cst);
     return expected;
 }
 
@@ -257,7 +262,12 @@ R_CSTL_AtomicUint32Decrement (R_CSTL_AtomicUint32* pAtomic)
 R_CSTL_API uint32_t
 R_CSTL_AtomicUint32CompareExchange (R_CSTL_AtomicUint32* pAtomic, uint32_t expected, uint32_t desired)
 {
-    atomic_compare_exchange_strong_explicit (pAtomic, &expected, desired, memory_order_seq_cst, memory_order_seq_cst);
+    atomic_compare_exchange_strong_explicit (
+        pAtomic,
+        &expected,
+        desired,
+        memory_order_seq_cst,
+        memory_order_seq_cst);
     return expected;
 }
 
@@ -300,7 +310,12 @@ R_CSTL_AtomicInt64Decrement (R_CSTL_AtomicInt64* pAtomic)
 R_CSTL_API int64_t
 R_CSTL_AtomicInt64CompareExchange (R_CSTL_AtomicInt64* pAtomic, int64_t expected, int64_t desired)
 {
-    atomic_compare_exchange_strong_explicit (pAtomic, &expected, desired, memory_order_seq_cst, memory_order_seq_cst);
+    atomic_compare_exchange_strong_explicit (
+        pAtomic,
+        &expected,
+        desired,
+        memory_order_seq_cst,
+        memory_order_seq_cst);
     return expected;
 }
 
@@ -343,7 +358,12 @@ R_CSTL_AtomicUint64Decrement (R_CSTL_AtomicUint64* pAtomic)
 R_CSTL_API uint64_t
 R_CSTL_AtomicUint64CompareExchange (R_CSTL_AtomicUint64* pAtomic, uint64_t expected, uint64_t desired)
 {
-    atomic_compare_exchange_strong_explicit (pAtomic, &expected, desired, memory_order_seq_cst, memory_order_seq_cst);
+    atomic_compare_exchange_strong_explicit (
+        pAtomic,
+        &expected,
+        desired,
+        memory_order_seq_cst,
+        memory_order_seq_cst);
     return expected;
 }
 
@@ -374,7 +394,12 @@ R_CSTL_AtomicUint64Add (R_CSTL_AtomicUint64* pAtomic, uint64_t value)
 R_CSTL_API void*
 R_CSTL_AtomicPtrCompareExchange (R_CSTL_AtomicVoidP* pAtomic, void* expected, void* desired)
 {
-    atomic_compare_exchange_strong_explicit (pAtomic, &expected, desired, memory_order_seq_cst, memory_order_seq_cst);
+    atomic_compare_exchange_strong_explicit (
+        pAtomic,
+        &expected,
+        desired,
+        memory_order_seq_cst,
+        memory_order_seq_cst);
     return expected;
 }
 

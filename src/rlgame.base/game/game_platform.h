@@ -16,9 +16,9 @@
 
 #if defined(R_CVULKAN_DEBUG)
 #include <assert.h>
-#define R_GAME_ASSERT(condition)        assert (condition)
+#define R_GAME_ASSERT(condition) assert (condition)
 #else
-#define R_GAME_ASSERT(condition)        ((void)0)
+#define R_GAME_ASSERT(condition) ((void)0)
 #endif
 
 #if defined(_WIN32)

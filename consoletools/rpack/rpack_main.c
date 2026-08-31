@@ -53,14 +53,14 @@ r_pack_print_help ()
 
 static int
 r_pack_parse_arguments (
-    int                            argc,
-    char**                         argv,
+    int                             argc,
+    char**                          argv,
     struct r_pack_encoder_settings* pSettings,
-    char**                         ppOutputPath,
-    struct R_CSTL_Array**          ppInputPaths,
-    int*                           pVerbose,
-    int*                           pQuiet,
-    int*                           pMipmap)
+    char**                          ppOutputPath,
+    struct R_CSTL_Array**           ppInputPaths,
+    int*                            pVerbose,
+    int*                            pQuiet,
+    int*                            pMipmap)
 {
     *ppOutputPath = NULL;
     *ppInputPaths = R_CSTL_NewArray ();
@@ -239,13 +239,13 @@ main (int argc, char** argv)
         return EXIT_SUCCESS;
     }
     struct r_pack_encoder_settings config = {0};
-    char*                         pOutputPath = NULL;
-    struct R_CSTL_Array*          pInputPaths = NULL;
-    struct r_pack_encoder*        pEncoder = NULL;
-    int                           verbose = 0;
-    int                           quiet = 0;
-    int                           mipmap = 0;
-    int                           result = EXIT_FAILURE;
+    char*                          pOutputPath = NULL;
+    struct R_CSTL_Array*           pInputPaths = NULL;
+    struct r_pack_encoder*         pEncoder = NULL;
+    int                            verbose = 0;
+    int                            quiet = 0;
+    int                            mipmap = 0;
+    int                            result = EXIT_FAILURE;
 
     int parseResult
         = r_pack_parse_arguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
@@ -290,7 +290,8 @@ main (int argc, char** argv)
     }
 
     R_CSTL_LOG_INFO ("Encoding %zu image(s)", inputCount);
-    uint32_t successCount = r_pack_encode_input_images_threaded (pEncoder, pInputPaths, 0, config.workerCount);
+    uint32_t successCount
+        = r_pack_encode_input_images_threaded (pEncoder, pInputPaths, 0, config.workerCount);
 
     if (successCount == 0)
     {

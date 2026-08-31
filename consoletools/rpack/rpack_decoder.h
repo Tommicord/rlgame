@@ -11,12 +11,12 @@
  */
 struct r_pack_decoder
 {
-        struct r_pack_header*          pHeader;
-        struct r_pack_hash_entry*       pHashTable;
-        struct r_pack_color_entry*      pColorTable;
+        struct r_pack_header*            pHeader;
+        struct r_pack_hash_entry*        pHashTable;
+        struct r_pack_color_entry*       pColorTable;
         struct r_pack_pixel_index_entry* pPixelIndexTable;
-        const uint8_t*                 pData;
-        uint64_t                       dataSize;
+        const uint8_t*                   pData;
+        uint64_t                         dataSize;
 };
 
 /**
@@ -82,7 +82,8 @@ R_PACK_API enum r_pack_error r_pack_decoder_decode_textures (
  * @param name Texture name
  * @return Required buffer size in bytes (width * height * 4)
  */
-R_PACK_API uint64_t r_pack_decoder_get_texture_size (const struct r_pack_decoder* pDecoder, const char* pName);
+R_PACK_API uint64_t
+r_pack_decoder_get_texture_size (const struct r_pack_decoder* pDecoder, const char* pName);
 
 /**
  * @brief Get required buffer size for decoding multiple textures

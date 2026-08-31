@@ -50,8 +50,7 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkComman
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
-    
+
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
@@ -77,8 +76,7 @@ R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
-    
+
     {
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }

@@ -217,8 +217,8 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, Vk
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorBeginDefragmentation (
-    struct R_CVulkan_MemoryAllocator*    pAllocator,
-    struct R_CVulkan_DefragContext**     ppContext,
+    struct R_CVulkan_MemoryAllocator*      pAllocator,
+    struct R_CVulkan_DefragContext**       ppContext,
     const struct R_CVulkan_DefragSettings* pSettings);
 
 /**

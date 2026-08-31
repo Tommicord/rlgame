@@ -186,15 +186,15 @@ R_ENTRY_API bool r_window_handle_is_visible (R_WIN32_HWND hwnd);
  */
 enum r_window_decoration_flags
 {
-    R_WINDOW_DECORATION_NONE = 0x00,          ///< No decorations
-    R_WINDOW_DECORATION_BORDER = 0x01,         ///< Show window border
-    R_WINDOW_DECORATION_TITLEBAR = 0x02,       ///< Show title bar
-    R_WINDOW_DECORATION_MINIMIZE = 0x04,       ///< Show minimize button
-    R_WINDOW_DECORATION_MAXIMIZE = 0x08,       ///< Show maximize button
-    R_WINDOW_DECORATION_CLOSE = 0x10,          ///< Show close button
-    R_WINDOW_DECORATION_RESIZE = 0x20,         ///< Enable window resizing
-    R_WINDOW_DECORATION_MENU = 0x40,          ///< Show window menu
-    R_WINDOW_DECORATION_ALL = 0x7F            ///< All decorations enabled
+    R_WINDOW_DECORATION_NONE = 0x00, ///< No decorations
+    R_WINDOW_DECORATION_BORDER = 0x01, ///< Show window border
+    R_WINDOW_DECORATION_TITLEBAR = 0x02, ///< Show title bar
+    R_WINDOW_DECORATION_MINIMIZE = 0x04, ///< Show minimize button
+    R_WINDOW_DECORATION_MAXIMIZE = 0x08, ///< Show maximize button
+    R_WINDOW_DECORATION_CLOSE = 0x10, ///< Show close button
+    R_WINDOW_DECORATION_RESIZE = 0x20, ///< Enable window resizing
+    R_WINDOW_DECORATION_MENU = 0x40, ///< Show window menu
+    R_WINDOW_DECORATION_ALL = 0x7F ///< All decorations enabled
 };
 
 /**
@@ -205,13 +205,13 @@ enum r_window_decoration_flags
  */
 enum r_window_decoration_color
 {
-    R_WINDOW_COLOR_DEFAULT = 0x00,            ///< Default system color (bits 8-10: 000)
-    R_WINDOW_COLOR_ORANGE = 0x0100,           ///< Orange theme (bits 8-10: 001)
-    R_WINDOW_COLOR_BLUE = 0x0200,             ///< Blue theme (bits 8-10: 010)
-    R_WINDOW_COLOR_GREEN = 0x0300,            ///< Green theme (bits 8-10: 011)
-    R_WINDOW_COLOR_RED = 0x0400,              ///< Red theme (bits 8-10: 100)
-    R_WINDOW_COLOR_PURPLE = 0x0500,           ///< Purple theme (bits 8-10: 101)
-    R_WINDOW_COLOR_CUSTOM = 0x0600            ///< Custom color (bits 8-10: 110)
+    R_WINDOW_COLOR_DEFAULT = 0x00, ///< Default system color (bits 8-10: 000)
+    R_WINDOW_COLOR_ORANGE = 0x0100, ///< Orange theme (bits 8-10: 001)
+    R_WINDOW_COLOR_BLUE = 0x0200, ///< Blue theme (bits 8-10: 010)
+    R_WINDOW_COLOR_GREEN = 0x0300, ///< Green theme (bits 8-10: 011)
+    R_WINDOW_COLOR_RED = 0x0400, ///< Red theme (bits 8-10: 100)
+    R_WINDOW_COLOR_PURPLE = 0x0500, ///< Purple theme (bits 8-10: 101)
+    R_WINDOW_COLOR_CUSTOM = 0x0600 ///< Custom color (bits 8-10: 110)
 };
 
 /**
@@ -233,7 +233,7 @@ enum r_window_handle_backend
  */
 struct r_window_handle_style
 {
-    uint16_t decorationFlags; ///< Combined decoration flags and color theme (bit-packed)
+        uint16_t decorationFlags; ///< Combined decoration flags and color theme (bit-packed)
 };
 
 /**
@@ -242,14 +242,15 @@ struct r_window_handle_style
  * These constants provide commonly used window decoration configurations
  * using the bit-packed flag system for space efficiency.
  */
-#define R_WINDOW_STYLE_DEFAULT ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_DEFAULT))
-#define R_WINDOW_STYLE_ORANGE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_ORANGE))
-#define R_WINDOW_STYLE_BLUE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_BLUE))
-#define R_WINDOW_STYLE_GREEN ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_GREEN))
-#define R_WINDOW_STYLE_RED ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_RED))
-#define R_WINDOW_STYLE_PURPLE ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_PURPLE))
+#define R_WINDOW_STYLE_DEFAULT    ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_DEFAULT))
+#define R_WINDOW_STYLE_ORANGE     ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_ORANGE))
+#define R_WINDOW_STYLE_BLUE       ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_BLUE))
+#define R_WINDOW_STYLE_GREEN      ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_GREEN))
+#define R_WINDOW_STYLE_RED        ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_RED))
+#define R_WINDOW_STYLE_PURPLE     ((R_WINDOW_DECORATION_ALL) | (R_WINDOW_COLOR_PURPLE))
 #define R_WINDOW_STYLE_BORDERLESS ((R_WINDOW_DECORATION_NONE) | (R_WINDOW_COLOR_DEFAULT))
-#define R_WINDOW_STYLE_MINIMAL ((R_WINDOW_DECORATION_BORDER | R_WINDOW_DECORATION_TITLEBAR) | (R_WINDOW_COLOR_DEFAULT))
+#define R_WINDOW_STYLE_MINIMAL                                                                               \
+    ((R_WINDOW_DECORATION_BORDER | R_WINDOW_DECORATION_TITLEBAR) | (R_WINDOW_COLOR_DEFAULT))
 #define R_WINDOW_STYLE_ORANGE_BORDERLESS ((R_WINDOW_DECORATION_NONE) | (R_WINDOW_COLOR_ORANGE))
 
 /**
@@ -258,7 +259,8 @@ struct r_window_handle_style
  * @param colorTheme Color theme (r_window_decoration_color)
  * @return Combined decoration flags value
  */
-static inline uint16_t r_create_window_style (uint8_t decorationFlags, uint16_t colorTheme)
+static inline uint16_t
+r_create_window_style (uint8_t decorationFlags, uint16_t colorTheme)
 {
     return (uint16_t)decorationFlags | colorTheme;
 }
@@ -268,7 +270,8 @@ static inline uint16_t r_create_window_style (uint8_t decorationFlags, uint16_t 
  * @param styleFlags Combined style flags
  * @return Decoration flags (lower 8 bits)
  */
-static inline uint8_t r_get_decoration_flags (uint16_t styleFlags)
+static inline uint8_t
+r_get_decoration_flags (uint16_t styleFlags)
 {
     return (uint8_t)(styleFlags & 0xFF);
 }
@@ -278,7 +281,8 @@ static inline uint8_t r_get_decoration_flags (uint16_t styleFlags)
  * @param styleFlags Combined style flags
  * @return Color theme (bits 8-10)
  */
-static inline uint16_t r_get_color_theme (uint16_t styleFlags)
+static inline uint16_t
+r_get_color_theme (uint16_t styleFlags)
 {
     return styleFlags & 0x0700;
 }
@@ -289,7 +293,8 @@ static inline uint16_t r_get_color_theme (uint16_t styleFlags)
  * @param flag Flag to check (r_window_decoration_flags)
  * @return true if flag is set, false otherwise
  */
-static inline bool r_has_decoration_flag (uint16_t styleFlags, uint8_t flag)
+static inline bool
+r_has_decoration_flag (uint16_t styleFlags, uint8_t flag)
 {
     return (styleFlags & flag) != 0;
 }
@@ -299,7 +304,8 @@ static inline bool r_has_decoration_flag (uint16_t styleFlags, uint8_t flag)
  * @param pStyle Pointer to style structure
  * @param flag Flag to set (r_window_decoration_flags)
  */
-static inline void r_set_decoration_flag (struct r_window_handle_style* pStyle, uint8_t flag)
+static inline void
+r_set_decoration_flag (struct r_window_handle_style* pStyle, uint8_t flag)
 {
     if (pStyle)
     {
@@ -312,7 +318,8 @@ static inline void r_set_decoration_flag (struct r_window_handle_style* pStyle, 
  * @param pStyle Pointer to style structure
  * @param flag Flag to clear (r_window_decoration_flags)
  */
-static inline void r_clear_decoration_flag (struct r_window_handle_style* pStyle, uint8_t flag)
+static inline void
+r_clear_decoration_flag (struct r_window_handle_style* pStyle, uint8_t flag)
 {
     if (pStyle)
     {
@@ -325,7 +332,8 @@ static inline void r_clear_decoration_flag (struct r_window_handle_style* pStyle
  * @param pStyle Pointer to style structure
  * @param colorTheme Color theme to set (r_window_decoration_color)
  */
-static inline void r_set_color_theme (struct r_window_handle_style* pStyle, uint16_t colorTheme)
+static inline void
+r_set_color_theme (struct r_window_handle_style* pStyle, uint16_t colorTheme)
 {
     if (pStyle)
     {
@@ -384,7 +392,7 @@ union r_window_handle_handle
 {
         r_wayland_window waylandWindow;
         r_x11_window     x11Window;
-        R_XCBWindow     xcbWindow;
+        R_XCBWindow      xcbWindow;
 };
 
 /**
@@ -394,7 +402,7 @@ union r_display_handle
 {
         r_wayland_display waylandDisplay;
         r_x11_display     x11Display;
-        R_XCBConnection  xcbConnection;
+        R_XCBConnection   xcbConnection;
 };
 
 /**
@@ -410,8 +418,9 @@ R_ENTRY_API enum r_window_handle_backend r_detect_capabilities (struct r_capabil
  * @param pStyle Window style style (can be NULL for default)
  * @return Window handle on success, NULL on failure
  */
-R_ENTRY_API r_wayland_window
-r_init_wayland_window (struct r_application_info* pApplicationInfo, const struct r_window_handle_style* pStyle);
+R_ENTRY_API r_wayland_window r_init_wayland_window (
+    struct r_application_info*          pApplicationInfo,
+    const struct r_window_handle_style* pStyle);
 
 /**
  * @brief Initializes the X11 window
@@ -450,10 +459,10 @@ R_ENTRY_API void r_apply_window_style (
  * @param pCustomTitle Optional custom title (overrides app name if provided)
  */
 R_ENTRY_API void r_set_window_title (
-    enum r_window_handle_backend      backend,
-    union r_window_handle_handle*     pWindowHandle,
+    enum r_window_handle_backend     backend,
+    union r_window_handle_handle*    pWindowHandle,
     const struct r_application_info* pApplicationInfo,
-    const char*                     pCustomTitle);
+    const char*                      pCustomTitle);
 
 /**
  * @brief Gets the Wayland display handle

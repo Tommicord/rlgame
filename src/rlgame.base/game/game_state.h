@@ -31,7 +31,7 @@
  */
 struct r_game_state
 {
-        struct r_game_pipeline_context context; /**< Vulkan rendering pipeline context */
+        struct r_game_pipeline_context  context; /**< Vulkan rendering pipeline context */
         struct r_game_renderer_manager* pRendererManager; /**< Multi-renderer manager */
 };
 
@@ -58,12 +58,12 @@ struct r_game_state_create_info
         HWND      hWnd; /**< Windows window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
         enum r_game_linux_backend linuxBackend; /**< Linux window backend */
-        struct wl_display*       pDisplay; /**< Wayland display connection (required if not headless) */
-        struct wl_surface*       pSurface; /**< Wayland surface (required if not headless) */
-        Display*                 pX11Display; /**< X11 display connection (required if not headless) */
-        Window                   x11Window; /**< X11 window handle (required if not headless) */
-        xcb_connection_t*        pXCBConnection; /**< XCB connection (required if not headless) */
-        xcb_window_t             xcbWindow; /**< XCB window handle (required if not headless) */
+        struct wl_display*        pDisplay; /**< Wayland display connection (required if not headless) */
+        struct wl_surface*        pSurface; /**< Wayland surface (required if not headless) */
+        Display*                  pX11Display; /**< X11 display connection (required if not headless) */
+        Window                    x11Window; /**< X11 window handle (required if not headless) */
+        xcb_connection_t*         pXCBConnection; /**< XCB connection (required if not headless) */
+        xcb_window_t              xcbWindow; /**< XCB window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_ANDROID)
         ANativeWindow* pWindow; /**< Android native window (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_MACOS)

@@ -114,7 +114,8 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BeginCommandBuffer (
  * @param pCommandBuffer Pointer to command buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
+R_CVULKAN_API enum R_CVulkan_Error
+R_CVulkan_EndCommandBuffer (struct R_CVulkan_CommandBuffer* pCommandBuffer);
 
 /**
  * @brief Reset a command buffer

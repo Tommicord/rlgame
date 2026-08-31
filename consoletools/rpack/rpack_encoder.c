@@ -29,12 +29,12 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
 
 struct r_pack_pixel_work_task
 {
-        struct r_pack_encoder* pEncoder;
+        struct r_pack_encoder*           pEncoder;
         const struct r_pack_input_image* pImage;
-        uint32_t startY;
-        uint32_t endY;
-        uint32_t* pOutPixelCount;
-        int* pOutError;
+        uint32_t                         startY;
+        uint32_t                         endY;
+        uint32_t*                        pOutPixelCount;
+        int*                             pOutError;
 };
 
 static void
@@ -42,7 +42,7 @@ r_pack_process_pixel_row_worker (void* pData)
 {
     R_PACK_ASSERT (pData);
     struct r_pack_pixel_work_task* pTask = (struct r_pack_pixel_work_task*)pData;
-    uint32_t pixelCount = 0;
+    uint32_t                       pixelCount = 0;
 
     for (uint32_t y = pTask->startY; y < pTask->endY; ++y)
     {
@@ -50,24 +50,25 @@ r_pack_process_pixel_row_worker (void* pData)
         while (x < pTask->pImage->width)
         {
             const uint8_t* pCurrentPixel = pTask->pImage->pPixels + y * pTask->pImage->stride + x * 4;
-            uint8_t r = pCurrentPixel[0];
-            uint8_t g = pCurrentPixel[1];
-            uint8_t b = pCurrentPixel[2];
-            
+            uint8_t        r = pCurrentPixel[0];
+            uint8_t        g = pCurrentPixel[1];
+            uint8_t        b = pCurrentPixel[2];
+
             uint8_t yuvY, yuvYExp, yuvU, yuvV;
             r_pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
-            
+
             uint32_t colorIndex = r_pack_find_or_add_color (pTask->pEncoder, yuvY, yuvYExp, yuvU, yuvV);
             if (colorIndex == UINT32_MAX)
             {
                 *pTask->pOutError = 1;
                 return;
             }
-            
+
             uint32_t runWidth = 1;
             while (x + runWidth < pTask->pImage->width && runWidth < 63)
             {
-                const uint8_t* pNextPixel = pTask->pImage->pPixels + y * pTask->pImage->stride + (x + runWidth) * 4;
+                const uint8_t* pNextPixel
+                    = pTask->pImage->pPixels + y * pTask->pImage->stride + (x + runWidth) * 4;
                 if (pNextPixel[0] == r && pNextPixel[1] == g && pNextPixel[2] == b)
                 {
                     runWidth++;
@@ -77,11 +78,11 @@ r_pack_process_pixel_row_worker (void* pData)
                     break;
                 }
             }
-            
+
             R_CSTL_MutexLock (pTask->pEncoder->pMutex);
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
-                const uint32_t newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
+                const uint32_t                   newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
                 struct r_pack_pixel_index_entry* pNewTable
                     = (struct r_pack_pixel_index_entry*)R_CSTL_HeapRealloc (
                         pTask->pEncoder->pPixelIndexTable,
@@ -262,7 +263,7 @@ r_pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, 
     }
     else
     {
-        int exp = 0;
+        int   exp = 0;
         float mantissa = frexpf (yf, &exp);
         *pY = (uint8_t)(mantissa * 255.0f);
         *pYExp = (uint8_t)(exp + 127);
@@ -305,13 +306,13 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
     // Cache-friendly linear search with early exit
     // For better cache locality, we process the color table sequentially
     const float threshold = pEncoder->config.similarityThreshold;
-    uint32_t bestMatch = UINT32_MAX;
-    float bestSimilarity = threshold;
-    
+    uint32_t    bestMatch = UINT32_MAX;
+    float       bestSimilarity = threshold;
+
     for (uint32_t i = 0; i < pEncoder->colorTableCount; ++i)
     {
         struct r_pack_color_entry* pEntry = &pEncoder->pColorTable[i];
-        float similarity = r_pack_get_color_similarity (
+        float                      similarity = r_pack_get_color_similarity (
             y,
             u,
             v,
@@ -336,7 +337,7 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
     }
     if (pEncoder->colorTableCount >= pEncoder->colorTableCapacity)
     {
-        uint32_t newCapacity = pEncoder->colorTableCapacity << 1u;
+        uint32_t                   newCapacity = pEncoder->colorTableCapacity << 1u;
         struct r_pack_color_entry* pNewTable = (struct r_pack_color_entry*)R_CSTL_HeapRealloc (
             pEncoder->pColorTable,
             newCapacity * sizeof (struct r_pack_color_entry));
@@ -388,7 +389,8 @@ r_pack_expand_hash_table (struct r_pack_encoder* pEncoder, uint32_t* pOutTexture
 
     if (textureIndex == 0)
     {
-        pEncoder->pHashTable = (struct r_pack_hash_entry*)R_CSTL_HeapAlloc (sizeof (struct r_pack_hash_entry));
+        pEncoder->pHashTable
+            = (struct r_pack_hash_entry*)R_CSTL_HeapAlloc (sizeof (struct r_pack_hash_entry));
         if (!pEncoder->pHashTable)
         {
             R_CSTL_MutexUnlock (pEncoder->pMutex);
@@ -415,11 +417,11 @@ r_pack_expand_hash_table (struct r_pack_encoder* pEncoder, uint32_t* pOutTexture
 
 static void
 r_pack_get_atlas_position (
-    struct r_pack_encoder* pEncoder,
+    struct r_pack_encoder*           pEncoder,
     const struct r_pack_input_image* pImage,
-    uint32_t textureIndex,
-    uint32_t* pOutX,
-    uint32_t* pOutY)
+    uint32_t                         textureIndex,
+    uint32_t*                        pOutX,
+    uint32_t*                        pOutY)
 {
     R_PACK_ASSERT (pEncoder);
     R_PACK_ASSERT (pImage);
@@ -449,10 +451,10 @@ r_pack_get_atlas_position (
 static void
 r_pack_update_atlas_dimensions (
     struct r_pack_encoder* pEncoder,
-    uint32_t currentX,
-    uint32_t currentY,
-    uint32_t imageWidth,
-    uint32_t imageHeight)
+    uint32_t               currentX,
+    uint32_t               currentY,
+    uint32_t               imageWidth,
+    uint32_t               imageHeight)
 {
     R_PACK_ASSERT (pEncoder);
     R_CSTL_MutexLock (pEncoder->pMutex);
@@ -473,20 +475,20 @@ static enum r_pack_error
 r_pack_process_pixels_serial (struct r_pack_encoder* pEncoder, const struct r_pack_input_image* pImage)
 {
     R_PACK_ASSERT (pEncoder);
-    
+
     uint32_t x = 0;
     uint32_t y = 0;
-    
+
     while (y < pImage->height)
     {
         const uint8_t* pCurrentPixel = pImage->pPixels + y * pImage->stride + x * 4;
-        uint8_t r = pCurrentPixel[0];
-        uint8_t g = pCurrentPixel[1];
-        uint8_t b = pCurrentPixel[2];
-        
+        uint8_t        r = pCurrentPixel[0];
+        uint8_t        g = pCurrentPixel[1];
+        uint8_t        b = pCurrentPixel[2];
+
         uint8_t yuvY, yuvYExp, yuvU, yuvV;
         r_pack_RGBAToYUV (r, g, b, &yuvY, &yuvYExp, &yuvU, &yuvV);
-        
+
         uint32_t colorIndex = r_pack_find_or_add_color (pEncoder, yuvY, yuvYExp, yuvU, yuvV);
         if (colorIndex == UINT32_MAX)
         {
@@ -508,7 +510,7 @@ r_pack_process_pixels_serial (struct r_pack_encoder* pEncoder, const struct r_pa
         uint32_t runHeight = 1;
         if (pEncoder->pixelIndexTableCount >= pEncoder->pixelIndexTableCapacity)
         {
-            const uint32_t newCapacity = pEncoder->pixelIndexTableCapacity * 2;
+            const uint32_t                   newCapacity = pEncoder->pixelIndexTableCapacity * 2;
             struct r_pack_pixel_index_entry* pNewTable
                 = (struct r_pack_pixel_index_entry*)R_CSTL_HeapRealloc (
                     pEncoder->pPixelIndexTable,
@@ -527,7 +529,7 @@ r_pack_process_pixels_serial (struct r_pack_encoder* pEncoder, const struct r_pa
         pPixelEntry->runWidth = (uint8_t)runWidth;
         pPixelEntry->runHeight = 1;
         pEncoder->pixelIndexTableCount++;
-        
+
         x += runWidth;
         if (x >= pImage->width)
         {
@@ -535,7 +537,7 @@ r_pack_process_pixels_serial (struct r_pack_encoder* pEncoder, const struct r_pa
             y++;
         }
     }
-    
+
     return R_PACK_OK;
 }
 
@@ -543,11 +545,11 @@ static enum r_pack_error
 r_pack_process_pixels (struct r_pack_encoder* pEncoder, const struct r_pack_input_image* pImage)
 {
     R_PACK_ASSERT (pEncoder);
-    uint32_t rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
+    uint32_t                       rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
     struct r_pack_pixel_work_task* pTasks = (struct r_pack_pixel_work_task*)R_CSTL_HeapAlloc (
         pEncoder->actualWorkerCount * sizeof (struct r_pack_pixel_work_task));
     uint32_t* pPixelCounts = (uint32_t*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (uint32_t));
-    int* pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
+    int*      pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
 
     if (!pTasks || !pPixelCounts || !pErrors)
     {
@@ -692,9 +694,9 @@ r_pack_encoder_get_required_size (const struct r_pack_encoder* pEncoder)
 enum r_pack_error
 r_pack_encoder_encode (
     struct r_pack_encoder* pEncoder,
-    uint8_t* pOutputBuffer,
-    uint64_t outputBufferSize,
-    uint64_t* pBytesWritten)
+    uint8_t*               pOutputBuffer,
+    uint64_t               outputBufferSize,
+    uint64_t*              pBytesWritten)
 {
     R_PACK_ASSERT (pEncoder);
     R_PACK_ASSERT (pOutputBuffer);
@@ -759,7 +761,7 @@ r_pack_encoder_encode (
 uint32_t
 r_pack_encoder_get_image_count (const struct r_pack_encoder* pEncoder)
 {
-    R_PACK_ASSERT(pEncoder);
-    R_PACK_ASSERT(pEncoder->pHeader);
+    R_PACK_ASSERT (pEncoder);
+    R_PACK_ASSERT (pEncoder->pHeader);
     return pEncoder->pHeader->textureCount;
 }

@@ -44,10 +44,10 @@ struct R_CVulkan_MemValStats
 };
 
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemValInitialize (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void                R_CVulkan_MemValShutdown (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void                R_CVulkan_MemValNotifyAllocation (
-                   const struct R_CVulkan_MemoryAllocator* pAllocator,
-                   const struct R_CVulkan_Suballocation*   allocation);
+R_CVULKAN_API void                 R_CVulkan_MemValShutdown (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void                 R_CVulkan_MemValNotifyAllocation (
+                    const struct R_CVulkan_MemoryAllocator* pAllocator,
+                    const struct R_CVulkan_Suballocation*   allocation);
 R_CVULKAN_API void R_CVulkan_MemValNotifyFree (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     const struct R_CVulkan_Suballocation*   allocation);

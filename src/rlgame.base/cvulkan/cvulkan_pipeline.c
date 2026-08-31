@@ -35,7 +35,7 @@ R_CVulkan_NewPipelineLayout (
     pLayout->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pLayout->handle = VK_NULL_HANDLE;
-    
+
 #endif
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
@@ -53,7 +53,7 @@ R_CVulkan_NewPipelineLayout (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     *ppLayout = pLayout;
     return R_CVULKAN_OK;
@@ -67,7 +67,7 @@ R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout)
     vkDestroyPipelineLayout (pLayout->device, pLayout->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
     pLayout->device = VK_NULL_HANDLE;
-    
+
 #endif
     R_CSTL_HeapFree (pLayout);
 }
@@ -103,7 +103,7 @@ R_CVulkan_NewGraphicsPipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    
+
 #endif
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {0};
@@ -137,7 +137,7 @@ R_CVulkan_NewGraphicsPipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }
@@ -187,7 +187,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
         R_CSTL_LOG_WARN ("R_CVulkan_NewDynamicGraphicsPipeline: Dynamic rendering not supported by device");
         R_CSTL_LOG_WARN ("  Falling back to traditional render pass approach using DYR support");
 
-        struct R_CVulkan_DYRRenderPass dyrRenderPass = {0};
+        struct R_CVulkan_DYRRenderPass           dyrRenderPass = {0};
         struct R_CVulkan_DYRRenderPassCreateInfo dyrCreateInfo = {0};
         dyrCreateInfo.pDevice = pCreateInfo->pDevice;
         dyrCreateInfo.colorAttachmentCount = pCreateInfo->colorAttachmentCount;
@@ -227,7 +227,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    
+
 #endif
 
     VkPipelineRenderingCreateInfoKHR renderingCreateInfo = {0};
@@ -275,7 +275,7 @@ R_CVulkan_NewDynamicGraphicsPipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
     R_CSTL_LOG_INFO ("R_CVulkan_NewDynamicGraphicsPipeline: Graphics pipeline created");
     R_CSTL_LOG_INFO ("  Handle: %p", (void*)pPipeline->handle);
     R_CSTL_LOG_INFO ("  Shader stage count: %u", pCreateInfo->stageCount);
@@ -307,7 +307,7 @@ R_CVulkan_NewComputePipeline (
     pPipeline->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->handle = VK_NULL_HANDLE;
-    
+
 #endif
 
     VkComputePipelineCreateInfo pipelineInfo = {0};
@@ -330,7 +330,7 @@ R_CVulkan_NewComputePipeline (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }
@@ -354,7 +354,7 @@ R_CVulkan_DeletePipeline (struct R_CVulkan_Pipeline* pPipeline)
     }
 #if defined(R_CVULKAN_DEBUG)
     pPipeline->device = VK_NULL_HANDLE;
-    
+
 #endif
 }
 

@@ -73,7 +73,7 @@ struct R_CVulkan_DefragSettings
 struct R_CVulkan_DefragContext
 {
         struct R_CVulkan_MemoryAllocator* pAllocator;
-        struct R_CVulkan_DefragSettings     config;
+        struct R_CVulkan_DefragSettings   config;
         enum R_CVulkan_DefragBackend      backend;
         uint32_t                          currentPass;
         uint32_t                          totalMoves;
@@ -112,8 +112,8 @@ struct R_CVulkan_DefragStats
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DefragInitialize (
-    struct R_CVulkan_DefragContext*      pContext,
-    struct R_CVulkan_MemoryAllocator*    pAllocator,
+    struct R_CVulkan_DefragContext*        pContext,
+    struct R_CVulkan_MemoryAllocator*      pAllocator,
     const struct R_CVulkan_DefragSettings* pSettings);
 
 /**

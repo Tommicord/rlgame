@@ -31,7 +31,7 @@ R_CVulkan_DYRCreateRenderPass (
     pDYRRenderPass->device = logicalDevice;
 #if defined(R_CVULKAN_DEBUG)
     pDYRRenderPass->handle = VK_NULL_HANDLE;
-    
+
 #endif
     uint32_t totalAttachmentCount = pCreateInfo->colorAttachmentCount;
     uint32_t depthAttachmentIndex = VK_ATTACHMENT_UNUSED;
@@ -142,7 +142,7 @@ R_CVulkan_DYRCreateRenderPass (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
     R_CSTL_LOG_INFO ("R_CVulkan_DYRCreateRenderPass: Render pass created");
     R_CSTL_LOG_INFO ("  - Color attachments: %u", pCreateInfo->colorAttachmentCount);
     R_CSTL_LOG_INFO (
@@ -179,7 +179,7 @@ R_CVulkan_DYRDeleteRenderPass (struct R_CVulkan_DYRRenderPass* pDYRRenderPass)
     }
 #if defined(R_CVULKAN_DEBUG)
     pDYRRenderPass->device = VK_NULL_HANDLE;
-    
+
 #endif
 }
 

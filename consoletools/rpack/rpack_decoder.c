@@ -140,7 +140,10 @@ r_pack_decoder_get_texture_size (const struct r_pack_decoder* pDecoder, const ch
 }
 
 uint64_t
-r_pack_decoder_get_textures_size (const struct r_pack_decoder* pDecoder, const char** pNames, uint32_t nameCount)
+r_pack_decoder_get_textures_size (
+    const struct r_pack_decoder* pDecoder,
+    const char**                 pNames,
+    uint32_t                     nameCount)
 {
     if (!pDecoder || !pNames || nameCount == 0)
     {
@@ -184,14 +187,14 @@ r_pack_decoder_decode_texture (
     uint32_t startIndex = pEntry->pixelIndexTableOffset;
 
     // Prefetch color table for better cache locality
-    const struct r_pack_color_entry* pColorTable = pDecoder->pColorTable;
+    const struct r_pack_color_entry*       pColorTable = pDecoder->pColorTable;
     const struct r_pack_pixel_index_entry* pPixelIndexTable = pDecoder->pPixelIndexTable;
 
     // Process RLE-encoded pixel index table (horizontal-only RLE)
     uint32_t currentX = 0;
     uint32_t currentY = 0;
     uint32_t tableIndex = 0;
-    
+
     while (currentY < pEntry->height && tableIndex < pDecoder->pHeader->pixelIndexTableSize)
     {
         if (startIndex + tableIndex >= pDecoder->pHeader->pixelIndexTableSize)
@@ -216,31 +219,31 @@ r_pack_decoder_decode_texture (
             &r,
             &g,
             &b);
-        
+
         // Expand horizontal RLE run
         uint32_t runWidth = pPixelEntry->runWidth;
-        
+
         for (uint32_t rx = 0; rx < runWidth && currentX + rx < pEntry->width; ++rx)
         {
             uint32_t outputX = currentX + rx;
             uint32_t outputIndex = (currentY * pEntry->width + outputX) * 4;
-            
+
             pOutputBuffer[outputIndex + 0] = r;
             pOutputBuffer[outputIndex + 1] = g;
             pOutputBuffer[outputIndex + 2] = b;
             pOutputBuffer[outputIndex + 3] = 255;
         }
-        
+
         // Advance position
         currentX += runWidth;
-        
+
         // Move to next row if we reached the end of current row
         if (currentX >= pEntry->width)
         {
             currentX = 0;
             currentY++;
         }
-        
+
         tableIndex++;
     }
 

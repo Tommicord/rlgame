@@ -70,21 +70,21 @@ struct r_pack_mipmap_context
 
 static int r_pack_mipmap_resizeCPU (
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma);
+    float                            sigma);
 
 #ifdef R_CUDA
 static int r_pack_mipmap_resizeCUDA (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma);
+    float                            sigma);
 #endif
 
 #ifdef R_OPENCL
@@ -105,21 +105,21 @@ static int r_pack_mipmap_execute_kernel (
 static int r_pack_mipmap_resize_openCL (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma);
+    float                            sigma);
 #endif
 
 static int
 r_pack_mipmap_resizeCPU (
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma)
+    float                            sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -200,11 +200,11 @@ static int
 r_pack_mipmap_resizeCUDA (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma)
+    float                            sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -400,11 +400,11 @@ static int
 r_pack_mipmap_resize_openCL (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
-    uint8_t*                        pDestination,
-    uint32_t                        destWidth,
-    uint32_t                        destHeight,
+    uint8_t*                         pDestination,
+    uint32_t                         destWidth,
+    uint32_t                         destHeight,
     enum r_pack_mipmap_filter        filter,
-    float                           sigma)
+    float                            sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -567,16 +567,16 @@ r_pack_mipmap_select_backend (void)
 
 R_PACK_API int
 r_pack_mipmap_initialize (
-    void*                         pContext,
-    void*                         pDevice,
-    void*                         pQueue,
-    const char*                   pKernelSource,
-    size_t                        kernelSourceSize,
+    void*                          pContext,
+    void*                          pDevice,
+    void*                          pQueue,
+    const char*                    pKernelSource,
+    size_t                         kernelSourceSize,
     struct r_pack_mipmap_context** ppOutContext)
 {
     R_CSTL_TRACE_FUNCTION ();
 
-    int                          result = R_PACK_MIPMAP_OK;
+    int                           result = R_PACK_MIPMAP_OK;
     struct r_pack_mipmap_context* pMipmap = NULL;
     (void)pContext;
     (void)pDevice;
@@ -658,11 +658,8 @@ r_pack_mipmap_initialize (
         source = (const char*)rpackMipmap_data;
         sourceSize = rpackMipmap_size * sizeof (uint32_t);
 
-        pMipmap->openclProgram = clCreateProgramWithIL (
-            pMipmap->openclContext,
-            (const void*)&source,
-            sourceSize,
-            &error);
+        pMipmap->openclProgram
+            = clCreateProgramWithIL (pMipmap->openclContext, (const void*)&source, sourceSize, &error);
         if (error != CL_SUCCESS || !pMipmap->openclProgram)
         {
             R_CSTL_LOG_ERROR ("Failed to create OpenCL program from binary");
@@ -748,14 +745,14 @@ r_pack_mipmap_shutdown (struct r_pack_mipmap_context* pContext)
 R_PACK_API int
 r_pack_mipmap_dispatch (
     struct r_pack_mipmap_context* pContext,
-    void*                        pSource,
-    void*                        pDestination,
-    uint32_t                     sourceWidth,
-    uint32_t                     sourceHeight,
-    uint32_t                     destinationWidth,
-    uint32_t                     destinationHeight,
+    void*                         pSource,
+    void*                         pDestination,
+    uint32_t                      sourceWidth,
+    uint32_t                      sourceHeight,
+    uint32_t                      destinationWidth,
+    uint32_t                      destinationHeight,
     enum r_pack_mipmap_filter     filter,
-    float                        sigma)
+    float                         sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
 

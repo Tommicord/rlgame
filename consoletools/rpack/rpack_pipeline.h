@@ -25,8 +25,8 @@ R_PACK_API int r_pack_make_variant_path (const char* pOutputPath, uint32_t size,
 
 R_PACK_API int r_pack_encode_mipmap_variants (
     const struct r_pack_encoder_settings* pSettings,
-    const struct R_CSTL_Array*         pInputPaths,
-    const char*                        pOutputPath);
+    const struct R_CSTL_Array*            pInputPaths,
+    const char*                           pOutputPath);
 
 R_PACK_API uint32_t r_pack_encode_input_images_threaded (
     struct r_pack_encoder*     pEncoder,

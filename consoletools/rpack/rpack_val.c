@@ -9,10 +9,10 @@
 static int
 r_pack_validation_fail (
     struct r_pack_validation_report* pReport,
-    enum r_pack_error               error,
-    uint64_t                        offset,
-    uint32_t                        textureIndex,
-    uint64_t                        pixelIndex)
+    enum r_pack_error                error,
+    uint64_t                         offset,
+    uint32_t                         textureIndex,
+    uint64_t                         pixelIndex)
 {
     if (pReport)
     {
@@ -31,7 +31,10 @@ r_pack_ranges_overlap (uint64_t leftStart, uint64_t leftSize, uint64_t rightStar
 }
 
 int
-r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_pack_validation_report* pReport)
+r_pack_validate_packed_data (
+    const uint8_t*                   pData,
+    uint64_t                         dataSize,
+    struct r_pack_validation_report* pReport)
 {
     if (pReport)
     {
@@ -55,8 +58,8 @@ r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_p
         return r_pack_validation_fail (pReport, R_PACK_ERROR_INVALID_FORMAT, dataSize, 0, 0);
     }
 
-    uint64_t                       atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
-    uint64_t                       fileEnd = dataSize;
+    uint64_t                        atlasSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
+    uint64_t                        fileEnd = dataSize;
     const struct r_pack_hash_entry* pHashes
         = (const struct r_pack_hash_entry*)(pData + pHeader->hashTableOffset);
     const struct r_pack_color_entry* pColors
@@ -72,7 +75,7 @@ r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_p
     for (uint32_t i = 0; i < pHeader->textureCount; ++i)
     {
         const struct r_pack_hash_entry* pEntry = &pHashes[i];
-        uint64_t                       texturePixels = (uint64_t)pEntry->width * pEntry->height;
+        uint64_t                        texturePixels = (uint64_t)pEntry->width * pEntry->height;
         if (pEntry->width == 0 || pEntry->height == 0 || pEntry->atlasOffsetX > pHeader->atlasWidth
             || pEntry->width > pHeader->atlasWidth - pEntry->atlasOffsetX
             || pEntry->atlasOffsetY > pHeader->atlasHeight
@@ -122,9 +125,10 @@ r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_p
         // Validate RLE pixel index entries
         uint64_t totalPixelsCovered = 0;
         uint64_t j = 0;
-        while (totalPixelsCovered < texturePixels && pEntry->pixelIndexTableOffset + j < pHeader->pixelIndexTableSize)
+        while (totalPixelsCovered < texturePixels
+               && pEntry->pixelIndexTableOffset + j < pHeader->pixelIndexTableSize)
         {
-            uint64_t                             pixelIndex = pEntry->pixelIndexTableOffset + j;
+            uint64_t                               pixelIndex = pEntry->pixelIndexTableOffset + j;
             const struct r_pack_pixel_index_entry* pPixel = &pPixels[pixelIndex];
             if (pPixel->colorIndex >= pHeader->colorTableSize || pPixel->runWidth == 0
                 || pPixel->runWidth > 63 || pPixel->runHeight == 0 || pPixel->runHeight > 63
@@ -137,23 +141,24 @@ r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_p
                     i,
                     j);
             }
-            
+
             uint64_t pixelsInRun = (uint64_t)pPixel->runWidth * pPixel->runHeight;
             totalPixelsCovered += pixelsInRun;
             j++;
         }
-        
+
         // Check if RLE entries covered all pixels
         if (totalPixelsCovered != texturePixels)
         {
             return r_pack_validation_fail (
                 pReport,
                 R_PACK_ERROR_INVALID_DATA,
-                pHeader->pixelIndexTableOffset + pEntry->pixelIndexTableOffset * sizeof (struct r_pack_pixel_index_entry),
+                pHeader->pixelIndexTableOffset
+                    + pEntry->pixelIndexTableOffset * sizeof (struct r_pack_pixel_index_entry),
                 i,
                 0);
         }
-        
+
         (void)pColors;
     }
 

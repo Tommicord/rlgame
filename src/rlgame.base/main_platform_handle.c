@@ -11,8 +11,8 @@
 #include <inttypes.h>
 #include <vulkan/vulkan.h>
 
-static uint16_t                   s_initialWidth = 784;
-static uint16_t                   s_initialHeight = 512;
+static uint16_t                     s_initialWidth = 784;
+static uint16_t                     s_initialHeight = 512;
 static enum r_window_handle_backend g_currentBackend = R_WINDOW_BACKEND_NONE;
 
 static struct
@@ -767,7 +767,9 @@ static const struct xdg_toplevel_listener g_xdgTopLevelListener
        xdg_toplevel_wm_capabilities};
 
 r_wayland_window
-r_init_wayland_window (struct r_application_info* pApplicationInfo, const struct r_window_handle_style* pStyle)
+r_init_wayland_window (
+    struct r_application_info*          pApplicationInfo,
+    const struct r_window_handle_style* pStyle)
 {
     if (!pApplicationInfo)
     {
@@ -945,8 +947,7 @@ R_ENTRY_API void
 r_window_handle_set_title (r_wayland_window window, const char* pTitle)
 {
     struct r_wayland_window_state* state = (struct r_wayland_window_state*)window;
-    if (state && pTitle && window)
-        xdg_toplevel_set_title (state->xdgToplevel, pTitle);
+    if (state && pTitle && window) xdg_toplevel_set_title (state->xdgToplevel, pTitle);
 }
 
 R_ENTRY_API void
@@ -1003,7 +1004,10 @@ r_wayland_window_wait_for_settings (r_wayland_window window, int* pWidth, int* p
     if (pWidth) *pWidth = state->width;
     if (pHeight) *pHeight = state->height;
 
-    R_CSTL_LOG_INFO ("r_wayland_window_wait_for_settings: Window size set to %dx%d", state->width, state->height);
+    R_CSTL_LOG_INFO (
+        "r_wayland_window_wait_for_settings: Window size set to %dx%d",
+        state->width,
+        state->height);
 }
 
 R_ENTRY_API void
@@ -1592,17 +1596,19 @@ r_apply_x11_color_hints (Display* display, Window window, uint16_t red, uint16_t
  * @param blue Blue color component
  */
 static void
-r_applyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_t red, uint16_t green, uint16_t blue)
+r_applyXCBColorHints (
+    xcb_connection_t* connection,
+    xcb_window_t      window,
+    uint16_t          red,
+    uint16_t          green,
+    uint16_t          blue)
 {
     // Get standard atoms first
     xcb_intern_atom_cookie_t cardinalCookie
         = xcb_intern_atom (connection, 0, strlen ("CARDINAL"), "CARDINAL");
-    xcb_intern_atom_reply_t* cardinalReply
-        = xcb_intern_atom_reply (connection, cardinalCookie, NULL);
-    xcb_intern_atom_cookie_t stringCookie
-        = xcb_intern_atom (connection, 0, strlen ("STRING"), "STRING");
-    xcb_intern_atom_reply_t* stringReply
-        = xcb_intern_atom_reply (connection, stringCookie, NULL);
+    xcb_intern_atom_reply_t* cardinalReply = xcb_intern_atom_reply (connection, cardinalCookie, NULL);
+    xcb_intern_atom_cookie_t stringCookie = xcb_intern_atom (connection, 0, strlen ("STRING"), "STRING");
+    xcb_intern_atom_reply_t* stringReply = xcb_intern_atom_reply (connection, stringCookie, NULL);
 
     if (!cardinalReply || !stringReply)
     {
@@ -1614,8 +1620,7 @@ r_applyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_
     // KDE/Plasma supports _KDE_NET_WM_FRAME_STRUT and related atoms
     xcb_intern_atom_cookie_t kdeCookie
         = xcb_intern_atom (connection, 0, strlen ("_KDE_NET_WM_FRAME_STRUT"), "_KDE_NET_WM_FRAME_STRUT");
-    xcb_intern_atom_reply_t* kdeReply
-        = xcb_intern_atom_reply (connection, kdeCookie, NULL);
+    xcb_intern_atom_reply_t* kdeReply = xcb_intern_atom_reply (connection, kdeCookie, NULL);
     if (kdeReply)
     {
         const uint32_t frameColor[4] = {red, green, blue, 0};
@@ -1634,8 +1639,7 @@ r_applyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_
     // GNOME/Mutter supports _GTK_THEME_VARIANT and related hints
     xcb_intern_atom_cookie_t gtkCookie
         = xcb_intern_atom (connection, 0, strlen ("_GTK_THEME_VARIANT"), "_GTK_THEME_VARIANT");
-    xcb_intern_atom_reply_t* gtkReply
-        = xcb_intern_atom_reply (connection, gtkCookie, NULL);
+    xcb_intern_atom_reply_t* gtkReply = xcb_intern_atom_reply (connection, gtkCookie, NULL);
     if (gtkReply)
     {
         const char* themeVariant = "dark";
@@ -1654,8 +1658,7 @@ r_applyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_
     // Try to set custom window role for theme styling
     xcb_intern_atom_cookie_t roleCookie
         = xcb_intern_atom (connection, 0, strlen ("WM_WINDOW_ROLE"), "WM_WINDOW_ROLE");
-    xcb_intern_atom_reply_t* roleReply
-        = xcb_intern_atom_reply (connection, roleCookie, NULL);
+    xcb_intern_atom_reply_t* roleReply = xcb_intern_atom_reply (connection, roleCookie, NULL);
     if (roleReply)
     {
         const char* windowRole = "custom-themed-window";
@@ -1674,8 +1677,7 @@ r_applyXCBColorHints (xcb_connection_t* connection, xcb_window_t window, uint16_
     // Set XApp decoration hints for modern Linux desktops
     xcb_intern_atom_cookie_t xappCookie
         = xcb_intern_atom (connection, 0, strlen ("_XAPP_DECORATION_ENABLED"), "_XAPP_DECORATION_ENABLED");
-    xcb_intern_atom_reply_t* xappReply
-        = xcb_intern_atom_reply (connection, xappCookie, NULL);
+    xcb_intern_atom_reply_t* xappReply = xcb_intern_atom_reply (connection, xappCookie, NULL);
     if (xappReply)
     {
         uint32_t enabled = 1;
@@ -1739,15 +1741,7 @@ r_set_x11_window_decorations (Display* display, Window window, uint8_t decoratio
             hints.styles |= (1 << 5); // MWM_DECOR_MENU (close button)
     }
 
-    XChangeProperty (
-        display,
-        window,
-        wmHints,
-        wmHints,
-        32,
-        PropModeReplace,
-        (unsigned char*)&hints,
-        5);
+    XChangeProperty (display, window, wmHints, wmHints, 32, PropModeReplace, (unsigned char*)&hints, 5);
     XFlush (display);
 }
 
@@ -1759,12 +1753,15 @@ r_set_x11_window_decorations (Display* display, Window window, uint8_t decoratio
  * @param isBorderless Whether window should be borderless
  */
 static void
-r_setXCBWindowDecorations (xcb_connection_t* connection, xcb_window_t window, uint8_t decorationFlags, bool isBorderless)
+r_setXCBWindowDecorations (
+    xcb_connection_t* connection,
+    xcb_window_t      window,
+    uint8_t           decorationFlags,
+    bool              isBorderless)
 {
     xcb_intern_atom_cookie_t motifCookie
         = xcb_intern_atom (connection, 0, strlen ("_MOTIF_WM_HINTS"), "_MOTIF_WM_HINTS");
-    xcb_intern_atom_reply_t* motifReply
-        = xcb_intern_atom_reply (connection, motifCookie, NULL);
+    xcb_intern_atom_reply_t* motifReply = xcb_intern_atom_reply (connection, motifCookie, NULL);
     if (!motifReply) return;
 
     struct
@@ -1817,9 +1814,9 @@ r_apply_window_style (
 {
     if (!pStyle || !pWindowHandle) return;
 
-    uint8_t decorationFlags = r_get_decoration_flags (pStyle->decorationFlags);
+    uint8_t  decorationFlags = r_get_decoration_flags (pStyle->decorationFlags);
     uint16_t colorTheme = r_get_color_theme (pStyle->decorationFlags);
-    bool isBorderless = !r_has_decoration_flag (pStyle->decorationFlags, R_WINDOW_DECORATION_BORDER);
+    bool     isBorderless = !r_has_decoration_flag (pStyle->decorationFlags, R_WINDOW_DECORATION_BORDER);
 
     switch (backend)
     {
@@ -1857,7 +1854,7 @@ r_apply_window_style (
             uint16_t red, green, blue;
             r_map_color_theme_toRGB (colorTheme, &red, &green, &blue);
 
-            XColor color;
+            XColor   color;
             Colormap colormap = DefaultColormap (g_x11State.display, g_x11State.screen);
             color.red = red;
             color.green = green;
@@ -1880,11 +1877,14 @@ r_apply_window_style (
             uint16_t red, green, blue;
             r_map_color_theme_toRGB (colorTheme, &red, &green, &blue);
 
-            xcb_screen_iterator_t screenIter = xcb_setup_roots_iterator (xcb_get_setup (g_xcbState.connection));
+            xcb_screen_iterator_t screenIter
+                = xcb_setup_roots_iterator (xcb_get_setup (g_xcbState.connection));
             xcb_colormap_t colormap = screenIter.data->default_colormap;
 
-            xcb_alloc_color_cookie_t colorCookie = xcb_alloc_color (g_xcbState.connection, colormap, red, green, blue);
-            xcb_alloc_color_reply_t* colorReply = xcb_alloc_color_reply (g_xcbState.connection, colorCookie, NULL);
+            xcb_alloc_color_cookie_t colorCookie
+                = xcb_alloc_color (g_xcbState.connection, colormap, red, green, blue);
+            xcb_alloc_color_reply_t* colorReply
+                = xcb_alloc_color_reply (g_xcbState.connection, colorCookie, NULL);
 
             if (colorReply)
             {
@@ -1899,7 +1899,14 @@ r_apply_window_style (
             r_applyXCBColorHints (g_xcbState.connection, g_xcbState.window, red, green, blue);
 
             // Force window refresh to apply background color
-            xcb_clear_area (g_xcbState.connection, 1, g_xcbState.window, 0, 0, screenIter.data->width_in_pixels, screenIter.data->height_in_pixels);
+            xcb_clear_area (
+                g_xcbState.connection,
+                1,
+                g_xcbState.window,
+                0,
+                0,
+                screenIter.data->width_in_pixels,
+                screenIter.data->height_in_pixels);
         }
         break;
 
@@ -1910,10 +1917,10 @@ r_apply_window_style (
 
 R_ENTRY_API void
 r_set_window_title (
-    enum r_window_handle_backend      backend,
-    union r_window_handle_handle*     pWindowHandle,
+    enum r_window_handle_backend     backend,
+    union r_window_handle_handle*    pWindowHandle,
     const struct r_application_info* pApplicationInfo,
-    const char*                     pCustomTitle)
+    const char*                      pCustomTitle)
 {
     if (!pApplicationInfo) return;
 

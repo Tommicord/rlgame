@@ -40,7 +40,7 @@ R_CVulkan_NewSampler (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }
@@ -64,7 +64,7 @@ R_CVulkan_DeleteSampler (struct R_CVulkan_Sampler* pSampler)
     }
 #if defined(R_CVULKAN_DEBUG)
     pSampler->device = VK_NULL_HANDLE;
-    
+
 #endif
 }
 

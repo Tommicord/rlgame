@@ -86,8 +86,7 @@ R_CSTL_API void R_CSTL_FileClose (struct R_CSTL_File* pFile);
  * @note Returns error if no bytes read and at EOF.
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int
-R_CSTL_FileRead (struct R_CSTL_File* pFile, void* pBuffer, size_t size, size_t* pBytesRead);
+R_CSTL_API int R_CSTL_FileRead (struct R_CSTL_File* pFile, void* pBuffer, size_t size, size_t* pBytesRead);
 
 /**
  * @brief Write data to a file
@@ -230,10 +229,10 @@ R_CSTL_API int R_CSTL_FileWriteAllText (const char* pPath, const struct R_CSTL_S
 typedef int (*R_CSTL_FileReadChunkCallback) (const void* pBuffer, size_t bytesRead, void* pUserData);
 
 R_CSTL_API int R_CSTL_FileReadChunks (
-    struct R_CSTL_File* pFile,
+    struct R_CSTL_File*          pFile,
     R_CSTL_FileReadChunkCallback pCallback,
-    void* pUserData,
-    size_t chunkSize);
+    void*                        pUserData,
+    size_t                       chunkSize);
 
 /**
  * @brief Check if a file exists

@@ -75,7 +75,9 @@ r_game_initialize_render_pass (struct r_game_pipeline_context* pContext)
 
     R_CSTL_LOG_INFO ("r_game_initialize_render_pass: Starting render pass initialization");
     VkFormat swapchainFormat = R_CVulkan_SwapchainGetImageFormat (&pContext->swapchain);
-    R_CSTL_LOG_DEBUG ("r_game_initialize_render_pass: Swapchain format: %s", R_CVulkan_FormatToString(swapchainFormat));
+    R_CSTL_LOG_DEBUG (
+        "r_game_initialize_render_pass: Swapchain format: %s",
+        R_CVulkan_FormatToString (swapchainFormat));
 
     VkAttachmentDescription colorAttachment = {0};
     colorAttachment.format = swapchainFormat;
@@ -140,8 +142,8 @@ r_game_initialize_render_pass (struct r_game_pipeline_context* pContext)
 static enum R_CVulkan_Error
 r_game_initialize_image_views (
     struct r_game_pipeline_context* pContext,
-    VkImage*                       pSwapchainImages,
-    uint32_t                       imageCount)
+    VkImage*                        pSwapchainImages,
+    uint32_t                        imageCount)
 {
     R_CSTL_TRACE_SCOPE ();
     VkFormat swapchainFormat = R_CVulkan_SwapchainGetImageFormat (&pContext->swapchain);
@@ -312,7 +314,7 @@ r_game_initialize_queues (struct r_game_pipeline_context* pContext, struct R_CVu
 {
     R_CSTL_TRACE_SCOPE ();
     struct R_CVulkan_QueueFamilyIndices indices;
-    enum R_CVulkan_Error                 err;
+    enum R_CVulkan_Error                err;
     VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -394,7 +396,7 @@ static enum R_CVulkan_Error
 r_game_initialize_command_pools (struct r_game_pipeline_context* pContext, struct R_CVulkan_Surface* pSurface)
 {
     struct R_CVulkan_QueueFamilyIndices indices;
-    enum R_CVulkan_Error                 err;
+    enum R_CVulkan_Error                err;
     VkSurfaceKHR                        surface = VK_NULL_HANDLE;
 
 #if defined(R_GAME_DEBUG)
@@ -452,10 +454,10 @@ r_game_initialize_command_pools (struct r_game_pipeline_context* pContext, struc
 
 static enum r_game_error
 r_game_initialize_vulkan_core (
-    struct r_game_pipeline_context*                 pContext,
+    struct r_game_pipeline_context*                   pContext,
     const struct r_game_pipeline_context_create_info* pCreateInfo)
 {
-    enum R_CVulkan_Error                 error;
+    enum R_CVulkan_Error                error;
     struct R_CVulkan_InstanceCreateInfo instanceCreateInfo = {0};
     instanceCreateInfo.pApplicationName = pCreateInfo->pApplicationName;
     {
@@ -624,7 +626,7 @@ r_game_initialize_sync_primitives (struct r_game_pipeline_context* pContext)
 
 static enum r_game_error
 r_game_initialize_vulkan_swapchain (
-    struct r_game_pipeline_context*                 pContext,
+    struct r_game_pipeline_context*                   pContext,
     const struct r_game_pipeline_context_create_info* pCreateInfo)
 {
     VkExtent2D windowExtent = r_game_get_window_extent (pCreateInfo);
@@ -686,7 +688,7 @@ r_cleanup_swapchain:
 
 R_GAME_API enum r_game_error
 r_game_new_pipeline_context (
-    struct r_game_pipeline_context*                 pContext,
+    struct r_game_pipeline_context*                   pContext,
     const struct r_game_pipeline_context_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pContext);

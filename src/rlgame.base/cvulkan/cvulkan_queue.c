@@ -62,7 +62,7 @@ R_CVulkan_QueueSubmit (
     R_CVULKAN_ASSERT (pCommandBuffers);
 
     enum R_CVulkan_Error error;
-    VkSubmitInfo submitInfo = {0};
+    VkSubmitInfo         submitInfo = {0};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     VkCommandBuffer* pNativeCommandBuffers = NULL;
 

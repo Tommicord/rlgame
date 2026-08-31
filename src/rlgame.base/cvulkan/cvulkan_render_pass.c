@@ -38,7 +38,7 @@ R_CVulkan_NewRenderPass (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }

@@ -13,9 +13,9 @@
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_BufferCreateInfo* pCreateInfo)
 {
-    R_CVULKAN_ASSERT(pBuffer);
-    R_CVULKAN_ASSERT(pCreateInfo);
-    R_CVULKAN_ASSERT(pCreateInfo->size == 0);
+    R_CVULKAN_ASSERT (pBuffer);
+    R_CVULKAN_ASSERT (pCreateInfo);
+    R_CVULKAN_ASSERT (pCreateInfo->size == 0);
 
     pBuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
     pBuffer->handle = VK_NULL_HANDLE;
@@ -40,7 +40,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements (pBuffer->device, pBuffer->handle, &memRequirements);
 
-    uint32_t            memoryTypeIndex = 0;
+    uint32_t             memoryTypeIndex = 0;
     enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
         pCreateInfo->physicalDevice,
         &memRequirements,
@@ -81,8 +81,7 @@ R_CVULKAN_API void
 R_CVulkan_DeleteBuffer (struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
-    if (pBuffer->pMapped)
-        R_CVulkan_BufferUnmap (pBuffer);
+    if (pBuffer->pMapped) R_CVulkan_BufferUnmap (pBuffer);
     vkFreeMemory (pBuffer->device, pBuffer->memory, NULL);
     vkDestroyBuffer (pBuffer->device, pBuffer->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
@@ -138,7 +137,7 @@ R_CVulkan_BufferCopyData (
     R_CVULKAN_ASSERT (pBuffer);
     R_CVULKAN_ASSERT (data);
 
-    void*               mapped = NULL;
+    void*                mapped = NULL;
     enum R_CVulkan_Error error = R_CVulkan_BufferMap (pBuffer, offset, size, &mapped);
     if (error != R_CVULKAN_OK)
     {

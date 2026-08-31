@@ -159,7 +159,7 @@ R_CVulkan_BuildDeviceExtensions (struct R_CSTL_Array** ppExtensions, VkPhysicalD
 
     for (uint32_t i = 0; i < g_optionalDeviceExtensionCount; ++i)
     {
-        bool                isAvailable = false;
+        bool                 isAvailable = false;
         enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
             g_optionalDeviceExtensions[i],
             physicalDevice,
@@ -381,7 +381,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
 
     struct R_CVulkan_QueueFamilyIndices indices;
@@ -447,7 +447,7 @@ R_CVulkan_DeleteDevice (struct R_CVulkan_Device* pDevice)
     pDevice->physicalDevice = VK_NULL_HANDLE;
     pDevice->surface = VK_NULL_HANDLE;
     pDevice->pInstance = NULL;
-    
+
 #endif
 }
 

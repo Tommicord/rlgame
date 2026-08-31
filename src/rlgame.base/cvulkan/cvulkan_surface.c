@@ -23,8 +23,8 @@ R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
     const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo)
 {
-    R_CVULKAN_ASSERT(pSurface);
-    R_CVULKAN_ASSERT(pCreateInfo);
+    R_CVULKAN_ASSERT (pSurface);
+    R_CVULKAN_ASSERT (pCreateInfo);
     R_CSTL_TRACE_SCOPE_CTX ("instance=%p", pCreateInfo ? pCreateInfo->pInstance : NULL);
 
     if (pCreateInfo->pInstance == NULL)
@@ -111,9 +111,7 @@ R_CVulkan_NewSurface (
 
         if (result == VK_SUCCESS)
         {
-            R_CSTL_LOG_INFO (
-                "R_CVulkan_NewSurface: X11 surface created, handle=%p",
-                (void*)pSurface->handle);
+            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: X11 surface created, handle=%p", (void*)pSurface->handle);
         }
         else
         {
@@ -142,9 +140,7 @@ R_CVulkan_NewSurface (
 
         if (result == VK_SUCCESS)
         {
-            R_CSTL_LOG_INFO (
-                "R_CVulkan_NewSurface: XCB surface created, handle=%p",
-                (void*)pSurface->handle);
+            R_CSTL_LOG_INFO ("R_CVulkan_NewSurface: XCB surface created, handle=%p", (void*)pSurface->handle);
         }
         else
         {
@@ -211,13 +207,13 @@ R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
 R_CVULKAN_API VkSurfaceKHR
 R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
 {
-    R_CVULKAN_ASSERT(pSurface);
+    R_CVULKAN_ASSERT (pSurface);
     return pSurface->handle;
 }
 
 R_CVULKAN_API VkInstance
 R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
 {
-    R_CVULKAN_ASSERT(pSurface);
+    R_CVULKAN_ASSERT (pSurface);
     return pSurface->instance;
 }

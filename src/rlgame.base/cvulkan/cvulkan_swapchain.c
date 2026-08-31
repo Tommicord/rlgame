@@ -376,7 +376,7 @@ R_CVulkan_NewSwapchain (
     R_CSTL_LOG_DEBUG ("  Physical device: %p, Surface: %p", (void*)physicalDevice, (void*)surface);
 
     VkSurfaceCapabilitiesKHR capabilities;
-    enum R_CVulkan_Error      err = R_CVulkan_GetSurfaceCapabilities (physicalDevice, surface, &capabilities);
+    enum R_CVulkan_Error     err = R_CVulkan_GetSurfaceCapabilities (physicalDevice, surface, &capabilities);
     if (err != R_CVULKAN_OK)
     {
         return err;
@@ -491,7 +491,7 @@ R_CVulkan_NewSwapchain (
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     return R_CVULKAN_OK;
 }
@@ -515,7 +515,7 @@ R_CVulkan_DeleteSwapchain (struct R_CVulkan_Swapchain* pSwapchain)
     pSwapchain->extent.width = 0;
     pSwapchain->extent.height = 0;
     pSwapchain->imageCount = 0;
-    
+
 #else
     if (pSwapchain->handle != VK_NULL_HANDLE)
     {

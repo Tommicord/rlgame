@@ -15,12 +15,12 @@ r_pack_input_check_output (struct r_pack_owned_image* pOutput)
 
 enum r_pack_error
 r_pack_input_from_rawRGBA (
-    const uint8_t*            pPixels,
-    size_t                    pixelBytes,
-    uint32_t                  width,
-    uint32_t                  height,
-    uint32_t                  stride,
-    const char*               pName,
+    const uint8_t*             pPixels,
+    size_t                     pixelBytes,
+    uint32_t                   width,
+    uint32_t                   height,
+    uint32_t                   stride,
+    const char*                pName,
     struct r_pack_owned_image* pOutput)
 {
     enum r_pack_error error = r_pack_input_check_output (pOutput);
@@ -43,9 +43,9 @@ r_pack_input_from_rawRGBA (
 
 enum r_pack_error
 r_pack_input_from_bytes (
-    const uint8_t*            pData,
-    size_t                    dataSize,
-    const char*               pName,
+    const uint8_t*             pData,
+    size_t                     dataSize,
+    const char*                pName,
     struct r_pack_owned_image* pOutput)
 {
     enum r_pack_error error = r_pack_input_check_output (pOutput);
@@ -76,9 +76,9 @@ r_pack_base64_value (char character)
 
 enum r_pack_error
 r_pack_input_from_base64 (
-    const char*               pBase64,
-    size_t                    textLength,
-    const char*               pName,
+    const char*                pBase64,
+    size_t                     textLength,
+    const char*                pName,
     struct r_pack_owned_image* pOutput)
 {
     enum r_pack_error error = r_pack_input_check_output (pOutput);

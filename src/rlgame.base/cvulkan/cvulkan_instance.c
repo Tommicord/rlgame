@@ -268,7 +268,7 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
-    bool                hasPortability = false;
+    bool                 hasPortability = false;
     enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
         VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
         VK_NULL_HANDLE,
@@ -345,7 +345,7 @@ R_CVulkan_NewInstance (
     }
     pInstance->handle = VK_NULL_HANDLE;
     pInstance->debugMessenger = VK_NULL_HANDLE;
-    
+
 #endif
 
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -494,14 +494,14 @@ R_CVulkan_NewInstance (
 #endif
 
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
     R_CSTL_TRACE_SCOPE_EXIT ();
     return R_CVULKAN_OK;
 
 cvulkan_cleanup:
 #if defined(R_CVULKAN_DEBUG)
-    
+
     R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
@@ -518,7 +518,7 @@ R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstance)
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
-    
+
 #endif
 }
 

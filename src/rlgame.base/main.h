@@ -84,8 +84,8 @@ struct r_application_info
         uint32_t                    applicationVersionPatch; /**< Patch version number */
         uint32_t                    pid; /**< Current process ID */
         const struct r_process_info*
-                                 pExistingProcesses; /**< Optional array of related processes (not owned) */
-        size_t                   existingProcessCount; /**< Number of entries in pExistingProcesses */
+                                  pExistingProcesses; /**< Optional array of related processes (not owned) */
+        size_t                    existingProcessCount; /**< Number of entries in pExistingProcesses */
         struct r_application_args args; /**< Startup arguments */
         struct r_memory_info      memory; /**< Snapshot of memory usage at init */
 };
@@ -112,8 +112,8 @@ struct r_main_provider
 {
         r_game_callback                  pExecCallback; /**< Pointer to game loop function */
         const struct r_application_info* pAppInfo; /**< Pointer to application info (not owned) */
-        void*                           pUserData; /**< Optional user data pointer (not owned) */
-        volatile uint8_t                stateFlags; /**< Atomic state flags (r_game_loop_state_flags) */
+        void*                            pUserData; /**< Optional user data pointer (not owned) */
+        volatile uint8_t                 stateFlags; /**< Atomic state flags (r_game_loop_state_flags) */
 };
 
 /**
@@ -276,5 +276,8 @@ void r_fill_memory_info (struct r_memory_info* out);
  * @param argc Argument count from main()
  * @param argv Argument array from main()
  */
-void
-r_assign_process_name (struct r_process_info* pProc, const struct R_CSTL_String* pExePath, int argc, char** argv);
+void r_assign_process_name (
+    struct r_process_info*      pProc,
+    const struct R_CSTL_String* pExePath,
+    int                         argc,
+    char**                      argv);

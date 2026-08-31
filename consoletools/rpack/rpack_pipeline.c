@@ -13,8 +13,8 @@
 
 static void
 r_pack_log_image_warnings (
-    const char*                        pPath,
-    const struct r_pack_input_image*    pImage,
+    const char*                           pPath,
+    const struct r_pack_input_image*      pImage,
     const struct r_pack_encoder_settings* pSettings)
 {
     uint64_t imageBytes = (uint64_t)pImage->width * pImage->height * 4;
@@ -102,7 +102,8 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
     }
 
     uint64_t          bytesWritten = 0;
-    enum r_pack_error encodeErr = r_pack_encoder_encode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
+    enum r_pack_error encodeErr
+        = r_pack_encoder_encode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
     if (encodeErr != R_PACK_OK)
     {
         R_CSTL_LOG_ERROR ("Encoding failed: %s", r_pack_error_to_string (encodeErr));
@@ -151,26 +152,26 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
 
 struct r_pack_image_load_task
 {
-        const char*               pPath;
+        const char*                pPath;
         struct r_pack_input_image* pImage;
-        uint8_t**                 ppPixelBuffer;
-        int*                      pResult;
+        uint8_t**                  ppPixelBuffer;
+        int*                       pResult;
         struct r_pack_thread_pool* pPool;
 };
 
 struct r_pack_thread_pool
 {
-        struct R_CSTL_Thread**       ppThreads;
-        uint32_t                     threadCount;
-        R_CSTL_AtomicUint32          nextTaskIndex;
-        R_CSTL_AtomicUint32          completedTasks;
-        R_CSTL_AtomicUint32          failedTasks;
-        struct R_CSTL_Mutex*         pTaskMutex;
-        struct R_CSTL_Condition*     pTaskAvailable;
-        struct R_CSTL_Condition*     pTaskComplete;
+        struct R_CSTL_Thread**         ppThreads;
+        uint32_t                       threadCount;
+        R_CSTL_AtomicUint32            nextTaskIndex;
+        R_CSTL_AtomicUint32            completedTasks;
+        R_CSTL_AtomicUint32            failedTasks;
+        struct R_CSTL_Mutex*           pTaskMutex;
+        struct R_CSTL_Condition*       pTaskAvailable;
+        struct R_CSTL_Condition*       pTaskComplete;
         struct r_pack_image_load_task* pTasks;
-        uint32_t                     taskCount;
-        int                          shutdown;
+        uint32_t                       taskCount;
+        int                            shutdown;
 };
 
 static struct r_pack_thread_pool* r_pack_thread_pool_create (uint32_t workerCount);
@@ -182,9 +183,9 @@ static void r_pack_worker_thread_func (void* pData);
 static int r_pack_thread_pool_start (struct r_pack_thread_pool* pPool);
 
 static int r_pack_thread_pool_submit_tasks (
-    struct r_pack_thread_pool*    pPool,
+    struct r_pack_thread_pool*     pPool,
     struct r_pack_image_load_task* pTasks,
-    uint32_t                     taskCount);
+    uint32_t                       taskCount);
 
 static void r_pack_thread_pool_wait_all (struct r_pack_thread_pool* pPool);
 
@@ -235,8 +236,8 @@ r_pack_make_variant_path (const char* pOutputPath, uint32_t size, char** ppVaria
 R_PACK_API int
 r_pack_encode_mipmap_variants (
     const struct r_pack_encoder_settings* pSettings,
-    const struct R_CSTL_Array*         pInputPaths,
-    const char*                        pOutputPath)
+    const struct R_CSTL_Array*            pInputPaths,
+    const char*                           pOutputPath)
 {
     static const uint32_t mipmapSizes[] = {64, 32, 16, 8, 4, 2, 1};
     size_t                generated = 0;
@@ -395,7 +396,7 @@ r_pack_load_asset (const char* pPath, struct r_pack_input_image* pImage, uint8_t
     }
 
     struct r_pack_jpeg_image decoded = {0};
-    enum r_pack_error       error = r_pack_jpeg_decode_file (pPath, &decoded);
+    enum r_pack_error        error = r_pack_jpeg_decode_file (pPath, &decoded);
     if (error != R_PACK_OK)
     {
         fprintf (stderr, "JPEG decode failed for %s: %s\n", pPath, r_pack_error_to_string (error));
@@ -483,9 +484,9 @@ r_pack_thread_pool_start (struct r_pack_thread_pool* pPool)
 
 static int
 r_pack_thread_pool_submit_tasks (
-    struct r_pack_thread_pool*    pPool,
+    struct r_pack_thread_pool*     pPool,
     struct r_pack_image_load_task* pTasks,
-    uint32_t                     taskCount)
+    uint32_t                       taskCount)
 {
     pPool->pTasks = pTasks;
     pPool->taskCount = taskCount;
@@ -551,7 +552,7 @@ r_pack_encode_input_images (
         offset += strlen (pPath) + 1;
 
         R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
-        uint8_t*                 pPixelBuffer = NULL;
+        uint8_t*                  pPixelBuffer = NULL;
         struct r_pack_input_image image = {0};
 
         int loadResult = r_pack_load_asset (pPath, &image, &pPixelBuffer);
@@ -644,8 +645,8 @@ r_pack_encode_input_images_threaded (
         return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
 
-    struct r_pack_image_load_task* pTasks
-        = (struct r_pack_image_load_task*)R_CSTL_HeapAlloc (inputCount * sizeof (struct r_pack_image_load_task));
+    struct r_pack_image_load_task* pTasks = (struct r_pack_image_load_task*)R_CSTL_HeapAlloc (
+        inputCount * sizeof (struct r_pack_image_load_task));
     struct r_pack_input_image* pImages
         = (struct r_pack_input_image*)R_CSTL_HeapAlloc (inputCount * sizeof (struct r_pack_input_image));
     uint8_t** ppPixelBuffers = (uint8_t**)R_CSTL_HeapAlloc (inputCount * sizeof (uint8_t*));
@@ -684,11 +685,11 @@ r_pack_encode_input_images_threaded (
     for (size_t i = 0; i < inputCount; ++i)
     {
         struct r_pack_input_image* pImage = &pImages[i];
-        uint8_t*                  pPixelBuffer = ppPixelBuffers[i];
-        int                       loadResult = pResults[i];
+        uint8_t*                   pPixelBuffer = ppPixelBuffers[i];
+        int                        loadResult = pResults[i];
 
         const struct r_pack_image_load_task* pTask = &pTasks[i];
-        const char*                        pPath = pTask->pPath;
+        const char*                          pPath = pTask->pPath;
         R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
 
         if (loadResult < 0)

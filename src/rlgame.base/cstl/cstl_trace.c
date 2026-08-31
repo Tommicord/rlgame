@@ -101,7 +101,8 @@ R_CSTL_TraceFunctionExit (
         return;
     }
 
-    if (g_traceSettings.enablePerformanceTiming && durationMicroseconds < g_traceSettings.minDurationMicroseconds)
+    if (g_traceSettings.enablePerformanceTiming
+        && durationMicroseconds < g_traceSettings.minDurationMicroseconds)
     {
         return;
     }
