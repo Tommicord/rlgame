@@ -219,7 +219,7 @@ r_game_renderer_cleanup_layers (struct r_game_renderer_subsystem* pSubsystem)
         for (size_t i = 0; i < layerCount; ++i)
         {
             struct r_game_renderer_layer layer;
-            r_cstl_array_typed_unchecked_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, i, &layer);
+            R_CSTL_ARRAY_TYPED_UNCHECKED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, i, &layer);
             if (layer.pName)
             {
                 r_cstl_heap_free (layer.pName);
@@ -241,7 +241,7 @@ r_game_renderer_cleanup_resources (struct r_game_renderer_subsystem* pSubsystem)
         for (size_t i = 0; i < resourceCount; ++i)
         {
             struct r_game_renderer_resource resource;
-            r_cstl_array_typed_unchecked_at (
+            R_CSTL_ARRAY_TYPED_UNCHECKED_AT (
                 pSubsystem->pResourceArray,
                 struct r_game_renderer_resource,
                 i,
@@ -319,7 +319,7 @@ r_game_renderer_find_resource_index_by_handle (struct r_game_renderer_subsystem*
     for (size_t i = 0; i < resourceCount; ++i)
     {
         struct r_game_renderer_resource resource;
-        r_cstl_array_typed_unchecked_at (
+        R_CSTL_ARRAY_TYPED_UNCHECKED_AT (
             pSubsystem->pResourceArray,
             struct r_game_renderer_resource,
             i,
@@ -522,11 +522,11 @@ r_game_renderer_worker_thread_proc (void* pParam)
         struct r_game_renderer_frame* pFrame = &pSubsystem->pFrames[task.frameIndex];
         struct r_game_renderer_layer  layer;
         R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
-        r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, task.layerIndex, &layer);
+        R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, task.layerIndex, &layer);
         R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
         struct R_CVulkan_CommandBuffer cmdBuffer;
-        r_cstl_array_typed_unchecked_at (
+        R_CSTL_ARRAY_TYPED_UNCHECKED_AT (
             pFrame->pCommandBufferArray,
             struct R_CVulkan_CommandBuffer,
             task.commandBufferIndex,
@@ -548,7 +548,7 @@ r_game_renderer_worker_thread_proc (void* pParam)
                 layer.afterPassCallback (layer.pUserData, &cmdBuffer, sizeof (cmdBuffer));
             }
             r_cvulkan_end_command_buffer (&cmdBuffer);
-            r_cstl_array_typed_set_at_unchecked (
+            R_CSTL_ARRAY_TYPED_SET_AT_UNCHECKED (
                 pFrame->pCommandBufferArray,
                 struct R_CVulkan_CommandBuffer,
                 task.commandBufferIndex,
@@ -915,7 +915,7 @@ r_game_renderer_cleanup_frame (struct r_game_renderer_subsystem* pSubsystem)
             for (size_t j = 0; j < cmdBufferCount; ++j)
             {
                 struct R_CVulkan_CommandBuffer cmdBuffer;
-                r_cstl_array_typed_unchecked_at (
+                R_CSTL_ARRAY_TYPED_UNCHECKED_AT (
                     pFrame->pCommandBufferArray,
                     struct R_CVulkan_CommandBuffer,
                     j,
@@ -1161,7 +1161,7 @@ r_game_renderer_render_frame (struct r_game_renderer_subsystem* pSubsystem)
     for (size_t layerIdx = 0; layerIdx < layerCount; ++layerIdx)
     {
         struct r_game_renderer_layer layer;
-        r_cstl_array_typed_unchecked_at (
+        R_CSTL_ARRAY_TYPED_UNCHECKED_AT (
             pSubsystem->pLayerArray,
             struct r_game_renderer_layer,
             layerIdx,
@@ -1346,7 +1346,7 @@ r_game_renderer_remove_layer (struct r_game_renderer_subsystem* pSubsystem, uint
 
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     struct r_game_renderer_layer layer;
-    r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     if (layer.pName)
     {
         r_cstl_heap_free (layer.pName);
@@ -1372,10 +1372,10 @@ r_game_renderer_set_layer_enabled (
 
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     struct r_game_renderer_layer layer;
-    r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     if (enabled) layer.flags |= R_GAME_RENDERER_LAYER_FLAG_ENABLED;
     else layer.flags &= ~R_GAME_RENDERER_LAYER_FLAG_ENABLED;
-    r_cstl_array_typed_set_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_SET_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
     return R_GAME_OK;
@@ -1393,9 +1393,9 @@ r_game_renderer_set_layer_renderCallback (
 
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     struct r_game_renderer_layer layer;
-    r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     layer.renderCallback = callback;
-    r_cstl_array_typed_set_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_SET_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
     return R_GAME_OK;
@@ -1413,9 +1413,9 @@ r_game_renderer_set_layer_before_pass_callback (
 
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     struct r_game_renderer_layer layer;
-    r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     layer.beforePassCallback = callback;
-    r_cstl_array_typed_set_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_SET_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
     return R_GAME_OK;
@@ -1433,9 +1433,9 @@ r_game_renderer_set_layer_after_pass_callback (
 
     R_GAME_MUTEX_LOCK (&pSubsystem->layerArrayMutex);
     struct r_game_renderer_layer layer;
-    r_cstl_array_typed_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     layer.afterPassCallback = callback;
-    r_cstl_array_typed_set_at (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
+    R_CSTL_ARRAY_TYPED_SET_AT (pSubsystem->pLayerArray, struct r_game_renderer_layer, layerIndex, &layer);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->layerArrayMutex);
 
     return R_GAME_OK;
@@ -1539,7 +1539,7 @@ r_game_renderer_unregister_resource (struct r_game_renderer_subsystem* pSubsyste
 
     R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
     struct r_game_renderer_resource resource;
-    r_cstl_array_typed_at (pSubsystem->pResourceArray, struct r_game_renderer_resource, foundIndex, &resource);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pResourceArray, struct r_game_renderer_resource, foundIndex, &resource);
     if (resource.pName)
     {
         r_cstl_heap_free ((void*)resource.pName);
@@ -1566,7 +1566,7 @@ r_game_renderer_get_resource (struct r_game_renderer_subsystem* pSubsystem, uint
 
     R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
     struct r_game_renderer_resource resource;
-    r_cstl_array_typed_at (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
 
     return (void*)resource.pResource;
@@ -1586,7 +1586,7 @@ r_game_renderer_get_resource_type (struct r_game_renderer_subsystem* pSubsystem,
 
     R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
     struct r_game_renderer_resource resource;
-    r_cstl_array_typed_at (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
 
     return resource.type;
@@ -1606,7 +1606,7 @@ r_game_renderer_get_resource_size (struct r_game_renderer_subsystem* pSubsystem,
 
     R_GAME_MUTEX_LOCK (&pSubsystem->resourceArrayMutex);
     struct r_game_renderer_resource resource;
-    r_cstl_array_typed_at (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
+    R_CSTL_ARRAY_TYPED_AT (pSubsystem->pResourceArray, struct r_game_renderer_resource, index, &resource);
     R_GAME_MUTEX_UNLOCK (&pSubsystem->resourceArrayMutex);
 
     return resource.size;

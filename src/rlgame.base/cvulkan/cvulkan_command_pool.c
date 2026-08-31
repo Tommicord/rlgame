@@ -111,15 +111,3 @@ r_cvulkan_command_pool_get_queue_family_index (const struct R_CVulkan_CommandPoo
 #endif
     return pCommandPool->queueFamilyIndex;
 }
-
-R_CVULKAN_API int
-r_cvulkan_command_pool_is_initialized (const struct R_CVulkan_CommandPool* pCommandPool)
-{
-#if defined(R_CVULKAN_DEBUG)
-    R_CVULKAN_ASSERT (pCommandPool);
-    return 1;
-#else
-    (void)pCommandPool;
-    return 1;
-#endif
-}

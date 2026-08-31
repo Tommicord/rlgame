@@ -75,10 +75,3 @@ R_CVULKAN_API VkDevice r_cvulkan_command_pool_get_device (const struct R_CVulkan
  */
 R_CVULKAN_API uint32_t
 r_cvulkan_command_pool_get_queue_family_index (const struct R_CVulkan_CommandPool* pCommandPool);
-
-/**
- * @brief Check if the command pool is initialized
- * @param commandPool Pointer to command pool
- * @return 1 if initialized, 0 otherwise
- */
-R_CVULKAN_API int r_cvulkan_command_pool_is_initialized (const struct R_CVulkan_CommandPool* pCommandPool);

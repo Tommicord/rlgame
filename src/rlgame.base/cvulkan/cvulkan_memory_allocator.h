@@ -7,8 +7,8 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 
-struct r_cvulkan_mem_val_state;
-struct r_cvulkan_mem_val_stats;
+struct r_cvulkan_memval_state;
+struct r_cvulkan_memval_stats;
 
 /**
  * @brief Suballocation representing an allocation within a memory block
@@ -61,7 +61,7 @@ struct R_CVulkan_MemoryAllocator
         uint32_t                       blockCapacity; /**< Capacity of blocks array */
         VkDeviceSize                   minBlockSize; /**< Minimum block size (default: 256KB) */
         VkDeviceSize                  defaultMaxBlockSize; /**< Default maximum block size (default: 256MB) */
-        struct r_cvulkan_mem_val_state* pMemVal; /**< Per-allocator memory validation state */
+        struct r_cvulkan_memval_state* pMemVal; /**< Per-allocator memory validation state */
 };
 
 /**
@@ -184,7 +184,7 @@ r_cvulkan_memory_allocator_get_used_size (const struct R_CVulkan_MemoryAllocator
  */
 R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_get_health (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct r_cvulkan_mem_val_stats*           pStats);
+    struct r_cvulkan_memval_stats*           pStats);
 
 /**
  * @brief Allocate memory for an image

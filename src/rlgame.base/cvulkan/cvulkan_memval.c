@@ -16,14 +16,14 @@ extern const uint32_t cvulkanMemval_data[];
 #endif
 
 #ifdef R_CUDA
-extern "C" cudaError_t r_cvulkan_mem_val_launch_analyze_blocks (
+extern "C" cudaError_t r_cvulkan_memval_launch_analyze_blocks (
     const void* blocks,
     uint32_t    blockCount,
     const void* blockRegionOffsets,
     uint32_t    totalRegionCount,
     void*       stats,
     void*       stream);
-extern "C" cudaError_t r_cvulkan_mem_val_launch_get_health (
+extern "C" cudaError_t r_cvulkan_memval_launch_get_health (
     const void* stats,
     void*       lastFragmentationLevel,
     void*       health,
@@ -34,14 +34,14 @@ extern "C" cudaError_t r_cvulkan_mem_val_launch_get_health (
 #endif
 
 #ifdef R_OPENCL
-extern cl_int r_cvulkan_mem_val_openCLLaunchAnalyzeBlocks (
+extern cl_int r_cvulkan_memval_opencl_launch_analyze_blocks (
     cl_command_queue queue,
     cl_mem           blocks,
     uint32_t         blockCount,
     cl_mem           blockRegionOffsets,
     uint32_t         totalRegionCount,
     cl_mem           stats);
-extern cl_int r_cvulkan_mem_val_openCLLaunchGetHealth (
+extern cl_int r_cvulkan_memval_opencl_launch_get_Health (
     cl_command_queue queue,
     cl_mem           stats,
     cl_mem           lastFragmentationLevel,
@@ -54,19 +54,19 @@ extern cl_int r_cvulkan_mem_val_openCLLaunchGetHealth (
 #define R_CVULKAN_MEMVAL_ALIGNMENT         255u
 #define R_CVULKAN_MEMVAL_FIXED_POINT_SCALE 256 // Q8.8 fixed-point scale
 
-struct r_cvulkan_mem_val_region
+struct r_cvulkan_memval_region
 {
         uint64_t offset;
         uint64_t size;
 };
 
-struct r_cvulkan_mem_val_block
+struct r_cvulkan_memval_block
 {
         uint32_t                       freeRegionCount;
-        struct r_cvulkan_mem_val_region* pFreeRegions;
+        struct r_cvulkan_memval_region* pFreeRegions;
 };
 
-struct r_cvulkan_mem_val_statsGPU
+struct r_cvulkan_memval_statsGPU
 {
         uint64_t totalFree;
         uint64_t largestFreeRegion;
@@ -75,15 +75,15 @@ struct r_cvulkan_mem_val_statsGPU
         uint64_t freeRegionCount;
 };
 
-struct r_cvulkan_mem_val_state
+struct r_cvulkan_memval_state
 {
-        struct r_cvulkan_mem_val_stats stats;
-        enum r_cvulkan_mem_val_backend preferredBackend;
+        struct r_cvulkan_memval_stats stats;
+        enum r_cvulkan_memval_backend preferredBackend;
         void*                        pBackendContext;
 };
 
-static struct r_cvulkan_mem_val_state*
-r_cvulkan_mem_val_get_state (const struct R_CVulkan_MemoryAllocator* pAllocator)
+static struct r_cvulkan_memval_state*
+r_cvulkan_memval_get_state (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
     return pAllocator ? pAllocator->pMemVal : NULL;
@@ -91,7 +91,7 @@ r_cvulkan_mem_val_get_state (const struct R_CVulkan_MemoryAllocator* pAllocator)
 
 #ifdef R_OPENCL
 static enum R_CVulkan_Error
-r_cvulkan_mem_val_execute_kernel (
+r_cvulkan_memval_execute_kernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -180,12 +180,12 @@ r_cleanup:
 #endif
 
 static void
-r_cvulkan_mem_val_refresh_healthCPU (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_refresh_health_cpu (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
     R_CVULKAN_ASSERT (pAllocator->ppBlocks);
 
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     if (pAllocator->blockCount > 0 && !pAllocator->ppBlocks) return;
 
@@ -267,10 +267,10 @@ r_cvulkan_mem_val_refresh_healthCPU (struct R_CVulkan_MemoryAllocator* pAllocato
 
 #ifdef R_CUDA
 static void
-r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_refresh_health_cuda (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     if (pAllocator->blockCount == 0 || !pAllocator->ppBlocks) return;
 
@@ -293,14 +293,14 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
 
     if (totalRegionCount == 0)
     {
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
-    struct r_cvulkan_mem_val_block* hBlocks = (struct r_cvulkan_mem_val_block*)r_cstl_heap_alloc (
-        pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block));
-    struct r_cvulkan_mem_val_region* hRegions = (struct r_cvulkan_mem_val_region*)r_cstl_heap_alloc (
-        totalRegionCount * sizeof (struct r_cvulkan_mem_val_region));
+    struct r_cvulkan_memval_block* hBlocks = (struct r_cvulkan_memval_block*)r_cstl_heap_alloc (
+        pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block));
+    struct r_cvulkan_memval_region* hRegions = (struct r_cvulkan_memval_region*)r_cstl_heap_alloc (
+        totalRegionCount * sizeof (struct r_cvulkan_memval_region));
     uint32_t* hBlockRegionOffsets = (uint32_t*)r_cstl_heap_alloc (pAllocator->blockCount * sizeof (uint32_t));
 
     if (!hBlocks || !hRegions || !hBlockRegionOffsets)
@@ -308,7 +308,7 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
         if (hBlocks) r_cstl_heap_free (hBlocks);
         if (hRegions) r_cstl_heap_free (hRegions);
         if (hBlockRegionOffsets) r_cstl_heap_free (hBlockRegionOffsets);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
@@ -325,7 +325,7 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
         }
 
         hBlocks[blockIndex].freeRegionCount = block->freeRegionCount;
-        hBlocks[blockIndex].pFreeRegions = (struct r_cvulkan_mem_val_region*)(uintptr_t)regionOffset;
+        hBlocks[blockIndex].pFreeRegions = (struct r_cvulkan_memval_region*)(uintptr_t)regionOffset;
         hBlockRegionOffsets[blockIndex] = regionOffset;
 
         for (uint32_t regionIndex = 0; regionIndex < block->freeRegionCount; ++regionIndex)
@@ -337,16 +337,16 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
         }
     }
 
-    cudaError = cudaMalloc (&dBlocks, pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block));
+    cudaError = cudaMalloc (&dBlocks, pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block));
     if (cudaError != cudaSuccess) goto r_cleanup_host;
 
-    cudaError = cudaMalloc (&dRegions, totalRegionCount * sizeof (struct r_cvulkan_mem_val_region));
+    cudaError = cudaMalloc (&dRegions, totalRegionCount * sizeof (struct r_cvulkan_memval_region));
     if (cudaError != cudaSuccess) goto r_cleanup_device_blocks;
 
     cudaError = cudaMalloc (&dBlockRegionOffsets, pAllocator->blockCount * sizeof (uint32_t));
     if (cudaError != cudaSuccess) goto r_cleanup_device_regions;
 
-    cudaError = cudaMalloc (&dStats, sizeof (struct r_cvulkan_mem_val_statsGPU));
+    cudaError = cudaMalloc (&dStats, sizeof (struct r_cvulkan_memval_statsGPU));
     if (cudaError != cudaSuccess) goto r_cleanup_device_offsets;
 
     cudaError = cudaMalloc (&dLastFragmentationLevel, sizeof (uint16_t));
@@ -364,14 +364,14 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
     cudaError = cudaMemcpy (
         dBlocks,
         hBlocks,
-        pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block),
+        pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block),
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
     cudaError = cudaMemcpy (
         dRegions,
         hRegions,
-        totalRegionCount * sizeof (struct r_cvulkan_mem_val_region),
+        totalRegionCount * sizeof (struct r_cvulkan_memval_region),
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
@@ -382,9 +382,9 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
-    cudaMemset (dStats, 0, sizeof (struct r_cvulkan_mem_val_statsGPU));
+    cudaMemset (dStats, 0, sizeof (struct r_cvulkan_memval_statsGPU));
 
-    cudaError = r_cvulkan_mem_val_launch_analyze_blocks (
+    cudaError = r_cvulkan_memval_launch_analyze_blocks (
         dBlocks,
         pAllocator->blockCount,
         dBlockRegionOffsets,
@@ -396,7 +396,7 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
     cudaError = cudaDeviceSynchronize ();
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
-    cudaError = r_cvulkan_mem_val_launch_get_health (
+    cudaError = r_cvulkan_memval_launch_get_health (
         dStats,
         dLastFragmentationLevel,
         dHealth,
@@ -409,9 +409,9 @@ r_cvulkan_mem_val_refresh_healthCUDA (struct R_CVulkan_MemoryAllocator* pAllocat
     cudaError = cudaDeviceSynchronize ();
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
-    struct r_cvulkan_mem_val_statsGPU hStats;
+    struct r_cvulkan_memval_statsGPU hStats;
     cudaError
-        = cudaMemcpy (&hStats, dStats, sizeof (struct r_cvulkan_mem_val_statsGPU), cudaMemcpyDeviceToHost);
+        = cudaMemcpy (&hStats, dStats, sizeof (struct r_cvulkan_memval_statsGPU), cudaMemcpyDeviceToHost);
     if (cudaError != cudaSuccess) goto r_cleanup_device_pending;
 
     cudaError = cudaMemcpy (
@@ -472,17 +472,17 @@ r_cleanup_host:
     if (cudaError != cudaSuccess)
     {
         R_CSTL_LOG_ERROR ("CUDA health refresh failed: %d, falling back to CPU", cudaError);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
     }
 }
 #endif
 
 #ifdef R_OPENCL
 static void
-r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_refresh_health_opencl (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     if (pAllocator->blockCount == 0 || !pAllocator->ppBlocks) return;
 
@@ -507,7 +507,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
 
     if (totalRegionCount == 0)
     {
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
@@ -516,7 +516,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     if (error != CL_SUCCESS)
     {
         R_CSTL_LOG_ERROR ("OpenCL get context info failed: %d", error);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
@@ -524,14 +524,14 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     if (error != CL_SUCCESS || !queue)
     {
         R_CSTL_LOG_ERROR ("OpenCL create command queue failed: %d", error);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
-    struct r_cvulkan_mem_val_block* hBlocks = (struct r_cvulkan_mem_val_block*)r_cstl_heap_alloc (
-        pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block));
-    struct r_cvulkan_mem_val_region* hRegions = (struct r_cvulkan_mem_val_region*)r_cstl_heap_alloc (
-        totalRegionCount * sizeof (struct r_cvulkan_mem_val_region));
+    struct r_cvulkan_memval_block* hBlocks = (struct r_cvulkan_memval_block*)r_cstl_heap_alloc (
+        pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block));
+    struct r_cvulkan_memval_region* hRegions = (struct r_cvulkan_memval_region*)r_cstl_heap_alloc (
+        totalRegionCount * sizeof (struct r_cvulkan_memval_region));
     uint32_t* hBlockRegionOffsets = (uint32_t*)r_cstl_heap_alloc (pAllocator->blockCount * sizeof (uint32_t));
 
     if (!hBlocks || !hRegions || !hBlockRegionOffsets)
@@ -540,7 +540,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         if (hRegions) r_cstl_heap_free (hRegions);
         if (hBlockRegionOffsets) r_cstl_heap_free (hBlockRegionOffsets);
         clReleaseCommandQueue (queue);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
         return;
     }
 
@@ -557,7 +557,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         }
 
         hBlocks[blockIndex].freeRegionCount = block->freeRegionCount;
-        hBlocks[blockIndex].pFreeRegions = (struct r_cvulkan_mem_val_region*)(uintptr_t)regionOffset;
+        hBlocks[blockIndex].pFreeRegions = (struct r_cvulkan_memval_region*)(uintptr_t)regionOffset;
         hBlockRegionOffsets[blockIndex] = regionOffset;
 
         for (uint32_t regionIndex = 0; regionIndex < block->freeRegionCount; ++regionIndex)
@@ -572,7 +572,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     dBlocks = clCreateBuffer (
         context,
         CL_MEM_READ_WRITE,
-        pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block),
+        pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block),
         NULL,
         &error);
     if (error != CL_SUCCESS) goto r_cleanup_host;
@@ -580,7 +580,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     dRegions = clCreateBuffer (
         context,
         CL_MEM_READ_WRITE,
-        totalRegionCount * sizeof (struct r_cvulkan_mem_val_region),
+        totalRegionCount * sizeof (struct r_cvulkan_memval_region),
         NULL,
         &error);
     if (error != CL_SUCCESS) goto r_cleanup_blocks;
@@ -594,7 +594,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     if (error != CL_SUCCESS) goto r_cleanup_regions;
 
     dStats
-        = clCreateBuffer (context, CL_MEM_READ_WRITE, sizeof (struct r_cvulkan_mem_val_statsGPU), NULL, &error);
+        = clCreateBuffer (context, CL_MEM_READ_WRITE, sizeof (struct r_cvulkan_memval_statsGPU), NULL, &error);
     if (error != CL_SUCCESS) goto r_cleanup_offsets;
 
     dLastFragmentationLevel = clCreateBuffer (context, CL_MEM_READ_WRITE, sizeof (uint16_t), NULL, &error);
@@ -614,7 +614,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         dBlocks,
         CL_TRUE,
         0,
-        pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block),
+        pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block),
         hBlocks,
         0,
         NULL,
@@ -626,7 +626,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         dRegions,
         CL_TRUE,
         0,
-        totalRegionCount * sizeof (struct r_cvulkan_mem_val_region),
+        totalRegionCount * sizeof (struct r_cvulkan_memval_region),
         hRegions,
         0,
         NULL,
@@ -650,7 +650,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         dStats,
         CL_TRUE,
         0,
-        sizeof (struct r_cvulkan_mem_val_statsGPU),
+        sizeof (struct r_cvulkan_memval_statsGPU),
         NULL,
         0,
         NULL,
@@ -661,19 +661,19 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
 
     cl_mem buffers[] = {dBlocks, dRegions, dBlockRegionOffsets, dStats};
     size_t bufferSizes[]
-        = {pAllocator->blockCount * sizeof (struct r_cvulkan_mem_val_block),
-           totalRegionCount * sizeof (struct r_cvulkan_mem_val_region),
+        = {pAllocator->blockCount * sizeof (struct r_cvulkan_memval_block),
+           totalRegionCount * sizeof (struct r_cvulkan_memval_region),
            pAllocator->blockCount * sizeof (uint32_t),
-           sizeof (struct r_cvulkan_mem_val_statsGPU)};
+           sizeof (struct r_cvulkan_memval_statsGPU)};
     void* kernelArgs[]
         = {&dBlocks, &pAllocator->blockCount, &dBlockRegionOffsets, &totalRegionCount, &dStats};
     size_t argSizes[]
         = {sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_mem)};
 
-    enum R_CVulkan_Error result = r_cvulkan_mem_val_execute_kernel (
+    enum R_CVulkan_Error result = r_cvulkan_memval_execute_kernel (
         context,
         device,
-        "r_cvulkan_mem_val_analyze_blocks_kernel",
+        "r_cvulkan_memval_analyze_blocks_kernel",
         binaryData,
         binarySize,
         buffers,
@@ -687,7 +687,7 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
     cl_mem healthBuffers[]
         = {dStats, dLastFragmentationLevel, dHealth, dDefragmentationThreshold, dDefragmentationPending};
     size_t healthBufferSizes[]
-        = {sizeof (struct r_cvulkan_mem_val_statsGPU),
+        = {sizeof (struct r_cvulkan_memval_statsGPU),
            sizeof (uint16_t),
            sizeof (uint16_t),
            sizeof (uint16_t),
@@ -707,10 +707,10 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
            sizeof (cl_mem),
            sizeof (cl_ulong)};
 
-    result = r_cvulkan_mem_val_execute_kernel (
+    result = r_cvulkan_memval_execute_kernel (
         context,
         device,
-        "r_cvulkan_mem_val_get_health_kernel",
+        "r_cvulkan_memval_get_health_kernel",
         binaryData,
         binarySize,
         healthBuffers,
@@ -721,13 +721,13 @@ r_cvulkan_mem_val_refresh_health_openCL (struct R_CVulkan_MemoryAllocator* pAllo
         1);
     if (result != R_CVULKAN_OK) goto r_cleanup_pending;
 
-    struct r_cvulkan_mem_val_statsGPU hStats;
+    struct r_cvulkan_memval_statsGPU hStats;
     error = clEnqueueReadBuffer (
         queue,
         dStats,
         CL_TRUE,
         0,
-        sizeof (struct r_cvulkan_mem_val_statsGPU),
+        sizeof (struct r_cvulkan_memval_statsGPU),
         &hStats,
         0,
         NULL,
@@ -817,33 +817,33 @@ r_cleanup_host:
     if (error != CL_SUCCESS || result != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("OpenCL health refresh failed: %d, falling back to CPU", error);
-        r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+        r_cvulkan_memval_refresh_health_cpu (pAllocator);
     }
 }
 #endif
 
 static void
-r_cvulkan_mem_val_refresh_health (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_refresh_health (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     if (!state) return;
 
 #ifdef R_CUDA
-    r_cvulkan_mem_val_refresh_healthCUDA (pAllocator);
+    r_cvulkan_memval_refresh_healthCUDA (pAllocator);
 #endif
 #ifdef R_OPENCL
-    r_cvulkan_mem_val_refresh_health_openCL (pAllocator);
+    r_cvulkan_memval_refresh_health_opencl (pAllocator);
 #endif
-    r_cvulkan_mem_val_refresh_healthCPU (pAllocator);
+    r_cvulkan_memval_refresh_health_cpu (pAllocator);
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-r_cvulkan_mem_val_initialize (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_initialize (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
     if (!pAllocator) return R_CVULKAN_ERROR_NULL_POINTER;
-    struct r_cvulkan_mem_val_state* state = (struct r_cvulkan_mem_val_state*)r_cstl_heap_alloc (sizeof (*state));
+    struct r_cvulkan_memval_state* state = (struct r_cvulkan_memval_state*)r_cstl_heap_alloc (sizeof (*state));
     if (!state) return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     memset (state, 0, sizeof (*state));
     state->preferredBackend = R_CVULKAN_MEMVAL_BACKEND_CPU;
@@ -890,16 +890,16 @@ r_cvulkan_mem_val_initialize (struct R_CVulkan_MemoryAllocator* pAllocator)
     }
 #endif
     pAllocator->pMemVal = state;
-    r_cvulkan_mem_val_refresh_health (pAllocator);
+    r_cvulkan_memval_refresh_health (pAllocator);
     return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_shutdown (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_shutdown (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
     R_CVULKAN_ASSERT (pAllocator);
     R_CVULKAN_ASSERT (pAllocator->pMemVal);
-    struct r_cvulkan_mem_val_state* state = (struct r_cvulkan_mem_val_state*)pAllocator->pMemVal;
+    struct r_cvulkan_memval_state* state = (struct r_cvulkan_memval_state*)pAllocator->pMemVal;
 
 #if defined(R_OPENCL)
     clReleaseContext ((cl_context)state->pBackendContext);
@@ -910,26 +910,26 @@ r_cvulkan_mem_val_shutdown (struct R_CVulkan_MemoryAllocator* pAllocator)
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_allocation (
+r_cvulkan_memval_notify_allocation (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     const struct R_CVulkan_Suballocation*   allocation)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     R_CVULKAN_ASSERT (allocation);
     state->stats.totalAllocations++;
     state->stats.activeAllocations++;
     state->stats.totalBytesAllocated += allocation->size;
     state->stats.activeBytes += allocation->size;
-    r_cvulkan_mem_val_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
+    r_cvulkan_memval_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_free (
+r_cvulkan_memval_notify_free (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     const struct R_CVulkan_Suballocation*   allocation)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     R_CVULKAN_ASSERT (allocation);
 
@@ -940,34 +940,34 @@ r_cvulkan_mem_val_notify_free (
 
     if (state->stats.activeAllocations > 0) state->stats.activeAllocations--;
     if (state->stats.activeBytes >= allocation->size) state->stats.activeBytes -= allocation->size;
-    r_cvulkan_mem_val_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
+    r_cvulkan_memval_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_block_reserved (const struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_notify_block_reserved (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     state->stats.totalBlocksReserved++;
-    r_cvulkan_mem_val_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
+    r_cvulkan_memval_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_block_released (const struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_notify_block_released (const struct R_CVulkan_MemoryAllocator* pAllocator)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     state->stats.totalBlocksReleased++;
-    r_cvulkan_mem_val_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
+    r_cvulkan_memval_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_allocation_failure (
+r_cvulkan_memval_notify_allocation_failure (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     VkDeviceSize                            size,
     VkDeviceSize                            alignment)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     R_CVULKAN_ASSERT (size > 0);
     R_CVULKAN_ASSERT (alignment > 0);
@@ -986,11 +986,11 @@ r_cvulkan_mem_val_notify_allocation_failure (
             break;
         }
     }
-    r_cvulkan_mem_val_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
+    r_cvulkan_memval_refresh_health ((struct R_CVulkan_MemoryAllocator*)pAllocator);
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-r_cvulkan_mem_val_should_defragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded)
+r_cvulkan_memval_should_defragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded)
 {
 #if defined(R_CVULKAN_DEBUG)
     if (!pAllocator || !pNeeded) return R_CVULKAN_ERROR_NULL_POINTER;
@@ -1001,18 +1001,18 @@ r_cvulkan_mem_val_should_defragment (const struct R_CVulkan_MemoryAllocator* pAl
 }
 
 R_CVULKAN_API void
-r_cvulkan_mem_val_notify_defragmentation_complete (struct R_CVulkan_MemoryAllocator* pAllocator)
+r_cvulkan_memval_notify_defragmentation_complete (struct R_CVulkan_MemoryAllocator* pAllocator)
 {
-    struct r_cvulkan_mem_val_state* state = r_cvulkan_mem_val_get_state (pAllocator);
+    struct r_cvulkan_memval_state* state = r_cvulkan_memval_get_state (pAllocator);
     R_CVULKAN_ASSERT (state);
     state->stats.fragmentedAllocationFailures = 0;
-    r_cvulkan_mem_val_refresh_health (pAllocator);
+    r_cvulkan_memval_refresh_health (pAllocator);
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-r_cvulkan_mem_val_get_stats (
+r_cvulkan_memval_get_stats (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct r_cvulkan_mem_val_stats*           pStats)
+    struct r_cvulkan_memval_stats*           pStats)
 {
 #if defined(R_CVULKAN_DEBUG)
     if (!pAllocator || !pStats) return R_CVULKAN_ERROR_NULL_POINTER;

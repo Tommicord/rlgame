@@ -104,7 +104,7 @@ r_cvulkan_string_array_extensions_data (const struct r_cstl_array* pStringArray,
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* pString = NULL;
-        r_cstl_array_typed_at (pStringArray, const char*, i, &pString);
+        R_CSTL_ARRAY_TYPED_AT (pStringArray, const char*, i, &pString);
         ppStrings[i] = pString;
     }
 
@@ -130,7 +130,7 @@ r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions)
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* ext = NULL;
-        r_cstl_array_typed_at (pExtensions, const char*, i, &ext);
+        R_CSTL_ARRAY_TYPED_AT (pExtensions, const char*, i, &ext);
         if (ext)
         {
             R_CSTL_LOG_DEBUG ("  - %s", ext);
@@ -275,7 +275,7 @@ r_cvulkan_create_logical_device (struct R_CVulkan_Device* pDevice, VkSurfaceKHR 
         VkDeviceQueueCreateInfo queueCreateInfo = {0};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         uint32_t familyIndex = 0;
-        r_cstl_array_typed_at (uniqueQueueFamilies, uint32_t, i, &familyIndex);
+        R_CSTL_ARRAY_TYPED_AT (uniqueQueueFamilies, uint32_t, i, &familyIndex);
         queueCreateInfo.queueFamilyIndex = familyIndex;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;

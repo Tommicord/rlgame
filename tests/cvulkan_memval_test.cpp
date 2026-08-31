@@ -40,7 +40,7 @@ class CvulkanMemvalTest : public ::testing::Test
         {
         }
 
-        struct r_cvulkan_mem_val_stats stats;
+        struct r_cvulkan_memval_stats stats;
 };
 
 // Test fixed-point arithmetic conversions
@@ -290,13 +290,13 @@ TEST_F (CvulkanMemvalTest, NotificationFunctionsUpdateStats)
     allocator.pMemVal = NULL;
 
     // Initialize MemVal
-    enum R_CVulkan_Error result = r_cvulkan_mem_val_initialize (&allocator);
+    enum R_CVulkan_Error result = r_cvulkan_memval_initialize (&allocator);
     // Note: This may fail without proper Vulkan setup, but we can test the stats structure
     if (result == R_CVULKAN_OK && allocator.pMemVal)
     {
         // Get initial stats
-        struct r_cvulkan_mem_val_stats initialStats;
-        result = r_cvulkan_mem_val_get_stats (&allocator, &initialStats);
+        struct r_cvulkan_memval_stats initialStats;
+        result = r_cvulkan_memval_get_stats (&allocator, &initialStats);
         if (result == R_CVULKAN_OK)
         {
             EXPECT_EQ (0, initialStats.totalAllocations);
@@ -305,7 +305,7 @@ TEST_F (CvulkanMemvalTest, NotificationFunctionsUpdateStats)
         }
 
         // Cleanup
-        r_cvulkan_mem_val_shutdown (&allocator);
+        r_cvulkan_memval_shutdown (&allocator);
     }
 }
 

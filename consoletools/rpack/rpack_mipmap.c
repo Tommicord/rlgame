@@ -102,7 +102,7 @@ static int r_pack_mipmap_execute_kernel (
     size_t        globalWorkSize[2],
     size_t        localWorkSize[2]);
 
-static int r_pack_mipmap_resize_openCL (
+static int r_pack_mipmap_resize_opencl (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
     uint8_t*                         pDestination,
@@ -397,7 +397,7 @@ r_cleanup:
 }
 
 static int
-r_pack_mipmap_resize_openCL (
+r_pack_mipmap_resize_opencl (
     struct r_pack_mipmap_context*    pContext,
     const struct r_pack_input_image* pSource,
     uint8_t*                         pDestination,
@@ -772,7 +772,7 @@ r_pack_mipmap_dispatch (
         filter,
         sigma);
 #elif defined(R_OPENCL)
-    return r_pack_mipmap_resize_openCL (
+    return r_pack_mipmap_resize_opencl (
         pContext,
         &sourceImage,
         (uint8_t*)pDestination,

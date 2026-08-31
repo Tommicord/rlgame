@@ -220,7 +220,7 @@ r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions)
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* ext = NULL;
-        r_cstl_array_typed_at (pExtensions, const char*, i, &ext);
+        R_CSTL_ARRAY_TYPED_AT (pExtensions, const char*, i, &ext);
         if (ext)
         {
             R_CSTL_LOG_DEBUG ("  - %s", ext);
@@ -247,7 +247,7 @@ r_cvulkan_string_array_extensions_data (const struct r_cstl_array* pStringArray,
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* pString = NULL;
-        r_cstl_array_typed_at (pStringArray, const char*, i, &pString);
+        R_CSTL_ARRAY_TYPED_AT (pStringArray, const char*, i, &pString);
         ppStrings[i] = pString;
     }
 

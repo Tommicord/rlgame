@@ -4,7 +4,7 @@
 /**
  * @brief Region data structure for GPU processing
  */
-struct r_cvulkan_mem_val_region
+struct r_cvulkan_memval_region
 {
     ulong offset;
     ulong size;
@@ -13,16 +13,16 @@ struct r_cvulkan_mem_val_region
 /**
  * @brief Block data structure for GPU processing
  */
-struct r_cvulkan_mem_val_block
+struct r_cvulkan_memval_block
 {
     uint freeRegionCount;
-    __global struct r_cvulkan_mem_val_region* pFreeRegions;
+    __global struct r_cvulkan_memval_region* pFreeRegions;
 };
 
 /**
  * @brief Statistics structure for GPU processing
  */
-struct r_cvulkan_mem_val_statsGPU
+struct r_cvulkan_memval_statsGPU
 {
     ulong totalFree;
     ulong largestFreeRegion;
@@ -39,12 +39,12 @@ struct r_cvulkan_mem_val_statsGPU
  * @param totalRegionCount Total number of regions across all blocks
  * @param stats Output statistics (atomic accumulation)
  */
-__kernel void r_cvulkan_mem_val_analyze_blocks_kernel (
-    __global const struct r_cvulkan_mem_val_block* blocks,
+__kernel void r_cvulkan_memval_analyze_blocks_kernel (
+    __global const struct r_cvulkan_memval_block* blocks,
     const uint blockCount,
     __global const uint* blockRegionOffsets,
     const uint totalRegionCount,
-    __global struct r_cvulkan_mem_val_statsGPU* stats)
+    __global struct r_cvulkan_memval_statsGPU* stats)
 {
     uint globalRegionIndex = get_global_id (0);
 
@@ -71,7 +71,7 @@ __kernel void r_cvulkan_mem_val_analyze_blocks_kernel (
         }
     }
 
-    __global const struct r_cvulkan_mem_val_block* block = &blocks[blockIndex];
+    __global const struct r_cvulkan_memval_block* block = &blocks[blockIndex];
     uint regionIndex = globalRegionIndex - blockRegionOffsets[blockIndex];
 
     if (regionIndex >= block->freeRegionCount)
@@ -79,7 +79,7 @@ __kernel void r_cvulkan_mem_val_analyze_blocks_kernel (
         return;
     }
 
-    __global const struct r_cvulkan_mem_val_region* region = &block->pFreeRegions[regionIndex];
+    __global const struct r_cvulkan_memval_region* region = &block->pFreeRegions[regionIndex];
     
     atomic_add (&stats->totalFree, region->size);
     atomic_max (&stats->largestFreeRegion, region->size);
@@ -100,8 +100,8 @@ __kernel void r_cvulkan_mem_val_analyze_blocks_kernel (
  * @param defragmentationPending Output defragmentation needed flag
  * @param fragmentedAllocationFailures Number of fragmented allocation failures
  */
-__kernel void r_cvulkan_mem_val_calculate_health_kernel (
-    __global const struct r_cvulkan_mem_val_statsGPU* stats,
+__kernel void r_cvulkan_memval_calculate_health_kernel (
+    __global const struct r_cvulkan_memval_statsGPU* stats,
     __global ushort* lastFragmentationLevel,
     __global ushort* health,
     __global ushort* defragmentationThreshold,

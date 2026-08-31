@@ -57,30 +57,30 @@ static enum R_CVulkan_Error r_cvulkan_defrag_collect_block_metadata (struct R_CV
 
 static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocksCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocks_openCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocks_opencl (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocksCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocks_cpu (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_create_move_planCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_plan_cuda (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_create_move_plan_openCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_plan_opencl (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_create_move_planCPU (struct R_CVulkan_DefragContext* pContext);
-
-static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_movesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_plan_cpu (struct R_CVulkan_DefragContext* pContext);
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_moves_openCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+r_cvulkan_defrag_execute_moves_cuda (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_movesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+r_cvulkan_defrag_execute_moves_opencl (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_update_metadataCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error
+r_cvulkan_defrag_execute_moves_cpu (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_update_metadata_openCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadata_cuda (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error r_cvulkan_defrag_update_metadataCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadata_opencl (struct R_CVulkan_DefragContext* pContext);
+
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadata_cpu (struct R_CVulkan_DefragContext* pContext);
 
 static enum R_CVulkan_Error r_cvulkan_defrag_apply_moves_to_allocator (struct R_CVulkan_DefragContext* pContext);
 
@@ -455,7 +455,7 @@ r_cvulkan_cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_analyze_blocks_openCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_analyze_blocks_opencl (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -556,7 +556,7 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_analyze_blocksCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_analyze_blocks_cpu (struct R_CVulkan_DefragContext* pContext)
 {
     struct r_cvulkan_defrag_block_metadata* metadataArray
         = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
@@ -590,7 +590,7 @@ r_cvulkan_defrag_analyze_blocksCPU (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_create_move_planCUDA (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_plan_cuda (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -717,7 +717,7 @@ cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_create_move_plan_openCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_plan_opencl (struct R_CVulkan_DefragContext* pContext)
 {
 #if defined(R_OPENCL)
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -920,7 +920,7 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_create_move_planCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_plan_cpu (struct R_CVulkan_DefragContext* pContext)
 {
     struct r_cvulkan_defrag_block_metadata* metadataArray
         = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
@@ -1001,7 +1001,7 @@ r_cvulkan_defrag_create_move_planCPU (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_movesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_moves_cuda (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
     (void)commandBuffer;
@@ -1009,7 +1009,7 @@ r_cvulkan_defrag_execute_movesCUDA (struct R_CVulkan_DefragContext* pContext, Vk
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_moves_openCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_moves_opencl (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
     (void)commandBuffer;
@@ -1017,14 +1017,14 @@ r_cvulkan_defrag_execute_moves_openCL (struct R_CVulkan_DefragContext* pContext,
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_execute_movesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_moves_cpu (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)commandBuffer;
     return r_cvulkan_defrag_apply_moves_to_allocator (pContext);
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_update_metadataCUDA (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadata_cuda (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -1123,7 +1123,7 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_update_metadata_openCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadata_opencl (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -1307,7 +1307,7 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-r_cvulkan_defrag_update_metadataCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadata_cpu (struct R_CVulkan_DefragContext* pContext)
 {
     struct r_cvulkan_defrag_block_metadata* metadataArray
         = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
@@ -1615,11 +1615,11 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
         result = r_cvulkan_defrag_analyze_blocksCUDA (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_OPENCL:
-        result = r_cvulkan_defrag_analyze_blocks_openCL (pContext);
+        result = r_cvulkan_defrag_analyze_blocks_opencl (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_CPU:
     default:
-        result = r_cvulkan_defrag_analyze_blocksCPU (pContext);
+        result = r_cvulkan_defrag_analyze_blocks_cpu (pContext);
         break;
     }
     if (result == R_CVULKAN_OK)
@@ -1659,56 +1659,56 @@ r_cvulkan_defrag_execute_pass (struct R_CVulkan_DefragContext* pContext, VkComma
     switch (pContext->backend)
     {
     case R_CVULKAN_DEFRAG_BACKEND_CUDA:
-        result = r_cvulkan_defrag_create_move_planCUDA (pContext);
+        result = r_cvulkan_defrag_create_move_plan_cuda (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CUDA move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_execute_movesCUDA (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_moves_cuda (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CUDA move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_update_metadataCUDA (pContext);
+        result = r_cvulkan_defrag_update_metadata_cuda (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_OPENCL:
-        result = r_cvulkan_defrag_create_move_plan_openCL (pContext);
+        result = r_cvulkan_defrag_create_move_plan_opencl (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("OpenCL move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_execute_moves_openCL (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_moves_opencl (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("OpenCL move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_update_metadata_openCL (pContext);
+        result = r_cvulkan_defrag_update_metadata_opencl (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_CPU:
     default:
-        result = r_cvulkan_defrag_create_move_planCPU (pContext);
+        result = r_cvulkan_defrag_create_move_plan_cpu (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CPU move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_execute_movesCPU (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_moves_cpu (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CPU move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = r_cvulkan_defrag_update_metadataCPU (pContext);
+        result = r_cvulkan_defrag_update_metadata_cpu (pContext);
         break;
     }
 

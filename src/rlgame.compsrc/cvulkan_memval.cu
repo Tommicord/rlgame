@@ -7,7 +7,7 @@
 /**
  * @brief Region data structure for GPU processing
  */
-struct r_cvulkan_mem_val_region
+struct r_cvulkan_memval_region
 {
         uint64_t offset;
         uint64_t size;
@@ -16,16 +16,16 @@ struct r_cvulkan_mem_val_region
 /**
  * @brief Block data structure for GPU processing
  */
-struct r_cvulkan_mem_val_block
+struct r_cvulkan_memval_block
 {
         uint32_t                       freeRegionCount;
-        struct r_cvulkan_mem_val_region* pFreeRegions;
+        struct r_cvulkan_memval_region* pFreeRegions;
 };
 
 /**
  * @brief Statistics structure for GPU processing
  */
-struct r_cvulkan_mem_val_statsGPU
+struct r_cvulkan_memval_statsGPU
 {
         uint64_t totalFree;
         uint64_t largestFreeRegion;
@@ -43,12 +43,12 @@ struct r_cvulkan_mem_val_statsGPU
  * @param stats Output statistics (atomic accumulation)
  */
 __global__ void
-r_cvulkan_mem_val_analyze_blocks_kernel (
-    const struct r_cvulkan_mem_val_block* blocks,
+r_cvulkan_memval_analyze_blocks_kernel (
+    const struct r_cvulkan_memval_block* blocks,
     uint32_t                            blockCount,
     const uint32_t*                     blockRegionOffsets,
     uint32_t                            totalRegionCount,
-    struct r_cvulkan_mem_val_statsGPU*    stats)
+    struct r_cvulkan_memval_statsGPU*    stats)
 {
     uint32_t globalRegionIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -75,7 +75,7 @@ r_cvulkan_mem_val_analyze_blocks_kernel (
         }
     }
 
-    const struct r_cvulkan_mem_val_block* block = &blocks[blockIndex];
+    const struct r_cvulkan_memval_block* block = &blocks[blockIndex];
     uint32_t                            regionIndex = globalRegionIndex - blockRegionOffsets[blockIndex];
 
     if (regionIndex >= block->freeRegionCount)
@@ -83,7 +83,7 @@ r_cvulkan_mem_val_analyze_blocks_kernel (
         return;
     }
 
-    const struct r_cvulkan_mem_val_region* region = &block->pFreeRegions[regionIndex];
+    const struct r_cvulkan_memval_region* region = &block->pFreeRegions[regionIndex];
 
     atomicAdd ((unsigned long long*)&stats->totalFree, region->size);
     atomicMax ((unsigned long long*)&stats->largestFreeRegion, region->size);
@@ -104,8 +104,8 @@ r_cvulkan_mem_val_analyze_blocks_kernel (
  * @param fragmentedAllocationFailures Number of fragmented allocation failures
  */
 __global__ void
-r_cvulkan_mem_val_calculate_health_kernel (
-    const struct r_cvulkan_mem_val_statsGPU* stats,
+r_cvulkan_memval_calculate_health_kernel (
+    const struct r_cvulkan_memval_statsGPU* stats,
     uint16_t*                              lastFragmentationLevel,
     uint16_t*                              health,
     uint16_t*                              defragmentationThreshold,
@@ -166,7 +166,7 @@ r_cvulkan_mem_val_calculate_health_kernel (
  * @brief Host function to launch block analysis kernel
  */
 extern "C" cudaError_t
-r_cvulkan_mem_val_launch_analyze_blocks (
+r_cvulkan_memval_launch_analyze_blocks (
     const void*  blocks,
     uint32_t     blockCount,
     const void*  blockRegionOffsets,
@@ -177,12 +177,12 @@ r_cvulkan_mem_val_launch_analyze_blocks (
     int blockSize = 256;
     int gridSize = (totalRegionCount + blockSize - 1) / blockSize;
 
-    r_cvulkan_mem_val_analyze_blocks_kernel<<<gridSize, blockSize, 0, stream>>> (
-        (const struct r_cvulkan_mem_val_block*)blocks,
+    r_cvulkan_memval_analyze_blocks_kernel<<<gridSize, blockSize, 0, stream>>> (
+        (const struct r_cvulkan_memval_block*)blocks,
         blockCount,
         (const uint32_t*)blockRegionOffsets,
         totalRegionCount,
-        (struct r_cvulkan_mem_val_statsGPU*)stats);
+        (struct r_cvulkan_memval_statsGPU*)stats);
 
     return cudaGetLastError ();
 }
@@ -191,7 +191,7 @@ r_cvulkan_mem_val_launch_analyze_blocks (
  * @brief Host function to launch health calculation kernel
  */
 extern "C" cudaError_t
-r_cvulkan_mem_val_launch_calculate_health (
+r_cvulkan_memval_launch_calculate_health (
     const void*  stats,
     void*        lastFragmentationLevel,
     void*        health,
@@ -200,8 +200,8 @@ r_cvulkan_mem_val_launch_calculate_health (
     uint64_t     fragmentedAllocationFailures,
     cudaStream_t stream)
 {
-    r_cvulkan_mem_val_calculate_health_kernel<<<1, 1, 0, stream>>> (
-        (const struct r_cvulkan_mem_val_statsGPU*)stats,
+    r_cvulkan_memval_calculate_health_kernel<<<1, 1, 0, stream>>> (
+        (const struct r_cvulkan_memval_statsGPU*)stats,
         (uint16_t*)lastFragmentationLevel,
         (uint16_t*)health,
         (uint16_t*)defragmentationThreshold,

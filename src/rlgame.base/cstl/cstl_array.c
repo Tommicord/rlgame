@@ -517,27 +517,27 @@ r_cstl_array_floor_log2 (size_t n)
 }
 
 #define R_CSTL_ARRAY_SORT_TYPED(Suffix, Type)                                                                \
-    R_CSTL_API_ATTR static int r_cstl_array_cmp##Suffix##Inline (const Type* pLeft, const Type* pRight)       \
+    R_CSTL_API_ATTR static int r_cstl_array_cmp_##Suffix##Inline (const Type* pLeft, const Type* pRight)     \
     {                                                                                                        \
         const Type left = *pLeft;                                                                            \
         const Type right = *pRight;                                                                          \
         return (left > right) - (left < right);                                                              \
     }                                                                                                        \
                                                                                                              \
-    R_CSTL_API_ATTR static void r_cstl_array_swap##Suffix (Type* pLeft, Type* pRight)                         \
+    R_CSTL_API_ATTR static void r_cstl_array_swap_##Suffix (Type* pLeft, Type* pRight)                       \
     {                                                                                                        \
         const Type tmp = *pLeft;                                                                             \
         *pLeft = *pRight;                                                                                    \
         *pRight = tmp;                                                                                       \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_insertion_sort##Suffix (Type* pBase, long left, long right)                       \
+    static void r_cstl_array_insertion_sort_##Suffix (Type* pBase, long left, long right)                    \
     {                                                                                                        \
         for (long i = left + 1; i <= right; ++i)                                                             \
         {                                                                                                    \
             const Type key = pBase[i];                                                                       \
             long       j = i - 1;                                                                            \
-            while (j >= left && r_cstl_array_cmp##Suffix##Inline (pBase + j, &key) > 0)                       \
+            while (j >= left && r_cstl_array_cmp_##Suffix##Inline (pBase + j, &key) > 0)                     \
             {                                                                                                \
                 pBase[j + 1] = pBase[j];                                                                     \
                 --j;                                                                                         \
@@ -546,15 +546,15 @@ r_cstl_array_floor_log2 (size_t n)
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_insertion_sort##Suffix##Cb (                                                      \
-        Type*                            pBase,                                                              \
-        long                             left,                                                               \
-        long                             right,                                                              \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static void r_cstl_array_insertion_sort_##Suffix##Cb (                                                   \
+        Type*                              pBase,                                                            \
+        long                               left,                                                             \
+        long                               right,                                                            \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
-        r_cstl_array_sort_comparator cmp = pCmp;                                                               \
-        void*                      data = pData;                                                             \
+        r_cstl_array_sort_comparator cmp = pCmp;                                                             \
+        void*                        data = pData;                                                           \
         for (long i = left + 1; i <= right; ++i)                                                             \
         {                                                                                                    \
             const Type key = pBase[i];                                                                       \
@@ -568,77 +568,77 @@ r_cstl_array_floor_log2 (size_t n)
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_sift_down##Suffix (Type* pBase, long start, long end)                             \
+    static void r_cstl_array_sift_down_##Suffix (Type* pBase, long start, long end)                          \
     {                                                                                                        \
         long root = start;                                                                                   \
         while ((root << 1) + 1 <= end)                                                                       \
         {                                                                                                    \
             long child = (root << 1) + 1;                                                                    \
-            if (child + 1 < end && r_cstl_array_cmp##Suffix##Inline (pBase + child, pBase + child + 1) < 0)   \
+            if (child + 1 < end && r_cstl_array_cmp_##Suffix##Inline (pBase + child, pBase + child + 1) < 0) \
                 ++child;                                                                                     \
-            if (r_cstl_array_cmp##Suffix##Inline (pBase + root, pBase + child) >= 0) break;                   \
-            r_cstl_array_swap##Suffix (pBase + root, pBase + child);                                          \
+            if (r_cstl_array_cmp_##Suffix##Inline (pBase + root, pBase + child) >= 0) break;                 \
+            r_cstl_array_swap_##Suffix (pBase + root, pBase + child);                                        \
             root = child;                                                                                    \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_sift_down##Suffix##Cb (                                                           \
-        Type*                            pBase,                                                              \
-        long                             start,                                                              \
-        long                             end,                                                                \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static void r_cstl_array_sift_down_##Suffix##Cb (                                                        \
+        Type*                              pBase,                                                            \
+        long                               start,                                                            \
+        long                               end,                                                              \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
-        r_cstl_array_sort_comparator cmp = pCmp;                                                               \
-        void*                      data = pData;                                                             \
-        long                       root = start;                                                             \
+        r_cstl_array_sort_comparator cmp = pCmp;                                                             \
+        void*                        data = pData;                                                           \
+        long                         root = start;                                                           \
         while ((root << 1) + 1 <= end)                                                                       \
         {                                                                                                    \
             long child = (root << 1) + 1;                                                                    \
             if (child + 1 < end && cmp (pBase + child, pBase + child + 1, data) < 0) ++child;                \
             if (cmp (pBase + root, pBase + child, data) >= 0) break;                                         \
-            r_cstl_array_swap##Suffix (pBase + root, pBase + child);                                          \
+            r_cstl_array_swap_##Suffix (pBase + root, pBase + child);                                        \
             root = child;                                                                                    \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_heapsort##Suffix (Type* pBase, long left, long right)                            \
+    static void r_cstl_array_heapsort_##Suffix (Type* pBase, long left, long right)                          \
     {                                                                                                        \
         for (long start = (left + right) >> 1; start >= left; --start)                                       \
-            r_cstl_array_sift_down##Suffix (pBase, start, right);                                              \
+            r_cstl_array_sift_down_##Suffix (pBase, start, right);                                           \
         for (long end = right; end > left; --end)                                                            \
         {                                                                                                    \
-            r_cstl_array_swap##Suffix (pBase + left, pBase + end);                                            \
-            r_cstl_array_sift_down##Suffix (pBase, left, end - 1);                                             \
+            r_cstl_array_swap_##Suffix (pBase + left, pBase + end);                                          \
+            r_cstl_array_sift_down_##Suffix (pBase, left, end - 1);                                          \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_heapsort##Suffix##Cb (                                                           \
-        Type*                            pBase,                                                              \
-        long                             left,                                                               \
-        long                             right,                                                              \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static void r_cstl_array_heapsort_##Suffix##Cb (                                                         \
+        Type*                              pBase,                                                            \
+        long                               left,                                                             \
+        long                               right,                                                            \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
         for (long start = (left + right) >> 1; start >= left; --start)                                       \
-            r_cstl_array_sift_down##Suffix##Cb (pBase, start, right, pCmp, pData);                             \
+            r_cstl_array_sift_down_##Suffix##Cb (pBase, start, right, pCmp, pData);                          \
         for (long end = right; end > left; --end)                                                            \
         {                                                                                                    \
-            r_cstl_array_swap##Suffix (pBase + left, pBase + end);                                            \
-            r_cstl_array_sift_down##Suffix##Cb (pBase, left, end - 1, pCmp, pData);                            \
+            r_cstl_array_swap_##Suffix (pBase + left, pBase + end);                                          \
+            r_cstl_array_sift_down_##Suffix##Cb (pBase, left, end - 1, pCmp, pData);                         \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static long r_cstl_array_partition##Suffix (Type* pBase, long left, long right)                           \
+    static long r_cstl_array_partition_##Suffix (Type* pBase, long left, long right)                         \
     {                                                                                                        \
         long mid = (left + right) >> 1;                                                                      \
         if (R_CSTL_COMPARE (pBase[mid], pBase[left]) < 0)                                                    \
-            r_cstl_array_swap##Suffix (pBase + mid, pBase + left);                                            \
+            r_cstl_array_swap_##Suffix (pBase + mid, pBase + left);                                          \
         if (R_CSTL_COMPARE (pBase[right], pBase[left]) < 0)                                                  \
-            r_cstl_array_swap##Suffix (pBase + left, pBase + right);                                          \
+            r_cstl_array_swap_##Suffix (pBase + left, pBase + right);                                        \
         if (R_CSTL_COMPARE (pBase[right], pBase[mid]) < 0)                                                   \
-            r_cstl_array_swap##Suffix (pBase + mid, pBase + right);                                           \
-        r_cstl_array_swap##Suffix (pBase + mid, pBase + right - 1);                                           \
+            r_cstl_array_swap_##Suffix (pBase + mid, pBase + right);                                         \
+        r_cstl_array_swap_##Suffix (pBase + mid, pBase + right - 1);                                         \
                                                                                                              \
         const Type pivot = pBase[right - 1];                                                                 \
         long       i = left;                                                                                 \
@@ -650,30 +650,31 @@ r_cstl_array_floor_log2 (size_t n)
             while (R_CSTL_COMPARE (pBase[j], pivot) > 0)                                                     \
                 --j;                                                                                         \
             if (i >= j) break;                                                                               \
-            r_cstl_array_swap##Suffix (pBase + i, pBase + j);                                                 \
+            r_cstl_array_swap_##Suffix (pBase + i, pBase + j);                                               \
             ++i;                                                                                             \
             --j;                                                                                             \
         }                                                                                                    \
-        r_cstl_array_swap##Suffix (pBase + i, pBase + right - 1);                                             \
+        r_cstl_array_swap_##Suffix (pBase + i, pBase + right - 1);                                           \
         return i;                                                                                            \
     }                                                                                                        \
                                                                                                              \
-    static long r_cstl_array_partition##Suffix##Cb (                                                          \
-        Type*                            pBase,                                                              \
-        long                             left,                                                               \
-        long                             right,                                                              \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static long r_cstl_array_partition_##Suffix##Cb (                                                        \
+        Type*                              pBase,                                                            \
+        long                               left,                                                             \
+        long                               right,                                                            \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
-        r_cstl_array_sort_comparator cmp = pCmp;                                                               \
-        void*                      data = pData;                                                             \
-        long                       mid = (left + right) >> 1;                                                \
-        if (cmp (pBase + mid, pBase + left, data) < 0) r_cstl_array_swap##Suffix (pBase + mid, pBase + left); \
+        r_cstl_array_sort_comparator cmp = pCmp;                                                             \
+        void*                        data = pData;                                                           \
+        long                         mid = (left + right) >> 1;                                              \
+        if (cmp (pBase + mid, pBase + left, data) < 0)                                                       \
+            r_cstl_array_swap_##Suffix (pBase + mid, pBase + left);                                          \
         if (cmp (pBase + right, pBase + left, data) < 0)                                                     \
-            r_cstl_array_swap##Suffix (pBase + left, pBase + right);                                          \
+            r_cstl_array_swap_##Suffix (pBase + left, pBase + right);                                        \
         if (cmp (pBase + right, pBase + mid, data) < 0)                                                      \
-            r_cstl_array_swap##Suffix (pBase + mid, pBase + right);                                           \
-        r_cstl_array_swap##Suffix (pBase + mid, pBase + right - 1);                                           \
+            r_cstl_array_swap_##Suffix (pBase + mid, pBase + right);                                         \
+        r_cstl_array_swap_##Suffix (pBase + mid, pBase + right - 1);                                         \
                                                                                                              \
         const void* pPivot = pBase + right - 1;                                                              \
         long        i = left;                                                                                \
@@ -685,102 +686,102 @@ r_cstl_array_floor_log2 (size_t n)
             while (cmp (pBase + j, pPivot, data) > 0)                                                        \
                 --j;                                                                                         \
             if (i >= j) break;                                                                               \
-            r_cstl_array_swap##Suffix (pBase + i, pBase + j);                                                 \
+            r_cstl_array_swap_##Suffix (pBase + i, pBase + j);                                               \
             ++i;                                                                                             \
             --j;                                                                                             \
         }                                                                                                    \
-        r_cstl_array_swap##Suffix (pBase + i, pBase + right - 1);                                             \
+        r_cstl_array_swap_##Suffix (pBase + i, pBase + right - 1);                                           \
         return i;                                                                                            \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_introsort##Suffix (Type* pBase, long left, long right, int depthLimit)           \
+    static void r_cstl_array_introsort_##Suffix (Type* pBase, long left, long right, int depthLimit)         \
     {                                                                                                        \
         while (left < right)                                                                                 \
         {                                                                                                    \
             const long count = right - left + 1;                                                             \
             if (count <= (long)R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD)                                        \
             {                                                                                                \
-                r_cstl_array_insertion_sort##Suffix (pBase, left, right);                                      \
+                r_cstl_array_insertion_sort_##Suffix (pBase, left, right);                                   \
                 return;                                                                                      \
             }                                                                                                \
             if (depthLimit <= 0)                                                                             \
             {                                                                                                \
-                r_cstl_array_heapsort##Suffix (pBase, left, right);                                           \
+                r_cstl_array_heapsort_##Suffix (pBase, left, right);                                         \
                 return;                                                                                      \
             }                                                                                                \
-            const long pivot = r_cstl_array_partition##Suffix (pBase, left, right);                           \
+            const long pivot = r_cstl_array_partition_##Suffix (pBase, left, right);                         \
             --depthLimit;                                                                                    \
             if (pivot - left < right - pivot)                                                                \
             {                                                                                                \
-                r_cstl_array_introsort##Suffix (pBase, left, pivot - 1, depthLimit);                          \
+                r_cstl_array_introsort_##Suffix (pBase, left, pivot - 1, depthLimit);                        \
                 left = pivot + 1;                                                                            \
             }                                                                                                \
             else                                                                                             \
             {                                                                                                \
-                r_cstl_array_introsort##Suffix (pBase, pivot + 1, right, depthLimit);                         \
+                r_cstl_array_introsort_##Suffix (pBase, pivot + 1, right, depthLimit);                       \
                 right = pivot - 1;                                                                           \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_introsort##Suffix##Cb (                                                          \
-        Type*                            pBase,                                                              \
-        long                             left,                                                               \
-        long                             right,                                                              \
-        int                              depthLimit,                                                         \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static void r_cstl_array_introsort_##Suffix##Cb (                                                        \
+        Type*                              pBase,                                                            \
+        long                               left,                                                             \
+        long                               right,                                                            \
+        int                                depthLimit,                                                       \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
         while (left < right)                                                                                 \
         {                                                                                                    \
             const long count = right - left + 1;                                                             \
             if (count <= (long)R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD)                                        \
             {                                                                                                \
-                r_cstl_array_insertion_sort##Suffix##Cb (pBase, left, right, pCmp, pData);                     \
+                r_cstl_array_insertion_sort_##Suffix##Cb (pBase, left, right, pCmp, pData);                  \
                 return;                                                                                      \
             }                                                                                                \
             if (depthLimit <= 0)                                                                             \
             {                                                                                                \
-                r_cstl_array_heapsort##Suffix##Cb (pBase, left, right, pCmp, pData);                          \
+                r_cstl_array_heapsort_##Suffix##Cb (pBase, left, right, pCmp, pData);                        \
                 return;                                                                                      \
             }                                                                                                \
-            const long pivot = r_cstl_array_partition##Suffix##Cb (pBase, left, right, pCmp, pData);          \
+            const long pivot = r_cstl_array_partition_##Suffix##Cb (pBase, left, right, pCmp, pData);        \
             --depthLimit;                                                                                    \
             if (pivot - left < right - pivot)                                                                \
             {                                                                                                \
-                r_cstl_array_introsort##Suffix##Cb (pBase, left, pivot - 1, depthLimit, pCmp, pData);         \
+                r_cstl_array_introsort_##Suffix##Cb (pBase, left, pivot - 1, depthLimit, pCmp, pData);       \
                 left = pivot + 1;                                                                            \
             }                                                                                                \
             else                                                                                             \
             {                                                                                                \
-                r_cstl_array_introsort##Suffix##Cb (pBase, pivot + 1, right, depthLimit, pCmp, pData);        \
+                r_cstl_array_introsort_##Suffix##Cb (pBase, pivot + 1, right, depthLimit, pCmp, pData);      \
                 right = pivot - 1;                                                                           \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_sort##Suffix##Inline (Type* pBase, size_t nelem)                                 \
+    static void r_cstl_array_sort_##Suffix##_inline (Type* pBase, size_t nelem)                                \
     {                                                                                                        \
         if (nelem <= 1) return;                                                                              \
-        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                     \
-        r_cstl_array_introsort##Suffix (pBase, 0, (long)nelem - 1, depthLimit);                               \
+        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                   \
+        r_cstl_array_introsort_##Suffix (pBase, 0, (long)nelem - 1, depthLimit);                             \
     }                                                                                                        \
                                                                                                              \
-    static void r_cstl_array_sort##Suffix##Callback (                                                         \
-        Type*                            pBase,                                                              \
-        size_t                           nelem,                                                              \
-        const r_cstl_array_sort_comparator pCmp,                                                               \
-        void*                            pData)                                                              \
+    static void r_cstl_array_sort_##Suffix##_callback (                                                      \
+        Type*                              pBase,                                                            \
+        size_t                             nelem,                                                            \
+        const r_cstl_array_sort_comparator pCmp,                                                             \
+        void*                              pData)                                                            \
     {                                                                                                        \
         if (nelem <= 1) return;                                                                              \
-        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                     \
-        r_cstl_array_introsort##Suffix##Cb (pBase, 0, (long)nelem - 1, depthLimit, pCmp, pData);              \
+        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                   \
+        r_cstl_array_introsort_##Suffix##Cb (pBase, 0, (long)nelem - 1, depthLimit, pCmp, pData);            \
     }
 
-R_CSTL_ARRAY_SORT_TYPED (U8, uint8_t)
-R_CSTL_ARRAY_SORT_TYPED (U16, uint16_t)
-R_CSTL_ARRAY_SORT_TYPED (U32, uint32_t)
-R_CSTL_ARRAY_SORT_TYPED (U64, uint64_t)
+R_CSTL_ARRAY_SORT_TYPED (u8, uint8_t)
+R_CSTL_ARRAY_SORT_TYPED (u16, uint16_t)
+R_CSTL_ARRAY_SORT_TYPED (u32, uint32_t)
+R_CSTL_ARRAY_SORT_TYPED (u64, uint64_t)
 
 struct r_cstl_array_stack_frame
 {
@@ -790,10 +791,10 @@ struct r_cstl_array_stack_frame
 };
 
 #define R_CSTL_ARRAY_INTROSORT_SIMD(Suffix, PartitionFn)                                                     \
-    static void r_cstl_array_introsort_u32##Suffix (uint32_t* pBase, long left, long right, int depthLimit)    \
+    static void r_cstl_array_introsort_u32_##Suffix (uint32_t* pBase, long left, long right, int depthLimit) \
     {                                                                                                        \
-        struct r_cstl_array_stack_frame stack[64] = {0}; /* Sufficient for log2(2^64) depth */                 \
-        int                           stackTop = 0;                                                          \
+        struct r_cstl_array_stack_frame stack[64] = {0}; /* Sufficient for log2(2^64) depth */               \
+        int                             stackTop = 0;                                                        \
                                                                                                              \
         stack[stackTop].left = left;                                                                         \
         stack[stackTop].right = right;                                                                       \
@@ -803,7 +804,7 @@ struct r_cstl_array_stack_frame
         while (stackTop > 0)                                                                                 \
         {                                                                                                    \
             stackTop--;                                                                                      \
-            struct r_cstl_array_stack_frame* stackFrame = &stack[stackTop];                                    \
+            struct r_cstl_array_stack_frame* stackFrame = &stack[stackTop];                                  \
             left = stackFrame->left;                                                                         \
             right = stackFrame->right;                                                                       \
             depthLimit = stackFrame->depth;                                                                  \
@@ -813,17 +814,17 @@ struct r_cstl_array_stack_frame
                 const long count = right - left + 1;                                                         \
                 if (count <= (long)R_CSTL_ARRAY_SORT_INSERTION_THRESHOLD)                                    \
                 {                                                                                            \
-                    r_cstl_array_insertion_sort_u32 (pBase, left, right);                                       \
+                    r_cstl_array_insertion_sort_u32 (pBase, left, right);                                    \
                     break;                                                                                   \
                 }                                                                                            \
                 if (depthLimit <= 0)                                                                         \
                 {                                                                                            \
-                    r_cstl_array_heapsort_u32 (pBase, left, right);                                            \
+                    r_cstl_array_heapsort_u32 (pBase, left, right);                                          \
                     break;                                                                                   \
                 }                                                                                            \
                 if (right - left < 2)                                                                        \
                 {                                                                                            \
-                    if (left < right) r_cstl_array_swap_u32 (pBase + left, pBase + right);                     \
+                    if (left < right) r_cstl_array_swap_u32 (pBase + left, pBase + right);                   \
                     break;                                                                                   \
                 }                                                                                            \
                 const long pivot = PartitionFn (pBase, left, right);                                         \
@@ -858,16 +859,16 @@ struct r_cstl_array_stack_frame
     }
 
 #define R_CSTL_ARRAY_SORT_SIMD(Suffix, Introsort)                                                            \
-    R_CSTL_API void r_cstl_array_sort_u32##Suffix (uint32_t* pBase, size_t nelem)                              \
+    R_CSTL_API void r_cstl_array_sort_u32_##Suffix (uint32_t* pBase, size_t nelem)                           \
     {                                                                                                        \
         if (nelem < 2) return;                                                                               \
-        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                     \
+        const int depthLimit = (int)(2 * r_cstl_array_floor_log2 (nelem));                                   \
         Introsort (pBase, 0, (long)nelem - 1, depthLimit);                                                   \
     }
 
 #if defined(R_SIMD_AVX2)
 static long
-r_cstl_array_partition_u32AVX2 (uint32_t* pBase, long left, long right)
+r_cstl_array_partition_u32_avx2 (uint32_t* pBase, long left, long right)
 {
     if (right - left < 2) return left;
 
@@ -949,13 +950,13 @@ r_cstl_array_partition_u32AVX2 (uint32_t* pBase, long left, long right)
     return i;
 }
 
-R_CSTL_ARRAY_INTROSORT_SIMD (AVX2, r_cstl_array_partition_u32AVX2)
-R_CSTL_ARRAY_SORT_SIMD (AVX2, r_cstl_array_introsort_u32AVX2)
+R_CSTL_ARRAY_INTROSORT_SIMD (avx2, r_cstl_array_partition_u32_avx2)
+R_CSTL_ARRAY_SORT_SIMD (avx2, r_cstl_array_introsort_u32_avx2)
 #endif
 
 #if defined(R_SIMD_SSE)
 static long
-r_cstl_array_partition_u32SSE (uint32_t* pBase, long left, long right)
+r_cstl_array_partition_u32_sse (uint32_t* pBase, long left, long right)
 {
     if (right - left < 2) return left;
     long mid = (left + right) >> 1;
@@ -1037,8 +1038,8 @@ r_cstl_array_partition_u32SSE (uint32_t* pBase, long left, long right)
     return i;
 }
 
-R_CSTL_ARRAY_INTROSORT_SIMD (SSE, r_cstl_array_partition_u32SSE)
-R_CSTL_ARRAY_SORT_SIMD (SSE, r_cstl_array_introsort_u32SSE)
+R_CSTL_ARRAY_INTROSORT_SIMD (sse, r_cstl_array_partition_u32_sse)
+R_CSTL_ARRAY_SORT_SIMD (sse, r_cstl_array_introsort_u32_sse)
 #endif
 
 #if defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
@@ -1051,7 +1052,7 @@ R_CSTL_NEON_MASK (uint32x4_t cmpVec)
 }
 
 static long
-r_cstl_array_partition_u32NEON (uint32_t* pBase, long left, long right)
+r_cstl_array_partition_u32_neon (uint32_t* pBase, long left, long right)
 {
     if (right - left < 2) return left;
     long mid = (left + right) >> 1;
@@ -1124,17 +1125,17 @@ r_cstl_array_partition_u32NEON (uint32_t* pBase, long left, long right)
     return i;
 }
 
-R_CSTL_ARRAY_INTROSORT_SIMD (NEON, r_cstl_array_partition_u32NEON)
-R_CSTL_ARRAY_SORT_SIMD (NEON, r_cstl_array_introsort_u32NEON)
+R_CSTL_ARRAY_INTROSORT_SIMD (neon, r_cstl_array_partition_u32_neon)
+R_CSTL_ARRAY_SORT_SIMD (neon, r_cstl_array_introsort_u32_neon)
 #endif
 
 struct r_cstl_array_sort_ctx
 {
-        uint8_t*                   pBase;
-        size_t                     elemSize;
+        uint8_t*                     pBase;
+        size_t                       elemSize;
         r_cstl_array_sort_comparator pCmp;
-        void*                      pData;
-        uint8_t*                   pTmp;
+        void*                        pData;
+        uint8_t*                     pTmp;
 };
 
 R_CSTL_API_ATTR uint8_t*
@@ -1311,10 +1312,10 @@ r_cstl_array_swap_elements (uint8_t* a, uint8_t* b, size_t elemSize, uint8_t* tm
 R_CSTL_API_ATTR void
 r_cstl_array_insertion_sort (const struct r_cstl_array_sort_ctx* pCtx, long left, long right)
 {
-    const size_t               elemSize = pCtx->elemSize;
-    uint8_t*                   pKey = pCtx->pTmp;
+    const size_t                 elemSize = pCtx->elemSize;
+    uint8_t*                     pKey = pCtx->pTmp;
     r_cstl_array_sort_comparator cmp = pCtx->pCmp;
-    void*                      data = pCtx->pData;
+    void*                        data = pCtx->pData;
 
     for (long i = left + 1; i <= right; ++i)
     {
@@ -1337,13 +1338,16 @@ R_CSTL_API_ATTR void
 r_cstl_array_sift_down (const struct r_cstl_array_sort_ctx* pCtx, long start, long end)
 {
     r_cstl_array_sort_comparator cmp = pCtx->pCmp;
-    void*                      data = pCtx->pData;
-    long                       root = start;
+    void*                        data = pCtx->pData;
+    long                         root = start;
     while (R_CSTL_LIKELY ((root << 1) + 1 <= end))
     {
         long child = (root << 1) + 1;
         if (R_CSTL_LIKELY (child + 1 < end)
-            && cmp (r_cstl_array_element_bytes (pCtx, child), r_cstl_array_element_bytes (pCtx, child + 1), data)
+            && cmp (
+                   r_cstl_array_element_bytes (pCtx, child),
+                   r_cstl_array_element_bytes (pCtx, child + 1),
+                   data)
                    < 0)
             ++child;
 
@@ -1382,8 +1386,8 @@ R_CSTL_API_ATTR long
 r_cstl_array_partition (const struct r_cstl_array_sort_ctx* pCtx, long left, long right)
 {
     r_cstl_array_sort_comparator cmp = pCtx->pCmp;
-    void*                      data = pCtx->pData;
-    long                       mid = (left + right) >> 1;
+    void*                        data = pCtx->pData;
+    long                         mid = (left + right) >> 1;
 
     if (cmp (r_cstl_array_element_bytes (pCtx, mid), r_cstl_array_element_bytes (pCtx, left), data) < 0)
     {
@@ -1557,7 +1561,7 @@ R_CSTL_API void
 r_cstl_array_introsort (const struct r_cstl_array_sort_ctx* pCtx, long left, long right, int depthLimit)
 {
     struct r_cstl_array_stack_frame  stack[64] = {0}; // Sufficient for log2(2^64) depth
-    long                           stackTop = 0;
+    long                             stackTop = 0;
     struct r_cstl_array_stack_frame* stackFrame = &stack[0];
     stackFrame->left = left;
     stackFrame->right = right;
@@ -1648,11 +1652,11 @@ r_cstl_array_sort (
         if (R_CSTL_LIKELY (pComparator == r_cstl_array_compare_u32 || pComparator == NULL))
         {
 #if defined(R_SIMD_AVX2)
-            r_cstl_array_sort_u32AVX2 ((uint32_t*)pBase, nelem);
+            r_cstl_array_sort_u32_avx2 ((uint32_t*)pBase, nelem);
 #elif defined(R_SIMD_SSE)
-            r_cstl_array_sort_u32SSE ((uint32_t*)pBase, nelem);
+            r_cstl_array_sort_u32_sse ((uint32_t*)pBase, nelem);
 #elif defined(_RL_SIMD_ARM_NEON) || defined(R_SIMD_ARM_NEON)
-            r_cstl_array_sort_u32NEON ((uint32_t*)pBase, nelem);
+            r_cstl_array_sort_u32_neon ((uint32_t*)pBase, nelem);
 #endif
         }
         else
@@ -1690,7 +1694,7 @@ r_cstl_array_sort (
         return 0;
     }
 
-    uint8_t*                   pTmp = (uint8_t*)R_CSTL_STACK_ALLOC (elemSize);
+    uint8_t*                     pTmp = (uint8_t*)R_CSTL_STACK_ALLOC (elemSize);
     struct r_cstl_array_sort_ctx ctx = {
         .pBase = pBase,
         .elemSize = elemSize,

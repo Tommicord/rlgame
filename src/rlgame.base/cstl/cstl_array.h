@@ -380,7 +380,7 @@ R_CSTL_API int r_cstl_array_sort (
  *
  * @note This macro performs bounds checking via r_cstl_array_at.
  */
-#define r_cstl_array_typed_at(pArray, Type, index, pOutValue)                                                  \
+#define R_CSTL_ARRAY_TYPED_AT(pArray, Type, index, pOutValue)                                                  \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
@@ -409,7 +409,7 @@ R_CSTL_API int r_cstl_array_sort (
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
  */
-#define r_cstl_array_typed_unchecked_at(pArray, Type, index, pOutValue)                                         \
+#define R_CSTL_ARRAY_TYPED_UNCHECKED_AT(pArray, Type, index, pOutValue)                                         \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
@@ -432,7 +432,7 @@ R_CSTL_API int r_cstl_array_sort (
  * @note This macro performs bounds checking before writing.
  * @note Returns 0 on success, -1 if index is out of bounds.
  */
-#define r_cstl_array_typed_set_at(pArray, Type, index, pValue)                                                  \
+#define R_CSTL_ARRAY_TYPED_SET_AT(pArray, Type, index, pValue)                                                  \
     do                                                                                                       \
     {                                                                                                        \
         size_t _offset = (index) * sizeof (Type);                                                            \
@@ -455,7 +455,7 @@ R_CSTL_API int r_cstl_array_sort (
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
  */
-#define r_cstl_array_typed_set_at_unchecked(pArray, Type, index, pValue)                                         \
+#define R_CSTL_ARRAY_TYPED_SET_AT_UNCHECKED(pArray, Type, index, pValue)                                         \
     do                                                                                                       \
     {                                                                                                        \
         size_t   _offset = (index) * sizeof (Type);                                                          \
