@@ -7,8 +7,8 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 #include "rlgame.base/cvulkan/cvulkan_defragmentation.h"
 
-struct R_CVulkan_MemValState;
-struct R_CVulkan_MemValStats;
+struct r_cvulkan_mem_val_state;
+struct r_cvulkan_mem_val_stats;
 
 /**
  * @brief Suballocation representing an allocation within a memory block
@@ -61,7 +61,7 @@ struct R_CVulkan_MemoryAllocator
         uint32_t                       blockCapacity; /**< Capacity of blocks array */
         VkDeviceSize                   minBlockSize; /**< Minimum block size (default: 256KB) */
         VkDeviceSize                  defaultMaxBlockSize; /**< Default maximum block size (default: 256MB) */
-        struct R_CVulkan_MemValState* pMemVal; /**< Per-allocator memory validation state */
+        struct r_cvulkan_mem_val_state* pMemVal; /**< Per-allocator memory validation state */
 };
 
 /**
@@ -71,7 +71,7 @@ struct R_CVulkan_MemoryAllocator
  * @param physicalDevice Physical device
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewMemoryAllocator (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_memory_allocator (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     VkDevice                          device,
     VkPhysicalDevice                  physicalDevice);
@@ -80,12 +80,12 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewMemoryAllocator (
  * @brief Deletes a memory allocator and free all blocks
  * @param pAllocator Pointer to allocator to delete
  */
-R_CVULKAN_API void R_CVulkan_DeleteMemoryAllocator (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void r_cvulkan_delete_memory_allocator (struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Settingsuration parameters for memory allocation
  */
-struct R_CVulkan_MemoryAllocationInfo
+struct r_cvulkan_memory_allocation_info
 {
         VkDeviceSize          size; /**< Size to allocate */
         VkDeviceSize          alignment; /**< Alignment requirement */
@@ -100,9 +100,9 @@ struct R_CVulkan_MemoryAllocationInfo
  * @param outAllocation Pointer to receive the suballocation
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocate (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_allocate (
     struct R_CVulkan_MemoryAllocator*            pAllocator,
-    const struct R_CVulkan_MemoryAllocationInfo* pAllocInfo,
+    const struct r_cvulkan_memory_allocation_info* pAllocInfo,
     struct R_CVulkan_Suballocation*              outAllocation);
 
 /**
@@ -110,7 +110,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocate (
  * @param pAllocator Pointer to allocator
  * @param pAllocation Suballocation to free
  */
-R_CVULKAN_API void R_CVulkan_MemoryAllocatorFree (
+R_CVULKAN_API void r_cvulkan_memory_allocator_free (
     struct R_CVulkan_MemoryAllocator*     pAllocator,
     const struct R_CVulkan_Suballocation* pAllocation);
 
@@ -122,7 +122,7 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFree (
  * @param outTypeIndex Pointer to receive the memory type index
  * @return R_CVULKAN_OK on success, R_CVULKAN_ERROR_FAILED if not found
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FindMemoryType (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_find_memory_type (
     VkPhysicalDevice            physicalDevice,
     const VkMemoryRequirements* memRequirements,
     VkMemoryPropertyFlags       properties,
@@ -137,7 +137,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FindMemoryType (
  * @param data Pointer to source data
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CopyDataToMemory (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_copy_data_to_memory (
     VkDevice       device,
     VkDeviceMemory bufferMemory,
     VkDeviceSize   offset,
@@ -150,7 +150,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CopyDataToMemory (
  * @return Vulkan device handle
  */
 R_CVULKAN_API VkDevice
-R_CVulkan_MemoryAllocatorGetDevice (const struct R_CVulkan_MemoryAllocator* pAllocator);
+r_cvulkan_memory_allocator_get_device (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get physical device from allocator
@@ -158,7 +158,7 @@ R_CVulkan_MemoryAllocatorGetDevice (const struct R_CVulkan_MemoryAllocator* pAll
  * @return Physical device handle
  */
 R_CVULKAN_API VkPhysicalDevice
-R_CVulkan_MemoryAllocatorGetPhysicalDevice (const struct R_CVulkan_MemoryAllocator* pAllocator);
+r_cvulkan_memory_allocator_get_physical_device (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get total allocated size from allocator
@@ -166,7 +166,7 @@ R_CVulkan_MemoryAllocatorGetPhysicalDevice (const struct R_CVulkan_MemoryAllocat
  * @return Total size of all blocks
  */
 R_CVULKAN_API VkDeviceSize
-R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
+r_cvulkan_memory_allocator_get_total_size (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get total used size from allocator
@@ -174,7 +174,7 @@ R_CVulkan_MemoryAllocatorGetTotalSize (const struct R_CVulkan_MemoryAllocator* p
  * @return Total used size across all blocks
  */
 R_CVULKAN_API VkDeviceSize
-R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pAllocator);
+r_cvulkan_memory_allocator_get_used_size (const struct R_CVulkan_MemoryAllocator* pAllocator);
 
 /**
  * @brief Get allocator health and memory validation statistics.
@@ -182,9 +182,9 @@ R_CVulkan_MemoryAllocatorGetUsedSize (const struct R_CVulkan_MemoryAllocator* pA
  * @param pStats Pointer to receive statistics
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorGetHealth (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_get_health (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct R_CVulkan_MemValStats*           pStats);
+    struct r_cvulkan_mem_val_stats*           pStats);
 
 /**
  * @brief Allocate memory for an image
@@ -195,7 +195,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorGetHealth (
  * @param outMemory Pointer to receive the allocated memory handle
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocateImageMemory (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_allocate_image_memory (
     VkDevice              device,
     VkPhysicalDevice      physicalDevice,
     VkImage               image,
@@ -207,7 +207,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorAllocateImageMemory 
  * @param device Vulkan device
  * @param memory Memory to free
  */
-R_CVULKAN_API void R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, VkDeviceMemory memory);
+R_CVULKAN_API void r_cvulkan_memory_allocator_free_image_memory (VkDevice device, VkDeviceMemory memory);
 
 /**
  * @brief Begin defragmentation for the memory allocator
@@ -216,7 +216,7 @@ R_CVULKAN_API void R_CVulkan_MemoryAllocatorFreeImageMemory (VkDevice device, Vk
  * @param pSettings Settingsuration parameters (can be NULL for defaults)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorBeginDefragmentation (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_begin_defragmentation (
     struct R_CVulkan_MemoryAllocator*      pAllocator,
     struct R_CVulkan_DefragContext**       ppContext,
     const struct R_CVulkan_DefragSettings* pSettings);
@@ -228,7 +228,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorBeginDefragmentation
  * @param commandBuffer Vulkan command buffer (can be VK_NULL_HANDLE for CPU-only)
  * @return R_CVULKAN_OK on success, R_CVULKAN_ERROR_INCOMPLETE if more passes needed, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorExecuteDefragPass (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_execute_defrag_pass (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     struct R_CVulkan_DefragContext*   pContext,
     VkCommandBuffer                   commandBuffer);
@@ -240,7 +240,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorExecuteDefragPass (
  * @param pStats Pointer to receive statistics (can be NULL)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorEndDefragmentation (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_end_defragmentation (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     struct R_CVulkan_DefragContext*   pContext,
     struct R_CVulkan_DefragStats*     pStats);
@@ -251,6 +251,6 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorEndDefragmentation (
  * @param commandBuffer Command buffer used by the defragmentation backend
  * @return R_CVULKAN_OK when no defragmentation is needed or it completed
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemoryAllocatorProcessDefragmentation (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_memory_allocator_process_defragmentation (
     struct R_CVulkan_MemoryAllocator* pAllocator,
     VkCommandBuffer                   commandBuffer);

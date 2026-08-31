@@ -23,20 +23,20 @@ extern const uint32_t cvulkanDefragmentation_data[];
 #define R_CVULKAN_DEFRAG_FRAGMENTATION_THRESHOLD    0.325f
 
 enum R_CVulkan_DefragBackend;
-struct R_CVulkan_DefragBlockMetadata;
+struct r_cvulkan_defrag_block_metadata;
 struct R_CVulkan_DefragMove;
 struct R_CVulkan_DefragSettings;
 struct R_CVulkan_DefragContext;
 struct R_CVulkan_DefragStats;
 
 #if defined(R_CUDA)
-extern cudaError_t R_CVulkan_DefragLaunchAnalyzeBlocks (
+extern cudaError_t r_cvulkan_defrag_launch_analyze_blocks (
     void*        blockMetadata,
     uint32_t     blockCount,
     uint32_t     mergeFactor,
     cudaStream_t stream);
 
-extern cudaError_t R_CVulkan_DefragLaunchCreateMovePlan (
+extern cudaError_t r_cvulkan_defrag_launch_create_move_plan (
     void*        blockMetadata,
     void*        moves,
     uint32_t*    moveCount,
@@ -45,7 +45,7 @@ extern cudaError_t R_CVulkan_DefragLaunchCreateMovePlan (
     uint64_t     maxBytesPerPass,
     cudaStream_t stream);
 
-extern cudaError_t R_CVulkan_DefragCudaLaunchUpdateMetadata (
+extern cudaError_t r_cvulkan_defrag_cuda_launch_update_metadata (
     void*        blockMetadata,
     void*        moves,
     uint32_t     moveCount,
@@ -53,45 +53,45 @@ extern cudaError_t R_CVulkan_DefragCudaLaunchUpdateMetadata (
     cudaStream_t stream);
 #endif
 
-static enum R_CVulkan_Error R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_collect_block_metadata (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocksCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocks_openCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_analyze_blocksCPU (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_planCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_plan_openCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext);
-
-static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+static enum R_CVulkan_Error r_cvulkan_defrag_create_move_planCPU (struct R_CVulkan_DefragContext* pContext);
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+r_cvulkan_defrag_execute_movesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+r_cvulkan_defrag_execute_moves_openCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error
+r_cvulkan_defrag_execute_movesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
-static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadataCUDA (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadata_openCL (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext);
+static enum R_CVulkan_Error r_cvulkan_defrag_update_metadataCPU (struct R_CVulkan_DefragContext* pContext);
 
-static enum R_CVulkan_Error R_CVulkan_DefragEnsureCapacity (
+static enum R_CVulkan_Error r_cvulkan_defrag_apply_moves_to_allocator (struct R_CVulkan_DefragContext* pContext);
+
+static enum R_CVulkan_Error r_cvulkan_defrag_ensure_capacity (
     void**    ppBuffer,
     uint32_t* pCapacity,
     uint32_t  requiredCount,
     uint32_t  elementSize);
 
 #ifdef R_OPENCL
-static enum R_CVulkan_Error R_CVulkan_DefragExecuteKernel (
+static enum R_CVulkan_Error r_cvulkan_defrag_execute_kernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -103,7 +103,7 @@ static enum R_CVulkan_Error R_CVulkan_DefragExecuteKernel (
     const size_t* pArgSizes,
     uint32_t      argCount,
     size_t        globalWorkSize);
-static enum R_CVulkan_Error R_CVulkan_DefragCreateProgram (
+static enum R_CVulkan_Error r_cvulkan_defrag_create_program (
     cl_context   context,
     cl_device_id device,
     const void*  pBinaryData,
@@ -114,7 +114,7 @@ static enum R_CVulkan_Error R_CVulkan_DefragCreateProgram (
 #endif
 
 R_CVULKAN_API void
-R_CVulkan_DefragSetDefaultSettings (struct R_CVulkan_DefragSettings* pSettings)
+r_cvulkan_defrag_set_default_settings (struct R_CVulkan_DefragSettings* pSettings)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -131,7 +131,7 @@ R_CVulkan_DefragSetDefaultSettings (struct R_CVulkan_DefragSettings* pSettings)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend)
+r_cvulkan_defrag_get_available_backend (enum R_CVulkan_DefragBackend* pBackend)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -192,7 +192,7 @@ R_CVulkan_DefragInitialize (
     }
     else
     {
-        R_CVulkan_DefragSetDefaultSettings (&pContext->config);
+        r_cvulkan_defrag_set_default_settings (&pContext->config);
     }
 
     R_CSTL_LOG_INFO (
@@ -203,7 +203,7 @@ R_CVulkan_DefragInitialize (
 
     if (pContext->config.preferredBackend == R_CVULKAN_DEFRAG_BACKEND_NONE)
     {
-        result = R_CVulkan_DefragGetAvailableBackend (&pContext->backend);
+        result = r_cvulkan_defrag_get_available_backend (&pContext->backend);
         if (result != R_CVULKAN_OK)
         {
             goto r_cvulkan_cleanup;
@@ -216,7 +216,7 @@ R_CVulkan_DefragInitialize (
     }
     pContext->blockMetadataCapacity = 16;
     pContext->pBlockMetadata
-        = R_CSTL_HeapAlloc (pContext->blockMetadataCapacity * sizeof (struct R_CVulkan_DefragBlockMetadata));
+        = r_cstl_heap_alloc (pContext->blockMetadataCapacity * sizeof (struct r_cvulkan_defrag_block_metadata));
     if (!pContext->pBlockMetadata)
     {
         result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -224,7 +224,7 @@ R_CVulkan_DefragInitialize (
     }
 
     pContext->moveCapacity = 256;
-    pContext->pMoves = R_CSTL_HeapAlloc (pContext->moveCapacity * sizeof (struct R_CVulkan_DefragMove));
+    pContext->pMoves = r_cstl_heap_alloc (pContext->moveCapacity * sizeof (struct R_CVulkan_DefragMove));
     if (!pContext->pMoves)
     {
         result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -282,13 +282,13 @@ R_CVulkan_DefragInitialize (
 r_cvulkan_cleanup_moves:
     if (pContext->pMoves)
     {
-        R_CSTL_HeapFree (pContext->pMoves);
+        r_cstl_heap_free (pContext->pMoves);
         pContext->pMoves = NULL;
     }
 r_cvulkan_metadata:
     if (pContext->pBlockMetadata)
     {
-        R_CSTL_HeapFree (pContext->pBlockMetadata);
+        r_cstl_heap_free (pContext->pBlockMetadata);
         pContext->pBlockMetadata = NULL;
     }
 r_cvulkan_cleanup:
@@ -315,13 +315,13 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
 
     if (pContext->pBlockMetadata)
     {
-        R_CSTL_HeapFree (pContext->pBlockMetadata);
+        r_cstl_heap_free (pContext->pBlockMetadata);
         pContext->pBlockMetadata = NULL;
     }
 
     if (pContext->pMoves)
     {
-        R_CSTL_HeapFree (pContext->pMoves);
+        r_cstl_heap_free (pContext->pMoves);
         pContext->pMoves = NULL;
     }
 
@@ -329,7 +329,7 @@ R_CVulkan_DefragCleanup (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_collect_block_metadata (struct R_CVulkan_DefragContext* pContext)
 {
     enum R_CVulkan_Error              result = R_CVULKAN_OK;
     struct R_CVulkan_MemoryAllocator* pAllocator = pContext->pAllocator;
@@ -338,11 +338,11 @@ R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
 
     if (pAllocator->blockCount > pContext->blockMetadataCapacity)
     {
-        result = R_CVulkan_DefragEnsureCapacity (
+        result = r_cvulkan_defrag_ensure_capacity (
             &pContext->pBlockMetadata,
             &pContext->blockMetadataCapacity,
             pAllocator->blockCount,
-            sizeof (struct R_CVulkan_DefragBlockMetadata));
+            sizeof (struct r_cvulkan_defrag_block_metadata));
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_TRACE_RETURN ();
@@ -360,8 +360,8 @@ R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
             continue;
         }
 
-        struct R_CVulkan_DefragBlockMetadata* metadata
-            = &((struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata)[i];
+        struct r_cvulkan_defrag_block_metadata* metadata
+            = &((struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata)[i];
 
         metadata->blockIndex = i;
         metadata->totalSize = block->size;
@@ -378,7 +378,7 @@ R_CVulkan_DefragCollectBlockMetadata (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_analyze_blocksCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #if defined(R_CUDA)
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -390,7 +390,7 @@ R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
 
     cudaError = cudaMalloc (
         &dBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata));
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata));
     if (cudaError != cudaSuccess)
     {
         result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -401,7 +401,7 @@ R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
     cudaError = cudaMemcpy (
         dBlockMetadata,
         pContext->pBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess)
     {
@@ -410,7 +410,7 @@ R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
         goto cleanup_device;
     }
 
-    cudaError = R_CVulkan_DefragLaunchAnalyzeBlocks (
+    cudaError = r_cvulkan_defrag_launch_analyze_blocks (
         dBlockMetadata,
         pContext->blockMetadataCount,
         pContext->config.mergeFactor,
@@ -433,7 +433,7 @@ R_CVulkan_DefragAnalyzeBlocksCUDA (struct R_CVulkan_DefragContext* pContext)
     cudaError = cudaMemcpy (
         pContext->pBlockMetadata,
         dBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         cudaMemcpyDeviceToHost);
     if (cudaError != cudaSuccess)
     {
@@ -455,7 +455,7 @@ r_cvulkan_cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_analyze_blocks_openCL (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -478,7 +478,7 @@ R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
     dBlockMetadata = clCreateBuffer (
         context,
         CL_MEM_READ_WRITE,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         NULL,
         &error);
     if (error != CL_SUCCESS || !dBlockMetadata)
@@ -501,7 +501,7 @@ R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
         dBlockMetadata,
         CL_TRUE,
         0,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         pContext->pBlockMetadata,
         0,
         NULL,
@@ -519,14 +519,14 @@ R_CVulkan_DefragAnalyzeBlocksOpenCL (struct R_CVulkan_DefragContext* pContext)
     size_t      sourceSize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
     cl_mem buffers[] = {dBlockMetadata};
-    size_t bufferSizes[] = {pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata)};
+    size_t bufferSizes[] = {pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata)};
     void*  kernelArgs[] = {&dBlockMetadata, &pContext->blockMetadataCount, &pContext->config.mergeFactor};
     size_t argSizes[] = {sizeof (cl_mem), sizeof (cl_uint), sizeof (cl_uint)};
 
-    result = R_CVulkan_DefragExecuteKernel (
+    result = r_cvulkan_defrag_execute_kernel (
         context,
         device,
-        "R_CVulkan_DefragAnalyzeBlocksKernel",
+        "r_cvulkan_defrag_analyze_blocks_kernel",
         source,
         sourceSize,
         buffers,
@@ -556,10 +556,10 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_analyze_blocksCPU (struct R_CVulkan_DefragContext* pContext)
 {
-    struct R_CVulkan_DefragBlockMetadata* metadataArray
-        = (struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata;
+    struct r_cvulkan_defrag_block_metadata* metadataArray
+        = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
     R_CSTL_TRACE_FUNCTION ();
     R_CSTL_LOG_INFO ("Analyzing %u blocks using CPU backend", pContext->blockMetadataCount);
 
@@ -568,7 +568,7 @@ R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
     uint32_t candidateCount = 0;
     for (uint32_t i = 0; i < pContext->blockMetadataCount; ++i)
     {
-        struct R_CVulkan_DefragBlockMetadata* metadata = &metadataArray[i];
+        struct r_cvulkan_defrag_block_metadata* metadata = &metadataArray[i];
 
         metadata->fillLevel
             = (metadata->totalSize > 0) ? ((float)metadata->usedSize / (float)metadata->totalSize) : 0.0f;
@@ -590,7 +590,7 @@ R_CVulkan_DefragAnalyzeBlocksCPU (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_planCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -604,7 +604,7 @@ R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
     uint32_t maxMoves = pContext->blockMetadataCount;
     if (maxMoves > pContext->moveCapacity)
     {
-        result = R_CVulkan_DefragEnsureCapacity (
+        result = r_cvulkan_defrag_ensure_capacity (
             &pContext->pMoves,
             &pContext->moveCapacity,
             maxMoves,
@@ -618,7 +618,7 @@ R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
 
     cudaError = cudaMalloc (
         &dBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata));
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata));
     if (cudaError != cudaSuccess)
     {
         result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -645,7 +645,7 @@ R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
     cudaError = cudaMemcpy (
         dBlockMetadata,
         pContext->pBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess)
     {
@@ -654,7 +654,7 @@ R_CVulkan_DefragCreateMovePlanCUDA (struct R_CVulkan_DefragContext* pContext)
         goto cleanup_movecount;
     }
 
-    cudaError = R_CVulkan_DefragLaunchCreateMovePlan (
+    cudaError = r_cvulkan_defrag_launch_create_move_plan (
         dBlockMetadata,
         dMoves,
         dMoveCount,
@@ -717,7 +717,7 @@ cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_plan_openCL (struct R_CVulkan_DefragContext* pContext)
 {
 #if defined(R_OPENCL)
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -752,7 +752,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
     uint32_t maxMoves = pContext->blockMetadataCount;
     if (maxMoves > pContext->moveCapacity)
     {
-        result = R_CVulkan_DefragEnsureCapacity (
+        result = r_cvulkan_defrag_ensure_capacity (
             &pContext->pMoves,
             &pContext->moveCapacity,
             maxMoves,
@@ -766,7 +766,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
     dBlockMetadata = clCreateBuffer (
         context,
         CL_MEM_READ_WRITE,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         NULL,
         &error);
     if (error != CL_SUCCESS || !dBlockMetadata)
@@ -802,7 +802,7 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
         dBlockMetadata,
         CL_TRUE,
         0,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         pContext->pBlockMetadata,
         0,
         NULL,
@@ -817,12 +817,12 @@ R_CVulkan_DefragCreateMovePlanOpenCL (struct R_CVulkan_DefragContext* pContext)
     const void* pBinaryData = (const void*)cvulkanDefragmentation_data;
     size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-    result = R_CVulkan_DefragCreateProgram (
+    result = r_cvulkan_defrag_create_program (
         context,
         device,
         pBinaryData,
         binarySize,
-        "R_CVulkan_DefragCreateMovePlanKernel",
+        "r_cvulkan_defrag_create_move_plan_kernel",
         &program,
         &kernel);
     if (result != R_CVULKAN_OK)
@@ -920,10 +920,10 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_create_move_planCPU (struct R_CVulkan_DefragContext* pContext)
 {
-    struct R_CVulkan_DefragBlockMetadata* metadataArray
-        = (struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata;
+    struct r_cvulkan_defrag_block_metadata* metadataArray
+        = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
     struct R_CVulkan_DefragMove* moves = (struct R_CVulkan_DefragMove*)pContext->pMoves;
 
     R_CSTL_TRACE_FUNCTION ();
@@ -933,7 +933,7 @@ R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
 
     for (uint32_t i = 0; i < pContext->blockMetadataCount; ++i)
     {
-        struct R_CVulkan_DefragBlockMetadata* metadata = &metadataArray[i];
+        struct r_cvulkan_defrag_block_metadata* metadata = &metadataArray[i];
 
         if (!metadata->isCandidate)
         {
@@ -968,7 +968,7 @@ R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
             {
                 if (pContext->moveCount >= pContext->moveCapacity)
                 {
-                    enum R_CVulkan_Error result = R_CVulkan_DefragEnsureCapacity (
+                    enum R_CVulkan_Error result = r_cvulkan_defrag_ensure_capacity (
                         &pContext->pMoves,
                         &pContext->moveCapacity,
                         pContext->moveCount + 1,
@@ -1001,7 +1001,7 @@ R_CVulkan_DefragCreateMovePlanCPU (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_movesCUDA (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
     (void)commandBuffer;
@@ -1009,7 +1009,7 @@ R_CVulkan_DefragExecuteMovesCUDA (struct R_CVulkan_DefragContext* pContext, VkCo
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_moves_openCL (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)pContext;
     (void)commandBuffer;
@@ -1017,14 +1017,14 @@ R_CVulkan_DefragExecuteMovesOpenCL (struct R_CVulkan_DefragContext* pContext, Vk
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteMovesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_movesCPU (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     (void)commandBuffer;
-    return R_CVulkan_DefragApplyMovesToAllocator (pContext);
+    return r_cvulkan_defrag_apply_moves_to_allocator (pContext);
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadataCUDA (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_CUDA
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -1036,7 +1036,7 @@ R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
 
     cudaError = cudaMalloc (
         &dBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata));
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata));
     if (cudaError != cudaSuccess)
     {
         result = R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -1054,7 +1054,7 @@ R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
     cudaError = cudaMemcpy (
         dBlockMetadata,
         pContext->pBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         cudaMemcpyHostToDevice);
     if (cudaError != cudaSuccess)
     {
@@ -1075,7 +1075,7 @@ R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
         goto r_cleanup_moves;
     }
 
-    cudaError = R_CVulkan_DefragCudaLaunchUpdateMetadata (
+    cudaError = r_cvulkan_defrag_cuda_launch_update_metadata (
         dBlockMetadata,
         dMoves,
         pContext->moveCount,
@@ -1099,7 +1099,7 @@ R_CVulkan_DefragUpdateMetadataCUDA (struct R_CVulkan_DefragContext* pContext)
     cudaError = cudaMemcpy (
         pContext->pBlockMetadata,
         dBlockMetadata,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         cudaMemcpyDeviceToHost);
     if (cudaError != cudaSuccess)
     {
@@ -1123,7 +1123,7 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadata_openCL (struct R_CVulkan_DefragContext* pContext)
 {
 #ifdef R_OPENCL
     enum R_CVulkan_Error result = R_CVULKAN_OK;
@@ -1155,7 +1155,7 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
     dBlockMetadata = clCreateBuffer (
         context,
         CL_MEM_READ_WRITE,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         NULL,
         &error);
     if (error != CL_SUCCESS || !dBlockMetadata)
@@ -1181,7 +1181,7 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
         dBlockMetadata,
         CL_TRUE,
         0,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         pContext->pBlockMetadata,
         0,
         NULL,
@@ -1213,12 +1213,12 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
     const char* pBinaryData = (const void*)cvulkanDefragmentation_data;
     size_t      binarySize = cvulkanDefragmentation_size * sizeof (uint32_t);
 
-    result = R_CVulkan_DefragCreateProgram (
+    result = r_cvulkan_defrag_create_program (
         context,
         device,
         pBinaryData,
         binarySize,
-        "R_CVulkan_DefragUpdateMetadataKernel",
+        "r_cvulkan_defrag_update_metadata_kernel",
         &program,
         &kernel);
     if (result != R_CVULKAN_OK)
@@ -1259,7 +1259,7 @@ R_CVulkan_DefragUpdateMetadataOpenCL (struct R_CVulkan_DefragContext* pContext)
         dBlockMetadata,
         CL_TRUE,
         0,
-        pContext->blockMetadataCount * sizeof (struct R_CVulkan_DefragBlockMetadata),
+        pContext->blockMetadataCount * sizeof (struct r_cvulkan_defrag_block_metadata),
         pContext->pBlockMetadata,
         0,
         NULL,
@@ -1307,10 +1307,10 @@ r_cleanup:
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_update_metadataCPU (struct R_CVulkan_DefragContext* pContext)
 {
-    struct R_CVulkan_DefragBlockMetadata* metadataArray
-        = (struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata;
+    struct r_cvulkan_defrag_block_metadata* metadataArray
+        = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
     struct R_CVulkan_DefragMove* moves = (struct R_CVulkan_DefragMove*)pContext->pMoves;
 
     R_CSTL_TRACE_FUNCTION ();
@@ -1342,7 +1342,7 @@ R_CVulkan_DefragUpdateMetadataCPU (struct R_CVulkan_DefragContext* pContext)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
+r_cvulkan_defrag_apply_moves_to_allocator (struct R_CVulkan_DefragContext* pContext)
 {
     struct R_CVulkan_MemoryAllocator* pAllocator = pContext->pAllocator;
     struct R_CVulkan_DefragMove*      moves = (struct R_CVulkan_DefragMove*)pContext->pMoves;
@@ -1406,7 +1406,7 @@ R_CVulkan_DefragApplyMovesToAllocator (struct R_CVulkan_DefragContext* pContext)
 
 #ifdef R_OPENCL
 static enum R_CVulkan_Error
-R_CVulkan_DefragExecuteKernel (
+r_cvulkan_defrag_execute_kernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -1433,7 +1433,7 @@ R_CVulkan_DefragExecuteKernel (
         goto r_cleanup;
     }
 
-    result = R_CVulkan_DefragCreateProgram (
+    result = r_cvulkan_defrag_create_program (
         context,
         device,
         pBinaryData,
@@ -1509,7 +1509,7 @@ r_cleanup:
 
 #ifdef R_OPENCL
 static enum R_CVulkan_Error
-R_CVulkan_DefragCreateProgram (
+r_cvulkan_defrag_create_program (
     cl_context   context,
     cl_device_id device,
     const void*  pBinaryData,
@@ -1559,7 +1559,7 @@ r_cleanup:
 #endif
 
 static enum R_CVulkan_Error
-R_CVulkan_DefragEnsureCapacity (
+r_cvulkan_defrag_ensure_capacity (
     void**    ppBuffer,
     uint32_t* pCapacity,
     uint32_t  requiredCount,
@@ -1576,7 +1576,7 @@ R_CVulkan_DefragEnsureCapacity (
         newCapacity *= 2;
     }
 
-    void* newBuffer = R_CSTL_HeapRealloc (*ppBuffer, newCapacity * elementSize);
+    void* newBuffer = r_cstl_heap_realloc (*ppBuffer, newCapacity * elementSize);
     if (!newBuffer)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -1601,7 +1601,7 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
     pContext->moveCount = 0;
     R_CSTL_LOG_INFO ("Beginning defragmentation with backend %d", (int)pContext->backend);
 
-    result = R_CVulkan_DefragCollectBlockMetadata (pContext);
+    result = r_cvulkan_defrag_collect_block_metadata (pContext);
     if (result != R_CVULKAN_OK)
     {
         R_CSTL_LOG_ERROR ("Failed to collect block metadata: %d", result);
@@ -1612,14 +1612,14 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
     switch (pContext->backend)
     {
     case R_CVULKAN_DEFRAG_BACKEND_CUDA:
-        result = R_CVulkan_DefragAnalyzeBlocksCUDA (pContext);
+        result = r_cvulkan_defrag_analyze_blocksCUDA (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_OPENCL:
-        result = R_CVulkan_DefragAnalyzeBlocksOpenCL (pContext);
+        result = r_cvulkan_defrag_analyze_blocks_openCL (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_CPU:
     default:
-        result = R_CVulkan_DefragAnalyzeBlocksCPU (pContext);
+        result = r_cvulkan_defrag_analyze_blocksCPU (pContext);
         break;
     }
     if (result == R_CVULKAN_OK)
@@ -1636,7 +1636,7 @@ R_CVulkan_DefragBegin (struct R_CVulkan_DefragContext* pContext)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
+r_cvulkan_defrag_execute_pass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer)
 {
     enum R_CVulkan_Error result = R_CVULKAN_OK;
 
@@ -1659,56 +1659,56 @@ R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommand
     switch (pContext->backend)
     {
     case R_CVULKAN_DEFRAG_BACKEND_CUDA:
-        result = R_CVulkan_DefragCreateMovePlanCUDA (pContext);
+        result = r_cvulkan_defrag_create_move_planCUDA (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CUDA move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragExecuteMovesCUDA (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_movesCUDA (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CUDA move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragUpdateMetadataCUDA (pContext);
+        result = r_cvulkan_defrag_update_metadataCUDA (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_OPENCL:
-        result = R_CVulkan_DefragCreateMovePlanOpenCL (pContext);
+        result = r_cvulkan_defrag_create_move_plan_openCL (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("OpenCL move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragExecuteMovesOpenCL (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_moves_openCL (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("OpenCL move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragUpdateMetadataOpenCL (pContext);
+        result = r_cvulkan_defrag_update_metadata_openCL (pContext);
         break;
     case R_CVULKAN_DEFRAG_BACKEND_CPU:
     default:
-        result = R_CVulkan_DefragCreateMovePlanCPU (pContext);
+        result = r_cvulkan_defrag_create_move_planCPU (pContext);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CPU move plan creation failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragExecuteMovesCPU (pContext, commandBuffer);
+        result = r_cvulkan_defrag_execute_movesCPU (pContext, commandBuffer);
         if (result != R_CVULKAN_OK)
         {
             R_CSTL_LOG_ERROR ("CPU move execution failed: %d", result);
             R_CSTL_TRACE_RETURN ();
             return result;
         }
-        result = R_CVulkan_DefragUpdateMetadataCPU (pContext);
+        result = r_cvulkan_defrag_update_metadataCPU (pContext);
         break;
     }
 
@@ -1753,12 +1753,12 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
         pStats->totalBytesMoved = pContext->totalBytesMoved;
 
         float fragmentationBefore = 0.0f;
-        R_CVulkan_DefragGetFragmentationLevel (pContext, &fragmentationBefore);
+        r_cvulkan_defrag_get_fragmentation_level (pContext, &fragmentationBefore);
         pStats->fragmentationBefore = fragmentationBefore;
 
         float fragmentationAfter = 0.0f;
-        R_CVulkan_DefragCollectBlockMetadata (pContext);
-        R_CVulkan_DefragGetFragmentationLevel (pContext, &fragmentationAfter);
+        r_cvulkan_defrag_collect_block_metadata (pContext);
+        r_cvulkan_defrag_get_fragmentation_level (pContext, &fragmentationAfter);
         pStats->fragmentationAfter = fragmentationAfter;
 
         R_CSTL_LOG_INFO (
@@ -1784,7 +1784,7 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation)
+r_cvulkan_defrag_get_fragmentation_level (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation)
 {
     R_CVULKAN_ASSERT (pContext);
     R_CVULKAN_ASSERT (pFragmentation);
@@ -1795,8 +1795,8 @@ R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pCo
         return R_CVULKAN_OK;
     }
 
-    struct R_CVulkan_DefragBlockMetadata* metadataArray
-        = (struct R_CVulkan_DefragBlockMetadata*)pContext->pBlockMetadata;
+    struct r_cvulkan_defrag_block_metadata* metadataArray
+        = (struct r_cvulkan_defrag_block_metadata*)pContext->pBlockMetadata;
 
     uint64_t totalFree = 0;
     uint64_t totalSize = 0;
@@ -1813,7 +1813,7 @@ R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pCo
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* pNeeded)
+r_cvulkan_defrag_is_needed (const struct R_CVulkan_DefragContext* pContext, int* pNeeded)
 {
     R_CVULKAN_ASSERT (pContext);
     R_CVULKAN_ASSERT (pNeeded);
@@ -1821,7 +1821,7 @@ R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* p
     enum R_CVulkan_Error result = R_CVULKAN_OK;
     float                fragmentationLevel = 0.0f;
 
-    result = R_CVulkan_DefragGetFragmentationLevel (pContext, &fragmentationLevel);
+    result = r_cvulkan_defrag_get_fragmentation_level (pContext, &fragmentationLevel);
     if (result != R_CVULKAN_OK)
     {
         return result;

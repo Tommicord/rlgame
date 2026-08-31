@@ -49,7 +49,7 @@ r_pack_mipmap_dimension (uint32_t source, uint32_t other, uint32_t limit)
 R_PACK_API uint8_t*
 r_pack_resize_image_box (const struct r_pack_input_image* pSource, uint32_t width, uint32_t height)
 {
-    uint8_t* pPixels = (uint8_t*)R_CSTL_HeapAlloc ((size_t)width * height * 4);
+    uint8_t* pPixels = (uint8_t*)r_cstl_heap_alloc ((size_t)width * height * 4);
     if (!pPixels) return NULL;
 
     for (uint32_t y = 0; y < height; ++y)
@@ -94,7 +94,7 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
             (double)requiredSize / (1024.0 * 1024.0));
     }
 
-    uint8_t* pOutputBuffer = (uint8_t*)R_CSTL_HeapAlloc (requiredSize);
+    uint8_t* pOutputBuffer = (uint8_t*)r_cstl_heap_alloc (requiredSize);
     if (!pOutputBuffer)
     {
         R_CSTL_LOG_ERROR ("Failed to allocate output buffer");
@@ -107,7 +107,7 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
     if (encodeErr != R_PACK_OK)
     {
         R_CSTL_LOG_ERROR ("Encoding failed: %s", r_pack_error_to_string (encodeErr));
-        R_CSTL_HeapFree (pOutputBuffer);
+        r_cstl_heap_free (pOutputBuffer);
         return -1;
     }
 
@@ -115,7 +115,7 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
     if (!pOutputFile)
     {
         R_CSTL_LOG_ERROR ("Failed to open output file: %s", pOutputPath);
-        R_CSTL_HeapFree (pOutputBuffer);
+        r_cstl_heap_free (pOutputBuffer);
         return -1;
     }
 
@@ -125,7 +125,7 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
     if (written != bytesWritten)
     {
         R_CSTL_LOG_ERROR ("Failed to write complete output file");
-        R_CSTL_HeapFree (pOutputBuffer);
+        r_cstl_heap_free (pOutputBuffer);
         return -1;
     }
 
@@ -139,14 +139,14 @@ r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPat
             report.textureIndex,
             (unsigned long long)report.pixelIndex);
         remove (pOutputPath);
-        R_CSTL_HeapFree (pOutputBuffer);
+        r_cstl_heap_free (pOutputBuffer);
         return -1;
     }
 
     R_CSTL_LOG_INFO ("RPACK validation passed: %llu bytes verified", (unsigned long long)bytesWritten);
 
     R_CSTL_LOG_INFO ("Successfully wrote %llu bytes to %s", (unsigned long long)bytesWritten, pOutputPath);
-    R_CSTL_HeapFree (pOutputBuffer);
+    r_cstl_heap_free (pOutputBuffer);
     return 0;
 }
 
@@ -161,14 +161,14 @@ struct r_pack_image_load_task
 
 struct r_pack_thread_pool
 {
-        struct R_CSTL_Thread**         ppThreads;
+        struct r_cstl_thread**         ppThreads;
         uint32_t                       threadCount;
-        R_CSTL_AtomicUint32            nextTaskIndex;
-        R_CSTL_AtomicUint32            completedTasks;
-        R_CSTL_AtomicUint32            failedTasks;
-        struct R_CSTL_Mutex*           pTaskMutex;
-        struct R_CSTL_Condition*       pTaskAvailable;
-        struct R_CSTL_Condition*       pTaskComplete;
+        r_cstl_atomic_uint32            nextTaskIndex;
+        r_cstl_atomic_uint32            completedTasks;
+        r_cstl_atomic_uint32            failedTasks;
+        struct r_cstl_mutex*           pTaskMutex;
+        struct r_cstl_condition*       pTaskAvailable;
+        struct r_cstl_condition*       pTaskComplete;
         struct r_pack_image_load_task* pTasks;
         uint32_t                       taskCount;
         int                            shutdown;
@@ -218,7 +218,7 @@ r_pack_make_variant_path (const char* pOutputPath, uint32_t size, char** ppVaria
     const char* pExtension = strrchr (pOutputPath, '.');
     size_t      stemLength = pExtension ? (size_t)(pExtension - pOutputPath) : strlen (pOutputPath);
     size_t      suffixLength = strlen ("_4294967295x4294967295.rpack");
-    char*       pPath = (char*)R_CSTL_HeapAlloc (stemLength + suffixLength + 1);
+    char*       pPath = (char*)r_cstl_heap_alloc (stemLength + suffixLength + 1);
     if (!pPath) return -1;
 
     snprintf (
@@ -236,7 +236,7 @@ r_pack_make_variant_path (const char* pOutputPath, uint32_t size, char** ppVaria
 R_PACK_API int
 r_pack_encode_mipmap_variants (
     const struct r_pack_encoder_settings* pSettings,
-    const struct R_CSTL_Array*            pInputPaths,
+    const struct r_cstl_array*            pInputPaths,
     const char*                           pOutputPath)
 {
     static const uint32_t mipmapSizes[] = {64, 32, 16, 8, 4, 2, 1};
@@ -260,7 +260,7 @@ r_pack_encode_mipmap_variants (
                 "Failed to create encoder for mipmap level %ux%u",
                 mipmapSizes[i],
                 mipmapSizes[i]);
-            R_CSTL_HeapFree (pVariantPath);
+            r_cstl_heap_free (pVariantPath);
             return -1;
         }
 
@@ -273,13 +273,13 @@ r_pack_encode_mipmap_variants (
         {
             R_CSTL_LOG_WARN ("Mipmap level %ux%u was not generated", mipmapSizes[i], mipmapSizes[i]);
             r_pack_delete_encoder (pVariantEncoder);
-            R_CSTL_HeapFree (pVariantPath);
+            r_cstl_heap_free (pVariantPath);
             continue;
         }
         R_CSTL_LOG_INFO ("Generated mipmap variant %s (%u images)", pVariantPath, successCount);
         ++generated;
         r_pack_delete_encoder (pVariantEncoder);
-        R_CSTL_HeapFree (pVariantPath);
+        r_cstl_heap_free (pVariantPath);
     }
     return generated == 0 ? -1 : 0;
 }
@@ -288,7 +288,7 @@ static struct r_pack_thread_pool*
 r_pack_thread_pool_create (uint32_t workerCount)
 {
     struct r_pack_thread_pool* pPool
-        = (struct r_pack_thread_pool*)R_CSTL_HeapAlloc (sizeof (struct r_pack_thread_pool));
+        = (struct r_pack_thread_pool*)r_cstl_heap_alloc (sizeof (struct r_pack_thread_pool));
     if (!pPool)
     {
         return NULL;
@@ -297,44 +297,44 @@ r_pack_thread_pool_create (uint32_t workerCount)
 
     pPool->threadCount = workerCount;
     pPool->ppThreads
-        = (struct R_CSTL_Thread**)R_CSTL_HeapAlloc (workerCount * sizeof (struct R_CSTL_Thread*));
+        = (struct r_cstl_thread**)r_cstl_heap_alloc (workerCount * sizeof (struct r_cstl_thread*));
     if (!pPool->ppThreads)
     {
-        R_CSTL_HeapFree (pPool);
+        r_cstl_heap_free (pPool);
         return NULL;
     }
-    memset (pPool->ppThreads, 0, workerCount * sizeof (struct R_CSTL_Thread*));
+    memset (pPool->ppThreads, 0, workerCount * sizeof (struct r_cstl_thread*));
 
-    pPool->pTaskMutex = R_CSTL_NewMutex ();
+    pPool->pTaskMutex = r_cstl_new_mutex ();
     if (!pPool->pTaskMutex)
     {
-        R_CSTL_HeapFree (pPool->ppThreads);
-        R_CSTL_HeapFree (pPool);
+        r_cstl_heap_free (pPool->ppThreads);
+        r_cstl_heap_free (pPool);
         return NULL;
     }
 
-    pPool->pTaskAvailable = R_CSTL_ConditionCreate ();
+    pPool->pTaskAvailable = r_cstl_condition_create ();
     if (!pPool->pTaskAvailable)
     {
-        R_CSTL_MutexDestroy (pPool->pTaskMutex);
-        R_CSTL_HeapFree (pPool->ppThreads);
-        R_CSTL_HeapFree (pPool);
+        r_cstl_mutex_destroy (pPool->pTaskMutex);
+        r_cstl_heap_free (pPool->ppThreads);
+        r_cstl_heap_free (pPool);
         return NULL;
     }
 
-    pPool->pTaskComplete = R_CSTL_ConditionCreate ();
+    pPool->pTaskComplete = r_cstl_condition_create ();
     if (!pPool->pTaskComplete)
     {
-        R_CSTL_ConditionDestroy (pPool->pTaskAvailable);
-        R_CSTL_MutexDestroy (pPool->pTaskMutex);
-        R_CSTL_HeapFree (pPool->ppThreads);
-        R_CSTL_HeapFree (pPool);
+        r_cstl_condition_destroy (pPool->pTaskAvailable);
+        r_cstl_mutex_destroy (pPool->pTaskMutex);
+        r_cstl_heap_free (pPool->ppThreads);
+        r_cstl_heap_free (pPool);
         return NULL;
     }
 
-    R_CSTL_AtomicUint32Store (&pPool->nextTaskIndex, 0);
-    R_CSTL_AtomicUint32Store (&pPool->completedTasks, 0);
-    R_CSTL_AtomicUint32Store (&pPool->failedTasks, 0);
+    r_cstl_atomic_uint32_store (&pPool->nextTaskIndex, 0);
+    r_cstl_atomic_uint32_store (&pPool->completedTasks, 0);
+    r_cstl_atomic_uint32_store (&pPool->failedTasks, 0);
 
     return pPool;
 }
@@ -353,30 +353,30 @@ r_pack_thread_pool_destroy (struct r_pack_thread_pool* pPool)
         {
             if (pPool->ppThreads[i])
             {
-                R_CSTL_ThreadJoin (pPool->ppThreads[i]);
+                r_cstl_thread_join (pPool->ppThreads[i]);
             }
         }
-        R_CSTL_HeapFree (pPool->ppThreads);
+        r_cstl_heap_free (pPool->ppThreads);
     }
 
     if (pPool->pTaskAvailable)
     {
-        R_CSTL_ConditionDestroy (pPool->pTaskAvailable);
+        r_cstl_condition_destroy (pPool->pTaskAvailable);
     }
     if (pPool->pTaskComplete)
     {
-        R_CSTL_ConditionDestroy (pPool->pTaskComplete);
+        r_cstl_condition_destroy (pPool->pTaskComplete);
     }
     if (pPool->pTaskMutex)
     {
-        R_CSTL_MutexDestroy (pPool->pTaskMutex);
+        r_cstl_mutex_destroy (pPool->pTaskMutex);
     }
     if (pPool->pTasks)
     {
-        R_CSTL_HeapFree (pPool->pTasks);
+        r_cstl_heap_free (pPool->pTasks);
     }
 
-    R_CSTL_HeapFree (pPool);
+    r_cstl_heap_free (pPool);
 }
 
 static int
@@ -419,43 +419,43 @@ r_pack_worker_thread_func (void* pData)
 
     while (1)
     {
-        R_CSTL_MutexLock (pPool->pTaskMutex);
-        while (R_CSTL_AtomicUint32Load (&pPool->nextTaskIndex) >= pPool->taskCount && !pPool->shutdown)
+        r_cstl_mutex_lock (pPool->pTaskMutex);
+        while (r_cstl_atomic_uint32_load (&pPool->nextTaskIndex) >= pPool->taskCount && !pPool->shutdown)
         {
-            R_CSTL_ConditionWait (pPool->pTaskAvailable, pPool->pTaskMutex);
+            r_cstl_condition_wait (pPool->pTaskAvailable, pPool->pTaskMutex);
         }
 
         if (pPool->shutdown)
         {
-            R_CSTL_MutexUnlock (pPool->pTaskMutex);
+            r_cstl_mutex_unlock (pPool->pTaskMutex);
             break;
         }
 
-        uint32_t taskIndex = R_CSTL_AtomicUint32Load (&pPool->nextTaskIndex);
+        uint32_t taskIndex = r_cstl_atomic_uint32_load (&pPool->nextTaskIndex);
         if (taskIndex >= pPool->taskCount)
         {
-            R_CSTL_MutexUnlock (pPool->pTaskMutex);
+            r_cstl_mutex_unlock (pPool->pTaskMutex);
             break;
         }
 
-        R_CSTL_AtomicUint32Inc (&pPool->nextTaskIndex);
+        r_cstl_atomic_uint32_inc (&pPool->nextTaskIndex);
         struct r_pack_image_load_task task = pPool->pTasks[taskIndex];
-        R_CSTL_MutexUnlock (pPool->pTaskMutex);
+        r_cstl_mutex_unlock (pPool->pTaskMutex);
 
         int loadResult = r_pack_load_asset (task.pPath, task.pImage, task.ppPixelBuffer);
         *task.pResult = loadResult;
 
-        uint32_t completed = R_CSTL_AtomicUint32Inc (&pPool->completedTasks);
+        uint32_t completed = r_cstl_atomic_uint32_inc (&pPool->completedTasks);
         if (loadResult < 0)
         {
-            R_CSTL_AtomicUint32Inc (&pPool->failedTasks);
+            r_cstl_atomic_uint32_inc (&pPool->failedTasks);
         }
 
         if (completed == pPool->taskCount)
         {
-            R_CSTL_MutexLock (pPool->pTaskMutex);
-            R_CSTL_ConditionSignal (pPool->pTaskComplete);
-            R_CSTL_MutexUnlock (pPool->pTaskMutex);
+            r_cstl_mutex_lock (pPool->pTaskMutex);
+            r_cstl_condition_signal (pPool->pTaskComplete);
+            r_cstl_mutex_unlock (pPool->pTaskMutex);
         }
     }
 }
@@ -465,16 +465,16 @@ r_pack_thread_pool_start (struct r_pack_thread_pool* pPool)
 {
     for (uint32_t i = 0; i < pPool->threadCount; ++i)
     {
-        pPool->ppThreads[i] = R_CSTL_NewThread (r_pack_worker_thread_func, pPool);
+        pPool->ppThreads[i] = r_cstl_new_thread (r_pack_worker_thread_func, pPool);
         if (!pPool->ppThreads[i])
         {
             pPool->shutdown = 1;
-            R_CSTL_MutexLock (pPool->pTaskMutex);
-            R_CSTL_ConditionBroadcast (pPool->pTaskAvailable);
-            R_CSTL_MutexUnlock (pPool->pTaskMutex);
+            r_cstl_mutex_lock (pPool->pTaskMutex);
+            r_cstl_condition_broadcast (pPool->pTaskAvailable);
+            r_cstl_mutex_unlock (pPool->pTaskMutex);
             for (uint32_t j = 0; j < i; ++j)
             {
-                R_CSTL_ThreadJoin (pPool->ppThreads[j]);
+                r_cstl_thread_join (pPool->ppThreads[j]);
             }
             return -1;
         }
@@ -490,13 +490,13 @@ r_pack_thread_pool_submit_tasks (
 {
     pPool->pTasks = pTasks;
     pPool->taskCount = taskCount;
-    R_CSTL_AtomicUint32Store (&pPool->nextTaskIndex, 0);
-    R_CSTL_AtomicUint32Store (&pPool->completedTasks, 0);
-    R_CSTL_AtomicUint32Store (&pPool->failedTasks, 0);
+    r_cstl_atomic_uint32_store (&pPool->nextTaskIndex, 0);
+    r_cstl_atomic_uint32_store (&pPool->completedTasks, 0);
+    r_cstl_atomic_uint32_store (&pPool->failedTasks, 0);
 
-    R_CSTL_MutexLock (pPool->pTaskMutex);
-    R_CSTL_ConditionBroadcast (pPool->pTaskAvailable);
-    R_CSTL_MutexUnlock (pPool->pTaskMutex);
+    r_cstl_mutex_lock (pPool->pTaskMutex);
+    r_cstl_condition_broadcast (pPool->pTaskAvailable);
+    r_cstl_mutex_unlock (pPool->pTaskMutex);
 
     return 0;
 }
@@ -504,12 +504,12 @@ r_pack_thread_pool_submit_tasks (
 static void
 r_pack_thread_pool_wait_all (struct r_pack_thread_pool* pPool)
 {
-    R_CSTL_MutexLock (pPool->pTaskMutex);
-    while (R_CSTL_AtomicUint32Load (&pPool->completedTasks) < pPool->taskCount)
+    r_cstl_mutex_lock (pPool->pTaskMutex);
+    while (r_cstl_atomic_uint32_load (&pPool->completedTasks) < pPool->taskCount)
     {
-        R_CSTL_ConditionWait (pPool->pTaskComplete, pPool->pTaskMutex);
+        r_cstl_condition_wait (pPool->pTaskComplete, pPool->pTaskMutex);
     }
-    R_CSTL_MutexUnlock (pPool->pTaskMutex);
+    r_cstl_mutex_unlock (pPool->pTaskMutex);
 }
 
 static void
@@ -520,22 +520,22 @@ r_pack_thread_pool_shutdown (struct r_pack_thread_pool* pPool)
         return;
     }
     pPool->shutdown = 1;
-    R_CSTL_MutexLock (pPool->pTaskMutex);
-    R_CSTL_ConditionBroadcast (pPool->pTaskAvailable);
-    R_CSTL_MutexUnlock (pPool->pTaskMutex);
+    r_cstl_mutex_lock (pPool->pTaskMutex);
+    r_cstl_condition_broadcast (pPool->pTaskAvailable);
+    r_cstl_mutex_unlock (pPool->pTaskMutex);
 }
 
 R_PACK_API uint32_t
 r_pack_encode_input_images (
     struct r_pack_encoder*     pEncoder,
-    const struct R_CSTL_Array* pInputPaths,
+    const struct r_cstl_array* pInputPaths,
     uint32_t                   mipmapSize)
 {
     uint32_t    successCount = 0;
     size_t      inputCount = 0;
     size_t      offset = 0;
-    size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
-    const char* pInputData = (const char*)R_CSTL_ArrayData (pInputPaths);
+    size_t      inputBytes = r_cstl_array_length (pInputPaths);
+    const char* pInputData = (const char*)r_cstl_array_data (pInputPaths);
 
     while (offset < inputBytes)
     {
@@ -570,10 +570,10 @@ r_pack_encode_input_images (
             if (!pResizedPixels)
             {
                 R_CSTL_LOG_WARN ("Skipping mipmap level for %s: resize allocation failed", pPath);
-                R_CSTL_HeapFree (pPixelBuffer);
+                r_cstl_heap_free (pPixelBuffer);
                 continue;
             }
-            R_CSTL_HeapFree (pPixelBuffer);
+            r_cstl_heap_free (pPixelBuffer);
             pPixelBuffer = pResizedPixels;
             image.pPixels = pResizedPixels;
             image.width = width;
@@ -589,14 +589,14 @@ r_pack_encode_input_images (
             R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, r_pack_error_to_string (err));
             if (pPixelBuffer)
             {
-                R_CSTL_HeapFree (pPixelBuffer);
+                r_cstl_heap_free (pPixelBuffer);
             }
             continue;
         }
         successCount++;
         if (pPixelBuffer)
         {
-            R_CSTL_HeapFree (pPixelBuffer);
+            r_cstl_heap_free (pPixelBuffer);
         }
     }
 
@@ -606,15 +606,15 @@ r_pack_encode_input_images (
 R_PACK_API uint32_t
 r_pack_encode_input_images_threaded (
     struct r_pack_encoder*     pEncoder,
-    const struct R_CSTL_Array* pInputPaths,
+    const struct r_cstl_array* pInputPaths,
     uint32_t                   mipmapSize,
     uint32_t                   workerCount)
 {
     uint32_t    successCount = 0;
     size_t      inputCount = 0;
     size_t      offset = 0;
-    size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
-    const char* pInputData = (const char*)R_CSTL_ArrayData (pInputPaths);
+    size_t      inputBytes = r_cstl_array_length (pInputPaths);
+    const char* pInputData = (const char*)r_cstl_array_data (pInputPaths);
 
     while (offset < inputBytes)
     {
@@ -645,20 +645,20 @@ r_pack_encode_input_images_threaded (
         return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
 
-    struct r_pack_image_load_task* pTasks = (struct r_pack_image_load_task*)R_CSTL_HeapAlloc (
+    struct r_pack_image_load_task* pTasks = (struct r_pack_image_load_task*)r_cstl_heap_alloc (
         inputCount * sizeof (struct r_pack_image_load_task));
     struct r_pack_input_image* pImages
-        = (struct r_pack_input_image*)R_CSTL_HeapAlloc (inputCount * sizeof (struct r_pack_input_image));
-    uint8_t** ppPixelBuffers = (uint8_t**)R_CSTL_HeapAlloc (inputCount * sizeof (uint8_t*));
-    int*      pResults = (int*)R_CSTL_HeapAlloc (inputCount * sizeof (int));
+        = (struct r_pack_input_image*)r_cstl_heap_alloc (inputCount * sizeof (struct r_pack_input_image));
+    uint8_t** ppPixelBuffers = (uint8_t**)r_cstl_heap_alloc (inputCount * sizeof (uint8_t*));
+    int*      pResults = (int*)r_cstl_heap_alloc (inputCount * sizeof (int));
 
     if (!pTasks || !pImages || !ppPixelBuffers || !pResults)
     {
         R_CSTL_LOG_ERROR ("Failed to allocate task arrays, falling back to serial processing");
-        if (pTasks) R_CSTL_HeapFree (pTasks);
-        if (pImages) R_CSTL_HeapFree (pImages);
-        if (ppPixelBuffers) R_CSTL_HeapFree (ppPixelBuffers);
-        if (pResults) R_CSTL_HeapFree (pResults);
+        if (pTasks) r_cstl_heap_free (pTasks);
+        if (pImages) r_cstl_heap_free (pImages);
+        if (ppPixelBuffers) r_cstl_heap_free (ppPixelBuffers);
+        if (pResults) r_cstl_heap_free (pResults);
         r_pack_thread_pool_shutdown (pPool);
         r_pack_thread_pool_destroy (pPool);
         return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
@@ -706,10 +706,10 @@ r_pack_encode_input_images_threaded (
             if (!pResizedPixels)
             {
                 R_CSTL_LOG_WARN ("Skipping mipmap level for %s: resize allocation failed", pPath);
-                R_CSTL_HeapFree (pPixelBuffer);
+                r_cstl_heap_free (pPixelBuffer);
                 continue;
             }
-            R_CSTL_HeapFree (pPixelBuffer);
+            r_cstl_heap_free (pPixelBuffer);
             pPixelBuffer = pResizedPixels;
             pImage->pPixels = pResizedPixels;
             pImage->width = width;
@@ -724,7 +724,7 @@ r_pack_encode_input_images_threaded (
             R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, r_pack_error_to_string (err));
             if (pPixelBuffer)
             {
-                R_CSTL_HeapFree (pPixelBuffer);
+                r_cstl_heap_free (pPixelBuffer);
             }
             continue;
         }
@@ -732,14 +732,14 @@ r_pack_encode_input_images_threaded (
 
         if (pPixelBuffer)
         {
-            R_CSTL_HeapFree (pPixelBuffer);
+            r_cstl_heap_free (pPixelBuffer);
         }
     }
 
-    R_CSTL_HeapFree (pTasks);
-    R_CSTL_HeapFree (pImages);
-    R_CSTL_HeapFree (ppPixelBuffers);
-    R_CSTL_HeapFree (pResults);
+    r_cstl_heap_free (pTasks);
+    r_cstl_heap_free (pImages);
+    r_cstl_heap_free (ppPixelBuffers);
+    r_cstl_heap_free (pResults);
     r_pack_thread_pool_destroy (pPool);
 
     return successCount;

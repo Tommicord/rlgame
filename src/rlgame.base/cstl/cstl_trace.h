@@ -19,7 +19,7 @@
 /**
  * @brief Settingsuration for trace logging
  */
-struct R_CSTL_TraceSettings
+struct r_cstl_trace_settings
 {
         uint8_t enableFunctionEntryExit : 1; /**< Enable automatic function entry/exit logging */
         uint8_t enablePerformanceTiming : 1; /**< Enable performance timing for traced functions */
@@ -35,25 +35,25 @@ struct R_CSTL_TraceSettings
  * information including OS version, memory usage, processor count, and other
  * system-specific details useful for debugging.
  */
-R_CSTL_API void R_CSTL_TraceLogEnvironmentInfo (void);
+R_CSTL_API void r_cstl_trace_log_environment_info (void);
 
 /**
  * @brief Get current trace configuration
  * @return Current trace configuration
  */
-R_CSTL_API const struct R_CSTL_TraceSettings* R_CSTL_TraceGetSettings (void);
+R_CSTL_API const struct r_cstl_trace_settings* r_cstl_trace_get_settings (void);
 
 /**
  * @brief Set minimum duration for performance logging
  * @param microseconds Minimum duration in microseconds
  */
-R_CSTL_API void R_CSTL_TraceSetMinDuration (uint64_t microseconds);
+R_CSTL_API void r_cstl_trace_set_min_duration (uint64_t microseconds);
 
 /**
  * @brief Get high-resolution timestamp in microseconds
  * @return Timestamp in microseconds
  */
-R_CSTL_API uint64_t R_CSTL_TraceGetTimestamp (void);
+R_CSTL_API uint64_t r_cstl_trace_get_timestamp (void);
 
 /**
  * @brief Log function entry
@@ -62,7 +62,7 @@ R_CSTL_API uint64_t R_CSTL_TraceGetTimestamp (void);
  * @param lineNumber Line number
  */
 R_CSTL_API void
-R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint32_t lineNumber);
+r_cstl_trace_function_entry (const char* functionName, const char* fileName, uint32_t lineNumber);
 
 /**
  * @brief Log function exit
@@ -71,7 +71,7 @@ R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint3
  * @param lineNumber Line number
  * @param durationMicroseconds Duration in microseconds (if timing enabled)
  */
-R_CSTL_API void R_CSTL_TraceFunctionExit (
+R_CSTL_API void r_cstl_trace_function_exit (
     const char* functionName,
     const char* fileName,
     uint32_t    lineNumber,
@@ -83,23 +83,23 @@ R_CSTL_API void R_CSTL_TraceFunctionExit (
 static inline void
 _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
 {
-    uint64_t duration = R_CSTL_TraceGetTimestamp () - *pTraceStart;
-    R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, duration);
+    uint64_t duration = r_cstl_trace_get_timestamp () - *pTraceStart;
+    r_cstl_trace_function_exit (__FUNCTION__, __FILE__, __LINE__, duration);
 }
 
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
-    uint64_t _trace_start __attribute__ ((cleanup (_CSTL_TraceScopeCleanup))) = R_CSTL_TraceGetTimestamp (); \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__)
+    uint64_t _trace_start __attribute__ ((cleanup (_CSTL_TraceScopeCleanup))) = r_cstl_trace_get_timestamp (); \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__)
 
 #define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)                                                                     \
-    uint64_t _trace_start __attribute__ ((cleanup (_CSTL_TraceScopeCleanup))) = R_CSTL_TraceGetTimestamp (); \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
+    uint64_t _trace_start __attribute__ ((cleanup (_CSTL_TraceScopeCleanup))) = r_cstl_trace_get_timestamp (); \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__);                                            \
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__)
 
 #elif defined(_MSC_VER)
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__);                                            \
     __pragma (warning (push)) __pragma (warning (disable : 4100)) struct _CSTL_TraceScopeGuard               \
     {                                                                                                        \
             uint64_t    start;                                                                               \
@@ -109,13 +109,13 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
     } _trace_guard = {_trace_start, __FUNCTION__, __FILE__, __LINE__};                                       \
     __pragma (warning (pop)) if (0)                                                                          \
     {                                                                                                        \
-        uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_guard.start;                         \
-        R_CSTL_TraceFunctionExit (_trace_guard.func, _trace_guard.file, _trace_guard.line, _trace_duration); \
+        uint64_t _trace_duration = r_cstl_trace_get_timestamp () - _trace_guard.start;                         \
+        r_cstl_trace_function_exit (_trace_guard.func, _trace_guard.file, _trace_guard.line, _trace_duration); \
     }
 
 #define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)                                                                     \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__);                                            \
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__);                                                        \
     __pragma (warning (push)) __pragma (warning (disable : 4100)) struct _CSTL_TraceScopeGuard               \
     {                                                                                                        \
@@ -126,18 +126,18 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
     } _trace_guard = {_trace_start, __FUNCTION__, __FILE__, __LINE__};                                       \
     __pragma (warning (pop)) if (0)                                                                          \
     {                                                                                                        \
-        uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_guard.start;                         \
-        R_CSTL_TraceFunctionExit (_trace_guard.func, _trace_guard.file, _trace_guard.line, _trace_duration); \
+        uint64_t _trace_duration = r_cstl_trace_get_timestamp () - _trace_guard.start;                         \
+        r_cstl_trace_function_exit (_trace_guard.func, _trace_guard.file, _trace_guard.line, _trace_duration); \
     }
 
 #else
 #define R_CSTL_TRACE_SCOPE()                                                                                 \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__)
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__)
 
 #define R_CSTL_TRACE_SCOPE_CTX(fmt, ...)                                                                     \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__);                                            \
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__)
 
 #endif
@@ -145,8 +145,8 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
 #define R_CSTL_TRACE_SCOPE_EXIT()                                                                            \
     do                                                                                                       \
     {                                                                                                        \
-        uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_start;                               \
-        R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
+        uint64_t _trace_duration = r_cstl_trace_get_timestamp () - _trace_start;                               \
+        r_cstl_trace_function_exit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
     } while (0)
 
 /**
@@ -155,8 +155,8 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
  * Must pair with R_CSTL_TRACE_RETURN() before each return
  */
 #define R_CSTL_TRACE_FUNCTION()                                                                              \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__)
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__)
 
 /**
  * @brief Trace function entry with context
@@ -164,8 +164,8 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
  * Must pair with R_CSTL_TRACE_RETURN() before each return
  */
 #define R_CSTL_TRACE_FUNCTION_CTX(fmt, ...)                                                                  \
-    uint64_t _trace_start = R_CSTL_TraceGetTimestamp ();                                                     \
-    R_CSTL_TraceFunctionEntry (__FUNCTION__, __FILE__, __LINE__);                                            \
+    uint64_t _trace_start = r_cstl_trace_get_timestamp ();                                                     \
+    r_cstl_trace_function_entry (__FUNCTION__, __FILE__, __LINE__);                                            \
     R_CSTL_LOG_TRACE (" Context: " fmt, __VA_ARGS__)
 
 /**
@@ -175,8 +175,8 @@ _CSTL_TraceScopeCleanup (const uint64_t* pTraceStart)
 #define R_CSTL_TRACE_RETURN()                                                                                \
     do                                                                                                       \
     {                                                                                                        \
-        uint64_t _trace_duration = R_CSTL_TraceGetTimestamp () - _trace_start;                               \
-        R_CSTL_TraceFunctionExit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
+        uint64_t _trace_duration = r_cstl_trace_get_timestamp () - _trace_start;                               \
+        r_cstl_trace_function_exit (__FUNCTION__, __FILE__, __LINE__, _trace_duration);                        \
     } while (0)
 
 /**

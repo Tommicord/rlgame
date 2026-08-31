@@ -3,7 +3,7 @@
 #include "rlgame.base/cvulkan/cvulkan_platform.h"
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewCommandPool (
+r_cvulkan_new_command_pool (
     struct R_CVulkan_CommandPool*  pCommandPool,
     const struct R_CVulkan_Device* pDevice,
     uint32_t                       queueFamilyIndex,
@@ -12,7 +12,7 @@ R_CVulkan_NewCommandPool (
     R_CVULKAN_ASSERT (pCommandPool);
     R_CVULKAN_ASSERT (pDevice);
 
-    pCommandPool->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+    pCommandPool->device = r_cvulkan_device_get_logical_device (pDevice);
     pCommandPool->queueFamilyIndex = queueFamilyIndex;
     VkCommandPoolCreateInfo poolInfo = {0};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -28,7 +28,7 @@ R_CVulkan_NewCommandPool (
 }
 
 R_CVULKAN_API void
-R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_delete_command_pool (struct R_CVulkan_CommandPool* pCommandPool)
 {
     R_CVULKAN_ASSERT (pCommandPool);
     vkDestroyCommandPool (pCommandPool->device, pCommandPool->handle, NULL);
@@ -40,7 +40,7 @@ R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkCommandPoolResetFlags flags)
+r_cvulkan_command_pool_reset (struct R_CVulkan_CommandPool* pCommandPool, VkCommandPoolResetFlags flags)
 {
     R_CVULKAN_ASSERT (pCommandPool);
 
@@ -66,7 +66,7 @@ R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkComman
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_command_pool_trim (struct R_CVulkan_CommandPool* pCommandPool)
 {
     R_CVULKAN_ASSERT (pCommandPool);
 
@@ -86,7 +86,7 @@ R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool)
 }
 
 R_CVULKAN_API VkCommandPool
-R_CVulkan_CommandPoolGetHandle (const struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_command_pool_get_handle (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pCommandPool);
@@ -95,7 +95,7 @@ R_CVulkan_CommandPoolGetHandle (const struct R_CVulkan_CommandPool* pCommandPool
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_command_pool_get_device (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pCommandPool);
@@ -104,7 +104,7 @@ R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_CommandPool* pCommandPool
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_CommandPoolGetQueueFamilyIndex (const struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_command_pool_get_queue_family_index (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pCommandPool);
@@ -113,7 +113,7 @@ R_CVulkan_CommandPoolGetQueueFamilyIndex (const struct R_CVulkan_CommandPool* pC
 }
 
 R_CVULKAN_API int
-R_CVulkan_CommandPoolIsInitialized (const struct R_CVulkan_CommandPool* pCommandPool)
+r_cvulkan_command_pool_is_initialized (const struct R_CVulkan_CommandPool* pCommandPool)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pCommandPool);

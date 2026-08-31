@@ -11,7 +11,7 @@
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_Thread;
+struct r_cstl_thread;
 
 /**
  * @brief Thread entry point function signature
@@ -19,7 +19,7 @@ struct R_CSTL_Thread;
  * @param pData User-provided data pointer passed to the thread on creation.
  * @return Thread exit code (implementation-defined).
  */
-typedef void (*R_CSTL_ThreadFunc) (void* pData);
+typedef void (*r_cstl_thread_func) (void* pData);
 
 /**
  * @brief Opaque handle to a mutex (mutual exclusion lock)
@@ -27,7 +27,7 @@ typedef void (*R_CSTL_ThreadFunc) (void* pData);
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_Mutex;
+struct r_cstl_mutex;
 
 /**
  * @brief Opaque handle to a condition variable
@@ -35,7 +35,7 @@ struct R_CSTL_Mutex;
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_Condition;
+struct r_cstl_condition;
 
 /**
  * @brief Create a new thread
@@ -47,10 +47,10 @@ struct R_CSTL_Condition;
  * @return Pointer to new thread handle, or NULL on failure.
  *
  * @note The thread begins execution immediately.
- * @note The thread must be joined with R_CSTL_ThreadJoin to release resources.
+ * @note The thread must be joined with r_cstl_thread_join to release resources.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API struct R_CSTL_Thread* R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData);
+R_CSTL_API struct r_cstl_thread* r_cstl_new_thread (r_cstl_thread_func pFunc, void* pData);
 
 /**
  * @brief Wait for a thread to finish
@@ -64,7 +64,7 @@ R_CSTL_API struct R_CSTL_Thread* R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void
  * @note The thread handle is automatically freed after successful join.
  * @note If NULL is passed, returns R_CSTL_ERROR_INVALID_ARGUMENT.
  */
-R_CSTL_API int R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread);
+R_CSTL_API int r_cstl_thread_join (struct r_cstl_thread* pThread);
 
 /**
  * @brief Get the current thread ID
@@ -76,7 +76,7 @@ R_CSTL_API int R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread);
  * @note The ID is only valid for comparison; do not rely on specific values.
  * @note Thread IDs may be reused after a thread terminates.
  */
-R_CSTL_API uint64_t R_CSTL_ThreadGetCurrentId (void);
+R_CSTL_API uint64_t r_cstl_thread_get_current_id (void);
 
 /**
  * @brief Yield the current thread
@@ -87,7 +87,7 @@ R_CSTL_API uint64_t R_CSTL_ThreadGetCurrentId (void);
  * @note This is a hint; the scheduler may ignore it.
  * @note Useful for spin-wait loops to reduce CPU contention.
  */
-R_CSTL_API void R_CSTL_ThreadYield (void);
+R_CSTL_API void r_cstl_thread_yield (void);
 
 /**
  * @brief Sleep the current thread for milliseconds
@@ -99,7 +99,7 @@ R_CSTL_API void R_CSTL_ThreadYield (void);
  * @note The actual sleep time may be longer due to scheduler granularity.
  * @note Thread-safe: can be called from any thread.
  */
-R_CSTL_API void R_CSTL_ThreadSleep (uint32_t milliseconds);
+R_CSTL_API void r_cstl_thread_sleep (uint32_t milliseconds);
 
 /**
  * @brief Create a mutex
@@ -109,10 +109,10 @@ R_CSTL_API void R_CSTL_ThreadSleep (uint32_t milliseconds);
  * @return Pointer to new mutex handle, or NULL on failure.
  *
  * @note The mutex is initially unlocked.
- * @note The mutex must be destroyed with R_CSTL_MutexDestroy when no longer needed.
+ * @note The mutex must be destroyed with r_cstl_mutex_destroy when no longer needed.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API struct R_CSTL_Mutex* R_CSTL_NewMutex (void);
+R_CSTL_API struct r_cstl_mutex* r_cstl_new_mutex (void);
 
 /**
  * @brief Destroy a mutex
@@ -125,7 +125,7 @@ R_CSTL_API struct R_CSTL_Mutex* R_CSTL_NewMutex (void);
  * @note After this call, the pointer becomes invalid and must not be used.
  * @note Undefined behavior if a thread is waiting on the mutex.
  */
-R_CSTL_API void R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API void r_cstl_mutex_destroy (struct r_cstl_mutex* pMutex);
 
 /**
  * @brief Lock a mutex
@@ -141,7 +141,7 @@ R_CSTL_API void R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex);
  *       (non-recursive mutex).
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API int r_cstl_mutex_lock (struct r_cstl_mutex* pMutex);
 
 /**
  * @brief Try to lock a mutex without blocking
@@ -153,10 +153,10 @@ R_CSTL_API int R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex);
  * @return R_CSTL_OK on success, error code on failure.
  *
  * @note Returns immediately with pOutLocked set to 0 if mutex is locked by another thread.
- * @note If successful, the caller must unlock the mutex with R_CSTL_MutexUnlock.
+ * @note If successful, the caller must unlock the mutex with r_cstl_mutex_unlock.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked);
+R_CSTL_API int r_cstl_mutex_try_lock (struct r_cstl_mutex* pMutex, int* pOutLocked);
 
 /**
  * @brief Unlock a mutex
@@ -170,7 +170,7 @@ R_CSTL_API int R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked
  * @note Undefined behavior if unlocked by a thread that does not own it.
  * @note May wake a waiting thread.
  */
-R_CSTL_API int R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex);
+R_CSTL_API int r_cstl_mutex_unlock (struct r_cstl_mutex* pMutex);
 
 /**
  * @brief Create a condition variable
@@ -180,10 +180,10 @@ R_CSTL_API int R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex);
  * @return Pointer to new condition variable handle, or NULL on failure.
  *
  * @note The condition variable must be used with a mutex.
- * @note The condition variable must be destroyed with R_CSTL_ConditionDestroy.
+ * @note The condition variable must be destroyed with r_cstl_condition_destroy.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API struct R_CSTL_Condition* R_CSTL_ConditionCreate (void);
+R_CSTL_API struct r_cstl_condition* r_cstl_condition_create (void);
 
 /**
  * @brief Destroy a condition variable
@@ -196,7 +196,7 @@ R_CSTL_API struct R_CSTL_Condition* R_CSTL_ConditionCreate (void);
  * @note After this call, the pointer becomes invalid and must not be used.
  * @note Undefined behavior if a thread is waiting on the condition variable.
  */
-R_CSTL_API void R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition);
+R_CSTL_API void r_cstl_condition_destroy (struct r_cstl_condition* pCondition);
 
 /**
  * @brief Wait on a condition variable
@@ -212,7 +212,7 @@ R_CSTL_API void R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition);
  * @note Spurious wakeups may occur; always check the condition in a loop.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* pMutex);
+R_CSTL_API int r_cstl_condition_wait (struct r_cstl_condition* pCondition, struct r_cstl_mutex* pMutex);
 
 /**
  * @brief Signal a condition variable (wake one thread)
@@ -226,7 +226,7 @@ R_CSTL_API int R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct
  * @note If no threads are waiting, the signal is lost.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition);
+R_CSTL_API int r_cstl_condition_signal (struct r_cstl_condition* pCondition);
 
 /**
  * @brief Broadcast a condition variable (wake all threads)
@@ -240,17 +240,17 @@ R_CSTL_API int R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition);
  * @note If no threads are waiting, the broadcast has no effect.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition);
+R_CSTL_API int r_cstl_condition_broadcast (struct r_cstl_condition* pCondition);
 
 /**
  * @brief RAII-style mutex lock guard
  *
  * Helper structure for automatic mutex unlocking when leaving a scope.
- * Use with R_CSTL_MutexLockGuard and R_CSTL_MutexUnlockGuard macros.
+ * Use with r_cstl_mutex_lock_guard and r_cstl_mutex_unlock_guard macros.
  */
-struct R_CSTL_MutexLockGuard
+struct r_cstl_mutex_lock_guard
 {
-        struct R_CSTL_Mutex* pMutex;
+        struct r_cstl_mutex* pMutex;
         int                  locked;
 };
 
@@ -262,14 +262,14 @@ struct R_CSTL_MutexLockGuard
  * @param pGuard Pointer to guard structure.
  * @param pMutex Pointer to mutex to lock.
  *
- * @note Use R_CSTL_MutexUnlockGuard when leaving the scope.
+ * @note Use r_cstl_mutex_unlock_guard when leaving the scope.
  * @note If lock fails, guard.locked is set to 0.
  */
-#define R_CSTL_MutexLockGuard(pGuard, pMutex)                                                                \
+#define r_cstl_mutex_lock_guard(pGuard, pMutex)                                                                \
     do                                                                                                       \
     {                                                                                                        \
         (pGuard)->pMutex = (pMutex);                                                                         \
-        (pGuard)->locked = (R_CSTL_MutexLock (pMutex) == R_CSTL_OK) ? 1 : 0;                                 \
+        (pGuard)->locked = (r_cstl_mutex_lock (pMutex) == R_CSTL_OK) ? 1 : 0;                                 \
     } while (0)
 
 /**
@@ -282,12 +282,12 @@ struct R_CSTL_MutexLockGuard
  * @note Safe to call even if lock failed (checks guard.locked).
  * @note Sets guard.locked to 0 after unlocking.
  */
-#define R_CSTL_MutexUnlockGuard(pGuard)                                                                      \
+#define r_cstl_mutex_unlock_guard(pGuard)                                                                      \
     do                                                                                                       \
     {                                                                                                        \
         if ((pGuard)->locked)                                                                                \
         {                                                                                                    \
-            R_CSTL_MutexUnlock ((pGuard)->pMutex);                                                           \
+            r_cstl_mutex_unlock ((pGuard)->pMutex);                                                           \
             (pGuard)->locked = 0;                                                                            \
         }                                                                                                    \
     } while (0)

@@ -69,7 +69,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceReset (
  * @param pOutSignaled Pointer to receive the signaled status (1 = signaled, 0 = unsignaled)
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceGetStatus (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_fence_get_status (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
     bool*                          pOutSignaled);
@@ -79,11 +79,11 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_FenceGetStatus (
  * @param fence Pointer to fence
  * @return Vulkan fence handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkFence R_CVulkan_FenceGetHandle (const struct R_CVulkan_Fence* pFence);
+R_CVULKAN_API VkFence r_cvulkan_fence_get_handle (const struct R_CVulkan_Fence* pFence);
 
 /**
  * @brief Get the associated device
  * @param fence Pointer to fence
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_FenceGetDevice (const struct R_CVulkan_Fence* pFence);
+R_CVULKAN_API VkDevice r_cvulkan_fence_get_device (const struct R_CVulkan_Fence* pFence);

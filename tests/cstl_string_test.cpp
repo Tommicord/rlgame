@@ -21,23 +21,23 @@ class CstlStringTest : public ::testing::Test
         void
         SetUp () override
         {
-            ASSERT_EQ (0, R_CSTL_HeapInit (kTestHeapSize));
+            ASSERT_EQ (0, r_cstl_heap_init (kTestHeapSize));
         }
 
         void
         TearDown () override
         {
-            R_CSTL_HeapShutdown ();
+            r_cstl_heap_shutdown ();
         }
 
         static void
-        ExpectStringData (const struct R_CSTL_String* pString, const std::string& expected)
+        ExpectStringData (const struct r_cstl_string* pString, const std::string& expected)
         {
             ASSERT_NE (nullptr, pString);
-            EXPECT_EQ (expected.size (), R_CSTL_StringLength (pString));
-            const char* pData = R_CSTL_StringData (pString);
+            EXPECT_EQ (expected.size (), r_cstl_string_length (pString));
+            const char* pData = r_cstl_string_data (pString);
             ASSERT_NE (nullptr, pData);
-            EXPECT_EQ (expected, std::string (pData, R_CSTL_StringLength (pString)));
+            EXPECT_EQ (expected, std::string (pData, r_cstl_string_length (pString)));
         }
 };
 
@@ -45,907 +45,907 @@ class CstlStringTest : public ::testing::Test
 
 TEST (CstlStringInitTest, DeleteNullIsSafe)
 {
-    R_CSTL_StringDelete (nullptr);
+    r_cstl_string_delete (nullptr);
     SUCCEED ();
 }
 
 TEST_F (CstlStringTest, NewEmptyString)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewString ();
+    struct r_cstl_string* pString = r_cstl_new_string ();
     ASSERT_NE (nullptr, pString);
-    EXPECT_EQ (0u, R_CSTL_StringLength (pString));
+    EXPECT_EQ (0u, r_cstl_string_length (pString));
     ExpectStringData (pString, "");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, NewStringWithData)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, NewStringWithDataSized)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithDataSized ("HelloWorld", 5);
+    struct r_cstl_string* pString = r_cstl_new_string_with_data_sized ("HelloWorld", 5);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, NewStringWithDataRejectsNull)
 {
-    EXPECT_EQ (nullptr, R_CSTL_NewStringWithData (nullptr));
+    EXPECT_EQ (nullptr, r_cstl_new_string_with_data (nullptr));
 }
 
 TEST_F (CstlStringTest, NewStringWithFormat)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithFormat ("%s %d", "Test", 42);
+    struct r_cstl_string* pString = r_cstl_new_string_with_format ("%s %d", "Test", 42);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Test 42");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, NewStringWithFormatNullReturnsEmpty)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithFormat (nullptr);
+    struct r_cstl_string* pString = r_cstl_new_string_with_format (nullptr);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, CharAtBoundsCheck)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("ABC");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("ABC");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ ('A', R_CSTL_StringCharAt (pString, 0));
-    EXPECT_EQ ('B', R_CSTL_StringCharAt (pString, 1));
-    EXPECT_EQ ('C', R_CSTL_StringCharAt (pString, 2));
-    EXPECT_EQ (0x00, R_CSTL_StringCharAt (pString, 3)); // Out of bounds
-    EXPECT_EQ (0x00, R_CSTL_StringCharAt (nullptr, 0));
+    EXPECT_EQ ('A', r_cstl_string_char_at (pString, 0));
+    EXPECT_EQ ('B', r_cstl_string_char_at (pString, 1));
+    EXPECT_EQ ('C', r_cstl_string_char_at (pString, 2));
+    EXPECT_EQ (0x00, r_cstl_string_char_at (pString, 3)); // Out of bounds
+    EXPECT_EQ (0x00, r_cstl_string_char_at (nullptr, 0));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringEquals)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("Hello");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("Hello");
-    struct R_CSTL_String* pString3 = R_CSTL_NewStringWithData ("World");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("Hello");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("Hello");
+    struct r_cstl_string* pString3 = r_cstl_new_string_with_data ("World");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
     ASSERT_NE (nullptr, pString3);
 
-    EXPECT_EQ (1, R_CSTL_StringEquals (pString1, pString2));
-    EXPECT_EQ (0, R_CSTL_StringEquals (pString1, pString3));
-    EXPECT_EQ (1, R_CSTL_StringEquals (pString1, pString1));
-    EXPECT_EQ (0, R_CSTL_StringEquals (pString1, nullptr));
+    EXPECT_EQ (1, r_cstl_string_equals (pString1, pString2));
+    EXPECT_EQ (0, r_cstl_string_equals (pString1, pString3));
+    EXPECT_EQ (1, r_cstl_string_equals (pString1, pString1));
+    EXPECT_EQ (0, r_cstl_string_equals (pString1, nullptr));
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
-    R_CSTL_StringDelete (pString3);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
+    r_cstl_string_delete (pString3);
 }
 
 TEST_F (CstlStringTest, StringCompare)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("Apple");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("Banana");
-    struct R_CSTL_String* pString3 = R_CSTL_NewStringWithData ("Apple");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("Apple");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("Banana");
+    struct r_cstl_string* pString3 = r_cstl_new_string_with_data ("Apple");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
     ASSERT_NE (nullptr, pString3);
 
-    EXPECT_LT (R_CSTL_StringCompare (pString1, pString2), 0);
-    EXPECT_GT (R_CSTL_StringCompare (pString2, pString1), 0);
-    EXPECT_EQ (0, R_CSTL_StringCompare (pString1, pString3));
-    EXPECT_LT (R_CSTL_StringCompare (nullptr, pString1), 0);
-    EXPECT_GT (R_CSTL_StringCompare (pString1, nullptr), 0);
+    EXPECT_LT (r_cstl_string_compare (pString1, pString2), 0);
+    EXPECT_GT (r_cstl_string_compare (pString2, pString1), 0);
+    EXPECT_EQ (0, r_cstl_string_compare (pString1, pString3));
+    EXPECT_LT (r_cstl_string_compare (nullptr, pString1), 0);
+    EXPECT_GT (r_cstl_string_compare (pString1, nullptr), 0);
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
-    R_CSTL_StringDelete (pString3);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
+    r_cstl_string_delete (pString3);
 }
 
 TEST_F (CstlStringTest, StringConcat)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("Hello");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData (" World");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("Hello");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data (" World");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringConcat (pString1, pString2);
+    struct r_cstl_string* pResult = r_cstl_string_concat (pString1, pString2);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "Hello World");
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringConcatWithNull)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pString1);
 
-    struct R_CSTL_String* pResult1 = R_CSTL_StringConcat (pString1, nullptr);
+    struct r_cstl_string* pResult1 = r_cstl_string_concat (pString1, nullptr);
     ASSERT_NE (nullptr, pResult1);
     ExpectStringData (pResult1, "Hello");
 
-    struct R_CSTL_String* pResult2 = R_CSTL_StringConcat (nullptr, pString1);
+    struct r_cstl_string* pResult2 = r_cstl_string_concat (nullptr, pString1);
     ASSERT_NE (nullptr, pResult2);
     ExpectStringData (pResult2, "Hello");
 
-    struct R_CSTL_String* pResult3 = R_CSTL_StringConcat (nullptr, nullptr);
+    struct r_cstl_string* pResult3 = r_cstl_string_concat (nullptr, nullptr);
     ASSERT_NE (nullptr, pResult3);
     ExpectStringData (pResult3, "");
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pResult1);
-    R_CSTL_StringDelete (pResult2);
-    R_CSTL_StringDelete (pResult3);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pResult1);
+    r_cstl_string_delete (pResult2);
+    r_cstl_string_delete (pResult3);
 }
 
 TEST_F (CstlStringTest, StringSubstring)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pSub1 = R_CSTL_StringSubstring (pString, 0, 5);
+    struct r_cstl_string* pSub1 = r_cstl_string_substring (pString, 0, 5);
     ASSERT_NE (nullptr, pSub1);
     ExpectStringData (pSub1, "Hello");
 
-    struct R_CSTL_String* pSub2 = R_CSTL_StringSubstring (pString, 5, 10);
+    struct r_cstl_string* pSub2 = r_cstl_string_substring (pString, 5, 10);
     ASSERT_NE (nullptr, pSub2);
     ExpectStringData (pSub2, "World");
 
-    struct R_CSTL_String* pSub3 = R_CSTL_StringSubstring (pString, 3, 7);
+    struct r_cstl_string* pSub3 = r_cstl_string_substring (pString, 3, 7);
     ASSERT_NE (nullptr, pSub3);
     ExpectStringData (pSub3, "loWo");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pSub1);
-    R_CSTL_StringDelete (pSub2);
-    R_CSTL_StringDelete (pSub3);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pSub1);
+    r_cstl_string_delete (pSub2);
+    r_cstl_string_delete (pSub3);
 }
 
 TEST_F (CstlStringTest, StringSubstringInvalidRange)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pSub1 = R_CSTL_StringSubstring (pString, 10, 15);
+    struct r_cstl_string* pSub1 = r_cstl_string_substring (pString, 10, 15);
     ASSERT_NE (nullptr, pSub1);
     ExpectStringData (pSub1, "");
 
-    struct R_CSTL_String* pSub2 = R_CSTL_StringSubstring (pString, 3, 3);
+    struct r_cstl_string* pSub2 = r_cstl_string_substring (pString, 3, 3);
     ASSERT_NE (nullptr, pSub2);
     ExpectStringData (pSub2, "");
 
-    EXPECT_EQ (nullptr, R_CSTL_StringSubstring (nullptr, 0, 5));
+    EXPECT_EQ (nullptr, r_cstl_string_substring (nullptr, 0, 5));
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pSub1);
-    R_CSTL_StringDelete (pSub2);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pSub1);
+    r_cstl_string_delete (pSub2);
 }
 
 TEST_F (CstlStringTest, StringStartsWith)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (1, R_CSTL_StringStartsWith (pString, "Hello"));
-    EXPECT_EQ (0, R_CSTL_StringStartsWith (pString, "World"));
-    EXPECT_EQ (1, R_CSTL_StringStartsWith (pString, ""));
-    EXPECT_EQ (0, R_CSTL_StringStartsWith (pString, "HelloWorld!"));
-    EXPECT_EQ (0, R_CSTL_StringStartsWith (nullptr, "Hello"));
-    EXPECT_EQ (0, R_CSTL_StringStartsWith (pString, nullptr));
+    EXPECT_EQ (1, r_cstl_string_starts_with (pString, "Hello"));
+    EXPECT_EQ (0, r_cstl_string_starts_with (pString, "World"));
+    EXPECT_EQ (1, r_cstl_string_starts_with (pString, ""));
+    EXPECT_EQ (0, r_cstl_string_starts_with (pString, "HelloWorld!"));
+    EXPECT_EQ (0, r_cstl_string_starts_with (nullptr, "Hello"));
+    EXPECT_EQ (0, r_cstl_string_starts_with (pString, nullptr));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringEndsWith)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (1, R_CSTL_StringEndsWith (pString, "World"));
-    EXPECT_EQ (0, R_CSTL_StringEndsWith (pString, "Hello"));
-    EXPECT_EQ (1, R_CSTL_StringEndsWith (pString, ""));
-    EXPECT_EQ (0, R_CSTL_StringEndsWith (pString, "!HelloWorld"));
-    EXPECT_EQ (0, R_CSTL_StringEndsWith (nullptr, "World"));
-    EXPECT_EQ (0, R_CSTL_StringEndsWith (pString, nullptr));
+    EXPECT_EQ (1, r_cstl_string_ends_with (pString, "World"));
+    EXPECT_EQ (0, r_cstl_string_ends_with (pString, "Hello"));
+    EXPECT_EQ (1, r_cstl_string_ends_with (pString, ""));
+    EXPECT_EQ (0, r_cstl_string_ends_with (pString, "!HelloWorld"));
+    EXPECT_EQ (0, r_cstl_string_ends_with (nullptr, "World"));
+    EXPECT_EQ (0, r_cstl_string_ends_with (pString, nullptr));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringIndexOf)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (0u, R_CSTL_StringIndexOf (pString, "Hello"));
-    EXPECT_EQ (5u, R_CSTL_StringIndexOf (pString, "World"));
-    EXPECT_EQ (2u, R_CSTL_StringIndexOf (pString, "llo"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringIndexOf (pString, "xyz"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringIndexOf (nullptr, "Hello"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringIndexOf (pString, nullptr));
+    EXPECT_EQ (0u, r_cstl_string_index_of (pString, "Hello"));
+    EXPECT_EQ (5u, r_cstl_string_index_of (pString, "World"));
+    EXPECT_EQ (2u, r_cstl_string_index_of (pString, "llo"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_index_of (pString, "xyz"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_index_of (nullptr, "Hello"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_index_of (pString, nullptr));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringLastIndexOf)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloHello");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloHello");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (5u, R_CSTL_StringLastIndexOf (pString, "Hello"));
-    EXPECT_EQ (7u, R_CSTL_StringLastIndexOf (pString, "llo"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringLastIndexOf (pString, "xyz"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringLastIndexOf (nullptr, "Hello"));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringLastIndexOf (pString, nullptr));
+    EXPECT_EQ (5u, r_cstl_string_last_index_of (pString, "Hello"));
+    EXPECT_EQ (7u, r_cstl_string_last_index_of (pString, "llo"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_last_index_of (pString, "xyz"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_last_index_of (nullptr, "Hello"));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_last_index_of (pString, nullptr));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringIndexOfChar)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (2u, R_CSTL_StringIndexOfChar (pString, 'l'));
-    EXPECT_EQ (0u, R_CSTL_StringIndexOfChar (pString, 'H'));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringIndexOfChar (pString, 'z'));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringIndexOfChar (nullptr, 'H'));
+    EXPECT_EQ (2u, r_cstl_string_index_of_char (pString, 'l'));
+    EXPECT_EQ (0u, r_cstl_string_index_of_char (pString, 'H'));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_index_of_char (pString, 'z'));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_index_of_char (nullptr, 'H'));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringLastIndexOfChar)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (8u, R_CSTL_StringLastIndexOfChar (pString, 'l'));
-    EXPECT_EQ (5u, R_CSTL_StringLastIndexOfChar (pString, 'W'));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringLastIndexOfChar (pString, 'z'));
-    EXPECT_EQ ((size_t)-1, R_CSTL_StringLastIndexOfChar (nullptr, 'H'));
+    EXPECT_EQ (8u, r_cstl_string_last_index_of_char (pString, 'l'));
+    EXPECT_EQ (5u, r_cstl_string_last_index_of_char (pString, 'W'));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_last_index_of_char (pString, 'z'));
+    EXPECT_EQ ((size_t)-1, r_cstl_string_last_index_of_char (nullptr, 'H'));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringContains)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    EXPECT_EQ (1, R_CSTL_StringContains (pString, "Hello"));
-    EXPECT_EQ (0, R_CSTL_StringContains (pString, "xyz"));
+    EXPECT_EQ (1, r_cstl_string_contains (pString, "Hello"));
+    EXPECT_EQ (0, r_cstl_string_contains (pString, "xyz"));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringIsEmpty)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("Hello");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
 
-    EXPECT_EQ (1, R_CSTL_StringIsEmpty (pString1));
-    EXPECT_EQ (0, R_CSTL_StringIsEmpty (pString2));
-    EXPECT_EQ (-1, R_CSTL_StringIsEmpty (nullptr));
+    EXPECT_EQ (1, r_cstl_string_is_empty (pString1));
+    EXPECT_EQ (0, r_cstl_string_is_empty (pString2));
+    EXPECT_EQ (-1, r_cstl_string_is_empty (nullptr));
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
 }
 
 TEST_F (CstlStringTest, StringToLowerCase)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HeLLo WoRLd");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HeLLo WoRLd");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringToLowerCase (pString);
+    struct r_cstl_string* pResult = r_cstl_string_to_lower_case (pString);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "hello world");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringToUpperCase)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HeLLo WoRLd");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HeLLo WoRLd");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringToUpperCase (pString);
+    struct r_cstl_string* pResult = r_cstl_string_to_upper_case (pString);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "HELLO WORLD");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringTrim)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("  Hello World  ");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("  Hello World  ");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringTrim (pString);
+    struct r_cstl_string* pResult = r_cstl_string_trim (pString);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "Hello World");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringReplace)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello World");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello World");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringReplace (pString, "World", "Universe");
+    struct r_cstl_string* pResult = r_cstl_string_replace (pString, "World", "Universe");
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "Hello Universe");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringReplaceChar)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello World");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello World");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringReplaceChar (pString, 'o', 'a');
+    struct r_cstl_string* pResult = r_cstl_string_replace_char (pString, 'o', 'a');
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "Hella Warld");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringRepeat)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Abc");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Abc");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringRepeat (pString, 3);
+    struct r_cstl_string* pResult = r_cstl_string_repeat (pString, 3);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "AbcAbcAbc");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringEqualsIgnoreCase)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("Hello");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("HELLO");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("Hello");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("HELLO");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
 
-    EXPECT_EQ (1, R_CSTL_StringEqualsIgnoreCase (pString1, pString2));
-    EXPECT_EQ (0, R_CSTL_StringEqualsIgnoreCase (pString1, nullptr));
+    EXPECT_EQ (1, r_cstl_string_equals_ignore_case (pString1, pString2));
+    EXPECT_EQ (0, r_cstl_string_equals_ignore_case (pString1, nullptr));
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
 }
 
 TEST_F (CstlStringTest, StringCompareIgnoreCase)
 {
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("apple");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("BANANA");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("apple");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("BANANA");
 
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
 
-    EXPECT_LT (R_CSTL_StringCompareIgnoreCase (pString1, pString2), 0);
-    EXPECT_EQ (0, R_CSTL_StringCompareIgnoreCase (pString1, pString1));
+    EXPECT_LT (r_cstl_string_compare_ignore_case (pString1, pString2), 0);
+    EXPECT_EQ (0, r_cstl_string_compare_ignore_case (pString1, pString1));
 
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
 }
 
 TEST_F (CstlStringTest, StringHashCode)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pString);
 
-    size_t hash1 = R_CSTL_StringHashCode (pString);
-    size_t hash2 = R_CSTL_StringHashCode (pString);
+    size_t hash1 = r_cstl_string_hash_code (pString);
+    size_t hash2 = r_cstl_string_hash_code (pString);
     EXPECT_EQ (hash1, hash2);
 
-    EXPECT_EQ (0u, R_CSTL_StringHashCode (nullptr));
+    EXPECT_EQ (0u, r_cstl_string_hash_code (nullptr));
 
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringRemove)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("HelloWorld");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("HelloWorld");
     ASSERT_NE (nullptr, pString);
 
-    struct R_CSTL_String* pResult = R_CSTL_StringRemove (pString, 5, 10);
+    struct r_cstl_string* pResult = r_cstl_string_remove (pString, 5, 10);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringValueOfInt)
 {
-    struct R_CSTL_String* pString = R_CSTL_StringValueOfInt (42);
+    struct r_cstl_string* pString = r_cstl_string_value_of_int (42);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "42");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringValueOfLong)
 {
-    struct R_CSTL_String* pString = R_CSTL_StringValueOfLong (123456789LL);
+    struct r_cstl_string* pString = r_cstl_string_value_of_long (123456789LL);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "123456789");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringValueOfDouble)
 {
-    struct R_CSTL_String* pString = R_CSTL_StringValueOfDouble (3.14);
+    struct r_cstl_string* pString = r_cstl_string_value_of_double (3.14);
     ASSERT_NE (nullptr, pString);
-    EXPECT_EQ (0, strncmp (R_CSTL_StringData (pString), "3.14", 4));
-    R_CSTL_StringDelete (pString);
+    EXPECT_EQ (0, strncmp (r_cstl_string_data (pString), "3.14", 4));
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringJoin)
 {
-    struct R_CSTL_String* pDelimiter = R_CSTL_NewStringWithData (", ");
-    struct R_CSTL_String* pString1 = R_CSTL_NewStringWithData ("A");
-    struct R_CSTL_String* pString2 = R_CSTL_NewStringWithData ("B");
-    struct R_CSTL_String* pString3 = R_CSTL_NewStringWithData ("C");
+    struct r_cstl_string* pDelimiter = r_cstl_new_string_with_data (", ");
+    struct r_cstl_string* pString1 = r_cstl_new_string_with_data ("A");
+    struct r_cstl_string* pString2 = r_cstl_new_string_with_data ("B");
+    struct r_cstl_string* pString3 = r_cstl_new_string_with_data ("C");
 
     ASSERT_NE (nullptr, pDelimiter);
     ASSERT_NE (nullptr, pString1);
     ASSERT_NE (nullptr, pString2);
     ASSERT_NE (nullptr, pString3);
 
-    const struct R_CSTL_String* strings[] = {pString1, pString2, pString3};
-    struct R_CSTL_String*       pResult = R_CSTL_StringJoin (pDelimiter, strings, 3);
+    const struct r_cstl_string* strings[] = {pString1, pString2, pString3};
+    struct r_cstl_string*       pResult = r_cstl_string_join (pDelimiter, strings, 3);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "A, B, C");
 
-    R_CSTL_StringDelete (pDelimiter);
-    R_CSTL_StringDelete (pString1);
-    R_CSTL_StringDelete (pString2);
-    R_CSTL_StringDelete (pString3);
-    R_CSTL_StringDelete (pResult);
+    r_cstl_string_delete (pDelimiter);
+    r_cstl_string_delete (pString1);
+    r_cstl_string_delete (pString2);
+    r_cstl_string_delete (pString3);
+    r_cstl_string_delete (pResult);
 }
 
 TEST_F (CstlStringTest, StringBuilderBasic)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
-    EXPECT_EQ (0u, R_CSTL_StringBuilderLength (pBuilder));
+    EXPECT_EQ (0u, r_cstl_string_builder_length (pBuilder));
 
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pString);
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppend (pBuilder, pString));
+    ASSERT_EQ (0, r_cstl_string_builder_append (pBuilder, pString));
 
-    EXPECT_EQ (5u, R_CSTL_StringBuilderLength (pBuilder));
+    EXPECT_EQ (5u, r_cstl_string_builder_length (pBuilder));
 
-    R_CSTL_StringBuilderClear (pBuilder);
-    EXPECT_EQ (0u, R_CSTL_StringBuilderLength (pBuilder));
+    r_cstl_string_builder_clear (pBuilder);
+    EXPECT_EQ (0u, r_cstl_string_builder_length (pBuilder));
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendData)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hello", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "World", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "Hello", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "World", 5));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "HelloWorld");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendChar)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendChar (pBuilder, 'A'));
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendChar (pBuilder, 'B'));
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendChar (pBuilder, 'C'));
+    ASSERT_EQ (0, r_cstl_string_builder_append_char (pBuilder, 'A'));
+    ASSERT_EQ (0, r_cstl_string_builder_append_char (pBuilder, 'B'));
+    ASSERT_EQ (0, r_cstl_string_builder_append_char (pBuilder, 'C'));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "ABC");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendInt)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendInt (pBuilder, 42));
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendInt (pBuilder, -123));
+    ASSERT_EQ (0, r_cstl_string_builder_append_int (pBuilder, 42));
+    ASSERT_EQ (0, r_cstl_string_builder_append_int (pBuilder, -123));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "42-123");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendBool)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendBool (pBuilder, true));
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendBool (pBuilder, false));
+    ASSERT_EQ (0, r_cstl_string_builder_append_bool (pBuilder, true));
+    ASSERT_EQ (0, r_cstl_string_builder_append_bool (pBuilder, false));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "truefalse");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderEmplace)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderEmplace (pBuilder, "Hello"));
-    ASSERT_EQ (0, R_CSTL_StringBuilderEmplaceSized (pBuilder, "World", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_emplace (pBuilder, "Hello"));
+    ASSERT_EQ (0, r_cstl_string_builder_emplace_sized (pBuilder, "World", 5));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "HelloWorld");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderInsert)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "World", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderEmplaceInsert (pBuilder, 0, "Hello"));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "World", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_emplace_insert (pBuilder, 0, "Hello"));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "HelloWorld");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderDelete)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
-    ASSERT_EQ (0, R_CSTL_StringBuilderDelete (pBuilder, 5, 10));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "HelloWorld", 10));
+    ASSERT_EQ (0, r_cstl_string_builder_delete (pBuilder, 5, 10));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderReplace)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
-    ASSERT_EQ (0, R_CSTL_StringBuilderEmplaceReplace (pBuilder, 5, 10, "Universe"));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "HelloWorld", 10));
+    ASSERT_EQ (0, r_cstl_string_builder_emplace_replace (pBuilder, 5, 10, "Universe"));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "HelloUniverse");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderReverse)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hello", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderReverse (pBuilder));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "Hello", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_reverse (pBuilder));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "olleH");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, GettersReturnZeroOrNullForNullString)
 {
-    EXPECT_EQ (nullptr, R_CSTL_StringData (nullptr));
-    EXPECT_EQ (0u, R_CSTL_StringLength (nullptr));
-    EXPECT_EQ (0x00, R_CSTL_StringCharAt (nullptr, 0));
+    EXPECT_EQ (nullptr, r_cstl_string_data (nullptr));
+    EXPECT_EQ (0u, r_cstl_string_length (nullptr));
+    EXPECT_EQ (0x00, r_cstl_string_char_at (nullptr, 0));
 }
 
 TEST_F (CstlStringTest, NewStringWithCapacity)
 {
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithCapacity (100);
+    struct r_cstl_string* pString = r_cstl_new_string_with_capacity (100);
     ASSERT_NE (nullptr, pString);
-    EXPECT_EQ (0u, R_CSTL_StringLength (pString));
+    EXPECT_EQ (0u, r_cstl_string_length (pString));
     ExpectStringData (pString, "");
-    R_CSTL_StringDelete (pString);
+    r_cstl_string_delete (pString);
 }
 
 TEST_F (CstlStringTest, StringCopy)
 {
-    struct R_CSTL_String* pSrc = R_CSTL_NewStringWithData ("Hello");
-    struct R_CSTL_String* pDst = R_CSTL_NewString ();
+    struct r_cstl_string* pSrc = r_cstl_new_string_with_data ("Hello");
+    struct r_cstl_string* pDst = r_cstl_new_string ();
 
     ASSERT_NE (nullptr, pSrc);
     ASSERT_NE (nullptr, pDst);
 
-    ASSERT_EQ (0, R_CSTL_StringCopy (pDst, pSrc));
+    ASSERT_EQ (0, r_cstl_string_copy (pDst, pSrc));
     ExpectStringData (pDst, "Hello");
 
-    R_CSTL_StringDelete (pSrc);
-    R_CSTL_StringDelete (pDst);
+    r_cstl_string_delete (pSrc);
+    r_cstl_string_delete (pDst);
 }
 
 TEST_F (CstlStringTest, StringCopyRejectsNullDst)
 {
-    struct R_CSTL_String* pSrc = R_CSTL_NewStringWithData ("Hello");
+    struct r_cstl_string* pSrc = r_cstl_new_string_with_data ("Hello");
     ASSERT_NE (nullptr, pSrc);
 
-    EXPECT_NE (0, R_CSTL_StringCopy (nullptr, pSrc));
+    EXPECT_NE (0, r_cstl_string_copy (nullptr, pSrc));
 
-    R_CSTL_StringDelete (pSrc);
+    r_cstl_string_delete (pSrc);
 }
 
 TEST_F (CstlStringTest, StringBuilderWithData)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilderWithData ("Hello");
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder_with_data ("Hello");
     ASSERT_NE (nullptr, pBuilder);
-    EXPECT_EQ (5u, R_CSTL_StringBuilderLength (pBuilder));
+    EXPECT_EQ (5u, r_cstl_string_builder_length (pBuilder));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderWithCapacity)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilderWithCapacity (100);
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder_with_capacity (100);
     ASSERT_NE (nullptr, pBuilder);
-    EXPECT_EQ (0u, R_CSTL_StringBuilderLength (pBuilder));
+    EXPECT_EQ (0u, r_cstl_string_builder_length (pBuilder));
     // Capacity may be 0 initially and grow on demand
-    EXPECT_GE (R_CSTL_StringBuilderLength (pBuilder), 0u);
+    EXPECT_GE (r_cstl_string_builder_length (pBuilder), 0u);
 
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderEnsureCapacity)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderEnsureCapacity (pBuilder, 50));
-    EXPECT_GE (R_CSTL_StringBuilderCapacity (pBuilder), 50u);
+    ASSERT_EQ (0, r_cstl_string_builder_ensure_capacity (pBuilder, 50));
+    EXPECT_GE (r_cstl_string_builder_capacity (pBuilder), 50u);
 
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderCapacityGetter)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilderWithCapacity (32);
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder_with_capacity (32);
     ASSERT_NE (nullptr, pBuilder);
 
     // Capacity getter returns 0 for null builder
-    EXPECT_EQ (0u, R_CSTL_StringBuilderCapacity (nullptr));
+    EXPECT_EQ (0u, r_cstl_string_builder_capacity (nullptr));
     // Capacity may be 0 initially
-    EXPECT_GE (R_CSTL_StringBuilderCapacity (pBuilder), 0u);
+    EXPECT_GE (r_cstl_string_builder_capacity (pBuilder), 0u);
 
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendLong)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendLong (pBuilder, 123456789LL));
+    ASSERT_EQ (0, r_cstl_string_builder_append_long (pBuilder, 123456789LL));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "123456789");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendDouble)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendDouble (pBuilder, 3.14159));
+    ASSERT_EQ (0, r_cstl_string_builder_append_double (pBuilder, 3.14159));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
-    const char* data = R_CSTL_StringData (pString);
+    const char* data = r_cstl_string_data (pString);
     ASSERT_NE (nullptr, data);
     EXPECT_TRUE (strstr (data, "3.14") != nullptr);
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendRepeat)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendRepeat (pBuilder, "Abc", 3));
+    ASSERT_EQ (0, r_cstl_string_builder_append_repeat (pBuilder, "Abc", 3));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "AbcAbcAbc");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderAppendf)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendf (pBuilder, "%s %d", "Test", 42));
+    ASSERT_EQ (0, r_cstl_string_builder_appendf (pBuilder, "%s %d", "Test", 42));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Test 42");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderInsertWithString)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    struct R_CSTL_String* pString = R_CSTL_NewStringWithData ("World");
+    struct r_cstl_string* pString = r_cstl_new_string_with_data ("World");
     ASSERT_NE (nullptr, pString);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "World", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderInsert (pBuilder, 0, pString));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "World", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_insert (pBuilder, 0, pString));
 
-    struct R_CSTL_String* pResult = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pResult = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pResult);
     ExpectStringData (pResult, "WorldWorld");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_StringDelete (pResult);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_string_delete (pResult);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderInsertChar)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hllo", 4));
-    ASSERT_EQ (0, R_CSTL_StringBuilderInsertChar (pBuilder, 1, 'e'));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "Hllo", 4));
+    ASSERT_EQ (0, r_cstl_string_builder_insert_char (pBuilder, 1, 'e'));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderDeleteCharAt)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hello", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderDeleteCharAt (pBuilder, 1));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "Hello", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_delete_char_at (pBuilder, 1));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hllo");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderReplaceWithString)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    struct R_CSTL_String* pReplace = R_CSTL_NewStringWithData ("Universe");
+    struct r_cstl_string* pReplace = r_cstl_new_string_with_data ("Universe");
     ASSERT_NE (nullptr, pReplace);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
-    ASSERT_EQ (0, R_CSTL_StringBuilderReplace (pBuilder, 5, 10, pReplace));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "HelloWorld", 10));
+    ASSERT_EQ (0, r_cstl_string_builder_replace (pBuilder, 5, 10, pReplace));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "HelloUniverse");
 
-    R_CSTL_StringDelete (pReplace);
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pReplace);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderSetCharAt)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "Hella", 5));
-    ASSERT_EQ (0, R_CSTL_StringBuilderSetCharAt (pBuilder, 4, 'o'));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "Hella", 5));
+    ASSERT_EQ (0, r_cstl_string_builder_set_char_at (pBuilder, 4, 'o'));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }
 
 TEST_F (CstlStringTest, StringBuilderSetLength)
 {
-    struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+    struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
     ASSERT_NE (nullptr, pBuilder);
 
-    ASSERT_EQ (0, R_CSTL_StringBuilderAppendData (pBuilder, "HelloWorld", 10));
-    ASSERT_EQ (0, R_CSTL_StringBuilderSetLength (pBuilder, 5));
+    ASSERT_EQ (0, r_cstl_string_builder_append_data (pBuilder, "HelloWorld", 10));
+    ASSERT_EQ (0, r_cstl_string_builder_set_length (pBuilder, 5));
 
-    EXPECT_EQ (5u, R_CSTL_StringBuilderLength (pBuilder));
+    EXPECT_EQ (5u, r_cstl_string_builder_length (pBuilder));
 
-    struct R_CSTL_String* pString = R_CSTL_StringBuilderToString (pBuilder);
+    struct r_cstl_string* pString = r_cstl_string_builder_to_string (pBuilder);
     ASSERT_NE (nullptr, pString);
     ExpectStringData (pString, "Hello");
 
-    R_CSTL_StringDelete (pString);
-    R_CSTL_DeleteStringBuilder (pBuilder);
+    r_cstl_string_delete (pString);
+    r_cstl_delete_string_builder (pBuilder);
 }

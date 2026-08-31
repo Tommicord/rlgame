@@ -34,8 +34,8 @@ enum r_game_loop_state_flags
 struct r_process_info
 {
         uint32_t                    pid; ///< Process ID
-        const struct R_CSTL_String* pName; ///< Process/executable name (UTF-8 string)
-        const struct R_CSTL_String* pUser; ///< Owning user or service name (if available)
+        const struct r_cstl_string* pName; ///< Process/executable name (UTF-8 string)
+        const struct r_cstl_string* pUser; ///< Owning user or service name (if available)
         uint64_t                    startTimeMs; ///< Start time in epoch milliseconds, 0 if unknown
         uint64_t                    memoryBytes; ///< Working set / RSS in bytes, 0 if unknown
 };
@@ -78,7 +78,7 @@ struct r_application_args
  */
 struct r_application_info
 {
-        const struct R_CSTL_String* pApplicationName; /**< Short application name (UTF-8 string) */
+        const struct r_cstl_string* pApplicationName; /**< Short application name (UTF-8 string) */
         uint32_t                    applicationVersionMajor; /**< Major version number */
         uint32_t                    applicationVersionMinor; /**< Minor version number */
         uint32_t                    applicationVersionPatch; /**< Patch version number */
@@ -278,6 +278,6 @@ void r_fill_memory_info (struct r_memory_info* out);
  */
 void r_assign_process_name (
     struct r_process_info*      pProc,
-    const struct R_CSTL_String* pExePath,
+    const struct r_cstl_string* pExePath,
     int                         argc,
     char**                      argv);

@@ -352,7 +352,7 @@ r_pack_jpeg_decode (const uint8_t* pData, size_t dataSize, struct r_pack_jpeg_im
         return R_PACK_ERROR_INVALID_FORMAT;
     size_t stride = (size_t)decoder.width * 4;
     size_t outputSize = stride * decoder.height;
-    pImage->pPixels = R_CSTL_HeapAlloc (outputSize);
+    pImage->pPixels = r_cstl_heap_alloc (outputSize);
     if (!pImage->pPixels) return R_PACK_ERROR_OUT_OF_MEMORY;
     pImage->width = decoder.width;
     pImage->height = decoder.height;
@@ -377,7 +377,7 @@ r_pack_jpeg_decode (const uint8_t* pData, size_t dataSize, struct r_pack_jpeg_im
                 {
                     if (!r_pack_jpeg_decode_block (&decoder, component, coefficients))
                     {
-                        R_CSTL_HeapFree (pImage->pPixels);
+                        r_cstl_heap_free (pImage->pPixels);
                         memset (pImage, 0, sizeof (*pImage));
                         return R_PACK_ERROR_INVALID_DATA;
                     }
@@ -429,16 +429,16 @@ r_pack_jpeg_decode_file (const char* pPath, struct r_pack_jpeg_image* pImage)
         return R_PACK_ERROR_INVALID_DATA;
     }
     rewind (pFile);
-    uint8_t* data = R_CSTL_HeapAlloc ((size_t)length);
+    uint8_t* data = r_cstl_heap_alloc ((size_t)length);
     if (!data || fread (data, 1, (size_t)length, pFile) != (size_t)length)
     {
-        if (data) R_CSTL_HeapFree (data);
+        if (data) r_cstl_heap_free (data);
         fclose (pFile);
         return R_PACK_ERROR_INVALID_DATA;
     }
     fclose (pFile);
     enum r_pack_error result = r_pack_jpeg_decode (data, (size_t)length, pImage);
-    R_CSTL_HeapFree (data);
+    r_cstl_heap_free (data);
     return result;
 }
 
@@ -446,6 +446,6 @@ void
 r_pack_jpeg_free_image (struct r_pack_jpeg_image* pImage)
 {
     if (!pImage) return;
-    if (pImage->pPixels) R_CSTL_HeapFree (pImage->pPixels);
+    if (pImage->pPixels) r_cstl_heap_free (pImage->pPixels);
     memset (pImage, 0, sizeof (*pImage));
 }

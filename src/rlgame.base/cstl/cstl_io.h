@@ -12,7 +12,7 @@
  * Specifies how a file should be opened. Multiple flags can be combined
  * using bitwise OR (|).
  */
-typedef enum R_CSTL_FileMode
+typedef enum r_cstl_file_mode
 {
     R_CSTL_FILE_MODE_READ = (1 << 0),
     R_CSTL_FILE_MODE_WRITE = (1 << 1),
@@ -22,19 +22,19 @@ typedef enum R_CSTL_FileMode
     R_CSTL_FILE_MODE_BINARY = (1 << 5),
     R_CSTL_FILE_MODE_SHARE_READ = (1 << 6),
     R_CSTL_FILE_MODE_SHARE_WRITE = (1 << 7)
-} R_CSTL_FileMode;
+} r_cstl_file_mode;
 
 /**
  * @brief File seek origin
  *
  * Specifies the reference point for file positioning operations.
  */
-typedef enum R_CSTL_SeekOrigin
+typedef enum r_cstl_seek_origin
 {
     R_CSTL_SEEK_BEGIN = 0,
     R_CSTL_SEEK_CURRENT = 1,
     R_CSTL_SEEK_END = 2
-} R_CSTL_SeekOrigin;
+} r_cstl_seek_origin;
 
 /**
  * @brief Opaque handle to a file
@@ -42,7 +42,7 @@ typedef enum R_CSTL_SeekOrigin
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_File;
+struct r_cstl_file;
 
 /**
  * @brief Open a file
@@ -50,14 +50,14 @@ struct R_CSTL_File;
  * Opens a file with the specified mode. The mode flags can be combined.
  *
  * @param pPath Null-terminated path to the file. Can be UTF-8 on Windows.
- * @param mode Bitwise combination of R_CSTL_FileMode flags.
+ * @param mode Bitwise combination of r_cstl_file_mode flags.
  * @return Pointer to new file handle, or NULL on failure.
  *
- * @note The file must be closed with R_CSTL_FileClose when no longer needed.
+ * @note The file must be closed with r_cstl_file_close when no longer needed.
  * @note On Windows, pPath is treated as UTF-8 and converted to wide string.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API struct R_CSTL_File* R_CSTL_FileOpen (const char* pPath, int mode);
+R_CSTL_API struct r_cstl_file* r_cstl_file_open (const char* pPath, int mode);
 
 /**
  * @brief Close a file
@@ -69,7 +69,7 @@ R_CSTL_API struct R_CSTL_File* R_CSTL_FileOpen (const char* pPath, int mode);
  * @note After this call, the pointer becomes invalid and must not be used.
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API void R_CSTL_FileClose (struct R_CSTL_File* pFile);
+R_CSTL_API void r_cstl_file_close (struct r_cstl_file* pFile);
 
 /**
  * @brief Read data from a file
@@ -86,7 +86,7 @@ R_CSTL_API void R_CSTL_FileClose (struct R_CSTL_File* pFile);
  * @note Returns error if no bytes read and at EOF.
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileRead (struct R_CSTL_File* pFile, void* pBuffer, size_t size, size_t* pBytesRead);
+R_CSTL_API int r_cstl_file_read (struct r_cstl_file* pFile, void* pBuffer, size_t size, size_t* pBytesRead);
 
 /**
  * @brief Write data to a file
@@ -103,7 +103,7 @@ R_CSTL_API int R_CSTL_FileRead (struct R_CSTL_File* pFile, void* pBuffer, size_t
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
 R_CSTL_API int
-R_CSTL_FileWrite (struct R_CSTL_File* pFile, const void* pBuffer, size_t size, size_t* pBytesWritten);
+r_cstl_file_write (struct r_cstl_file* pFile, const void* pBuffer, size_t size, size_t* pBytesWritten);
 
 /**
  * @brief Get current file position
@@ -116,7 +116,7 @@ R_CSTL_FileWrite (struct R_CSTL_File* pFile, const void* pBuffer, size_t size, s
  *
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileTell (struct R_CSTL_File* pFile, int64_t* pPosition);
+R_CSTL_API int r_cstl_file_tell (struct r_cstl_file* pFile, int64_t* pPosition);
 
 /**
  * @brief Set file position
@@ -125,12 +125,12 @@ R_CSTL_API int R_CSTL_FileTell (struct R_CSTL_File* pFile, int64_t* pPosition);
  *
  * @param pFile Pointer to file handle.
  * @param offset Offset in bytes from the origin.
- * @param origin Reference point (R_CSTL_SeekOrigin).
+ * @param origin Reference point (r_cstl_seek_origin).
  * @return R_CSTL_OK on success, error code on failure.
  *
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileSeek (struct R_CSTL_File* pFile, int64_t offset, R_CSTL_SeekOrigin origin);
+R_CSTL_API int r_cstl_file_seek (struct r_cstl_file* pFile, int64_t offset, r_cstl_seek_origin origin);
 
 /**
  * @brief Get file size
@@ -143,7 +143,7 @@ R_CSTL_API int R_CSTL_FileSeek (struct R_CSTL_File* pFile, int64_t offset, R_CST
  *
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileSize (struct R_CSTL_File* pFile, int64_t* pSize);
+R_CSTL_API int r_cstl_file_size (struct r_cstl_file* pFile, int64_t* pSize);
 
 /**
  * @brief Flush file buffers
@@ -155,7 +155,7 @@ R_CSTL_API int R_CSTL_FileSize (struct R_CSTL_File* pFile, int64_t* pSize);
  *
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileFlush (struct R_CSTL_File* pFile);
+R_CSTL_API int r_cstl_file_flush (struct r_cstl_file* pFile);
 
 /**
  * @brief Check if file is at end
@@ -167,7 +167,7 @@ R_CSTL_API int R_CSTL_FileFlush (struct R_CSTL_File* pFile);
  *
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-R_CSTL_API int R_CSTL_FileIsEOF (struct R_CSTL_File* pFile);
+R_CSTL_API int r_cstl_file_isEOF (struct r_cstl_file* pFile);
 
 /**
  * @brief Check if file handle is valid
@@ -179,7 +179,7 @@ R_CSTL_API int R_CSTL_FileIsEOF (struct R_CSTL_File* pFile);
  *
  * @note Thread-safe: reads only, no synchronization needed.
  */
-R_CSTL_API int R_CSTL_FileIsValid (const struct R_CSTL_File* pFile);
+R_CSTL_API int r_cstl_file_is_valid (const struct r_cstl_file* pFile);
 
 /**
  * @brief Read entire file into a string
@@ -190,11 +190,11 @@ R_CSTL_API int R_CSTL_FileIsValid (const struct R_CSTL_File* pFile);
  * @param pOutString Pointer to receive the string handle.
  * @return R_CSTL_OK on success, error code on failure.
  *
- * @note The returned string must be freed with R_CSTL_StringDelete.
+ * @note The returned string must be freed with r_cstl_string_delete.
  * @note Reads file as binary; no newline translation is performed.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileReadAllText (const char* pPath, struct R_CSTL_String** pOutString);
+R_CSTL_API int r_cstl_file_read_all_text (const char* pPath, struct r_cstl_string** pOutString);
 
 /**
  * @brief Write string to file
@@ -208,7 +208,7 @@ R_CSTL_API int R_CSTL_FileReadAllText (const char* pPath, struct R_CSTL_String**
  *
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileWriteAllText (const char* pPath, const struct R_CSTL_String* pString, int mode);
+R_CSTL_API int r_cstl_file_write_all_text (const char* pPath, const struct r_cstl_string* pString, int mode);
 
 /**
  * @brief Read file in chunks with callback
@@ -226,11 +226,11 @@ R_CSTL_API int R_CSTL_FileWriteAllText (const char* pPath, const struct R_CSTL_S
  * @note If callback returns non-zero, reading stops and that value is returned.
  * @note Thread-safe: can be called concurrently, but not on the same file handle.
  */
-typedef int (*R_CSTL_FileReadChunkCallback) (const void* pBuffer, size_t bytesRead, void* pUserData);
+typedef int (*r_cstl_file_read_chunk_callback) (const void* pBuffer, size_t bytesRead, void* pUserData);
 
-R_CSTL_API int R_CSTL_FileReadChunks (
-    struct R_CSTL_File*          pFile,
-    R_CSTL_FileReadChunkCallback pCallback,
+R_CSTL_API int r_cstl_file_read_chunks (
+    struct r_cstl_file*          pFile,
+    r_cstl_file_read_chunk_callback pCallback,
     void*                        pUserData,
     size_t                       chunkSize);
 
@@ -244,7 +244,7 @@ R_CSTL_API int R_CSTL_FileReadChunks (
  *
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileExists (const char* pPath);
+R_CSTL_API int r_cstl_file_exists (const char* pPath);
 
 /**
  * @brief Delete a file
@@ -256,7 +256,7 @@ R_CSTL_API int R_CSTL_FileExists (const char* pPath);
  *
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileDelete (const char* pPath);
+R_CSTL_API int r_cstl_file_delete (const char* pPath);
 
 /**
  * @brief Rename a file
@@ -270,7 +270,7 @@ R_CSTL_API int R_CSTL_FileDelete (const char* pPath);
  * @note On Windows, fails if newPath already exists unless MOVEFILE_REPLACE_EXISTING is used.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileRename (const char* pOldPath, const char* pNewPath);
+R_CSTL_API int r_cstl_file_rename (const char* pOldPath, const char* pNewPath);
 
 /**
  * @brief Get file modification time
@@ -283,7 +283,7 @@ R_CSTL_API int R_CSTL_FileRename (const char* pOldPath, const char* pNewPath);
  *
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileGetModTime (const char* pPath, int64_t* pOutTime);
+R_CSTL_API int r_cstl_file_get_mod_time (const char* pPath, int64_t* pOutTime);
 
 /**
  * @brief Get file creation time
@@ -297,7 +297,7 @@ R_CSTL_API int R_CSTL_FileGetModTime (const char* pPath, int64_t* pOutTime);
  * @note On Linux, this may return the last metadata change time if creation time is unavailable.
  * @note Thread-safe: can be called concurrently from multiple threads.
  */
-R_CSTL_API int R_CSTL_FileGetCreationTime (const char* pPath, int64_t* pOutTime);
+R_CSTL_API int r_cstl_file_get_creation_time (const char* pPath, int64_t* pOutTime);
 
 /**
  * @brief Open standard input
@@ -306,10 +306,10 @@ R_CSTL_API int R_CSTL_FileGetCreationTime (const char* pPath, int64_t* pOutTime)
  *
  * @return Pointer to file handle for stdin, or NULL on failure.
  *
- * @note The returned handle should not be closed with R_CSTL_FileClose.
+ * @note The returned handle should not be closed with r_cstl_file_close.
  * @note Thread-safe: returns shared handle.
  */
-R_CSTL_API struct R_CSTL_File* R_CSTL_FileStdin (void);
+R_CSTL_API struct r_cstl_file* r_cstl_file_stdin (void);
 
 /**
  * @brief Open standard output
@@ -318,10 +318,10 @@ R_CSTL_API struct R_CSTL_File* R_CSTL_FileStdin (void);
  *
  * @return Pointer to file handle for stdout, or NULL on failure.
  *
- * @note The returned handle should not be closed with R_CSTL_FileClose.
+ * @note The returned handle should not be closed with r_cstl_file_close.
  * @note Thread-safe: returns shared handle.
  */
-R_CSTL_API struct R_CSTL_File* R_CSTL_FileStdout (void);
+R_CSTL_API struct r_cstl_file* r_cstl_file_stdout (void);
 
 /**
  * @brief Open standard error
@@ -330,7 +330,7 @@ R_CSTL_API struct R_CSTL_File* R_CSTL_FileStdout (void);
  *
  * @return Pointer to file handle for stderr, or NULL on failure.
  *
- * @note The returned handle should not be closed with R_CSTL_FileClose.
+ * @note The returned handle should not be closed with r_cstl_file_close.
  * @note Thread-safe: returns shared handle.
  */
-R_CSTL_API struct R_CSTL_File* R_CSTL_FileStderr (void);
+R_CSTL_API struct r_cstl_file* r_cstl_file_stderr (void);

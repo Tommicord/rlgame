@@ -21,7 +21,7 @@ struct R_CVulkan_Surface;
 /**
  * @brief Settingsuration parameters for swapchain creation
  */
-struct R_CVulkan_SwapchainCreateInfo
+struct r_cvulkan_swapchain_create_info
 {
         const struct R_CVulkan_Device*  pDevice; /**< Vulkan device (required) */
         const struct R_CVulkan_Surface* pSurface; /**< Vulkan surface (required) */
@@ -68,7 +68,7 @@ struct R_CVulkan_Swapchain
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSwapchain (
     struct R_CVulkan_Swapchain*                 pSwapchain,
-    const struct R_CVulkan_SwapchainCreateInfo* pCreateInfo);
+    const struct r_cvulkan_swapchain_create_info* pCreateInfo);
 
 /**
  * @brief Delete a swapchain and destroy the Vulkan object
@@ -81,35 +81,35 @@ R_CVULKAN_API void R_CVulkan_DeleteSwapchain (struct R_CVulkan_Swapchain* pSwapc
  * @param pSwapchain Pointer to swapchain
  * @return Vulkan swapchain handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkSwapchainKHR R_CVulkan_SwapchainGetHandle (const struct R_CVulkan_Swapchain* pSwapchain);
+R_CVULKAN_API VkSwapchainKHR r_cvulkan_swapchain_get_handle (const struct R_CVulkan_Swapchain* pSwapchain);
 
 /**
  * @brief Get the associated device
  * @param pSwapchain Pointer to swapchain
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_SwapchainGetDevice (const struct R_CVulkan_Swapchain* pSwapchain);
+R_CVULKAN_API VkDevice r_cvulkan_swapchain_get_device (const struct R_CVulkan_Swapchain* pSwapchain);
 
 /**
  * @brief Get the image format of the swapchain
  * @param pSwapchain Pointer to swapchain
  * @return Image format, or VK_FORMAT_UNDEFINED if not initialized
  */
-R_CVULKAN_API VkFormat R_CVulkan_SwapchainGetImageFormat (const struct R_CVulkan_Swapchain* pSwapchain);
+R_CVULKAN_API VkFormat r_cvulkan_swapchain_get_image_format (const struct R_CVulkan_Swapchain* pSwapchain);
 
 /**
  * @brief Get the extent of swapchain images
  * @param pSwapchain Pointer to swapchain
  * @return Extent of swapchain images, or {0,0} if not initialized
  */
-R_CVULKAN_API VkExtent2D R_CVulkan_SwapchainGetExtent (const struct R_CVulkan_Swapchain* pSwapchain);
+R_CVULKAN_API VkExtent2D r_cvulkan_swapchain_get_extent (const struct R_CVulkan_Swapchain* pSwapchain);
 
 /**
  * @brief Get the number of images in the swapchain
  * @param pSwapchain Pointer to swapchain
  * @return Number of images, or 0 if not initialized
  */
-R_CVULKAN_API uint32_t R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_Swapchain* pSwapchain);
+R_CVULKAN_API uint32_t r_cvulkan_swapchain_get_image_count (const struct R_CVulkan_Swapchain* pSwapchain);
 
 /**
  * @brief Acquire the next image from the swapchain
@@ -124,7 +124,7 @@ R_CVULKAN_API uint32_t R_CVulkan_SwapchainGetImageCount (const struct R_CVulkan_
  * - R_CVULKAN_ERROR_SWAPCHAIN_OUT_OF_DATE: Swapchain needs recreation
  * - R_CVULKAN_ERROR_SWAPCHAIN_SUBOPTIMAL: Swapchain is suboptimal
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_SwapchainAcquireNextImage (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_swapchain_acquire_next_image (
     struct R_CVulkan_Swapchain* pSwapchain,
     uint64_t                    timeout,
     VkSemaphore                 semaphore,

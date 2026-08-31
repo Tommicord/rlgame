@@ -28,10 +28,10 @@ static const uint32_t g_optionalDeviceExtensionCount
     = R_CVULKAN_VALIDATION_LAYER_SIZE (g_optionalDeviceExtensions);
 
 static enum R_CVulkan_Error
-R_CVulkan_BuildDeviceExtensions (struct R_CSTL_Array** ppExtensions, VkPhysicalDevice physicalDevice);
+r_cvulkan_build_device_extensions (struct r_cstl_array** ppExtensions, VkPhysicalDevice physicalDevice);
 
 static enum R_CVulkan_Error
-R_CVulkan_CheckExtensionAvailability (
+r_cvulkan_check_extension_availability (
     const char*      pExtensionName,
     VkPhysicalDevice physicalDevice,
     bool*            pIsAvailable)
@@ -44,17 +44,17 @@ R_CVulkan_CheckExtensionAvailability (
 
     if (extensionCount == 0)
     {
-        R_CSTL_LOG_DEBUG ("R_CVulkan_CheckExtensionAvailability: No extensions available on device");
+        R_CSTL_LOG_DEBUG ("r_cvulkan_check_extension_availability: No extensions available on device");
         *pIsAvailable = false;
         return R_CVULKAN_OK;
     }
 
     VkExtensionProperties* extensions
-        = (VkExtensionProperties*)R_CSTL_HeapAlloc (extensionCount * sizeof (VkExtensionProperties));
+        = (VkExtensionProperties*)r_cstl_heap_alloc (extensionCount * sizeof (VkExtensionProperties));
     if (extensions == NULL)
     {
         R_CSTL_LOG_ERROR (
-            "R_CVulkan_CheckExtensionAvailability: Failed to allocate memory for extension "
+            "r_cvulkan_check_extension_availability: Failed to allocate memory for extension "
             "properties");
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
@@ -67,7 +67,7 @@ R_CVulkan_CheckExtensionAvailability (
         if (strcmp (extensions[i].extensionName, pExtensionName) == 0)
         {
             *pIsAvailable = true;
-            R_CSTL_LOG_DEBUG ("R_CVulkan_CheckExtensionAvailability: Found extension '%s'", pExtensionName);
+            R_CSTL_LOG_DEBUG ("r_cvulkan_check_extension_availability: Found extension '%s'", pExtensionName);
             break;
         }
     }
@@ -75,23 +75,23 @@ R_CVulkan_CheckExtensionAvailability (
     if (!available)
     {
         R_CSTL_LOG_WARN (
-            "R_CVulkan_CheckExtensionAvailability: Extension '%s' not available",
+            "r_cvulkan_check_extension_availability: Extension '%s' not available",
             pExtensionName);
     }
 
-    R_CSTL_HeapFree (extensions);
+    r_cstl_heap_free (extensions);
     return R_CVULKAN_OK;
 }
 
-static void R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions);
+static void r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions);
 
 static const char**
-R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, size_t* pOutCount)
+r_cvulkan_string_array_extensions_data (const struct r_cstl_array* pStringArray, size_t* pOutCount)
 {
-    size_t length = R_CSTL_ArrayLength (pStringArray);
+    size_t length = r_cstl_array_length (pStringArray);
     size_t elementCount = length / sizeof (const char*);
 
-    const char** ppStrings = (const char**)R_CSTL_HeapAlloc (elementCount * sizeof (const char*));
+    const char** ppStrings = (const char**)r_cstl_heap_alloc (elementCount * sizeof (const char*));
     if (ppStrings == NULL)
     {
         if (pOutCount)
@@ -104,7 +104,7 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* pString = NULL;
-        R_CSTL_ArrayTypedAt (pStringArray, const char*, i, &pString);
+        r_cstl_array_typed_at (pStringArray, const char*, i, &pString);
         ppStrings[i] = pString;
     }
 
@@ -116,13 +116,13 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
 }
 
 static void
-R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
+r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions)
 {
     if (pExtensions == NULL)
     {
         return;
     }
-    size_t length = R_CSTL_ArrayLength (pExtensions);
+    size_t length = r_cstl_array_length (pExtensions);
     size_t elementCount = length / sizeof (const char*);
 
     R_CSTL_LOG_DEBUG ("Device Extensions (%zu):", elementCount);
@@ -130,7 +130,7 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* ext = NULL;
-        R_CSTL_ArrayTypedAt (pExtensions, const char*, i, &ext);
+        r_cstl_array_typed_at (pExtensions, const char*, i, &ext);
         if (ext)
         {
             R_CSTL_LOG_DEBUG ("  - %s", ext);
@@ -139,12 +139,12 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_BuildDeviceExtensions (struct R_CSTL_Array** ppExtensions, VkPhysicalDevice physicalDevice)
+r_cvulkan_build_device_extensions (struct r_cstl_array** ppExtensions, VkPhysicalDevice physicalDevice)
 {
     R_CVULKAN_ASSERT (ppExtensions);
     R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
 
-    struct R_CSTL_Array* pExtensions = R_CSTL_NewArray ();
+    struct r_cstl_array* pExtensions = r_cstl_new_array ();
     if (pExtensions == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -153,44 +153,44 @@ R_CVulkan_BuildDeviceExtensions (struct R_CSTL_Array** ppExtensions, VkPhysicalD
 #if !defined(R_CVULKAN_HEADLESS)
     for (uint32_t i = 0; i < g_deviceExtensionCount; ++i)
     {
-        R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&g_deviceExtensions[i], sizeof (const char*));
+        r_cstl_array_push_data (pExtensions, (const uint8_t*)&g_deviceExtensions[i], sizeof (const char*));
     }
 #endif
 
     for (uint32_t i = 0; i < g_optionalDeviceExtensionCount; ++i)
     {
         bool                 isAvailable = false;
-        enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
+        enum R_CVulkan_Error err = r_cvulkan_check_extension_availability (
             g_optionalDeviceExtensions[i],
             physicalDevice,
             &isAvailable);
         if (err != R_CVULKAN_OK)
         {
-            R_CSTL_DeleteArray (pExtensions);
+            r_cstl_delete_array (pExtensions);
             return err;
         }
 
         if (isAvailable)
         {
             R_CSTL_LOG_DEBUG ("Optional device extension available: %s", g_optionalDeviceExtensions[i]);
-            R_CSTL_ArrayPushData (
+            r_cstl_array_push_data (
                 pExtensions,
                 (const uint8_t*)&g_optionalDeviceExtensions[i],
                 sizeof (const char*));
         }
     }
     *ppExtensions = pExtensions;
-    R_CVulkan_LogExtensionList (pExtensions);
+    r_cvulkan_log_extension_list (pExtensions);
     return R_CVULKAN_OK;
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_SelectPhysicalDevice (
+r_cvulkan_select_physical_device (
     const struct R_CVulkan_Instance* pInstance,
     struct R_CVulkan_Device*         pDevice,
     VkSurfaceKHR                     surface)
 {
-    VkInstance vkInstance = R_CVulkan_InstanceGetHandle (pInstance);
+    VkInstance vkInstance = r_cvulkan_instance_get_handle (pInstance);
     uint32_t   deviceCount = 0;
     vkEnumeratePhysicalDevices (vkInstance, &deviceCount, NULL);
     if (deviceCount == 0)
@@ -199,7 +199,7 @@ R_CVulkan_SelectPhysicalDevice (
         return R_CVULKAN_ERROR_PHYSICAL_DEVICE_NOT_FOUND;
     }
 
-    VkPhysicalDevice* devices = (VkPhysicalDevice*)R_CSTL_HeapAlloc (deviceCount * sizeof (VkPhysicalDevice));
+    VkPhysicalDevice* devices = (VkPhysicalDevice*)r_cstl_heap_alloc (deviceCount * sizeof (VkPhysicalDevice));
     if (devices == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -208,18 +208,18 @@ R_CVulkan_SelectPhysicalDevice (
     vkEnumeratePhysicalDevices (vkInstance, &deviceCount, devices);
     R_CSTL_LOG_INFO ("Found %u physical device(s)", deviceCount);
 
-    struct R_CVulkan_QueueFamilyIndices indices;
+    struct r_cvulkan_queue_family_indices indices;
     bool                                deviceFound = false;
 
     for (uint32_t i = 0; i < deviceCount; ++i)
     {
-        enum R_CVulkan_Error err = R_CVulkan_DeviceFindQueueFamilies (devices[i], surface, &indices);
+        enum R_CVulkan_Error err = r_cvulkan_device_find_queue_families (devices[i], surface, &indices);
         if (err != R_CVULKAN_OK)
         {
             continue;
         }
 
-        if (R_CVulkan_QueueFamilyIndicesIsComplete (&indices))
+        if (r_cvulkan_queue_family_indices_is_complete (&indices))
         {
             pDevice->physicalDevice = devices[i];
             deviceFound = true;
@@ -228,7 +228,7 @@ R_CVulkan_SelectPhysicalDevice (
         }
     }
 
-    R_CSTL_HeapFree (devices);
+    r_cstl_heap_free (devices);
 
     if (!deviceFound)
     {
@@ -240,54 +240,54 @@ R_CVulkan_SelectPhysicalDevice (
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_CreateLogicalDevice (struct R_CVulkan_Device* pDevice, VkSurfaceKHR surface)
+r_cvulkan_create_logical_device (struct R_CVulkan_Device* pDevice, VkSurfaceKHR surface)
 {
     enum R_CVulkan_Error result = R_CVULKAN_OK;
 
-    struct R_CVulkan_QueueFamilyIndices indices;
-    result = R_CVulkan_DeviceFindQueueFamilies (pDevice->physicalDevice, surface, &indices);
+    struct r_cvulkan_queue_family_indices indices;
+    result = r_cvulkan_device_find_queue_families (pDevice->physicalDevice, surface, &indices);
     if (result != R_CVULKAN_OK)
     {
         return result;
     }
-    struct R_CSTL_Array* queueCreateInfos = R_CSTL_NewArray ();
-    struct R_CSTL_Array* uniqueQueueFamilies = R_CSTL_NewArray ();
+    struct r_cstl_array* queueCreateInfos = r_cstl_new_array ();
+    struct r_cstl_array* uniqueQueueFamilies = r_cstl_new_array ();
 
     if (indices.graphicsFamily == indices.presentFamily)
     {
-        R_CSTL_ArrayPushData (
+        r_cstl_array_push_data (
             uniqueQueueFamilies,
             (const uint8_t*)&indices.graphicsFamily,
             sizeof (uint32_t));
     }
     else
     {
-        R_CSTL_ArrayPushData (
+        r_cstl_array_push_data (
             uniqueQueueFamilies,
             (const uint8_t*)&indices.graphicsFamily,
             sizeof (uint32_t));
-        R_CSTL_ArrayPushData (uniqueQueueFamilies, (const uint8_t*)&indices.presentFamily, sizeof (uint32_t));
+        r_cstl_array_push_data (uniqueQueueFamilies, (const uint8_t*)&indices.presentFamily, sizeof (uint32_t));
     }
 
     float queuePriority = 1.0f;
-    for (uint32_t i = 0; i < R_CSTL_ArrayLength (uniqueQueueFamilies) / sizeof (uint32_t); ++i)
+    for (uint32_t i = 0; i < r_cstl_array_length (uniqueQueueFamilies) / sizeof (uint32_t); ++i)
     {
         VkDeviceQueueCreateInfo queueCreateInfo = {0};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         uint32_t familyIndex = 0;
-        R_CSTL_ArrayTypedAt (uniqueQueueFamilies, uint32_t, i, &familyIndex);
+        r_cstl_array_typed_at (uniqueQueueFamilies, uint32_t, i, &familyIndex);
         queueCreateInfo.queueFamilyIndex = familyIndex;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
-        R_CSTL_ArrayPushData (
+        r_cstl_array_push_data (
             queueCreateInfos,
             (const uint8_t*)&queueCreateInfo,
             sizeof (VkDeviceQueueCreateInfo));
     }
     VkPhysicalDeviceFeatures deviceFeatures = {0};
 
-    struct R_CSTL_Array* pExtensions = NULL;
-    result = R_CVulkan_BuildDeviceExtensions (&pExtensions, pDevice->physicalDevice);
+    struct r_cstl_array* pExtensions = NULL;
+    result = r_cvulkan_build_device_extensions (&pExtensions, pDevice->physicalDevice);
     if (result != R_CVULKAN_OK)
     {
         return result;
@@ -295,13 +295,13 @@ R_CVulkan_CreateLogicalDevice (struct R_CVulkan_Device* pDevice, VkSurfaceKHR su
 
     VkDeviceCreateInfo deviceCreateInfo = {0};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.pQueueCreateInfos = (VkDeviceQueueCreateInfo*)R_CSTL_ArrayData (queueCreateInfos);
+    deviceCreateInfo.pQueueCreateInfos = (VkDeviceQueueCreateInfo*)r_cstl_array_data (queueCreateInfos);
     deviceCreateInfo.queueCreateInfoCount
-        = R_CSTL_ArrayLength (queueCreateInfos) / sizeof (VkDeviceQueueCreateInfo);
+        = r_cstl_array_length (queueCreateInfos) / sizeof (VkDeviceQueueCreateInfo);
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
     size_t       extensionCount = 0;
-    const char** ppExtensionNames = R_CVulkan_StringArrayExtensionsData (pExtensions, &extensionCount);
+    const char** ppExtensionNames = r_cvulkan_string_array_extensions_data (pExtensions, &extensionCount);
 
     deviceCreateInfo.enabledExtensionCount = (uint32_t)extensionCount;
     deviceCreateInfo.ppEnabledExtensionNames = ppExtensionNames;
@@ -310,23 +310,23 @@ R_CVulkan_CreateLogicalDevice (struct R_CVulkan_Device* pDevice, VkSurfaceKHR su
 
     VkResult result1
         = vkCreateDevice (pDevice->physicalDevice, &deviceCreateInfo, NULL, &pDevice->logicalDevice);
-    R_CSTL_HeapFree (ppExtensionNames);
-    R_CSTL_DeleteArray (pExtensions);
+    r_cstl_heap_free (ppExtensionNames);
+    r_cstl_delete_array (pExtensions);
 
-    R_CSTL_DeleteArray (queueCreateInfos);
-    R_CSTL_DeleteArray (uniqueQueueFamilies);
+    r_cstl_delete_array (queueCreateInfos);
+    r_cstl_delete_array (uniqueQueueFamilies);
 
     if (result1 != VK_SUCCESS)
     {
         R_CSTL_LOG_ERROR ("Failed to create logical device: %d", result1);
-        return R_CVulkan_ResultToError (result1);
+        return r_cvulkan_result_to_error (result1);
     }
 
     return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo)
+R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct r_cvulkan_device_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pDevice);
     R_CVULKAN_ASSERT (pCreateInfo);
@@ -346,7 +346,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     if (pCreateInfo->pSurface)
     {
-        surface = R_CVulkan_SurfaceGetHandle (pCreateInfo->pSurface);
+        surface = r_cvulkan_surface_get_handle (pCreateInfo->pSurface);
         if (surface == VK_NULL_HANDLE)
         {
             R_CSTL_LOG_ERROR ("Surface provided but handle is NULL. Check surface initialization.");
@@ -366,17 +366,17 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 #endif
 
-    result = R_CVulkan_SelectPhysicalDevice (pCreateInfo->pInstance, pDevice, surface);
+    result = r_cvulkan_select_physical_device (pCreateInfo->pInstance, pDevice, surface);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to select physical device: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to select physical device: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
 
-    result = R_CVulkan_CreateLogicalDevice (pDevice, surface);
+    result = r_cvulkan_create_logical_device (pDevice, surface);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create logical device: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to create logical device: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
 
@@ -384,18 +384,18 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
 
 #endif
 
-    struct R_CVulkan_QueueFamilyIndices indices;
-    result = R_CVulkan_DeviceFindQueueFamilies (pDevice->physicalDevice, surface, &indices);
+    struct r_cvulkan_queue_family_indices indices;
+    result = r_cvulkan_device_find_queue_families (pDevice->physicalDevice, surface, &indices);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to find queue families: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to find queue families: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
 
     result = R_CVulkan_NewQueue (&pDevice->graphicsQueue, pDevice, indices.graphicsFamily, 0);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create graphics queue: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to create graphics queue: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
 
@@ -403,7 +403,7 @@ R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_De
     result = R_CVulkan_NewQueue (&pDevice->presentQueue, pDevice, indices.presentFamily, 0);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to create present queue: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to create present queue: %s", r_cvulkan_error_to_string (result));
         R_CVulkan_DeleteQueue (&pDevice->graphicsQueue);
         goto cvulkan_cleanup;
     }
@@ -452,7 +452,7 @@ R_CVulkan_DeleteDevice (struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API const struct R_CVulkan_Instance*
-R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_instance (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -461,7 +461,7 @@ R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API VkPhysicalDevice
-R_CVulkan_DeviceGetPhysicalDevice (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_physical_device (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -470,7 +470,7 @@ R_CVulkan_DeviceGetPhysicalDevice (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_DeviceGetLogicalDevice (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_logical_device (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -479,7 +479,7 @@ R_CVulkan_DeviceGetLogicalDevice (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API struct R_CVulkan_Queue*
-R_CVulkan_DeviceGetGraphicsQueue (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_graphics_queue (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -488,7 +488,7 @@ R_CVulkan_DeviceGetGraphicsQueue (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API struct R_CVulkan_Queue*
-R_CVulkan_DeviceGetPresentQueue (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_present_queue (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -497,7 +497,7 @@ R_CVulkan_DeviceGetPresentQueue (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API VkSurfaceKHR
-R_CVulkan_DeviceGetSurface (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_get_surface (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -506,10 +506,10 @@ R_CVulkan_DeviceGetSurface (const struct R_CVulkan_Device* pDevice)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DeviceFindQueueFamilies (
+r_cvulkan_device_find_queue_families (
     VkPhysicalDevice                     physicalDevice,
     VkSurfaceKHR                         surface,
-    struct R_CVulkan_QueueFamilyIndices* pOutIndices)
+    struct r_cvulkan_queue_family_indices* pOutIndices)
 {
     R_CVULKAN_ASSERT (pOutIndices);
     R_CVULKAN_ASSERT (physicalDevice != VK_NULL_HANDLE);
@@ -520,7 +520,7 @@ R_CVulkan_DeviceFindQueueFamilies (
         return R_CVULKAN_ERROR_NULL_POINTER;
     }
 #endif
-    memset (pOutIndices, 0, sizeof (struct R_CVulkan_QueueFamilyIndices));
+    memset (pOutIndices, 0, sizeof (struct r_cvulkan_queue_family_indices));
 
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties (physicalDevice, &queueFamilyCount, NULL);
@@ -531,7 +531,7 @@ R_CVulkan_DeviceFindQueueFamilies (
     }
 
     VkQueueFamilyProperties* queueFamilies
-        = (VkQueueFamilyProperties*)R_CSTL_HeapAlloc (queueFamilyCount * sizeof (VkQueueFamilyProperties));
+        = (VkQueueFamilyProperties*)r_cstl_heap_alloc (queueFamilyCount * sizeof (VkQueueFamilyProperties));
     if (queueFamilies == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -575,15 +575,15 @@ R_CVulkan_DeviceFindQueueFamilies (
         pOutIndices->hasPresentFamily = pOutIndices->hasGraphicsFamily;
 #endif
 
-        if (R_CVulkan_QueueFamilyIndicesIsComplete (pOutIndices))
+        if (r_cvulkan_queue_family_indices_is_complete (pOutIndices))
         {
             break;
         }
     }
 
-    R_CSTL_HeapFree (queueFamilies);
+    r_cstl_heap_free (queueFamilies);
 
-    if (!R_CVulkan_QueueFamilyIndicesIsComplete (pOutIndices))
+    if (!r_cvulkan_queue_family_indices_is_complete (pOutIndices))
     {
         return R_CVULKAN_ERROR_QUEUE_FAMILY_NOT_FOUND;
     }
@@ -592,7 +592,7 @@ R_CVulkan_DeviceFindQueueFamilies (
 }
 
 R_CVULKAN_API int
-R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndices* pIndices)
+r_cvulkan_queue_family_indices_is_complete (const struct r_cvulkan_queue_family_indices* pIndices)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pIndices);
@@ -602,7 +602,7 @@ R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndice
 }
 
 R_CVULKAN_API int
-R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice)
+r_cvulkan_device_is_dynamic_rendering_supported (const struct R_CVulkan_Device* pDevice)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pDevice);
@@ -628,7 +628,7 @@ R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDev
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DeviceQueryExtensionSupport (
+r_cvulkan_device_query_extension_support (
     const struct R_CVulkan_Device* pDevice,
     const char*                    pExtensionName,
     bool*                          pIsSupported)
@@ -656,7 +656,7 @@ R_CVulkan_DeviceQueryExtensionSupport (
         = vkEnumerateDeviceExtensionProperties (pDevice->physicalDevice, NULL, &extensionCount, NULL);
     if (result != VK_SUCCESS)
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 
     if (extensionCount == 0)
@@ -665,7 +665,7 @@ R_CVulkan_DeviceQueryExtensionSupport (
     }
 
     VkExtensionProperties* extensions
-        = (VkExtensionProperties*)R_CSTL_HeapAlloc (extensionCount * sizeof (VkExtensionProperties));
+        = (VkExtensionProperties*)r_cstl_heap_alloc (extensionCount * sizeof (VkExtensionProperties));
     if (extensions == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -675,8 +675,8 @@ R_CVulkan_DeviceQueryExtensionSupport (
         = vkEnumerateDeviceExtensionProperties (pDevice->physicalDevice, NULL, &extensionCount, extensions);
     if (result != VK_SUCCESS)
     {
-        R_CSTL_HeapFree (extensions);
-        return R_CVulkan_ResultToError (result);
+        r_cstl_heap_free (extensions);
+        return r_cvulkan_result_to_error (result);
     }
 
     for (uint32_t i = 0; i < extensionCount; ++i)
@@ -688,12 +688,12 @@ R_CVulkan_DeviceQueryExtensionSupport (
         }
     }
 
-    R_CSTL_HeapFree (extensions);
+    r_cstl_heap_free (extensions);
     return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DeviceQueryFeatureSupport (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure)
+r_cvulkan_device_query_feature_support (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure)
 {
     R_CVULKAN_ASSERT (pDevice);
     R_CVULKAN_ASSERT (pFeatureStructure);

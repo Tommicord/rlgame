@@ -11,7 +11,7 @@
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_Array;
+struct r_cstl_array;
 
 /**
  * @brief Create an empty array
@@ -21,10 +21,10 @@ struct R_CSTL_Array;
  *
  * @return Pointer to new array, or NULL on allocation failure.
  *
- * @note The array must be freed with R_CSTL_DeleteArray when no longer needed.
+ * @note The array must be freed with r_cstl_delete_array when no longer needed.
  * @note Thread-safe: each array instance is independent.
  */
-R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArray (void);
+R_CSTL_API struct r_cstl_array* r_cstl_new_array (void);
 
 /**
  * @brief Create an array with pre-reserved capacity
@@ -39,7 +39,7 @@ R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArray (void);
  * @note The array length is 0; use push/unshift to add data.
  * @note The actual capacity may be larger than requested due to alignment.
  */
-R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithCapacity (size_t capacityBytes);
+R_CSTL_API struct r_cstl_array* r_cstl_new_array_with_capacity (size_t capacityBytes);
 
 /**
  * @brief Create an array with specified length, zero-initialized
@@ -52,7 +52,7 @@ R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithCapacity (size_t capacityByte
  * @note All bytes are initialized to 0.
  * @note The capacity will be at least lengthBytes.
  */
-R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithLengthZeroed (size_t lengthBytes);
+R_CSTL_API struct r_cstl_array* r_cstl_new_array_with_length_zeroed (size_t lengthBytes);
 
 /**
  * @brief Create an array with specified length, uninitialized
@@ -66,7 +66,7 @@ R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithLengthZeroed (size_t lengthBy
  * @warning Data is uninitialized; reading before writing is undefined behavior.
  * @note In debug mode, memory may be poisoned with 0xCD.
  */
-R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithLength (size_t lengthBytes);
+R_CSTL_API struct r_cstl_array* r_cstl_new_array_with_length (size_t lengthBytes);
 
 /**
  * @brief Create an array from existing data
@@ -80,7 +80,7 @@ R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithLength (size_t lengthBytes);
  * @note The data is copied; the original buffer is not modified.
  * @note If pData is NULL and lengthBytes > 0, returns NULL.
  */
-R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithData (const uint8_t* pData, size_t lengthBytes);
+R_CSTL_API struct r_cstl_array* r_cstl_new_array_with_data (const uint8_t* pData, size_t lengthBytes);
 
 /**
  * @brief Delete an array and free its resources
@@ -92,7 +92,7 @@ R_CSTL_API struct R_CSTL_Array* R_CSTL_NewArrayWithData (const uint8_t* pData, s
  * @note After this call, the pointer becomes invalid and must not be used.
  * @note Thread-safe: each array instance is independent.
  */
-R_CSTL_API void R_CSTL_DeleteArray (struct R_CSTL_Array* pArray);
+R_CSTL_API void r_cstl_delete_array (struct r_cstl_array* pArray);
 
 /**
  * @brief Reserve capacity without changing length
@@ -107,7 +107,7 @@ R_CSTL_API void R_CSTL_DeleteArray (struct R_CSTL_Array* pArray);
  * @note The array length is unchanged.
  * @note May trigger reallocation and data copying.
  */
-R_CSTL_API int R_CSTL_ArrayRevBytes (struct R_CSTL_Array* pArray, size_t capacityBytes);
+R_CSTL_API int r_cstl_array_rev_bytes (struct r_cstl_array* pArray, size_t capacityBytes);
 
 /**
  * @brief Push a byte to the end of the array
@@ -121,7 +121,7 @@ R_CSTL_API int R_CSTL_ArrayRevBytes (struct R_CSTL_Array* pArray, size_t capacit
  * @note May trigger reallocation and data copying.
  * @note Uses SIMD-optimized copy when reallocating.
  */
-R_CSTL_API int R_CSTL_ArrayPush (struct R_CSTL_Array* pArray, uint8_t value);
+R_CSTL_API int r_cstl_array_push (struct r_cstl_array* pArray, uint8_t value);
 
 /**
  * @brief Push data with size to the end of the array
@@ -136,7 +136,7 @@ R_CSTL_API int R_CSTL_ArrayPush (struct R_CSTL_Array* pArray, uint8_t value);
  * @note May trigger reallocation and data copying.
  * @note Uses SIMD-optimized copy when reallocating.
  */
-R_CSTL_API int R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t* pData, size_t size);
+R_CSTL_API int r_cstl_array_push_data (struct r_cstl_array* pArray, const uint8_t* pData, size_t size);
 
 /**
  * @brief Pop a byte from the end of the array
@@ -150,7 +150,7 @@ R_CSTL_API int R_CSTL_ArrayPushData (struct R_CSTL_Array* pArray, const uint8_t*
  * @note Decrements array length by 1.
  * @note Does not reduce capacity.
  */
-R_CSTL_API int R_CSTL_ArrayPop (struct R_CSTL_Array* pArray, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_array_pop (struct r_cstl_array* pArray, uint8_t* pOutValue);
 
 /**
  * @brief Shift a byte from the beginning of the array
@@ -165,7 +165,7 @@ R_CSTL_API int R_CSTL_ArrayPop (struct R_CSTL_Array* pArray, uint8_t* pOutValue)
  * @note This is O(n) operation as it requires shifting all elements.
  * @note Decrements array length by 1.
  */
-R_CSTL_API int R_CSTL_ArrayShift (struct R_CSTL_Array* pArray, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_array_shift (struct r_cstl_array* pArray, uint8_t* pOutValue);
 
 /**
  * @brief Unshift a byte to the beginning of the array
@@ -180,7 +180,7 @@ R_CSTL_API int R_CSTL_ArrayShift (struct R_CSTL_Array* pArray, uint8_t* pOutValu
  * @note This is O(n) operation as it requires shifting all elements.
  * @note May trigger reallocation and data copying.
  */
-R_CSTL_API int R_CSTL_ArrayUnshift (struct R_CSTL_Array* pArray, uint8_t value);
+R_CSTL_API int r_cstl_array_unshift (struct r_cstl_array* pArray, uint8_t value);
 
 /**
  * @brief Create a slice of the array
@@ -197,8 +197,8 @@ R_CSTL_API int R_CSTL_ArrayUnshift (struct R_CSTL_Array* pArray, uint8_t value);
  * @note If start >= end, returns an empty array.
  * @note If start or end are out of bounds, returns NULL.
  */
-R_CSTL_API struct R_CSTL_Array*
-R_CSTL_ArraySlice (const struct R_CSTL_Array* pArray, size_t start, size_t end);
+R_CSTL_API struct r_cstl_array*
+r_cstl_array_slice (const struct r_cstl_array* pArray, size_t start, size_t end);
 
 /**
  * @brief Get pointer to array data
@@ -211,7 +211,7 @@ R_CSTL_ArraySlice (const struct R_CSTL_Array* pArray, size_t start, size_t end);
  * @warning The pointer becomes invalid if the array is modified or deleted.
  * @note For empty arrays, returns NULL.
  */
-R_CSTL_API const uint8_t* R_CSTL_ArrayData (const struct R_CSTL_Array* pArray);
+R_CSTL_API const uint8_t* r_cstl_array_data (const struct r_cstl_array* pArray);
 
 /**
  * @brief Get the current length of the array
@@ -221,7 +221,7 @@ R_CSTL_API const uint8_t* R_CSTL_ArrayData (const struct R_CSTL_Array* pArray);
  * @param pArray Pointer to array.
  * @return Length in bytes, or 0 if array is NULL or invalid.
  */
-R_CSTL_API size_t R_CSTL_ArrayLength (const struct R_CSTL_Array* pArray);
+R_CSTL_API size_t r_cstl_array_length (const struct r_cstl_array* pArray);
 
 /**
  * @brief Get the current capacity of the array
@@ -234,7 +234,7 @@ R_CSTL_API size_t R_CSTL_ArrayLength (const struct R_CSTL_Array* pArray);
  * @note Capacity is always >= length.
  * @note Capacity may be larger than length due to growth strategy.
  */
-R_CSTL_API size_t R_CSTL_ArrayGetCapacity (const struct R_CSTL_Array* pArray);
+R_CSTL_API size_t r_cstl_array_get_capacity (const struct r_cstl_array* pArray);
 
 /**
  * @brief Get a byte at a specific index with bounds checking
@@ -247,9 +247,9 @@ R_CSTL_API size_t R_CSTL_ArrayGetCapacity (const struct R_CSTL_Array* pArray);
  * @return R_CSTL_OK on success, R_CSTL_ERROR_INDEX_OUT_OF_BOUNDS if invalid.
  *
  * @note This function performs bounds checking.
- * @note For performance-critical code, use R_CSTL_ArrayUncheckedAt.
+ * @note For performance-critical code, use r_cstl_array_unchecked_at.
  */
-R_CSTL_API int R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_array_at (const struct r_cstl_array* pArray, size_t index, uint8_t* pOutValue);
 
 /**
  * @brief Get a byte at a specific index without bounds checking
@@ -263,9 +263,9 @@ R_CSTL_API int R_CSTL_ArrayAt (const struct R_CSTL_Array* pArray, size_t index, 
  *
  * @warning No bounds checking; undefined behavior if index >= length.
  * @note Use only when you can guarantee the index is valid.
- * @note This is faster than R_CSTL_ArrayAt for tight loops.
+ * @note This is faster than r_cstl_array_at for tight loops.
  */
-R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_t index, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_array_unchecked_at (const struct r_cstl_array* pArray, size_t index, uint8_t* pOutValue);
 
 /**
  * @brief Clear the array contents
@@ -279,7 +279,7 @@ R_CSTL_API int R_CSTL_ArrayUncheckedAt (const struct R_CSTL_Array* pArray, size_
  * @note Length is set to 0; capacity is unchanged.
  * @note Does not free the buffer.
  */
-R_CSTL_API int R_CSTL_ArrayClear (struct R_CSTL_Array* pArray, int zeroMemory);
+R_CSTL_API int r_cstl_array_clear (struct r_cstl_array* pArray, int zeroMemory);
 
 /**
  * @brief Fill the array's current length with a byte value
@@ -293,7 +293,7 @@ R_CSTL_API int R_CSTL_ArrayClear (struct R_CSTL_Array* pArray, int zeroMemory);
  * @note Only fills up to the current length, not the entire capacity.
  * @note Does not change the array length.
  */
-R_CSTL_API int R_CSTL_ArrayFill (struct R_CSTL_Array* pArray, uint8_t value);
+R_CSTL_API int r_cstl_array_fill (struct r_cstl_array* pArray, uint8_t value);
 
 /**
  * @brief Built-in comparator for 8-bit unsigned integers
@@ -305,7 +305,7 @@ R_CSTL_API int R_CSTL_ArrayFill (struct R_CSTL_Array* pArray, uint8_t value);
  * @param pData User context (unused, can be NULL).
  * @return -1 if left < right, 0 if equal, 1 if left > right.
  */
-R_CSTL_API int R_CSTL_ArrayCompareU8 (const void* pLeft, const void* pRight, void* pData);
+R_CSTL_API int r_cstl_array_compare_u8 (const void* pLeft, const void* pRight, void* pData);
 
 /**
  * @brief Built-in comparator for 16-bit unsigned integers
@@ -317,7 +317,7 @@ R_CSTL_API int R_CSTL_ArrayCompareU8 (const void* pLeft, const void* pRight, voi
  * @param pData User context (unused, can be NULL).
  * @return -1 if left < right, 0 if equal, 1 if left > right.
  */
-R_CSTL_API int R_CSTL_ArrayCompareU16 (const void* pLeft, const void* pRight, void* pData);
+R_CSTL_API int r_cstl_array_compare_u16 (const void* pLeft, const void* pRight, void* pData);
 
 /**
  * @brief Built-in comparator for 32-bit unsigned integers
@@ -329,7 +329,7 @@ R_CSTL_API int R_CSTL_ArrayCompareU16 (const void* pLeft, const void* pRight, vo
  * @param pData User context (unused, can be NULL).
  * @return -1 if left < right, 0 if equal, 1 if left > right.
  */
-R_CSTL_API int R_CSTL_ArrayCompareU32 (const void* pLeft, const void* pRight, void* pData);
+R_CSTL_API int r_cstl_array_compare_u32 (const void* pLeft, const void* pRight, void* pData);
 
 /**
  * @brief Built-in comparator for 64-bit unsigned integers
@@ -341,7 +341,7 @@ R_CSTL_API int R_CSTL_ArrayCompareU32 (const void* pLeft, const void* pRight, vo
  * @param pData User context (unused, can be NULL).
  * @return -1 if left < right, 0 if equal, 1 if left > right.
  */
-R_CSTL_API int R_CSTL_ArrayCompareU64 (const void* pLeft, const void* pRight, void* pData);
+R_CSTL_API int r_cstl_array_compare_u64 (const void* pLeft, const void* pRight, void* pData);
 
 /**
  * @brief Sort the array as a sequence of elements
@@ -357,13 +357,13 @@ R_CSTL_API int R_CSTL_ArrayCompareU64 (const void* pLeft, const void* pRight, vo
  * @return R_CSTL_OK on success, error code on failure.
  *
  * @note For primitive types (1/2/4/8 bytes), uses typed fast paths with built-in comparators.
- * @note For uint8_t arrays with R_CSTL_ArrayCompareU8, uses counting sort (O(n)).
+ * @note For uint8_t arrays with r_cstl_array_compare_u8, uses counting sort (O(n)).
  * @note Larger elements use SIMD-optimized moves.
  * @note Comparator returns: negative if left < right, 0 if equal, positive if left > right.
  * @note Array length must be a multiple of elemSize.
  */
-R_CSTL_API int R_CSTL_ArraySort (
-    struct R_CSTL_Array* pArray,
+R_CSTL_API int r_cstl_array_sort (
+    struct r_cstl_array* pArray,
     uint8_t              elemSize,
     int (*pComparator) (const void* pLeft, const void* pRight, void* pData),
     void* pData);
@@ -378,15 +378,15 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @param index Index of the element to read.
  * @param pOutValue Pointer to receive the value.
  *
- * @note This macro performs bounds checking via R_CSTL_ArrayAt.
+ * @note This macro performs bounds checking via r_cstl_array_at.
  */
-#define R_CSTL_ArrayTypedAt(pArray, Type, index, pOutValue)                                                  \
+#define r_cstl_array_typed_at(pArray, Type, index, pOutValue)                                                  \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
         size_t         _offset = (index) * sizeof (Type);                                                    \
-        const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                   \
-        if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                          \
+        const uint8_t* _pData = r_cstl_array_data (pArray);                                                   \
+        if (_offset + sizeof (Type) <= r_cstl_array_length (pArray))                                          \
         {                                                                                                    \
             memcpy (&_temp, _pData + _offset, sizeof (Type));                                                \
         }                                                                                                    \
@@ -409,12 +409,12 @@ R_CSTL_API int R_CSTL_ArraySort (
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
  */
-#define R_CSTL_ArrayTypedUncheckedAt(pArray, Type, index, pOutValue)                                         \
+#define r_cstl_array_typed_unchecked_at(pArray, Type, index, pOutValue)                                         \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
         size_t         _offset = (index) * sizeof (Type);                                                    \
-        const uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                   \
+        const uint8_t* _pData = r_cstl_array_data (pArray);                                                   \
         memcpy (&_temp, _pData + _offset, sizeof (Type));                                                    \
         memcpy (pOutValue, &_temp, sizeof (Type));                                                           \
     } while (0)
@@ -432,13 +432,13 @@ R_CSTL_API int R_CSTL_ArraySort (
  * @note This macro performs bounds checking before writing.
  * @note Returns 0 on success, -1 if index is out of bounds.
  */
-#define R_CSTL_ArrayTypedSetAt(pArray, Type, index, pValue)                                                  \
+#define r_cstl_array_typed_set_at(pArray, Type, index, pValue)                                                  \
     do                                                                                                       \
     {                                                                                                        \
         size_t _offset = (index) * sizeof (Type);                                                            \
-        if (_offset + sizeof (Type) <= R_CSTL_ArrayLength (pArray))                                          \
+        if (_offset + sizeof (Type) <= r_cstl_array_length (pArray))                                          \
         {                                                                                                    \
-            uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                     \
+            uint8_t* _pData = r_cstl_array_data (pArray);                                                     \
             memcpy (_pData + _offset, pValue, sizeof (Type));                                                \
         }                                                                                                    \
     } while (0)
@@ -455,10 +455,10 @@ R_CSTL_API int R_CSTL_ArraySort (
  *
  * @warning No bounds checking; undefined behavior if index is invalid.
  */
-#define R_CSTL_ArrayTypedSetAtUnchecked(pArray, Type, index, pValue)                                         \
+#define r_cstl_array_typed_set_at_unchecked(pArray, Type, index, pValue)                                         \
     do                                                                                                       \
     {                                                                                                        \
         size_t   _offset = (index) * sizeof (Type);                                                          \
-        uint8_t* _pData = R_CSTL_ArrayData (pArray);                                                         \
+        uint8_t* _pData = r_cstl_array_data (pArray);                                                         \
         memcpy (_pData + _offset, pValue, sizeof (Type));                                                    \
     } while (0)

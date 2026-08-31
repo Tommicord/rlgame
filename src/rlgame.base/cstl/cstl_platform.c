@@ -1,7 +1,7 @@
 #include "rlgame.base/cstl/cstl_platform.h"
 
 const char*
-R_CSTL_ErrorToString (int error)
+r_cstl_error_to_string (int error)
 {
     switch (error)
     {

@@ -11,7 +11,7 @@ struct R_CVulkan_Device;
 /**
  * @brief Settingsuration parameters for sampler creation
  */
-struct R_CVulkan_SamplerCreateInfo
+struct r_cvulkan_sampler_create_info
 {
         const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
         VkFilter                       magFilter; /**< Magnification filter */
@@ -46,7 +46,7 @@ struct R_CVulkan_Sampler
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*                 pSampler,
-    const struct R_CVulkan_SamplerCreateInfo* pCreateInfo);
+    const struct r_cvulkan_sampler_create_info* pCreateInfo);
 
 /**
  * @brief Deletes a sampler and destroy the Vulkan object
@@ -59,18 +59,18 @@ R_CVULKAN_API void R_CVulkan_DeleteSampler (struct R_CVulkan_Sampler* pSampler);
  * @param pSampler Pointer to sampler
  * @return Vulkan sampler handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkSampler R_CVulkan_SamplerGetHandle (const struct R_CVulkan_Sampler* pSampler);
+R_CVULKAN_API VkSampler r_cvulkan_sampler_get_handle (const struct R_CVulkan_Sampler* pSampler);
 
 /**
  * @brief Get the associated device
  * @param pSampler Pointer to sampler
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_SamplerGetDevice (const struct R_CVulkan_Sampler* pSampler);
+R_CVULKAN_API VkDevice r_cvulkan_sampler_get_device (const struct R_CVulkan_Sampler* pSampler);
 
 /**
  * @brief Check if the sampler is initialized
  * @param pSampler Pointer to sampler
  * @return 1 if initialized, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_SamplerIsInitialized (const struct R_CVulkan_Sampler* pSampler);
+R_CVULKAN_API int r_cvulkan_sampler_is_initialized (const struct R_CVulkan_Sampler* pSampler);

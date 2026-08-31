@@ -14,7 +14,7 @@ R_CVulkan_NewFence (struct R_CVulkan_Fence* pFence, const struct R_CVulkan_Devic
     R_CVULKAN_ASSERT (pFence);
     R_CVULKAN_ASSERT (pDevice);
 
-    pFence->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+    pFence->device = r_cvulkan_device_get_logical_device (pDevice);
     VkFenceCreateInfo fenceInfo = {0};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
@@ -49,7 +49,7 @@ R_CVulkan_FenceWait (
     R_CVULKAN_ASSERT (pFences);
     R_CVULKAN_ASSERT (fenceCount > 0);
     size_t   nativeFencesSize = fenceCount * sizeof (VkFence);
-    VkFence* nativeFences = (VkFence*)R_CSTL_HeapAlloc (nativeFencesSize);
+    VkFence* nativeFences = (VkFence*)r_cstl_heap_alloc (nativeFencesSize);
     if (!nativeFences)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -59,19 +59,19 @@ R_CVulkan_FenceWait (
     {
         if (pFences[i].handle == VK_NULL_HANDLE)
         {
-            R_CSTL_HeapFree (nativeFences);
+            r_cstl_heap_free (nativeFences);
             return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
         nativeFences[i] = pFences[i].handle;
     }
 
     VkResult result = vkWaitForFences (
-        R_CVulkan_DeviceGetLogicalDevice (pDevice),
+        r_cvulkan_device_get_logical_device (pDevice),
         fenceCount,
         nativeFences,
         waitAll ? VK_TRUE : VK_FALSE,
         timeout);
-    R_CSTL_HeapFree (nativeFences);
+    r_cstl_heap_free (nativeFences);
 
     if (result == VK_SUCCESS)
     {
@@ -83,7 +83,7 @@ R_CVulkan_FenceWait (
     }
     else
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 }
 
@@ -96,7 +96,7 @@ R_CVulkan_FenceReset (
     R_CVULKAN_ASSERT (pDevice);
     R_CVULKAN_ASSERT (pFences);
     R_CVULKAN_ASSERT (fenceCount > 0);
-    VkFence* nativeFences = (VkFence*)R_CSTL_HeapAlloc (fenceCount * sizeof (VkFence));
+    VkFence* nativeFences = (VkFence*)r_cstl_heap_alloc (fenceCount * sizeof (VkFence));
     if (!nativeFences)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -106,15 +106,15 @@ R_CVulkan_FenceReset (
     {
         if (pFences[i].handle == VK_NULL_HANDLE)
         {
-            R_CSTL_HeapFree (nativeFences);
+            r_cstl_heap_free (nativeFences);
             return R_CVULKAN_ERROR_NOT_INITIALIZED;
         }
         nativeFences[i] = pFences[i].handle;
     }
 
-    VkResult result = vkResetFences (R_CVulkan_DeviceGetLogicalDevice (pDevice), fenceCount, nativeFences);
+    VkResult result = vkResetFences (r_cvulkan_device_get_logical_device (pDevice), fenceCount, nativeFences);
 
-    R_CSTL_HeapFree (nativeFences);
+    r_cstl_heap_free (nativeFences);
 
     if (result == VK_SUCCESS)
     {
@@ -122,12 +122,12 @@ R_CVulkan_FenceReset (
     }
     else
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_FenceGetStatus (
+r_cvulkan_fence_get_status (
     const struct R_CVulkan_Device* pDevice,
     const struct R_CVulkan_Fence*  pFence,
     bool*                          pOutSignaled)
@@ -136,7 +136,7 @@ R_CVulkan_FenceGetStatus (
     R_CVULKAN_ASSERT (pFence);
     R_CVULKAN_ASSERT (pFence->handle);
     R_CVULKAN_ASSERT (pOutSignaled);
-    VkResult result = vkGetFenceStatus (R_CVulkan_DeviceGetLogicalDevice (pDevice), pFence->handle);
+    VkResult result = vkGetFenceStatus (r_cvulkan_device_get_logical_device (pDevice), pFence->handle);
 
     if (result == VK_SUCCESS)
     {
@@ -150,12 +150,12 @@ R_CVulkan_FenceGetStatus (
     }
     else
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 }
 
 R_CVULKAN_API VkFence
-R_CVulkan_FenceGetHandle (const struct R_CVulkan_Fence* pFence)
+r_cvulkan_fence_get_handle (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFence);
@@ -164,7 +164,7 @@ R_CVulkan_FenceGetHandle (const struct R_CVulkan_Fence* pFence)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_FenceGetDevice (const struct R_CVulkan_Fence* pFence)
+r_cvulkan_fence_get_device (const struct R_CVulkan_Fence* pFence)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFence);

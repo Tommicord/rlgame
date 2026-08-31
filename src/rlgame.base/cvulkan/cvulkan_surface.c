@@ -21,7 +21,7 @@
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
-    const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo)
+    const struct r_cvulkan_surface_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pSurface);
     R_CVULKAN_ASSERT (pCreateInfo);
@@ -34,7 +34,7 @@ R_CVulkan_NewSurface (
         R_CSTL_TRACE_SCOPE_EXIT ();
         return R_CVULKAN_ERROR_NOT_INITIALIZED;
     }
-    VkInstance instance = R_CVulkan_InstanceGetHandle (pCreateInfo->pInstance);
+    VkInstance instance = r_cvulkan_instance_get_handle (pCreateInfo->pInstance);
     if (instance == VK_NULL_HANDLE)
     {
         R_CSTL_LOG_ERROR ("Instance handle is NULL despite being marked as initialized.");
@@ -205,14 +205,14 @@ R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface)
 }
 
 R_CVULKAN_API VkSurfaceKHR
-R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface)
+r_cvulkan_surface_get_handle (const struct R_CVulkan_Surface* pSurface)
 {
     R_CVULKAN_ASSERT (pSurface);
     return pSurface->handle;
 }
 
 R_CVULKAN_API VkInstance
-R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface)
+r_cvulkan_surface_get_instance (const struct R_CVulkan_Surface* pSurface)
 {
     R_CVULKAN_ASSERT (pSurface);
     return pSurface->instance;

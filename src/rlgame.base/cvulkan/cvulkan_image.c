@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 enum R_CVulkan_Error
-R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_ImageCreateInfo* pCreateInfo)
+R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct r_cvulkan_image_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pImage);
     R_CVULKAN_ASSERT (pCreateInfo);
@@ -18,7 +18,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
     {
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
-    pImage->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
+    pImage->device = r_cvulkan_device_get_logical_device (pCreateInfo->device);
     pImage->width = pCreateInfo->extent.width;
     pImage->height = pCreateInfo->extent.height;
     pImage->mipLevels = pCreateInfo->mipLevels;
@@ -49,7 +49,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
         return R_CVULKAN_ERROR_IMAGE_CREATE_FAILED;
     }
 
-    enum R_CVulkan_Error error = R_CVulkan_MemoryAllocatorAllocateImageMemory (
+    enum R_CVulkan_Error error = r_cvulkan_memory_allocator_allocate_image_memory (
         pImage->device,
         pCreateInfo->physicalDevice,
         pImage->handle,
@@ -65,7 +65,7 @@ R_CVulkan_NewImage (struct R_CVulkan_Image* pImage, const struct R_CVulkan_Image
     result = vkBindImageMemory (pImage->device, pImage->handle, pImage->memory, 0);
     if (result != VK_SUCCESS)
     {
-        R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
+        r_cvulkan_memory_allocator_free_image_memory (pImage->device, pImage->memory);
         vkDestroyImage (pImage->device, pImage->handle, NULL);
         pImage->memory = VK_NULL_HANDLE;
         pImage->handle = VK_NULL_HANDLE;
@@ -86,7 +86,7 @@ void
 R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 {
     R_CVULKAN_ASSERT (pImage);
-    R_CVulkan_MemoryAllocatorFreeImageMemory (pImage->device, pImage->memory);
+    r_cvulkan_memory_allocator_free_image_memory (pImage->device, pImage->memory);
 
     vkDestroyImage (pImage->device, pImage->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
@@ -95,7 +95,7 @@ R_CVulkan_DeleteImage (struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_ImageTransitionLayout (
+r_cvulkan_image_transition_layout (
     struct R_CVulkan_Image* pImage,
     VkCommandBuffer         commandBuffer,
     VkImageLayout           oldLayout,
@@ -148,7 +148,7 @@ R_CVulkan_ImageTransitionLayout (
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_ImageCopyData (
+r_cvulkan_image_copy_data (
     struct R_CVulkan_Image* pImage,
     const void*             data,
     VkDeviceSize            dataSize,
@@ -197,7 +197,7 @@ R_CVulkan_ImageCopyData (
 }
 
 R_CVULKAN_API VkImage
-R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_handle (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -206,7 +206,7 @@ R_CVulkan_ImageGetHandle (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API VkDeviceMemory
-R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_memory (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -215,7 +215,7 @@ R_CVulkan_ImageGetMemory (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_device (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -224,7 +224,7 @@ R_CVulkan_ImageGetDevice (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_width (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -233,7 +233,7 @@ R_CVulkan_ImageGetWidth (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_height (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -242,7 +242,7 @@ R_CVulkan_ImageGetHeight (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API VkFormat
-R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_format (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -251,7 +251,7 @@ R_CVulkan_ImageGetFormat (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API VkImageLayout
-R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_get_layout (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);
@@ -260,7 +260,7 @@ R_CVulkan_ImageGetLayout (const struct R_CVulkan_Image* pImage)
 }
 
 R_CVULKAN_API int
-R_CVulkan_ImageIsInitialized (const struct R_CVulkan_Image* pImage)
+r_cvulkan_image_is_initialized (const struct R_CVulkan_Image* pImage)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pImage);

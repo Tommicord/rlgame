@@ -19,7 +19,7 @@ R_CVulkan_NewQueue (
     R_CVULKAN_ASSERT (pQueue);
     R_CVULKAN_ASSERT (pDevice);
 
-    pQueue->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+    pQueue->device = r_cvulkan_device_get_logical_device (pDevice);
     pQueue->handle = VK_NULL_HANDLE;
     pQueue->queueFamilyIndex = queueFamilyIndex;
     pQueue->queueIndex = queueIndex;
@@ -69,7 +69,7 @@ R_CVulkan_QueueSubmit (
     if (commandBufferCount > 0)
     {
         pNativeCommandBuffers
-            = (VkCommandBuffer*)R_CSTL_HeapAlloc (commandBufferCount * sizeof (VkCommandBuffer));
+            = (VkCommandBuffer*)r_cstl_heap_alloc (commandBufferCount * sizeof (VkCommandBuffer));
         if (!pNativeCommandBuffers)
         {
             return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -77,7 +77,7 @@ R_CVulkan_QueueSubmit (
 
         for (uint32_t i = 0; i < commandBufferCount; ++i)
         {
-            pNativeCommandBuffers[i] = R_CVulkan_CommandBufferGetHandle (&pCommandBuffers[i]);
+            pNativeCommandBuffers[i] = r_cvulkan_command_buffer_get_handle (&pCommandBuffers[i]);
         }
 
         submitInfo.commandBufferCount = commandBufferCount;
@@ -87,25 +87,25 @@ R_CVulkan_QueueSubmit (
     VkPipelineStageFlags* nativeWaitStageMask = NULL;
     if (waitSemaphoreCount > 0)
     {
-        nativeWaitSemaphores = (VkSemaphore*)R_CSTL_HeapAlloc (waitSemaphoreCount * sizeof (VkSemaphore));
+        nativeWaitSemaphores = (VkSemaphore*)r_cstl_heap_alloc (waitSemaphoreCount * sizeof (VkSemaphore));
         if (!nativeWaitSemaphores)
         {
-            R_CSTL_HeapFree (pNativeCommandBuffers);
+            r_cstl_heap_free (pNativeCommandBuffers);
             return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 
         nativeWaitStageMask
-            = (VkPipelineStageFlags*)R_CSTL_HeapAlloc (waitSemaphoreCount * sizeof (VkPipelineStageFlags));
+            = (VkPipelineStageFlags*)r_cstl_heap_alloc (waitSemaphoreCount * sizeof (VkPipelineStageFlags));
         if (!nativeWaitStageMask)
         {
-            R_CSTL_HeapFree (pNativeCommandBuffers);
-            R_CSTL_HeapFree (nativeWaitSemaphores);
+            r_cstl_heap_free (pNativeCommandBuffers);
+            r_cstl_heap_free (nativeWaitSemaphores);
             return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
 
         for (uint32_t i = 0; i < waitSemaphoreCount; ++i)
         {
-            nativeWaitSemaphores[i] = R_CVulkan_SemaphoreGetHandle (&pWaitSemaphores[i]);
+            nativeWaitSemaphores[i] = r_cvulkan_semaphore_get_handle (&pWaitSemaphores[i]);
             nativeWaitStageMask[i] = pWaitDstStageMask[i];
         }
 
@@ -117,17 +117,17 @@ R_CVulkan_QueueSubmit (
     if (signalSemaphoreCount > 0)
     {
         pNativeSignalSemaphores
-            = (VkSemaphore*)R_CSTL_HeapAlloc (signalSemaphoreCount * sizeof (VkSemaphore));
+            = (VkSemaphore*)r_cstl_heap_alloc (signalSemaphoreCount * sizeof (VkSemaphore));
         if (!pNativeSignalSemaphores)
         {
-            R_CSTL_HeapFree (pNativeCommandBuffers);
-            R_CSTL_HeapFree (nativeWaitSemaphores);
-            R_CSTL_HeapFree (nativeWaitStageMask);
+            r_cstl_heap_free (pNativeCommandBuffers);
+            r_cstl_heap_free (nativeWaitSemaphores);
+            r_cstl_heap_free (nativeWaitStageMask);
             return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
         for (uint32_t i = 0; i < signalSemaphoreCount; ++i)
         {
-            pNativeSignalSemaphores[i] = R_CVulkan_SemaphoreGetHandle (&pSignalSemaphores[i]);
+            pNativeSignalSemaphores[i] = r_cvulkan_semaphore_get_handle (&pSignalSemaphores[i]);
         }
         submitInfo.signalSemaphoreCount = signalSemaphoreCount;
         submitInfo.pSignalSemaphores = pNativeSignalSemaphores;
@@ -135,22 +135,22 @@ R_CVulkan_QueueSubmit (
     VkFence nativeFence = VK_NULL_HANDLE;
     if (pFence)
     {
-        nativeFence = R_CVulkan_FenceGetHandle (pFence);
+        nativeFence = r_cvulkan_fence_get_handle (pFence);
         VkResult resetResult = vkResetFences (pQueue->device, 1, &nativeFence);
         if (resetResult != VK_SUCCESS)
         {
             R_CSTL_LOG_ERROR ("R_CVulkan_QueueSubmit: Failed to reset fence: %d", resetResult);
-            error = R_CVulkan_ResultToError (resetResult);
+            error = r_cvulkan_result_to_error (resetResult);
             goto r_cleanup;
         }
     }
     VkResult submitResult = vkQueueSubmit (pQueue->handle, 1, &submitInfo, nativeFence);
 r_cleanup:
-    R_CSTL_HeapFree (pNativeCommandBuffers);
-    R_CSTL_HeapFree (nativeWaitSemaphores);
-    R_CSTL_HeapFree (nativeWaitStageMask);
-    R_CSTL_HeapFree (pNativeSignalSemaphores);
-    error = R_CVulkan_ResultToError (submitResult);
+    r_cstl_heap_free (pNativeCommandBuffers);
+    r_cstl_heap_free (nativeWaitSemaphores);
+    r_cstl_heap_free (nativeWaitStageMask);
+    r_cstl_heap_free (pNativeSignalSemaphores);
+    error = r_cvulkan_result_to_error (submitResult);
     return error;
 }
 
@@ -173,14 +173,14 @@ R_CVulkan_QueuePresent (
     VkSemaphore* pNativeWaitSemaphores = NULL;
     if (waitSemaphoreCount > 0)
     {
-        pNativeWaitSemaphores = (VkSemaphore*)R_CSTL_HeapAlloc (waitSemaphoreCount * sizeof (VkSemaphore));
+        pNativeWaitSemaphores = (VkSemaphore*)r_cstl_heap_alloc (waitSemaphoreCount * sizeof (VkSemaphore));
         if (!pNativeWaitSemaphores)
         {
             return R_CVULKAN_ERROR_OUT_OF_MEMORY;
         }
         for (uint32_t i = 0; i < waitSemaphoreCount; ++i)
         {
-            pNativeWaitSemaphores[i] = R_CVulkan_SemaphoreGetHandle (&pWaitSemaphores[i]);
+            pNativeWaitSemaphores[i] = r_cvulkan_semaphore_get_handle (&pWaitSemaphores[i]);
         }
         presentInfo.waitSemaphoreCount = waitSemaphoreCount;
         presentInfo.pWaitSemaphores = pNativeWaitSemaphores;
@@ -190,7 +190,7 @@ R_CVulkan_QueuePresent (
     presentInfo.pImageIndices = pImageIndices;
 
     VkResult result = vkQueuePresentKHR (pQueue->handle, &presentInfo);
-    R_CSTL_HeapFree (pNativeWaitSemaphores);
+    r_cstl_heap_free (pNativeWaitSemaphores);
 
     if (result == VK_SUCCESS)
     {
@@ -202,12 +202,12 @@ R_CVulkan_QueuePresent (
     }
     else
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue)
+r_cvulkan_queue_wait_idle (struct R_CVulkan_Queue* pQueue)
 {
     R_CVULKAN_ASSERT (pQueue);
     VkResult result = vkQueueWaitIdle (pQueue->handle);
@@ -218,12 +218,12 @@ R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue)
     }
     else
     {
-        return R_CVulkan_ResultToError (result);
+        return r_cvulkan_result_to_error (result);
     }
 }
 
 R_CVULKAN_API VkQueue
-R_CVulkan_QueueGetHandle (const struct R_CVulkan_Queue* pQueue)
+r_cvulkan_queue_get_handle (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pQueue);
@@ -232,7 +232,7 @@ R_CVulkan_QueueGetHandle (const struct R_CVulkan_Queue* pQueue)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_QueueGetDevice (const struct R_CVulkan_Queue* pQueue)
+r_cvulkan_queue_get_device (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pQueue);
@@ -241,7 +241,7 @@ R_CVulkan_QueueGetDevice (const struct R_CVulkan_Queue* pQueue)
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_QueueGetFamilyIndex (const struct R_CVulkan_Queue* pQueue)
+r_cvulkan_queue_get_family_index (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pQueue);
@@ -250,7 +250,7 @@ R_CVulkan_QueueGetFamilyIndex (const struct R_CVulkan_Queue* pQueue)
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_QueueGetIndex (const struct R_CVulkan_Queue* pQueue)
+r_cvulkan_queue_get_index (const struct R_CVulkan_Queue* pQueue)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pQueue);

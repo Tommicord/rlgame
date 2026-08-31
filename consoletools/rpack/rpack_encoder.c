@@ -79,24 +79,24 @@ r_pack_process_pixel_row_worker (void* pData)
                 }
             }
 
-            R_CSTL_MutexLock (pTask->pEncoder->pMutex);
+            r_cstl_mutex_lock (pTask->pEncoder->pMutex);
             if (pTask->pEncoder->pixelIndexTableCount >= pTask->pEncoder->pixelIndexTableCapacity)
             {
                 const uint32_t                   newCapacity = pTask->pEncoder->pixelIndexTableCapacity * 2;
                 struct r_pack_pixel_index_entry* pNewTable
-                    = (struct r_pack_pixel_index_entry*)R_CSTL_HeapRealloc (
+                    = (struct r_pack_pixel_index_entry*)r_cstl_heap_realloc (
                         pTask->pEncoder->pPixelIndexTable,
                         newCapacity * sizeof (struct r_pack_pixel_index_entry));
                 if (!pNewTable)
                 {
-                    R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
+                    r_cstl_mutex_unlock (pTask->pEncoder->pMutex);
                     *pTask->pOutError = 1;
                     return;
                 }
                 pTask->pEncoder->pPixelIndexTable = pNewTable;
                 pTask->pEncoder->pixelIndexTableCapacity = newCapacity;
             }
-            R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
+            r_cstl_mutex_unlock (pTask->pEncoder->pMutex);
 
             struct r_pack_pixel_index_entry* pPixelEntry
                 = &pTask->pEncoder->pPixelIndexTable[pTask->pEncoder->pixelIndexTableCount];
@@ -105,9 +105,9 @@ r_pack_process_pixel_row_worker (void* pData)
             pPixelEntry->runWidth = (uint8_t)runWidth;
             pPixelEntry->runHeight = 1;
 
-            R_CSTL_MutexLock (pTask->pEncoder->pMutex);
+            r_cstl_mutex_lock (pTask->pEncoder->pMutex);
             pTask->pEncoder->pixelIndexTableCount++;
-            R_CSTL_MutexUnlock (pTask->pEncoder->pMutex);
+            r_cstl_mutex_unlock (pTask->pEncoder->pMutex);
 
             pixelCount += runWidth;
             x += runWidth;
@@ -122,7 +122,7 @@ r_pack_new_encoder (const struct r_pack_encoder_settings* pSettings)
 {
     R_PACK_ASSERT (pSettings);
     struct r_pack_encoder* pEncoder
-        = (struct r_pack_encoder*)R_CSTL_HeapAlloc (sizeof (struct r_pack_encoder));
+        = (struct r_pack_encoder*)r_cstl_heap_alloc (sizeof (struct r_pack_encoder));
     memset (pEncoder, 0, sizeof (struct r_pack_encoder));
 
     if (pSettings)
@@ -141,7 +141,7 @@ r_pack_new_encoder (const struct r_pack_encoder_settings* pSettings)
         || !isfinite (pEncoder->config.alphaThreshold) || pEncoder->config.alphaThreshold < 0.0f
         || pEncoder->config.alphaThreshold > 1.0f)
     {
-        R_CSTL_HeapFree (pEncoder);
+        r_cstl_heap_free (pEncoder);
         return NULL;
     }
 
@@ -153,20 +153,20 @@ r_pack_new_encoder (const struct r_pack_encoder_settings* pSettings)
     {
         pEncoder->actualWorkerCount = pEncoder->config.workerCount;
     }
-    pEncoder->pMutex = R_CSTL_NewMutex ();
+    pEncoder->pMutex = r_cstl_new_mutex ();
     if (!pEncoder->pMutex)
     {
-        R_CSTL_HeapFree (pEncoder);
+        r_cstl_heap_free (pEncoder);
         return NULL;
     }
 
     pEncoder->workersActive = 0;
     pEncoder->ppWorkerThreads = NULL;
 
-    pEncoder->pHeader = (struct r_pack_header*)R_CSTL_HeapAlloc (sizeof (struct r_pack_header));
+    pEncoder->pHeader = (struct r_pack_header*)r_cstl_heap_alloc (sizeof (struct r_pack_header));
     if (!pEncoder->pHeader)
     {
-        R_CSTL_HeapFree (pEncoder);
+        r_cstl_heap_free (pEncoder);
         return NULL;
     }
     memset (pEncoder->pHeader, 0, sizeof (struct r_pack_header));
@@ -174,23 +174,23 @@ r_pack_new_encoder (const struct r_pack_encoder_settings* pSettings)
     pEncoder->pHeader->version = R_PACK_VERSION;
 
     pEncoder->colorTableCapacity = R_PACK_INITIAL_COLOR_TABLE_SIZE;
-    pEncoder->pColorTable = (struct r_pack_color_entry*)R_CSTL_HeapAlloc (
+    pEncoder->pColorTable = (struct r_pack_color_entry*)r_cstl_heap_alloc (
         pEncoder->colorTableCapacity * sizeof (struct r_pack_color_entry));
     if (!pEncoder->pColorTable)
     {
-        R_CSTL_HeapFree (pEncoder->pHeader);
-        R_CSTL_HeapFree (pEncoder);
+        r_cstl_heap_free (pEncoder->pHeader);
+        r_cstl_heap_free (pEncoder);
         return NULL;
     }
 
     pEncoder->pixelIndexTableCapacity = R_PACK_INITIAL_PIXEL_INDEX_TABLE_SIZE;
-    pEncoder->pPixelIndexTable = (struct r_pack_pixel_index_entry*)R_CSTL_HeapAlloc (
+    pEncoder->pPixelIndexTable = (struct r_pack_pixel_index_entry*)r_cstl_heap_alloc (
         pEncoder->pixelIndexTableCapacity * sizeof (struct r_pack_pixel_index_entry));
     if (!pEncoder->pPixelIndexTable)
     {
-        R_CSTL_HeapFree (pEncoder->pColorTable);
-        R_CSTL_HeapFree (pEncoder->pHeader);
-        R_CSTL_HeapFree (pEncoder);
+        r_cstl_heap_free (pEncoder->pColorTable);
+        r_cstl_heap_free (pEncoder->pHeader);
+        r_cstl_heap_free (pEncoder);
         return NULL;
     }
 
@@ -210,39 +210,39 @@ r_pack_delete_encoder (struct r_pack_encoder* pEncoder)
         {
             if (pEncoder->ppWorkerThreads[i])
             {
-                R_CSTL_ThreadJoin (pEncoder->ppWorkerThreads[i]);
+                r_cstl_thread_join (pEncoder->ppWorkerThreads[i]);
             }
         }
-        R_CSTL_HeapFree (pEncoder->ppWorkerThreads);
+        r_cstl_heap_free (pEncoder->ppWorkerThreads);
     }
 
     if (pEncoder->pMutex)
     {
-        R_CSTL_MutexDestroy (pEncoder->pMutex);
+        r_cstl_mutex_destroy (pEncoder->pMutex);
     }
 
     if (pEncoder->pHeader)
     {
-        R_CSTL_HeapFree (pEncoder->pHeader);
+        r_cstl_heap_free (pEncoder->pHeader);
     }
     if (pEncoder->pHashTable)
     {
-        R_CSTL_HeapFree (pEncoder->pHashTable);
+        r_cstl_heap_free (pEncoder->pHashTable);
     }
     if (pEncoder->pColorTable)
     {
-        R_CSTL_HeapFree (pEncoder->pColorTable);
+        r_cstl_heap_free (pEncoder->pColorTable);
     }
     if (pEncoder->pPixelIndexTable)
     {
-        R_CSTL_HeapFree (pEncoder->pPixelIndexTable);
+        r_cstl_heap_free (pEncoder->pPixelIndexTable);
     }
     if (pEncoder->pAtlasData)
     {
-        R_CSTL_HeapFree (pEncoder->pAtlasData);
+        r_cstl_heap_free (pEncoder->pAtlasData);
     }
 
-    R_CSTL_HeapFree (pEncoder);
+    r_cstl_heap_free (pEncoder);
 }
 
 void
@@ -301,7 +301,7 @@ r_pack_get_color_similarity (uint8_t y1, uint8_t u1, uint8_t v1, uint8_t y2, uin
 static uint32_t
 r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yExp, uint8_t u, uint8_t v)
 {
-    R_CSTL_MutexLock (pEncoder->pMutex);
+    r_cstl_mutex_lock (pEncoder->pMutex);
 
     // Cache-friendly linear search with early exit
     // For better cache locality, we process the color table sequentially
@@ -321,7 +321,7 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
             pEntry->chrominanceV);
         if (similarity < 0.01f)
         {
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
+            r_cstl_mutex_unlock (pEncoder->pMutex);
             return i;
         }
         if (similarity < bestSimilarity)
@@ -332,18 +332,18 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
     }
     if (bestMatch != UINT32_MAX)
     {
-        R_CSTL_MutexUnlock (pEncoder->pMutex);
+        r_cstl_mutex_unlock (pEncoder->pMutex);
         return bestMatch;
     }
     if (pEncoder->colorTableCount >= pEncoder->colorTableCapacity)
     {
         uint32_t                   newCapacity = pEncoder->colorTableCapacity << 1u;
-        struct r_pack_color_entry* pNewTable = (struct r_pack_color_entry*)R_CSTL_HeapRealloc (
+        struct r_pack_color_entry* pNewTable = (struct r_pack_color_entry*)r_cstl_heap_realloc (
             pEncoder->pColorTable,
             newCapacity * sizeof (struct r_pack_color_entry));
         if (!pNewTable)
         {
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
+            r_cstl_mutex_unlock (pEncoder->pMutex);
             return UINT32_MAX;
         }
         pEncoder->pColorTable = pNewTable;
@@ -357,7 +357,7 @@ r_pack_find_or_add_color (struct r_pack_encoder* pEncoder, uint8_t y, uint8_t yE
     pEntry->chrominanceV = v;
 
     uint32_t colorIndex = pEncoder->colorTableCount++;
-    R_CSTL_MutexUnlock (pEncoder->pMutex);
+    r_cstl_mutex_unlock (pEncoder->pMutex);
     return colorIndex;
 }
 
@@ -384,34 +384,34 @@ r_pack_expand_hash_table (struct r_pack_encoder* pEncoder, uint32_t* pOutTexture
 {
     R_PACK_ASSERT (pEncoder);
     R_PACK_ASSERT (pOutTextureIndex);
-    R_CSTL_MutexLock (pEncoder->pMutex);
+    r_cstl_mutex_lock (pEncoder->pMutex);
     const uint32_t textureIndex = pEncoder->pHeader->textureCount;
 
     if (textureIndex == 0)
     {
         pEncoder->pHashTable
-            = (struct r_pack_hash_entry*)R_CSTL_HeapAlloc (sizeof (struct r_pack_hash_entry));
+            = (struct r_pack_hash_entry*)r_cstl_heap_alloc (sizeof (struct r_pack_hash_entry));
         if (!pEncoder->pHashTable)
         {
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
+            r_cstl_mutex_unlock (pEncoder->pMutex);
             return R_PACK_ERROR_OUT_OF_MEMORY;
         }
     }
     else
     {
-        struct r_pack_hash_entry* pNewTable = (struct r_pack_hash_entry*)R_CSTL_HeapRealloc (
+        struct r_pack_hash_entry* pNewTable = (struct r_pack_hash_entry*)r_cstl_heap_realloc (
             pEncoder->pHashTable,
             (textureIndex + 1) * sizeof (struct r_pack_hash_entry));
         if (!pNewTable)
         {
-            R_CSTL_MutexUnlock (pEncoder->pMutex);
+            r_cstl_mutex_unlock (pEncoder->pMutex);
             return R_PACK_ERROR_OUT_OF_MEMORY;
         }
         pEncoder->pHashTable = pNewTable;
     }
 
     *pOutTextureIndex = textureIndex;
-    R_CSTL_MutexUnlock (pEncoder->pMutex);
+    r_cstl_mutex_unlock (pEncoder->pMutex);
     return R_PACK_OK;
 }
 
@@ -457,7 +457,7 @@ r_pack_update_atlas_dimensions (
     uint32_t               imageHeight)
 {
     R_PACK_ASSERT (pEncoder);
-    R_CSTL_MutexLock (pEncoder->pMutex);
+    r_cstl_mutex_lock (pEncoder->pMutex);
     uint32_t atlasWidth = currentX + imageWidth;
     uint32_t atlasHeight = currentY + imageHeight;
     if (atlasWidth > pEncoder->pHeader->atlasWidth)
@@ -468,7 +468,7 @@ r_pack_update_atlas_dimensions (
     {
         pEncoder->pHeader->atlasHeight = atlasHeight;
     }
-    R_CSTL_MutexUnlock (pEncoder->pMutex);
+    r_cstl_mutex_unlock (pEncoder->pMutex);
 }
 
 static enum r_pack_error
@@ -512,7 +512,7 @@ r_pack_process_pixels_serial (struct r_pack_encoder* pEncoder, const struct r_pa
         {
             const uint32_t                   newCapacity = pEncoder->pixelIndexTableCapacity * 2;
             struct r_pack_pixel_index_entry* pNewTable
-                = (struct r_pack_pixel_index_entry*)R_CSTL_HeapRealloc (
+                = (struct r_pack_pixel_index_entry*)r_cstl_heap_realloc (
                     pEncoder->pPixelIndexTable,
                     newCapacity * sizeof (struct r_pack_pixel_index_entry));
             if (!pNewTable)
@@ -546,16 +546,16 @@ r_pack_process_pixels (struct r_pack_encoder* pEncoder, const struct r_pack_inpu
 {
     R_PACK_ASSERT (pEncoder);
     uint32_t                       rowsPerWorker = pImage->height / pEncoder->actualWorkerCount;
-    struct r_pack_pixel_work_task* pTasks = (struct r_pack_pixel_work_task*)R_CSTL_HeapAlloc (
+    struct r_pack_pixel_work_task* pTasks = (struct r_pack_pixel_work_task*)r_cstl_heap_alloc (
         pEncoder->actualWorkerCount * sizeof (struct r_pack_pixel_work_task));
-    uint32_t* pPixelCounts = (uint32_t*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (uint32_t));
-    int*      pErrors = (int*)R_CSTL_HeapAlloc (pEncoder->actualWorkerCount * sizeof (int));
+    uint32_t* pPixelCounts = (uint32_t*)r_cstl_heap_alloc (pEncoder->actualWorkerCount * sizeof (uint32_t));
+    int*      pErrors = (int*)r_cstl_heap_alloc (pEncoder->actualWorkerCount * sizeof (int));
 
     if (!pTasks || !pPixelCounts || !pErrors)
     {
-        if (pTasks) R_CSTL_HeapFree (pTasks);
-        if (pPixelCounts) R_CSTL_HeapFree (pPixelCounts);
-        if (pErrors) R_CSTL_HeapFree (pErrors);
+        if (pTasks) r_cstl_heap_free (pTasks);
+        if (pPixelCounts) r_cstl_heap_free (pPixelCounts);
+        if (pErrors) r_cstl_heap_free (pErrors);
         return R_PACK_ERROR_OUT_OF_MEMORY;
     }
     memset (pErrors, 0, pEncoder->actualWorkerCount * sizeof (int));
@@ -572,7 +572,7 @@ r_pack_process_pixels (struct r_pack_encoder* pEncoder, const struct r_pack_inpu
 
     for (uint32_t i = 0; i < pEncoder->actualWorkerCount; ++i)
     {
-        struct R_CSTL_Thread* pThread = R_CSTL_NewThread (r_pack_process_pixel_row_worker, &pTasks[i]);
+        struct r_cstl_thread* pThread = r_cstl_new_thread (r_pack_process_pixel_row_worker, &pTasks[i]);
         if (!pThread)
         {
             for (uint32_t j = i; j < pEncoder->actualWorkerCount; ++j)
@@ -581,23 +581,23 @@ r_pack_process_pixels (struct r_pack_encoder* pEncoder, const struct r_pack_inpu
             }
             break;
         }
-        R_CSTL_ThreadJoin (pThread);
+        r_cstl_thread_join (pThread);
     }
 
     for (uint32_t i = 0; i < pEncoder->actualWorkerCount; ++i)
     {
         if (pErrors[i])
         {
-            R_CSTL_HeapFree (pTasks);
-            R_CSTL_HeapFree (pPixelCounts);
-            R_CSTL_HeapFree (pErrors);
+            r_cstl_heap_free (pTasks);
+            r_cstl_heap_free (pPixelCounts);
+            r_cstl_heap_free (pErrors);
             return R_PACK_ERROR_OUT_OF_MEMORY;
         }
     }
 
-    R_CSTL_HeapFree (pTasks);
-    R_CSTL_HeapFree (pPixelCounts);
-    R_CSTL_HeapFree (pErrors);
+    r_cstl_heap_free (pTasks);
+    r_cstl_heap_free (pPixelCounts);
+    r_cstl_heap_free (pErrors);
     return R_PACK_OK;
 }
 
@@ -665,9 +665,9 @@ r_pack_encoder_add_image (struct r_pack_encoder* pEncoder, const struct r_pack_i
         return error;
     }
 
-    R_CSTL_MutexLock (pEncoder->pMutex);
+    r_cstl_mutex_lock (pEncoder->pMutex);
     pEncoder->pHeader->textureCount++;
-    R_CSTL_MutexUnlock (pEncoder->pMutex);
+    r_cstl_mutex_unlock (pEncoder->pMutex);
     return R_PACK_OK;
 }
 

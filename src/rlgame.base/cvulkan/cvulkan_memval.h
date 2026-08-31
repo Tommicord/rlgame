@@ -9,7 +9,7 @@
 /**
  * @brief Backend type for GPU memory validation
  */
-enum R_CVulkan_MemValBackend
+enum r_cvulkan_mem_val_backend
 {
     R_CVULKAN_MEMVAL_BACKEND_NONE = 0,
     R_CVULKAN_MEMVAL_BACKEND_CUDA,
@@ -20,7 +20,7 @@ enum R_CVulkan_MemValBackend
 struct R_CVulkan_MemoryAllocator;
 struct R_CVulkan_Suballocation;
 
-struct R_CVulkan_MemValStats
+struct r_cvulkan_mem_val_stats
 {
         uint64_t totalAllocations;
         uint64_t totalFrees;
@@ -43,24 +43,24 @@ struct R_CVulkan_MemValStats
         uint16_t defragmentationThreshold; // Q8.8 fixed-point (0-256 represents 0.0-1.0)
 };
 
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemValInitialize (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void                 R_CVulkan_MemValShutdown (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void                 R_CVulkan_MemValNotifyAllocation (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_mem_val_initialize (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void                 r_cvulkan_mem_val_shutdown (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void                 r_cvulkan_mem_val_notify_allocation (
                     const struct R_CVulkan_MemoryAllocator* pAllocator,
                     const struct R_CVulkan_Suballocation*   allocation);
-R_CVULKAN_API void R_CVulkan_MemValNotifyFree (
+R_CVULKAN_API void r_cvulkan_mem_val_notify_free (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     const struct R_CVulkan_Suballocation*   allocation);
-R_CVULKAN_API void R_CVulkan_MemValNotifyBlockReserved (const struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void R_CVulkan_MemValNotifyBlockReleased (const struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API void R_CVulkan_MemValNotifyAllocationFailure (
+R_CVULKAN_API void r_cvulkan_mem_val_notify_block_reserved (const struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void r_cvulkan_mem_val_notify_block_released (const struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API void r_cvulkan_mem_val_notify_allocation_failure (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
     VkDeviceSize                            size,
     VkDeviceSize                            alignment);
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_MemValShouldDefragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded);
+r_cvulkan_mem_val_should_defragment (const struct R_CVulkan_MemoryAllocator* pAllocator, int* pNeeded);
 R_CVULKAN_API void
-R_CVulkan_MemValNotifyDefragmentationComplete (struct R_CVulkan_MemoryAllocator* pAllocator);
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_MemValGetStats (
+r_cvulkan_mem_val_notify_defragmentation_complete (struct R_CVulkan_MemoryAllocator* pAllocator);
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_mem_val_get_stats (
     const struct R_CVulkan_MemoryAllocator* pAllocator,
-    struct R_CVulkan_MemValStats*           pStats);
+    struct r_cvulkan_mem_val_stats*           pStats);

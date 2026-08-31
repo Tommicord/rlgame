@@ -18,7 +18,7 @@
 /**
  * @brief Settingsuration parameters for instance creation
  */
-struct R_CVulkan_InstanceCreateInfo
+struct r_cvulkan_instance_create_info
 {
         const char* pApplicationName; /**< Application name */
         uint32_t    applicationVersion; /**< Application version (default: 1,0,0) */
@@ -57,7 +57,7 @@ struct R_CVulkan_Instance
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
-    const struct R_CVulkan_InstanceCreateInfo* pCreateInfo);
+    const struct r_cvulkan_instance_create_info* pCreateInfo);
 
 /**
  * @brief Delete a Vulkan instance and cleanup resources
@@ -73,4 +73,4 @@ R_CVULKAN_API void R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstanc
  * @param pInstance Pointer to instance
  * @return Vulkan instance handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkInstance R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance);
+R_CVULKAN_API VkInstance r_cvulkan_instance_get_handle (const struct R_CVulkan_Instance* pInstance);

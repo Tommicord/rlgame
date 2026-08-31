@@ -97,25 +97,25 @@ enum R_CVulkan_Error
  * @param error The R_CVulkan error code
  * @return Static string describing the error, or "Unknown error" if not recognized
  */
-R_CVULKAN_API const char* R_CVulkan_ErrorToString (enum R_CVulkan_Error error);
+R_CVULKAN_API const char* r_cvulkan_error_to_string (enum R_CVulkan_Error error);
 
 /**
  * @brief Convert Vulkan result to R_CVulkan errorcode
  * @param result Vulkan result code
  * @return Corresponding R_CVulkan error code
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_ResultToError (const VkResult result);
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_result_to_error (const VkResult result);
 
 /**
  * @brief Get human-readable string for Vulkan result code
  * @param result Vulkan result code
  * @return Static string describing the Vulkan result
  */
-R_CVULKAN_API const char* R_CVulkan_ResultToString (const VkResult result);
+R_CVULKAN_API const char* r_cvulkan_result_to_string (const VkResult result);
 
 /**
  * @brief Get human-readable string for Vulkan format
  * @param format Vulkan format
  * @return Static string describing the Vulkan format
  */
-R_CVULKAN_API const char* R_CVulkan_FormatToString (const VkFormat format);
+R_CVULKAN_API const char* r_cvulkan_format_to_string (const VkFormat format);

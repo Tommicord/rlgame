@@ -24,13 +24,13 @@ class CstlBytecodeTest : public ::testing::Test
         void
         SetUp () override
         {
-            ASSERT_EQ (0, R_CSTL_HeapInit (kTestHeapSize));
+            ASSERT_EQ (0, r_cstl_heap_init (kTestHeapSize));
         }
 
         void
         TearDown () override
         {
-            R_CSTL_HeapShutdown ();
+            r_cstl_heap_shutdown ();
         }
 };
 
@@ -38,193 +38,193 @@ class CstlBytecodeTest : public ::testing::Test
 
 TEST (CstlBytecodeInitTest, DeleteNullIsSafe)
 {
-    R_CSTL_DeleteBytecode (nullptr);
+    r_cstl_delete_bytecode (nullptr);
     SUCCEED ();
 }
 
 TEST_F (CstlBytecodeTest, NewBytecodeView)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
-    EXPECT_EQ (sizeof (testData), R_CSTL_BytecodeLength (pCode));
-    EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86_64, R_CSTL_BytecodeGetArchitecture (pCode));
-    EXPECT_EQ (testData, R_CSTL_BytecodeData (pCode));
-    R_CSTL_DeleteBytecode (pCode);
+    EXPECT_EQ (sizeof (testData), r_cstl_bytecode_length (pCode));
+    EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86_64, r_cstl_bytecode_get_architecture (pCode));
+    EXPECT_EQ (testData, r_cstl_bytecode_data (pCode));
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, NewBytecodeWithData)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeWithData (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_with_data (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
-    EXPECT_EQ (sizeof (testData), R_CSTL_BytecodeLength (pCode));
-    EXPECT_NE (testData, R_CSTL_BytecodeData (pCode)); // Should be a copy
-    R_CSTL_DeleteBytecode (pCode);
+    EXPECT_EQ (sizeof (testData), r_cstl_bytecode_length (pCode));
+    EXPECT_NE (testData, r_cstl_bytecode_data (pCode)); // Should be a copy
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, NewBytecodeWithDataZeroSize)
 {
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeWithData (nullptr, 0, R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_with_data (nullptr, 0, R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
-    EXPECT_EQ (0u, R_CSTL_BytecodeLength (pCode));
-    R_CSTL_DeleteBytecode (pCode);
+    EXPECT_EQ (0u, r_cstl_bytecode_length (pCode));
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, NewBytecodeFromFunction)
 {
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
-        (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (
+        (r_cstl_bytecode_function)r_cstl_heap_init,
         32,
         R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
-    EXPECT_EQ (32u, R_CSTL_BytecodeLength (pCode));
-    R_CSTL_DeleteBytecode (pCode);
+    EXPECT_EQ (32u, r_cstl_bytecode_length (pCode));
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, NewBytecodeFromFunctionNull)
 {
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (nullptr, 32, R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (nullptr, 32, R_CSTL_BYTECODE_ARCH_X86_64);
     EXPECT_EQ (nullptr, pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeRead)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     uint8_t buffer[4];
-    ASSERT_EQ (0, R_CSTL_BytecodeRead (pCode, 0, buffer, sizeof (buffer)));
+    ASSERT_EQ (0, r_cstl_bytecode_read (pCode, 0, buffer, sizeof (buffer)));
     EXPECT_EQ (0, memcmp (buffer, testData, sizeof (buffer)));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeReadOutOfBounds)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     uint8_t buffer[4];
-    EXPECT_EQ (R_CSTL_ERROR_BUFFER_TOO_SMALL, R_CSTL_BytecodeRead (pCode, 2, buffer, 4));
+    EXPECT_EQ (R_CSTL_ERROR_BUFFER_TOO_SMALL, r_cstl_bytecode_read (pCode, 2, buffer, 4));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseNop)
 {
     uint8_t                 testData[] = {0x90}; // NOP
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (1u, instruction.size);
     EXPECT_EQ (0x90u, instruction.opcode);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseRet)
 {
     uint8_t                 testData[] = {0xC3}; // RET
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (1u, instruction.size);
     EXPECT_EQ (0xC3u, instruction.opcode);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseInvalidArguments)
 {
     uint8_t                 testData[] = {0x90};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParse (nullptr, 0, &instruction));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParse (pCode, 0, nullptr));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParse (pCode, 10, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse (nullptr, 0, &instruction));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse (pCode, 0, nullptr));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse (pCode, 10, &instruction));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseMultipleInstructions)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3}; // NOP, NOP, NOP, RET
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     size_t offset = 0;
     while (offset < sizeof (testData))
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, offset, &instruction));
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, offset, &instruction));
         offset += instruction.size;
     }
     EXPECT_EQ (sizeof (testData), offset);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeTokenize)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeToken tokens[8];
+    struct r_cstl_bytecode_token tokens[8];
     size_t                      tokenCount = 0;
-    ASSERT_EQ (0, R_CSTL_BytecodeTokenize (pCode, 0, tokens, 8, &tokenCount));
+    ASSERT_EQ (0, r_cstl_bytecode_tokenize (pCode, 0, tokens, 8, &tokenCount));
     EXPECT_GT (tokenCount, 0u);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeTokenizeInvalidArguments)
 {
     uint8_t                 testData[] = {0x90};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeToken tokens[8];
+    struct r_cstl_bytecode_token tokens[8];
     size_t                      tokenCount = 0;
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeTokenize (nullptr, 0, tokens, 8, &tokenCount));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeTokenize (pCode, 0, nullptr, 8, &tokenCount));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeTokenize (pCode, 0, tokens, 8, nullptr));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_tokenize (nullptr, 0, tokens, 8, &tokenCount));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_tokenize (pCode, 0, nullptr, 8, &tokenCount));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_tokenize (pCode, 0, tokens, 8, nullptr));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseUnsupportedArchitecture)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0x90};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_ARMV8A);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_ARMV8A);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
+    struct r_cstl_bytecode_instruction instruction;
     // Should return OK but with default 4-byte width for unsupported arch
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (4u, instruction.size);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 #if defined(R_LOG)
@@ -233,243 +233,243 @@ TEST_F (CstlBytecodeTest, BytecodeParseEnhancedCall)
 {
     // CALL rel32 (E8 followed by 4-byte displacement)
     uint8_t                 testData[] = {0xE8, 0x00, 0x00, 0x00, 0x00};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (5u, instruction.size);
     EXPECT_EQ (0xE8u, instruction.opcode);
     EXPECT_EQ (1, instruction.isCall);
     EXPECT_EQ (0, instruction.isJump);
     EXPECT_NE (0u, instruction.targetAddress);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedJump)
 {
     // JMP rel32 (E9 followed by 4-byte displacement)
     uint8_t                 testData[] = {0xE9, 0x00, 0x00, 0x00, 0x00};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (5u, instruction.size);
     EXPECT_EQ (0xE9u, instruction.opcode);
     EXPECT_EQ (0, instruction.isCall);
     EXPECT_EQ (1, instruction.isJump);
     EXPECT_NE (0u, instruction.targetAddress);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedShortJump)
 {
     // Short JMP (EB followed by 1-byte displacement)
     uint8_t                 testData[] = {0xEB, 0x00};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (2u, instruction.size);
     EXPECT_EQ (0xEBu, instruction.opcode);
     EXPECT_EQ (0, instruction.isCall);
     EXPECT_EQ (1, instruction.isJump);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedNop)
 {
     uint8_t                 testData[] = {0x90}; // NOP
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (1u, instruction.size);
     EXPECT_EQ (0x90u, instruction.opcode);
     EXPECT_EQ (0, instruction.isCall);
     EXPECT_EQ (0, instruction.isJump);
     EXPECT_EQ (0u, instruction.targetAddress);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedInvalidArguments)
 {
     uint8_t                 testData[] = {0x90};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParseEnhanced (nullptr, 0, &instruction));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParseEnhanced (pCode, 0, nullptr));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeParseEnhanced (pCode, 10, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse_enhanced (nullptr, 0, &instruction));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse_enhanced (pCode, 0, nullptr));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_parse_enhanced (pCode, 10, &instruction));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeDecoderCreateX86_64)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
     EXPECT_EQ (true, decoder.initialized);
     EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86_64, decoder.architecture);
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeDecoderCreateX86)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86, &decoder));
     EXPECT_EQ (true, decoder.initialized);
     EXPECT_EQ (R_CSTL_BYTECODE_ARCH_X86, decoder.architecture);
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeDecoderCreateUnsupportedArchitecture)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
+    struct r_cstl_bytecode_decoder decoder;
     EXPECT_EQ (
         R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED,
-        R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_ARMV8A, &decoder));
+        r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_ARMV8A, &decoder));
 }
 
 TEST_F (CstlBytecodeTest, BytecodeDecoderCreateInvalidArguments)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
+    struct r_cstl_bytecode_decoder decoder;
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, nullptr));
+        r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, nullptr));
 }
 
 TEST_F (CstlBytecodeTest, BytecodeDecoderDestroyNull)
 {
-    R_CSTL_DeleteBytecodeDecoder (nullptr);
+    r_cstl_delete_bytecode_decoder (nullptr);
     SUCCEED ();
 }
 
 TEST_F (CstlBytecodeTest, BytecodeParseEnhancedUnsupportedArchitecture)
 {
     uint8_t                 testData[] = {0x90};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_ARMV8A);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_ARMV8A);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
+    struct r_cstl_bytecode_instruction instruction;
     EXPECT_EQ (
         R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED,
-        R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+        r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeGetInstructionTargetSymbolNullTarget)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
-    struct R_CSTL_BytecodeInstruction instruction = {};
+    struct r_cstl_bytecode_instruction instruction = {};
     instruction.targetAddress = 0;
 
     char buffer[32];
     ASSERT_EQ (
         0,
-        R_CSTL_BytecodeGetInstructionTargetSymbol (&decoder, &instruction, buffer, sizeof (buffer)));
+        r_cstl_bytecode_get_instruction_target_symbol (&decoder, &instruction, buffer, sizeof (buffer)));
     EXPECT_STREQ ("0x0000000000000000", buffer);
 
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeGetInstructionTargetSymbolInvalidArguments)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
-    struct R_CSTL_BytecodeInstruction instruction = {};
+    struct r_cstl_bytecode_instruction instruction = {};
     char                              buffer[32];
 
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeGetInstructionTargetSymbol (nullptr, &instruction, buffer, sizeof (buffer)));
+        r_cstl_bytecode_get_instruction_target_symbol (nullptr, &instruction, buffer, sizeof (buffer)));
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeGetInstructionTargetSymbol (&decoder, nullptr, buffer, sizeof (buffer)));
+        r_cstl_bytecode_get_instruction_target_symbol (&decoder, nullptr, buffer, sizeof (buffer)));
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeGetInstructionTargetSymbol (&decoder, &instruction, nullptr, sizeof (buffer)));
+        r_cstl_bytecode_get_instruction_target_symbol (&decoder, &instruction, nullptr, sizeof (buffer)));
 
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeResolveSymbolInvalidArguments)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
-    struct R_CSTL_BytecodeSymbol symbol;
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeResolveSymbol (nullptr, 0x1000, &symbol));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeResolveSymbol (&decoder, 0x1000, nullptr));
+    struct r_cstl_bytecode_symbol symbol;
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_resolve_symbol (nullptr, 0x1000, &symbol));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_resolve_symbol (&decoder, 0x1000, nullptr));
 
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeGetFunctionInfoInvalidArguments)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
-    struct R_CSTL_BytecodeFunctionInfo info;
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeGetFunctionInfo (nullptr, 0x1000, &info));
-    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, R_CSTL_BytecodeGetFunctionInfo (&decoder, 0x1000, nullptr));
+    struct r_cstl_bytecode_function_info info;
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_get_function_info (nullptr, 0x1000, &info));
+    EXPECT_EQ (R_CSTL_ERROR_INVALID_ARGUMENT, r_cstl_bytecode_get_function_info (&decoder, 0x1000, nullptr));
 
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, BytecodeFunctionContainsSymbolInvalidArguments)
 {
-    struct R_CSTL_BytecodeDecoder decoder;
-    ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+    struct r_cstl_bytecode_decoder decoder;
+    ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
     int found = 0;
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeFunctionContainsSymbol (
+        r_cstl_bytecode_function_contains_symbol (
             nullptr,
-            (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
+            (r_cstl_bytecode_function)r_cstl_heap_init,
             32,
             "test",
             &found));
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeFunctionContainsSymbol (&decoder, nullptr, 32, "test", &found));
+        r_cstl_bytecode_function_contains_symbol (&decoder, nullptr, 32, "test", &found));
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeFunctionContainsSymbol (
+        r_cstl_bytecode_function_contains_symbol (
             &decoder,
-            (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
+            (r_cstl_bytecode_function)r_cstl_heap_init,
             32,
             nullptr,
             &found));
     EXPECT_EQ (
         R_CSTL_ERROR_INVALID_ARGUMENT,
-        R_CSTL_BytecodeFunctionContainsSymbol (
+        r_cstl_bytecode_function_contains_symbol (
             &decoder,
-            (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
+            (r_cstl_bytecode_function)r_cstl_heap_init,
             32,
             "test",
             nullptr));
 
-    R_CSTL_DeleteBytecodeDecoder (&decoder);
+    r_cstl_delete_bytecode_decoder (&decoder);
 }
 
 TEST_F (CstlBytecodeTest, StressTestLargeCodeBuffer)
@@ -477,41 +477,41 @@ TEST_F (CstlBytecodeTest, StressTestLargeCodeBuffer)
     constexpr size_t     kLargeBufferSize = 32 * 1024; // 32KB
     std::vector<uint8_t> largeBuffer (kLargeBufferSize, 0x90); // Fill with NOPs
 
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeWithData (largeBuffer.data (), kLargeBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_with_data (largeBuffer.data (), kLargeBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     size_t offset = 0;
     size_t instructionCount = 0;
     while (offset < kLargeBufferSize && instructionCount < 10000)
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        int                               result = R_CSTL_BytecodeParse (pCode, offset, &instruction);
+        struct r_cstl_bytecode_instruction instruction;
+        int                               result = r_cstl_bytecode_parse (pCode, offset, &instruction);
         if (result != 0) break;
         offset += instruction.size;
         instructionCount++;
     }
     EXPECT_GT (instructionCount, 1000u);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, StressTestRepeatedParsing)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     // Parse the same code many times to test for memory leaks and stability
     for (int i = 0; i < 10000; ++i)
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
         EXPECT_EQ (1u, instruction.size);
     }
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, StressTestMixedInstructions)
@@ -526,23 +526,23 @@ TEST_F (CstlBytecodeTest, StressTestMixedInstructions)
         mixedCode.push_back (0xC3); // RET
     }
 
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeWithData (mixedCode.data (), mixedCode.size (), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_with_data (mixedCode.data (), mixedCode.size (), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     size_t offset = 0;
     size_t parsedCount = 0;
     while (offset < mixedCode.size ())
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        int                               result = R_CSTL_BytecodeParse (pCode, offset, &instruction);
+        struct r_cstl_bytecode_instruction instruction;
+        int                               result = r_cstl_bytecode_parse (pCode, offset, &instruction);
         if (result != 0) break;
         offset += instruction.size;
         parsedCount++;
     }
     EXPECT_GT (parsedCount, 500u);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 // Real-world unit tests for complex scenarios
@@ -550,168 +550,168 @@ TEST_F (CstlBytecodeTest, RealWorldTestRexPrefixHandling)
 {
     // MOV RAX, [RAX] with REX.W prefix
     uint8_t                 testData[] = {0x48, 0x8B, 0x00}; // REX.W + MOV RAX, [RAX]
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (3u, instruction.size);
     EXPECT_EQ (0x8Bu, instruction.opcode);
 
 #if defined(R_LOG)
-    struct R_CSTL_BytecodeInstruction instructionEnhanced;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
+    struct r_cstl_bytecode_instruction instructionEnhanced;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instructionEnhanced));
     EXPECT_EQ (1, instructionEnhanced.hasRex);
     EXPECT_EQ (1, instructionEnhanced.rexW);
     EXPECT_EQ (0x48u, instructionEnhanced.rexPrefix);
 #endif
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestConditionalJump)
 {
     // JE (Jump if Equal) with 32-bit displacement
     uint8_t                 testData[] = {0x0F, 0x84, 0x10, 0x00, 0x00, 0x00}; // JE rel32
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     // Parser currently returns 3 bytes for two-byte opcodes without ModRM
     EXPECT_EQ (3u, instruction.size);
 
 #if defined(R_LOG)
-    struct R_CSTL_BytecodeInstruction instructionEnhanced;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
+    struct r_cstl_bytecode_instruction instructionEnhanced;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instructionEnhanced));
     // Conditional jump detection may need parser enhancement
     EXPECT_EQ (3u, instructionEnhanced.size);
 #endif
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestLoopInstruction)
 {
     // LOOPNE (Loop if not equal)
     uint8_t                 testData[] = {0xE0, 0x05}; // LOOPNE rel8
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (2u, instruction.size);
 
 #if defined(R_LOG)
-    struct R_CSTL_BytecodeInstruction instructionEnhanced;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
+    struct r_cstl_bytecode_instruction instructionEnhanced;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instructionEnhanced));
     EXPECT_EQ (1, instructionEnhanced.isJump);
     EXPECT_NE (0u, instructionEnhanced.targetAddress);
 #endif
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestModRMWithSIB)
 {
     // MOV EAX, [RAX + RCX*4 + 0x10]
     uint8_t                 testData[] = {0x8B, 0x44, 0x88, 0x10};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (4u, instruction.size);
     EXPECT_EQ (0x8Bu, instruction.opcode);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestMultiByteOpcode)
 {
     // SSE instruction: MOVAPS XMM0, [RAX], need ModRM byte
     uint8_t                 testData[] = {0x0F, 0x28, 0x00};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     // Parser may handle this differently based on ModRM detection
     EXPECT_GT (instruction.size, 1u);
     EXPECT_EQ (0x28u, instruction.opcode);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestLegacyPrefixes)
 {
     // LOCK prefix with ADD, need ModRM byte
     uint8_t                 testData[] = {0xF0, 0x01, 0x00}; // LOCK ADD [RAX], EAX
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (3u, instruction.size);
     EXPECT_EQ (0x01u, instruction.opcode);
 
 #if defined(R_LOG)
-    struct R_CSTL_BytecodeInstruction instructionEnhanced;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
+    struct r_cstl_bytecode_instruction instructionEnhanced;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instructionEnhanced));
     EXPECT_NE (0u, instructionEnhanced.legacyPrefixes);
 #endif
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestIndirectCall)
 {
     // CALL [RAX]
     uint8_t                 testData[] = {0xFF, 0xD0}; // CALL RAX
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_EQ (2u, instruction.size);
 
 #if defined(R_LOG)
-    struct R_CSTL_BytecodeInstruction instructionEnhanced;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instructionEnhanced));
+    struct r_cstl_bytecode_instruction instructionEnhanced;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instructionEnhanced));
     EXPECT_EQ (1, instructionEnhanced.isCall);
 #endif
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, RealWorldTestPushPopSequence)
 {
     // Push/pop register sequence, need REX byte for R8-R15
     uint8_t                 testData[] = {0x50, 0x51, 0x52, 0x53, 0x58, 0x59, 0x5A, 0x5B};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     size_t offset = 0;
     int    instructionCount = 0;
     while (offset < sizeof (testData))
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, offset, &instruction));
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, offset, &instruction));
         EXPECT_EQ (1u, instruction.size);
         offset += instruction.size;
         instructionCount++;
     }
     EXPECT_EQ (8, instructionCount);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 // SIMD Path Tests
@@ -728,8 +728,8 @@ TEST_F (CstlBytecodeTest, SimdTestPrefixScanningLargeBuffer)
         else buffer[i] = 0x48; // REX prefix
     }
 
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeWithData (buffer.data (), kBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_with_data (buffer.data (), kBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     // Parse multiple instructions to test SIMD prefix scanning
@@ -737,15 +737,15 @@ TEST_F (CstlBytecodeTest, SimdTestPrefixScanningLargeBuffer)
     size_t parsedCount = 0;
     while (offset < kBufferSize && parsedCount < 100)
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        int                               result = R_CSTL_BytecodeParse (pCode, offset, &instruction);
+        struct r_cstl_bytecode_instruction instruction;
+        int                               result = r_cstl_bytecode_parse (pCode, offset, &instruction);
         if (result != 0) break;
         offset += instruction.size;
         parsedCount++;
     }
     EXPECT_GT (parsedCount, 48u);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, SimdTestByteCopyingLargeBuffer)
@@ -759,18 +759,18 @@ TEST_F (CstlBytecodeTest, SimdTestByteCopyingLargeBuffer)
     for (size_t i = 0; i < kBufferSize; ++i)
         sourceBuffer[i] = (uint8_t)(i % 256);
 
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeWithData (sourceBuffer.data (), kBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_with_data (sourceBuffer.data (), kBufferSize, R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     // Read large chunks to test SIMD copying
-    ASSERT_EQ (0, R_CSTL_BytecodeRead (pCode, 0, destBuffer.data (), kBufferSize));
+    ASSERT_EQ (0, r_cstl_bytecode_read (pCode, 0, destBuffer.data (), kBufferSize));
 
     // Verify data integrity
     for (size_t i = 0; i < kBufferSize; ++i)
         EXPECT_EQ (sourceBuffer[i], destBuffer[i]) << "Mismatch at index " << i;
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, SimdTestMixedPrefixSequence)
@@ -792,23 +792,23 @@ TEST_F (CstlBytecodeTest, SimdTestMixedPrefixSequence)
         0x90 // NOPs
     };
 
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParse (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse (pCode, 0, &instruction));
     EXPECT_GT (instruction.size, 5u); // Should consume prefixes
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 // Thread Safety Tests
 TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentReads)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     constexpr int            kNumThreads = 8;
@@ -825,7 +825,7 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentReads)
                 for (int i = 0; i < kIterationsPerThread; ++i)
                 {
                     uint8_t buffer[4];
-                    int     result = R_CSTL_BytecodeRead (pCode, 0, buffer, sizeof (buffer));
+                    int     result = r_cstl_bytecode_read (pCode, 0, buffer, sizeof (buffer));
                     if (result == 0) successCount++;
                     else errorCount++;
                 }
@@ -838,14 +838,14 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentReads)
     EXPECT_EQ (kNumThreads * kIterationsPerThread, successCount.load ());
     EXPECT_EQ (0, errorCount.load ());
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentParsing)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     constexpr int            kNumThreads = 8;
@@ -861,8 +861,8 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentParsing)
             {
                 for (int i = 0; i < kIterationsPerThread; ++i)
                 {
-                    struct R_CSTL_BytecodeInstruction instruction;
-                    int                               result = R_CSTL_BytecodeParse (pCode, 0, &instruction);
+                    struct r_cstl_bytecode_instruction instruction;
+                    int                               result = r_cstl_bytecode_parse (pCode, 0, &instruction);
                     if (result == 0) successCount++;
                     else errorCount++;
                 }
@@ -875,14 +875,14 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestConcurrentParsing)
     EXPECT_EQ (kNumThreads * kIterationsPerThread, successCount.load ());
     EXPECT_EQ (0, errorCount.load ());
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, ThreadSafetyTestMixedOperations)
 {
     uint8_t                 testData[] = {0x90, 0x90, 0x90, 0xC3};
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
     constexpr int            kNumThreads = 8;
@@ -899,14 +899,14 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestMixedOperations)
                     if (t % 2 == 0)
                     {
                         // Parse operation
-                        struct R_CSTL_BytecodeInstruction instruction;
-                        R_CSTL_BytecodeParse (pCode, 0, &instruction);
+                        struct r_cstl_bytecode_instruction instruction;
+                        r_cstl_bytecode_parse (pCode, 0, &instruction);
                     }
                     else
                     {
                         // Read operation
                         uint8_t buffer[4];
-                        R_CSTL_BytecodeRead (pCode, 0, buffer, sizeof (buffer));
+                        r_cstl_bytecode_read (pCode, 0, buffer, sizeof (buffer));
                     }
                     operationCount++;
                 }
@@ -918,7 +918,7 @@ TEST_F (CstlBytecodeTest, ThreadSafetyTestMixedOperations)
 
     EXPECT_EQ (kNumThreads * 1000, operationCount.load ());
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 // Observer/Observable Integration Tests
@@ -959,20 +959,20 @@ MultiCallFunction ()
 TEST_F (CstlBytecodeTest, IntegrationTestProperRegistrationDetection)
 {
     // Test that ProperRegistrationWrapper calls RegisterClass
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
-        (R_CSTL_BytecodeFunction)ProperRegistrationWrapper,
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (
+        (r_cstl_bytecode_function)ProperRegistrationWrapper,
         64,
         R_CSTL_BYTECODE_ARCH_X86_64);
 
     if (pCode)
     {
-        struct R_CSTL_BytecodeDecoder decoder;
-        ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+        struct r_cstl_bytecode_decoder decoder;
+        ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
         int found = 0;
-        int result = R_CSTL_BytecodeFunctionContainsSymbol (
+        int result = r_cstl_bytecode_function_contains_symbol (
             &decoder,
-            (R_CSTL_BytecodeFunction)ProperRegistrationWrapper,
+            (r_cstl_bytecode_function)ProperRegistrationWrapper,
             64,
             "MockRegisterClass",
             &found);
@@ -983,8 +983,8 @@ TEST_F (CstlBytecodeTest, IntegrationTestProperRegistrationDetection)
             EXPECT_EQ (1, found) << "ProperRegistrationWrapper should call MockRegisterClass";
         }
 
-        R_CSTL_DeleteBytecodeDecoder (&decoder);
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode_decoder (&decoder);
+        r_cstl_delete_bytecode (pCode);
     }
     else
     {
@@ -995,20 +995,20 @@ TEST_F (CstlBytecodeTest, IntegrationTestProperRegistrationDetection)
 TEST_F (CstlBytecodeTest, IntegrationTestMissingRegistrationDetection)
 {
     // Test that ImproperRegistrationWrapper doesn't call RegisterClass
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
-        (R_CSTL_BytecodeFunction)ImproperRegistrationWrapper,
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (
+        (r_cstl_bytecode_function)ImproperRegistrationWrapper,
         64,
         R_CSTL_BYTECODE_ARCH_X86_64);
 
     if (pCode)
     {
-        struct R_CSTL_BytecodeDecoder decoder;
-        ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+        struct r_cstl_bytecode_decoder decoder;
+        ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
         int found = 0;
-        int result = R_CSTL_BytecodeFunctionContainsSymbol (
+        int result = r_cstl_bytecode_function_contains_symbol (
             &decoder,
-            (R_CSTL_BytecodeFunction)ImproperRegistrationWrapper,
+            (r_cstl_bytecode_function)ImproperRegistrationWrapper,
             64,
             "MockRegisterClass",
             &found);
@@ -1019,8 +1019,8 @@ TEST_F (CstlBytecodeTest, IntegrationTestMissingRegistrationDetection)
             EXPECT_EQ (0, found) << "ImproperRegistrationWrapper should not call MockRegisterClass";
         }
 
-        R_CSTL_DeleteBytecodeDecoder (&decoder);
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode_decoder (&decoder);
+        r_cstl_delete_bytecode (pCode);
     }
     else
     {
@@ -1056,12 +1056,12 @@ TEST_F (CstlBytecodeTest, EnhancedTestRexPrefixVariants)
     for (const auto& tc : testCases)
     {
         uint8_t                 testData[] = {tc.rex, 0x8B, 0x00}; // REX + MOV
-        struct R_CSTL_Bytecode* pCode
-            = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+        struct r_cstl_bytecode* pCode
+            = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
         ASSERT_NE (nullptr, pCode);
 
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
         EXPECT_EQ (1, instruction.hasRex);
         EXPECT_EQ (tc.rex, instruction.rexPrefix);
         EXPECT_EQ (tc.expectedW, instruction.rexW);
@@ -1069,7 +1069,7 @@ TEST_F (CstlBytecodeTest, EnhancedTestRexPrefixVariants)
         EXPECT_EQ (tc.expectedX, instruction.rexX);
         EXPECT_EQ (tc.expectedB, instruction.rexB);
 
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode (pCode);
     }
 }
 
@@ -1097,19 +1097,19 @@ TEST_F (CstlBytecodeTest, EnhancedTestConditionalJumpVariants)
 
     for (const auto& tc : testCases)
     {
-        struct R_CSTL_Bytecode* pCode
-            = R_CSTL_NewBytecodeView (tc.bytes, sizeof (tc.bytes), R_CSTL_BYTECODE_ARCH_X86_64);
+        struct r_cstl_bytecode* pCode
+            = r_cstl_new_bytecode_view (tc.bytes, sizeof (tc.bytes), R_CSTL_BYTECODE_ARCH_X86_64);
         ASSERT_NE (nullptr, pCode) << "Failed for " << tc.name;
 
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
         // Parser currently returns 3-4 bytes for two-byte opcodes without ModRM
         EXPECT_GT (instruction.size, 2u) << "Size mismatch for " << tc.name;
         EXPECT_EQ (1, instruction.isJump) << tc.name << " should be detected as jump";
         // Target address extraction may need parser enhancement
         // EXPECT_NE (0u, instruction.targetAddress) << tc.name << " should have target address";
 
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode (pCode);
     }
 }
 
@@ -1130,17 +1130,17 @@ TEST_F (CstlBytecodeTest, EnhancedTestLoopInstructions)
 
     for (const auto& tc : testCases)
     {
-        struct R_CSTL_Bytecode* pCode
-            = R_CSTL_NewBytecodeView (tc.bytes, sizeof (tc.bytes), R_CSTL_BYTECODE_ARCH_X86_64);
+        struct r_cstl_bytecode* pCode
+            = r_cstl_new_bytecode_view (tc.bytes, sizeof (tc.bytes), R_CSTL_BYTECODE_ARCH_X86_64);
         ASSERT_NE (nullptr, pCode) << "Failed for " << tc.name;
 
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
         EXPECT_EQ (2u, instruction.size) << "Size mismatch for " << tc.name;
         EXPECT_EQ (1, instruction.isJump) << tc.name << " should be detected as jump";
         EXPECT_NE (0u, instruction.targetAddress) << tc.name << " should have target address";
 
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode (pCode);
     }
 }
 
@@ -1148,17 +1148,17 @@ TEST_F (CstlBytecodeTest, EnhancedTestJCXZInstruction)
 {
     // Test JCXZ/JECXZ/JRCXZ instruction
     uint8_t                 testData[] = {0xE3, 0x05}; // JCXZ rel8
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (2u, instruction.size);
     EXPECT_EQ (1, instruction.isJump);
     EXPECT_NE (0u, instruction.targetAddress);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 TEST_F (CstlBytecodeTest, EnhancedTestLegacyPrefixDetection)
@@ -1181,15 +1181,15 @@ TEST_F (CstlBytecodeTest, EnhancedTestLegacyPrefixDetection)
     for (const auto& tc : testCases)
     {
         uint8_t                 testData[] = {tc.prefix, 0x90}; // Prefix + NOP
-        struct R_CSTL_Bytecode* pCode
-            = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+        struct r_cstl_bytecode* pCode
+            = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
         ASSERT_NE (nullptr, pCode) << "Failed for " << tc.name;
 
-        struct R_CSTL_BytecodeInstruction instruction;
-        ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
+        struct r_cstl_bytecode_instruction instruction;
+        ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction)) << "Failed to parse " << tc.name;
         EXPECT_NE (0u, instruction.legacyPrefixes) << tc.name << " should be detected";
 
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode (pCode);
     }
 }
 
@@ -1197,38 +1197,38 @@ TEST_F (CstlBytecodeTest, EnhancedTestMultiplePrefixes)
 {
     // Test instruction with multiple prefixes
     uint8_t                 testData[] = {0xF0, 0x66, 0x48, 0x8B, 0x00}; // LOCK + Operand Size + REX.W + MOV
-    struct R_CSTL_Bytecode* pCode
-        = R_CSTL_NewBytecodeView (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
+    struct r_cstl_bytecode* pCode
+        = r_cstl_new_bytecode_view (testData, sizeof (testData), R_CSTL_BYTECODE_ARCH_X86_64);
     ASSERT_NE (nullptr, pCode);
 
-    struct R_CSTL_BytecodeInstruction instruction;
-    ASSERT_EQ (0, R_CSTL_BytecodeParseEnhanced (pCode, 0, &instruction));
+    struct r_cstl_bytecode_instruction instruction;
+    ASSERT_EQ (0, r_cstl_bytecode_parse_enhanced (pCode, 0, &instruction));
     EXPECT_EQ (5u, instruction.size);
     EXPECT_EQ (1, instruction.hasRex);
     EXPECT_EQ (1, instruction.rexW);
     EXPECT_NE (0u, instruction.legacyPrefixes);
 
-    R_CSTL_DeleteBytecode (pCode);
+    r_cstl_delete_bytecode (pCode);
 }
 
 // Additional integration tests for edge cases
 TEST_F (CstlBytecodeTest, IntegrationTestFunctionWithMultipleCalls)
 {
     // Test function that calls multiple methods
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
-        (R_CSTL_BytecodeFunction)MultiCallFunction,
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (
+        (r_cstl_bytecode_function)MultiCallFunction,
         128,
         R_CSTL_BYTECODE_ARCH_X86_64);
 
     if (pCode)
     {
-        struct R_CSTL_BytecodeDecoder decoder;
-        ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+        struct r_cstl_bytecode_decoder decoder;
+        ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
         int found = 0;
-        int result = R_CSTL_BytecodeFunctionContainsSymbol (
+        int result = r_cstl_bytecode_function_contains_symbol (
             &decoder,
-            (R_CSTL_BytecodeFunction)MultiCallFunction,
+            (r_cstl_bytecode_function)MultiCallFunction,
             128,
             "MockRegisterClass",
             &found);
@@ -1239,8 +1239,8 @@ TEST_F (CstlBytecodeTest, IntegrationTestFunctionWithMultipleCalls)
             EXPECT_EQ (1, found) << "MultiCallFunction should call MockRegisterClass";
         }
 
-        R_CSTL_DeleteBytecodeDecoder (&decoder);
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode_decoder (&decoder);
+        r_cstl_delete_bytecode (pCode);
     }
     else
     {
@@ -1251,15 +1251,15 @@ TEST_F (CstlBytecodeTest, IntegrationTestFunctionWithMultipleCalls)
 TEST_F (CstlBytecodeTest, IntegrationTestFunctionCallPatternAnalysis)
 {
     // Test analysis of function call patterns
-    struct R_CSTL_Bytecode* pCode = R_CSTL_NewBytecodeFromFunction (
-        (R_CSTL_BytecodeFunction)R_CSTL_HeapInit,
+    struct r_cstl_bytecode* pCode = r_cstl_new_bytecode_from_function (
+        (r_cstl_bytecode_function)r_cstl_heap_init,
         64,
         R_CSTL_BYTECODE_ARCH_X86_64);
 
     if (pCode)
     {
-        struct R_CSTL_BytecodeDecoder decoder;
-        ASSERT_EQ (0, R_CSTL_BytecodeDecoderCreate (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
+        struct r_cstl_bytecode_decoder decoder;
+        ASSERT_EQ (0, r_cstl_bytecode_decoder_create (R_CSTL_BYTECODE_ARCH_X86_64, &decoder));
 
         // Parse the function to analyze call patterns
         size_t offset = 0;
@@ -1267,8 +1267,8 @@ TEST_F (CstlBytecodeTest, IntegrationTestFunctionCallPatternAnalysis)
         int    jumpCount = 0;
         while (offset < 64)
         {
-            struct R_CSTL_BytecodeInstruction instruction;
-            int result = R_CSTL_BytecodeParseEnhanced (pCode, offset, &instruction);
+            struct r_cstl_bytecode_instruction instruction;
+            int result = r_cstl_bytecode_parse_enhanced (pCode, offset, &instruction);
             if (result != 0) break;
             if (instruction.isCall) callCount++;
             if (instruction.isJump) jumpCount++;
@@ -1279,8 +1279,8 @@ TEST_F (CstlBytecodeTest, IntegrationTestFunctionCallPatternAnalysis)
         EXPECT_GE (callCount, 0);
         EXPECT_GE (jumpCount, 0);
 
-        R_CSTL_DeleteBytecodeDecoder (&decoder);
-        R_CSTL_DeleteBytecode (pCode);
+        r_cstl_delete_bytecode_decoder (&decoder);
+        r_cstl_delete_bytecode (pCode);
     }
     else
     {

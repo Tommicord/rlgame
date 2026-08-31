@@ -11,21 +11,21 @@ extern "C"
 inline bool
 BenchEnsureHeap (::benchmark::State& state, size_t heapBytes)
 {
-        if (R_CSTL_HeapInit (heapBytes) != 0)
+        if (r_cstl_heap_init (heapBytes) != 0)
         {
-                state.SkipWithError ("R_CSTL_HeapInit failed");
+                state.SkipWithError ("r_cstl_heap_init failed");
                 return false;
         }
 
-        void* pProbe = R_CSTL_HeapAlloc (64);
+        void* pProbe = r_cstl_heap_alloc (64);
         if (!pProbe)
         {
-                R_CSTL_HeapShutdown ();
-                state.SkipWithError ("R_CSTL_HeapAlloc probe failed (heap not ready)");
+                r_cstl_heap_shutdown ();
+                state.SkipWithError ("r_cstl_heap_alloc probe failed (heap not ready)");
                 return false;
         }
 
         benchmark::DoNotOptimize (pProbe);
-        R_CSTL_HeapFree (pProbe);
+        r_cstl_heap_free (pProbe);
         return true;
 }

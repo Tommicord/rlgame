@@ -21,7 +21,7 @@ protected:
 
         void
         TearDown (const ::benchmark::State& /*state*/) override
-        { R_CSTL_HeapShutdown (); }
+        { r_cstl_heap_shutdown (); }
 };
 
 } // namespace
@@ -33,14 +33,14 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, AllocFree64) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                void* p = R_CSTL_HeapAlloc (64);
+                void* p = r_cstl_heap_alloc (64);
                 benchmark::DoNotOptimize (p);
                 if (!p)
                 {
                         state.SkipWithError ("HeapAlloc returned null");
                         return;
                 }
-                R_CSTL_HeapFree (p);
+                r_cstl_heap_free (p);
         }
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, AllocFree64)->Unit (benchmark::kNanosecond);
@@ -52,14 +52,14 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, AllocFree256) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                void* p = R_CSTL_HeapAlloc (256);
+                void* p = r_cstl_heap_alloc (256);
                 benchmark::DoNotOptimize (p);
                 if (!p)
                 {
                         state.SkipWithError ("HeapAlloc returned null");
                         return;
                 }
-                R_CSTL_HeapFree (p);
+                r_cstl_heap_free (p);
         }
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, AllocFree256)->Unit (benchmark::kNanosecond);
@@ -71,14 +71,14 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, AllocFree4096) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                void* p = R_CSTL_HeapAlloc (4096);
+                void* p = r_cstl_heap_alloc (4096);
                 benchmark::DoNotOptimize (p);
                 if (!p)
                 {
                         state.SkipWithError ("HeapAlloc returned null");
                         return;
                 }
-                R_CSTL_HeapFree (p);
+                r_cstl_heap_free (p);
         }
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, AllocFree4096)->Unit (benchmark::kNanosecond);
@@ -88,7 +88,7 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, ReallocGrowInPlace) (benchmark::State& sta
         if (!BenchEnsureHeap (state, kBenchHeapSize))
                 return;
 
-        void* p = R_CSTL_HeapAlloc (64);
+        void* p = r_cstl_heap_alloc (64);
         if (!p)
         {
                 state.SkipWithError ("initial alloc failed");
@@ -97,19 +97,19 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, ReallocGrowInPlace) (benchmark::State& sta
 
         for (auto _ : state)
         {
-                void* q = R_CSTL_HeapRealloc (p, 96);
+                void* q = r_cstl_heap_realloc (p, 96);
                 benchmark::DoNotOptimize (q);
                 if (!q)
                 {
                         state.SkipWithError ("realloc failed");
-                        R_CSTL_HeapFree (p);
+                        r_cstl_heap_free (p);
                         return;
                 }
                 p = q;
                 benchmark::ClobberMemory ();
         }
 
-        R_CSTL_HeapFree (p);
+        r_cstl_heap_free (p);
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, ReallocGrowInPlace)->Unit (benchmark::kNanosecond);
 
@@ -118,7 +118,7 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, ReallocGrowCopy) (benchmark::State& state)
         if (!BenchEnsureHeap (state, kBenchHeapSize))
                 return;
 
-        void* p = R_CSTL_HeapAlloc (64);
+        void* p = r_cstl_heap_alloc (64);
         if (!p)
         {
                 state.SkipWithError ("initial alloc failed");
@@ -127,19 +127,19 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, ReallocGrowCopy) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                void* q = R_CSTL_HeapRealloc (p, 4096);
+                void* q = r_cstl_heap_realloc (p, 4096);
                 benchmark::DoNotOptimize (q);
                 if (!q)
                 {
                         state.SkipWithError ("realloc failed");
-                        R_CSTL_HeapFree (p);
+                        r_cstl_heap_free (p);
                         return;
                 }
                 p = q;
                 benchmark::ClobberMemory ();
         }
 
-        R_CSTL_HeapFree (p);
+        r_cstl_heap_free (p);
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, ReallocGrowCopy)->Unit (benchmark::kNanosecond);
 
@@ -156,11 +156,11 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, AllocManyFreeMany) (benchmark::State& stat
                 for (int64_t i = 0; i < count; ++i)
                 {
                         ptrs[static_cast<size_t> (i)] =
-                            R_CSTL_HeapAlloc (static_cast<size_t> (32 + (i % 512)));
+                            r_cstl_heap_alloc (static_cast<size_t> (32 + (i % 512)));
                         benchmark::DoNotOptimize (ptrs[static_cast<size_t> (i)]);
                 }
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_HeapFree (ptrs[static_cast<size_t> (i)]);
+                        r_cstl_heap_free (ptrs[static_cast<size_t> (i)]);
         }
 
         state.SetItemsProcessed (state.iterations () * count * 2);
@@ -185,20 +185,20 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, FragmentationChurn) (benchmark::State& sta
                 {
                         if (live[static_cast<size_t> (i)])
                         {
-                                R_CSTL_HeapFree (live[static_cast<size_t> (i)]);
+                                r_cstl_heap_free (live[static_cast<size_t> (i)]);
                                 live[static_cast<size_t> (i)] = nullptr;
                         }
                         else
                         {
                                 live[static_cast<size_t> (i)] =
-                                    R_CSTL_HeapAlloc (static_cast<size_t> (64 + (i % 7) * 64));
+                                    r_cstl_heap_alloc (static_cast<size_t> (64 + (i % 7) * 64));
                                 benchmark::DoNotOptimize (live[static_cast<size_t> (i)]);
                         }
                 }
                 for (void* p : live)
                 {
                         if (p)
-                                R_CSTL_HeapFree (p);
+                                r_cstl_heap_free (p);
                 }
                 live.assign (static_cast<size_t> (slots), nullptr);
         }
@@ -215,7 +215,7 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, IsValidPointer) (benchmark::State& state)
         if (!BenchEnsureHeap (state, kBenchHeapSize))
                 return;
 
-        void* p = R_CSTL_HeapAlloc (128);
+        void* p = r_cstl_heap_alloc (128);
         if (!p)
         {
                 state.SkipWithError ("alloc failed");
@@ -224,10 +224,10 @@ BENCHMARK_DEFINE_F (HeapBenchFixture, IsValidPointer) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                const int live = R_CSTL_HeapIsValidPointer (p);
+                const int live = r_cstl_heap_is_valid_pointer (p);
                 benchmark::DoNotOptimize (live);
         }
 
-        R_CSTL_HeapFree (p);
+        r_cstl_heap_free (p);
 }
 BENCHMARK_REGISTER_F (HeapBenchFixture, IsValidPointer)->Unit (benchmark::kNanosecond);

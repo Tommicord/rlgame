@@ -1,4 +1,4 @@
-struct R_CVulkan_DefragBlockMetadata
+struct r_cvulkan_defrag_block_metadata
 {
     uint    blockIndex;
     ulong   totalSize;
@@ -25,8 +25,8 @@ struct R_CVulkan_DefragMove
  * @param blockCount Number of blocks
  * @param mergeFactor Target merge factor n
  */
-__kernel void R_CVulkan_DefragAnalyzeBlocksKernel (
-    __global struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+__kernel void r_cvulkan_defrag_analyze_blocks_kernel (
+    __global struct r_cvulkan_defrag_block_metadata* blockMetadata,
     const uint                                     blockCount,
     const uint                                     mergeFactor)
 {
@@ -37,7 +37,7 @@ __kernel void R_CVulkan_DefragAnalyzeBlocksKernel (
         return;
     }
 
-    __global R_CVulkan_DefragBlockMetadata* metadata = &blockMetadata[blockIndex];
+    __global r_cvulkan_defrag_block_metadata* metadata = &blockMetadata[blockIndex];
 
     metadata->fillLevel = (metadata->totalSize > 0) 
         ? ((float)metadata->usedSize / (float)metadata->totalSize) 
@@ -59,8 +59,8 @@ __kernel void R_CVulkan_DefragAnalyzeBlocksKernel (
  * @param mergeFactor Target merge factor n
  * @param maxBytesPerPass Maximum bytes to move per pass
  */
-__kernel void R_CVulkan_DefragCreateMovePlanKernel (
-    __global struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+__kernel void r_cvulkan_defrag_create_move_plan_kernel (
+    __global struct r_cvulkan_defrag_block_metadata* blockMetadata,
     __global struct R_CVulkan_DefragMove*         moves,
     __global uint*                moveCount,
     const uint                    blockCount,
@@ -74,7 +74,7 @@ __kernel void R_CVulkan_DefragCreateMovePlanKernel (
         return;
     }
 
-    __global struct R_CVulkan_DefragBlockMetadata* metadata = &blockMetadata[blockIndex];
+    __global struct r_cvulkan_defrag_block_metadata* metadata = &blockMetadata[blockIndex];
 
     if (!metadata->isCandidate)
     {
@@ -137,8 +137,8 @@ __kernel void R_CVulkan_DefragCreateMovePlanKernel (
  * @param moveCount Number of moves
  * @param blockCount Number of blocks
  */
-__kernel void R_CVulkan_DefragUpdateMetadataKernel (
-    __global struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+__kernel void r_cvulkan_defrag_update_metadata_kernel (
+    __global struct r_cvulkan_defrag_block_metadata* blockMetadata,
     __global struct R_CVulkan_DefragMove*         moves,
     const uint                    moveCount,
     const uint                    blockCount)

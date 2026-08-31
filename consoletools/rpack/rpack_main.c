@@ -57,13 +57,13 @@ r_pack_parse_arguments (
     char**                          argv,
     struct r_pack_encoder_settings* pSettings,
     char**                          ppOutputPath,
-    struct R_CSTL_Array**           ppInputPaths,
+    struct r_cstl_array**           ppInputPaths,
     int*                            pVerbose,
     int*                            pQuiet,
     int*                            pMipmap)
 {
     *ppOutputPath = NULL;
-    *ppInputPaths = R_CSTL_NewArray ();
+    *ppInputPaths = r_cstl_new_array ();
     if (!*ppInputPaths)
     {
         return -1;
@@ -196,7 +196,7 @@ r_pack_parse_arguments (
         else
         {
             size_t len = strlen (argv[i]) + 1;
-            int    result = R_CSTL_ArrayPushData (*ppInputPaths, (const uint8_t*)argv[i], len);
+            int    result = r_cstl_array_push_data (*ppInputPaths, (const uint8_t*)argv[i], len);
             if (result != R_CSTL_OK)
             {
                 fprintf (stderr, "\033[1;31mError: Out of memory\033[0m\n");
@@ -209,7 +209,7 @@ r_pack_parse_arguments (
         fprintf (stderr, "\033[1;31mError: --output is required\033[0m\n");
         return -1;
     }
-    if (R_CSTL_ArrayLength (*ppInputPaths) == 0)
+    if (r_cstl_array_length (*ppInputPaths) == 0)
     {
         fprintf (stderr, "\033[1;31mError: At least one input file is required\033[0m\n");
         return -1;
@@ -222,12 +222,12 @@ r_pack_parse_arguments (
 int
 main (int argc, char** argv)
 {
-    if (R_CSTL_LogInit () != R_CSTL_OK)
+    if (r_cstl_log_init () != R_CSTL_OK)
     {
         return EXIT_FAILURE;
     }
-    R_CSTL_LogSetFlags (R_CSTL_LogGetFlags () | R_CSTL_LOG_FLAG_ENABLE_COLORS);
-    if (R_CSTL_HeapInit (R_PACK_HEAP_SIZE) != R_CSTL_OK)
+    r_cstl_log_set_flags (r_cstl_log_get_flags () | R_CSTL_LOG_FLAG_ENABLE_COLORS);
+    if (r_cstl_heap_init (R_PACK_HEAP_SIZE) != R_CSTL_OK)
     {
         R_CSTL_LOG_FATAL ("Failed to initialize RPACK heap\n");
         return EXIT_FAILURE;
@@ -235,12 +235,12 @@ main (int argc, char** argv)
     if (argc == 1)
     {
         r_pack_print_help ();
-        R_CSTL_HeapShutdown ();
+        r_cstl_heap_shutdown ();
         return EXIT_SUCCESS;
     }
     struct r_pack_encoder_settings config = {0};
     char*                          pOutputPath = NULL;
-    struct R_CSTL_Array*           pInputPaths = NULL;
+    struct r_cstl_array*           pInputPaths = NULL;
     struct r_pack_encoder*         pEncoder = NULL;
     int                            verbose = 0;
     int                            quiet = 0;
@@ -251,31 +251,31 @@ main (int argc, char** argv)
         = r_pack_parse_arguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
     if (parseResult == 1)
     {
-        R_CSTL_DeleteArray (pInputPaths);
-        R_CSTL_HeapShutdown ();
+        r_cstl_delete_array (pInputPaths);
+        r_cstl_heap_shutdown ();
         return EXIT_SUCCESS;
     }
     if (parseResult < 0)
     {
-        R_CSTL_DeleteArray (pInputPaths);
-        R_CSTL_HeapShutdown ();
+        r_cstl_delete_array (pInputPaths);
+        r_cstl_heap_shutdown ();
         return EXIT_FAILURE;
     }
     if (verbose)
     {
-        R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_TRACE);
+        r_cstl_log_set_min_level (R_CSTL_LOG_LEVEL_TRACE);
     }
     if (quiet)
     {
-        R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_ERROR);
+        r_cstl_log_set_min_level (R_CSTL_LOG_LEVEL_ERROR);
     }
     R_CSTL_LOG_INFO ("Packing assets as RPACK");
     r_pack_log_settingsuration_warnings (&config);
 
     size_t      inputCount = 0;
     size_t      inputOffset = 0;
-    size_t      inputBytes = R_CSTL_ArrayLength (pInputPaths);
-    const char* pInputData = (const char*)R_CSTL_ArrayData (pInputPaths);
+    size_t      inputBytes = r_cstl_array_length (pInputPaths);
+    const char* pInputData = (const char*)r_cstl_array_data (pInputPaths);
     while (inputOffset < inputBytes)
     {
         size_t pathLength = strnlen (pInputData + inputOffset, inputBytes - inputOffset);
@@ -312,9 +312,9 @@ main (int argc, char** argv)
 r_cleanup_encoder:
     r_pack_delete_encoder (pEncoder);
 r_cleanup_logging:
-    R_CSTL_LogShutdown ();
+    r_cstl_log_shutdown ();
 r_cleanup_input_paths:
-    R_CSTL_DeleteArray (pInputPaths);
-    R_CSTL_HeapShutdown ();
+    r_cstl_delete_array (pInputPaths);
+    r_cstl_heap_shutdown ();
     return result;
 }

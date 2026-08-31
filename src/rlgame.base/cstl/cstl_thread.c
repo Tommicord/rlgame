@@ -24,7 +24,7 @@
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 
-struct R_CSTL_Thread
+struct r_cstl_thread
 {
         HANDLE handle;
         DWORD  threadId;
@@ -37,21 +37,21 @@ Win32ThreadEntry (LPVOID lpParam)
 {
     struct
     {
-            R_CSTL_ThreadFunc pFunc;
+            r_cstl_thread_func pFunc;
             void*             pData;
     }* pParams = lpParam;
 
-    R_CSTL_ThreadFunc pFunc = pParams->pFunc;
+    r_cstl_thread_func pFunc = pParams->pFunc;
     void*             pData = pParams->pData;
 
-    R_CSTL_HeapFree (pParams);
+    r_cstl_heap_free (pParams);
 
     pFunc (pData);
     return 0;
 }
 
-struct R_CSTL_Thread*
-R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
+struct r_cstl_thread*
+r_cstl_new_thread (r_cstl_thread_func pFunc, void* pData)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pFunc == NULL)
@@ -61,9 +61,9 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 #endif
     struct
     {
-            R_CSTL_ThreadFunc pFunc;
+            r_cstl_thread_func pFunc;
             void*             pData;
-    }* pParams = R_CSTL_HeapAlloc (sizeof (*pParams));
+    }* pParams = r_cstl_heap_alloc (sizeof (*pParams));
 
 #if R_CSTL_THREAD_DEBUG
     if (pParams == NULL)
@@ -75,18 +75,18 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
     pParams->pFunc = pFunc;
     pParams->pData = pData;
 
-    struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
+    struct r_cstl_thread* pThread = r_cstl_heap_alloc (sizeof (struct r_cstl_thread));
 #if R_CSTL_THREAD_DEBUG
     if (pThread == NULL)
     {
-        R_CSTL_HeapFree (pParams);
+        r_cstl_heap_free (pParams);
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pThread,
         pThread,
-        sizeof (struct R_CSTL_Thread),
-        R_CSTL_HEAP_NAME (R_CSTL_Thread));
+        sizeof (struct r_cstl_thread),
+        R_CSTL_HEAP_NAME (r_cstl_thread));
 #endif
 
     pThread->handle = CreateThread (NULL, 0, Win32ThreadEntry, pParams, 0, &pThread->threadId);
@@ -94,9 +94,9 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 #if R_CSTL_THREAD_DEBUG
     if (pThread->handle == NULL)
     {
-        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-        R_CSTL_HeapFree (pParams);
-        R_CSTL_HeapFree (pThread);
+        r_cstl_heap_unregister_allocation (pThread, pThread);
+        r_cstl_heap_free (pParams);
+        r_cstl_heap_free (pThread);
         return NULL;
     }
 #endif
@@ -105,7 +105,7 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 }
 
 int
-R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
+r_cstl_thread_join (struct r_cstl_thread* pThread)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pThread == NULL)
@@ -120,42 +120,42 @@ R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
     if (waitResult != WAIT_OBJECT_0)
     {
         CloseHandle (pThread->handle);
-        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-        R_CSTL_HeapFree (pThread);
+        r_cstl_heap_unregister_allocation (pThread, pThread);
+        r_cstl_heap_free (pThread);
         return R_CSTL_ERROR_THREAD_JOIN_FAILED;
     }
 #endif
 
     CloseHandle (pThread->handle);
 #if R_CSTL_THREAD_DEBUG
-    R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+    r_cstl_heap_unregister_allocation (pThread, pThread);
 #endif
-    R_CSTL_HeapFree (pThread);
+    r_cstl_heap_free (pThread);
 
     return R_CSTL_OK;
 }
 
 uint64_t
-R_CSTL_ThreadGetCurrentId (void)
+r_cstl_thread_get_current_id (void)
 {
     return (uint64_t)GetCurrentThreadId ();
 }
 
 void
-R_CSTL_ThreadYield (void)
+r_cstl_thread_yield (void)
 {
     SwitchToThread ();
 }
 
 void
-R_CSTL_ThreadSleep (uint32_t milliseconds)
+r_cstl_thread_sleep (uint32_t milliseconds)
 {
     Sleep (milliseconds);
 }
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
-struct R_CSTL_Thread
+struct r_cstl_thread
 {
         pthread_t thread;
         int       joined;
@@ -163,7 +163,7 @@ struct R_CSTL_Thread
 
 struct ThreadParams
 {
-        R_CSTL_ThreadFunc pFunc;
+        r_cstl_thread_func pFunc;
         void*             pData;
 };
 
@@ -171,17 +171,17 @@ static void*
 PthreadThreadEntry (void* arg)
 {
     struct ThreadParams* pParams = arg;
-    R_CSTL_ThreadFunc    pFunc = pParams->pFunc;
+    r_cstl_thread_func    pFunc = pParams->pFunc;
     void*                pData = pParams->pData;
 
-    R_CSTL_HeapFree (pParams);
+    r_cstl_heap_free (pParams);
 
     pFunc (pData);
     return NULL;
 }
 
-struct R_CSTL_Thread*
-R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
+struct r_cstl_thread*
+r_cstl_new_thread (r_cstl_thread_func pFunc, void* pData)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pFunc == NULL)
@@ -190,7 +190,7 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
     }
 #endif
 
-    struct ThreadParams* pParams = R_CSTL_HeapAlloc (sizeof (struct ThreadParams));
+    struct ThreadParams* pParams = r_cstl_heap_alloc (sizeof (struct ThreadParams));
 #if R_CSTL_THREAD_DEBUG
     if (pParams == NULL)
     {
@@ -201,18 +201,18 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
     pParams->pFunc = pFunc;
     pParams->pData = pData;
 
-    struct R_CSTL_Thread* pThread = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Thread));
+    struct r_cstl_thread* pThread = r_cstl_heap_alloc (sizeof (struct r_cstl_thread));
 #if R_CSTL_THREAD_DEBUG
     if (pThread == NULL)
     {
-        R_CSTL_HeapFree (pParams);
+        r_cstl_heap_free (pParams);
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pThread,
         pThread,
-        sizeof (struct R_CSTL_Thread),
-        R_CSTL_HEAP_NAME (R_CSTL_Thread));
+        sizeof (struct r_cstl_thread),
+        R_CSTL_HEAP_NAME (r_cstl_thread));
 #endif
 
     pThread->joined = 0;
@@ -221,9 +221,9 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 #if R_CSTL_THREAD_DEBUG
     if (result != 0)
     {
-        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-        R_CSTL_HeapFree (pParams);
-        R_CSTL_HeapFree (pThread);
+        r_cstl_heap_unregister_allocation (pThread, pThread);
+        r_cstl_heap_free (pParams);
+        r_cstl_heap_free (pThread);
         return NULL;
     }
 #endif
@@ -232,7 +232,7 @@ R_CSTL_NewThread (R_CSTL_ThreadFunc pFunc, void* pData)
 }
 
 int
-R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
+r_cstl_thread_join (struct r_cstl_thread* pThread)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pThread == NULL)
@@ -243,9 +243,9 @@ R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
     if (pThread->joined)
     {
 #if R_CSTL_THREAD_DEBUG
-        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+        r_cstl_heap_unregister_allocation (pThread, pThread);
 #endif
-        R_CSTL_HeapFree (pThread);
+        r_cstl_heap_free (pThread);
         return R_CSTL_ERROR_INVALID_ARGUMENT;
     }
 #endif
@@ -254,33 +254,33 @@ R_CSTL_ThreadJoin (struct R_CSTL_Thread* pThread)
 #if R_CSTL_THREAD_DEBUG
     if (result != 0)
     {
-        R_CSTL_HeapUnregisterAllocation (pThread, pThread);
-        R_CSTL_HeapFree (pThread);
+        r_cstl_heap_unregister_allocation (pThread, pThread);
+        r_cstl_heap_free (pThread);
         return R_CSTL_ERROR_THREAD_JOIN_FAILED;
     }
 #endif
 
 #if R_CSTL_THREAD_DEBUG
-    R_CSTL_HeapUnregisterAllocation (pThread, pThread);
+    r_cstl_heap_unregister_allocation (pThread, pThread);
 #endif
-    R_CSTL_HeapFree (pThread);
+    r_cstl_heap_free (pThread);
     return R_CSTL_OK;
 }
 
 uint64_t
-R_CSTL_ThreadGetCurrentId (void)
+r_cstl_thread_get_current_id (void)
 {
     return (uint64_t)syscall (SYS_gettid);
 }
 
 void
-R_CSTL_ThreadYield (void)
+r_cstl_thread_yield (void)
 {
     sched_yield ();
 }
 
 void
-R_CSTL_ThreadSleep (uint32_t milliseconds)
+r_cstl_thread_sleep (uint32_t milliseconds)
 {
     usleep (milliseconds * 1000);
 }
@@ -289,45 +289,45 @@ R_CSTL_ThreadSleep (uint32_t milliseconds)
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 
-struct R_CSTL_Mutex
+struct r_cstl_mutex
 {
         CRITICAL_SECTION cs;
 };
 
-struct R_CSTL_Mutex*
-R_CSTL_NewMutex (void)
+struct r_cstl_mutex*
+r_cstl_new_mutex (void)
 {
-    struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
+    struct r_cstl_mutex* pMutex = r_cstl_heap_alloc (sizeof (struct r_cstl_mutex));
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
     {
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pMutex,
         pMutex,
-        sizeof (struct R_CSTL_Mutex),
-        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+        sizeof (struct r_cstl_mutex),
+        R_CSTL_HEAP_NAME (r_cstl_mutex));
 #endif
     InitializeCriticalSection (&pMutex->cs);
     return pMutex;
 }
 
 void
-R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_destroy (struct r_cstl_mutex* pMutex)
 {
     if (pMutex != NULL)
     {
 #if R_CSTL_THREAD_DEBUG
         DeleteCriticalSection (&pMutex->cs);
-        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
+        r_cstl_heap_unregister_allocation (pMutex, pMutex);
 #endif
-        R_CSTL_HeapFree (pMutex);
+        r_cstl_heap_free (pMutex);
     }
 }
 
 int
-R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_lock (struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
@@ -341,7 +341,7 @@ R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
 }
 
 int
-R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
+r_cstl_mutex_try_lock (struct r_cstl_mutex* pMutex, int* pOutLocked)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL || pOutLocked == NULL)
@@ -355,7 +355,7 @@ R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
 }
 
 int
-R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_unlock (struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
@@ -369,32 +369,32 @@ R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
-struct R_CSTL_Mutex
+struct r_cstl_mutex
 {
         pthread_mutex_t mutex;
 };
 
-struct R_CSTL_Mutex*
-R_CSTL_NewMutex (void)
+struct r_cstl_mutex*
+r_cstl_new_mutex (void)
 {
-    struct R_CSTL_Mutex* pMutex = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Mutex));
+    struct r_cstl_mutex* pMutex = r_cstl_heap_alloc (sizeof (struct r_cstl_mutex));
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
     {
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pMutex,
         pMutex,
-        sizeof (struct R_CSTL_Mutex),
-        R_CSTL_HEAP_NAME (R_CSTL_Mutex));
+        sizeof (struct r_cstl_mutex),
+        R_CSTL_HEAP_NAME (r_cstl_mutex));
 #endif
     int result = pthread_mutex_init (&pMutex->mutex, NULL);
 #if R_CSTL_THREAD_DEBUG
     if (result != 0)
     {
-        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
-        R_CSTL_HeapFree (pMutex);
+        r_cstl_heap_unregister_allocation (pMutex, pMutex);
+        r_cstl_heap_free (pMutex);
         return NULL;
     }
 #endif
@@ -402,20 +402,20 @@ R_CSTL_NewMutex (void)
 }
 
 void
-R_CSTL_MutexDestroy (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_destroy (struct r_cstl_mutex* pMutex)
 {
     if (pMutex != NULL)
     {
 #if R_CSTL_THREAD_DEBUG
         pthread_mutex_destroy (&pMutex->mutex);
-        R_CSTL_HeapUnregisterAllocation (pMutex, pMutex);
+        r_cstl_heap_unregister_allocation (pMutex, pMutex);
 #endif
-        R_CSTL_HeapFree (pMutex);
+        r_cstl_heap_free (pMutex);
     }
 }
 
 int
-R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_lock (struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
@@ -436,7 +436,7 @@ R_CSTL_MutexLock (struct R_CSTL_Mutex* pMutex)
 }
 
 int
-R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
+r_cstl_mutex_try_lock (struct r_cstl_mutex* pMutex, int* pOutLocked)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL || pOutLocked == NULL)
@@ -465,7 +465,7 @@ R_CSTL_MutexTryLock (struct R_CSTL_Mutex* pMutex, int* pOutLocked)
 }
 
 int
-R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
+r_cstl_mutex_unlock (struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pMutex == NULL)
@@ -489,44 +489,44 @@ R_CSTL_MutexUnlock (struct R_CSTL_Mutex* pMutex)
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
 
-struct R_CSTL_Condition
+struct r_cstl_condition
 {
         CONDITION_VARIABLE cv;
 };
 
-struct R_CSTL_Condition*
-R_CSTL_ConditionCreate (void)
+struct r_cstl_condition*
+r_cstl_condition_create (void)
 {
-    struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
+    struct r_cstl_condition* pCondition = r_cstl_heap_alloc (sizeof (struct r_cstl_condition));
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
     {
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pCondition,
         pCondition,
-        sizeof (struct R_CSTL_Condition),
-        R_CSTL_HEAP_NAME (R_CSTL_Condition));
+        sizeof (struct r_cstl_condition),
+        R_CSTL_HEAP_NAME (r_cstl_condition));
 #endif
     InitializeConditionVariable (&pCondition->cv);
     return pCondition;
 }
 
 void
-R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_destroy (struct r_cstl_condition* pCondition)
 {
     if (pCondition != NULL)
     {
 #if R_CSTL_THREAD_DEBUG
-        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
+        r_cstl_heap_unregister_allocation (pCondition, pCondition);
 #endif
-        R_CSTL_HeapFree (pCondition);
+        r_cstl_heap_free (pCondition);
     }
 }
 
 int
-R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* pMutex)
+r_cstl_condition_wait (struct r_cstl_condition* pCondition, struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
@@ -550,7 +550,7 @@ R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* 
 }
 
 int
-R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_signal (struct r_cstl_condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
@@ -563,7 +563,7 @@ R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
 }
 
 int
-R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_broadcast (struct r_cstl_condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
@@ -577,32 +577,32 @@ R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
 
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
-struct R_CSTL_Condition
+struct r_cstl_condition
 {
         pthread_cond_t cond;
 };
 
-struct R_CSTL_Condition*
-R_CSTL_ConditionCreate (void)
+struct r_cstl_condition*
+r_cstl_condition_create (void)
 {
-    struct R_CSTL_Condition* pCondition = R_CSTL_HeapAlloc (sizeof (struct R_CSTL_Condition));
+    struct r_cstl_condition* pCondition = r_cstl_heap_alloc (sizeof (struct r_cstl_condition));
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
     {
         return NULL;
     }
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         pCondition,
         pCondition,
-        sizeof (struct R_CSTL_Condition),
-        R_CSTL_HEAP_NAME (R_CSTL_Condition));
+        sizeof (struct r_cstl_condition),
+        R_CSTL_HEAP_NAME (r_cstl_condition));
 #endif
     int result = pthread_cond_init (&pCondition->cond, NULL);
 #if R_CSTL_THREAD_DEBUG
     if (result != 0)
     {
-        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
-        R_CSTL_HeapFree (pCondition);
+        r_cstl_heap_unregister_allocation (pCondition, pCondition);
+        r_cstl_heap_free (pCondition);
         return NULL;
     }
 #endif
@@ -610,20 +610,20 @@ R_CSTL_ConditionCreate (void)
 }
 
 void
-R_CSTL_ConditionDestroy (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_destroy (struct r_cstl_condition* pCondition)
 {
     if (pCondition != NULL)
     {
 #if R_CSTL_THREAD_DEBUG
         pthread_cond_destroy (&pCondition->cond);
-        R_CSTL_HeapUnregisterAllocation (pCondition, pCondition);
+        r_cstl_heap_unregister_allocation (pCondition, pCondition);
 #endif
-        R_CSTL_HeapFree (pCondition);
+        r_cstl_heap_free (pCondition);
     }
 }
 
 int
-R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* pMutex)
+r_cstl_condition_wait (struct r_cstl_condition* pCondition, struct r_cstl_mutex* pMutex)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
@@ -648,7 +648,7 @@ R_CSTL_ConditionWait (struct R_CSTL_Condition* pCondition, struct R_CSTL_Mutex* 
 }
 
 int
-R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_signal (struct r_cstl_condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)
@@ -668,7 +668,7 @@ R_CSTL_ConditionSignal (struct R_CSTL_Condition* pCondition)
 }
 
 int
-R_CSTL_ConditionBroadcast (struct R_CSTL_Condition* pCondition)
+r_cstl_condition_broadcast (struct r_cstl_condition* pCondition)
 {
 #if R_CSTL_THREAD_DEBUG
     if (pCondition == NULL)

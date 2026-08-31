@@ -62,18 +62,18 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
+r_cvulkan_semaphore_get_value (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue);
 
 /**
  * @brief Get the raw Vulkan semaphore handle
  * @param semaphore Pointer to semaphore
  * @return Vulkan semaphore handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkSemaphore R_CVulkan_SemaphoreGetHandle (const struct R_CVulkan_Semaphore* pSemaphore);
+R_CVULKAN_API VkSemaphore r_cvulkan_semaphore_get_handle (const struct R_CVulkan_Semaphore* pSemaphore);
 
 /**
  * @brief Get the associated device
  * @param semaphore Pointer to semaphore
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_SemaphoreGetDevice (const struct R_CVulkan_Semaphore* pSemaphore);
+R_CVULKAN_API VkDevice r_cvulkan_semaphore_get_device (const struct R_CVulkan_Semaphore* pSemaphore);

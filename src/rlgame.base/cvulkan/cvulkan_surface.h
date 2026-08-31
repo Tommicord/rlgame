@@ -37,7 +37,7 @@ enum R_CVulkan_LinuxBackend
 /**
  * @brief Settingsuration parameters for surface creation
  */
-struct R_CVulkan_SurfaceCreateInfo
+struct r_cvulkan_surface_create_info
 {
         const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
 #if defined(R_CVULKAN_PLATFORM_WINDOWS)
@@ -82,7 +82,7 @@ struct R_CVulkan_Surface
  */
 R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewSurface (
     struct R_CVulkan_Surface*                 pSurface,
-    const struct R_CVulkan_SurfaceCreateInfo* pCreateInfo);
+    const struct r_cvulkan_surface_create_info* pCreateInfo);
 
 /**
  * @brief Delete a surface and destroy the Vulkan object
@@ -95,11 +95,11 @@ R_CVULKAN_API void R_CVulkan_DeleteSurface (struct R_CVulkan_Surface* pSurface);
  * @param pSurface Pointer to surface
  * @return Vulkan surface handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkSurfaceKHR R_CVulkan_SurfaceGetHandle (const struct R_CVulkan_Surface* pSurface);
+R_CVULKAN_API VkSurfaceKHR r_cvulkan_surface_get_handle (const struct R_CVulkan_Surface* pSurface);
 
 /**
  * @brief Get the associated Vulkan instance
  * @param pSurface Pointer to surface
  * @return Vulkan instance handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkInstance R_CVulkan_SurfaceGetInstance (const struct R_CVulkan_Surface* pSurface);
+R_CVULKAN_API VkInstance r_cvulkan_surface_get_instance (const struct R_CVulkan_Surface* pSurface);

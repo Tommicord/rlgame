@@ -7,15 +7,15 @@ extern "C" {
 
 extern "C"
 {
-int R_CSTL_HeapInit (size_t heapSizeBytes);
-void R_CSTL_HeapShutdown (void);
+int r_cstl_heap_init (size_t heapSizeBytes);
+void r_cstl_heap_shutdown (void);
 }
 
 class RPackInputTest : public ::testing::Test
 {
 protected:
-    void SetUp () override { ASSERT_EQ (R_CSTL_HeapInit (8 * 1024 * 1024), 0); }
-    void TearDown () override { R_CSTL_HeapShutdown (); }
+    void SetUp () override { ASSERT_EQ (r_cstl_heap_init (8 * 1024 * 1024), 0); }
+    void TearDown () override { r_cstl_heap_shutdown (); }
 };
 
 TEST_F (RPackInputTest, CopiesRawRgbaWithStride)

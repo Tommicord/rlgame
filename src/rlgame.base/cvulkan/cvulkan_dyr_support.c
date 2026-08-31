@@ -18,7 +18,7 @@ R_CVulkan_DYRCreateRenderPass (
     R_CVULKAN_ASSERT (pCreateInfo->colorAttachmentCount > 0);
     R_CVULKAN_ASSERT (pCreateInfo->pColorAttachmentFormats);
 
-    VkDevice logicalDevice = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+    VkDevice logicalDevice = r_cvulkan_device_get_logical_device (pCreateInfo->pDevice);
     R_CVULKAN_ASSERT (logicalDevice != VK_NULL_HANDLE);
 #if defined(R_CVULKAN_DEBUG)
     if (logicalDevice == VK_NULL_HANDLE)
@@ -51,7 +51,7 @@ R_CVulkan_DYRCreateRenderPass (
     }
 
     size_t                   attachmentsSize = sizeof (VkAttachmentDescription) * totalAttachmentCount;
-    VkAttachmentDescription* pAttachments = (VkAttachmentDescription*)R_CSTL_HeapAlloc (attachmentsSize);
+    VkAttachmentDescription* pAttachments = (VkAttachmentDescription*)r_cstl_heap_alloc (attachmentsSize);
     if (!pAttachments)
     {
         R_CSTL_LOG_ERROR ("R_CVulkan_DYRCreateRenderPass: Failed to allocate attachment descriptions");
@@ -62,7 +62,7 @@ R_CVulkan_DYRCreateRenderPass (
 #endif
     size_t colorAttachmentRefsSize = sizeof (VkAttachmentReference) * pCreateInfo->colorAttachmentCount;
     VkAttachmentReference* pColorAttachmentRefs
-        = (VkAttachmentReference*)R_CSTL_HeapAlloc (colorAttachmentRefsSize);
+        = (VkAttachmentReference*)r_cstl_heap_alloc (colorAttachmentRefsSize);
     if (!pColorAttachmentRefs)
     {
         R_CSTL_LOG_ERROR ("R_CVulkan_DYRCreateRenderPass: Failed to allocate color attachment references");
@@ -147,16 +147,16 @@ R_CVulkan_DYRCreateRenderPass (
     R_CSTL_LOG_INFO ("  - Color attachments: %u", pCreateInfo->colorAttachmentCount);
     R_CSTL_LOG_INFO (
         "  - Depth attachment: %s",
-        R_CVulkan_FormatToString (pCreateInfo->depthAttachmentFormat));
+        r_cvulkan_format_to_string (pCreateInfo->depthAttachmentFormat));
     R_CSTL_LOG_INFO (
         "  - Stencil attachment: %s",
-        R_CVulkan_FormatToString (pCreateInfo->stencilAttachmentFormat));
+        r_cvulkan_format_to_string (pCreateInfo->stencilAttachmentFormat));
 #endif
     error = R_CVULKAN_OK;
 r_cleanup:
-    R_CSTL_HeapFree (pColorAttachmentRefs);
+    r_cstl_heap_free (pColorAttachmentRefs);
 r_cleanup_attachments:
-    R_CSTL_HeapFree (pAttachments);
+    r_cstl_heap_free (pAttachments);
     return error;
 }
 

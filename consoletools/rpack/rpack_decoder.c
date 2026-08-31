@@ -18,7 +18,7 @@ r_pack_new_decoder (const uint8_t* pData, uint64_t dataSize)
     }
 
     struct r_pack_decoder* pDecoder
-        = (struct r_pack_decoder*)R_CSTL_HeapAlloc (sizeof (struct r_pack_decoder));
+        = (struct r_pack_decoder*)r_cstl_heap_alloc (sizeof (struct r_pack_decoder));
     if (!pDecoder)
     {
         return NULL;
@@ -57,7 +57,7 @@ r_pack_delete_decoder (struct r_pack_decoder* pDecoder)
         return;
     }
 
-    R_CSTL_HeapFree (pDecoder);
+    r_cstl_heap_free (pDecoder);
 }
 
 int

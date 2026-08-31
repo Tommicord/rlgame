@@ -62,7 +62,7 @@
 #define R_CSTL_DEBUG
 #endif
 
-enum R_CSTL_Error
+enum r_cstl_error
 {
     R_CSTL_OK = 0,
     R_CSTL_ERROR_INVALID_ARGUMENT = -1,
@@ -96,4 +96,4 @@ enum R_CSTL_Error
  * @param error The error code
  * @return Static string describing the error, or "Unknown error" if not recognized
  */
-const char* R_CSTL_ErrorToString (int error);
+const char* r_cstl_error_to_string (int error);

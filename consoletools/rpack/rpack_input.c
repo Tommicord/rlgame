@@ -30,7 +30,7 @@ r_pack_input_from_rawRGBA (
         return R_PACK_ERROR_INVALID_ARGUMENT;
 
     size_t size = (size_t)stride * height;
-    pOutput->pPixels = (uint8_t*)R_CSTL_HeapAlloc (size);
+    pOutput->pPixels = (uint8_t*)r_cstl_heap_alloc (size);
     if (!pOutput->pPixels) return R_PACK_ERROR_OUT_OF_MEMORY;
     memcpy (pOutput->pPixels, pPixels, size);
     pOutput->image.pPixels = pOutput->pPixels;
@@ -92,7 +92,7 @@ r_pack_input_from_base64 (
     }
 
     size_t   decodedCapacity = textLength / 4 * 3;
-    uint8_t* pDecoded = (uint8_t*)R_CSTL_HeapAlloc (decodedCapacity);
+    uint8_t* pDecoded = (uint8_t*)r_cstl_heap_alloc (decodedCapacity);
     if (!pDecoded) return R_PACK_ERROR_OUT_OF_MEMORY;
     size_t decodedSize = 0;
     for (size_t i = 0; i < textLength; i += 4)
@@ -106,7 +106,7 @@ r_pack_input_from_base64 (
         if (values[0] < 0 || values[1] < 0 || values[2] < 0 || values[3] < 0
             || (padding && i + 4 != textLength) || (pBase64[i + 2] == '=' && pBase64[i + 3] != '='))
         {
-            R_CSTL_HeapFree (pDecoded);
+            r_cstl_heap_free (pDecoded);
             return R_PACK_ERROR_INVALID_FORMAT;
         }
         pDecoded[decodedSize++] = (uint8_t)((values[0] << 2) | (values[1] >> 4));
@@ -114,7 +114,7 @@ r_pack_input_from_base64 (
         if (padding < 2) pDecoded[decodedSize++] = (uint8_t)((values[2] << 6) | values[3]);
     }
     error = r_pack_input_from_bytes (pDecoded, decodedSize, pName, pOutput);
-    R_CSTL_HeapFree (pDecoded);
+    r_cstl_heap_free (pDecoded);
     return error;
 }
 
@@ -122,6 +122,6 @@ void
 r_pack_delete_owned_image (struct r_pack_owned_image* pImage)
 {
     if (!pImage) return;
-    if (pImage->pPixels) R_CSTL_HeapFree (pImage->pPixels);
+    if (pImage->pPixels) r_cstl_heap_free (pImage->pPixels);
     memset (pImage, 0, sizeof (*pImage));
 }

@@ -89,32 +89,32 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueuePresent (
  * @param queue Pointer to queue
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_QueueWaitIdle (struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_queue_wait_idle (struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the raw Vulkan queue handle
  * @param queue Pointer to queue
  * @return Vulkan queue handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkQueue R_CVulkan_QueueGetHandle (const struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API VkQueue r_cvulkan_queue_get_handle (const struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the associated device
  * @param queue Pointer to queue
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_QueueGetDevice (const struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API VkDevice r_cvulkan_queue_get_device (const struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the queue family index
  * @param queue Pointer to queue
  * @return Queue family index, or 0 if not initialized
  */
-R_CVULKAN_API uint32_t R_CVulkan_QueueGetFamilyIndex (const struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API uint32_t r_cvulkan_queue_get_family_index (const struct R_CVulkan_Queue* pQueue);
 
 /**
  * @brief Get the queue index
  * @param queue Pointer to queue
  * @return Queue index within family, or 0 if not initialized
  */
-R_CVULKAN_API uint32_t R_CVulkan_QueueGetIndex (const struct R_CVulkan_Queue* pQueue);
+R_CVULKAN_API uint32_t r_cvulkan_queue_get_index (const struct R_CVulkan_Queue* pQueue);

@@ -590,7 +590,7 @@ r_pack_mipmap_initialize (
         return R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT;
     }
 
-    pMipmap = (struct r_pack_mipmap_context*)R_CSTL_HeapAlloc (sizeof (*pMipmap));
+    pMipmap = (struct r_pack_mipmap_context*)r_cstl_heap_alloc (sizeof (*pMipmap));
     if (!pMipmap)
     {
         R_CSTL_TRACE_RETURN ();
@@ -738,7 +738,7 @@ r_pack_mipmap_shutdown (struct r_pack_mipmap_context* pContext)
     }
 #endif
 
-    R_CSTL_HeapFree (pContext);
+    r_cstl_heap_free (pContext);
     R_CSTL_TRACE_RETURN ();
 }
 

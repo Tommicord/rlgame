@@ -32,7 +32,7 @@
  * @note The actual heap size may be larger than requested due to alignment.
  * @note In debug mode, a guard page may be added for overflow detection.
  */
-R_CSTL_API int R_CSTL_HeapInit (size_t heapSizeBytes);
+R_CSTL_API int r_cstl_heap_init (size_t heapSizeBytes);
 
 /**
  * @brief Destroy the global heap and log any memory leaks
@@ -44,7 +44,7 @@ R_CSTL_API int R_CSTL_HeapInit (size_t heapSizeBytes);
  * @note All pointers returned by the allocator become invalid after this call.
  * @note In debug mode, this will also validate CRT debug heap (MSVC).
  */
-R_CSTL_API void R_CSTL_HeapShutdown (void);
+R_CSTL_API void r_cstl_heap_shutdown (void);
 
 /**
  * @brief Allocate memory from the global heap
@@ -62,7 +62,7 @@ R_CSTL_API void R_CSTL_HeapShutdown (void);
  *       block size alignment.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API void* R_CSTL_HeapAlloc (size_t sizeBytes);
+R_CSTL_API void* r_cstl_heap_alloc (size_t sizeBytes);
 
 /**
  * @brief Allocate aligned memory from the global heap
@@ -78,13 +78,13 @@ R_CSTL_API void* R_CSTL_HeapAlloc (size_t sizeBytes);
  * @note May allocate more memory than requested to satisfy alignment.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API void* R_CSTL_HeapAllocAligned (size_t sizeBytes, size_t alignment);
+R_CSTL_API void* r_cstl_heap_alloc_aligned (size_t sizeBytes, size_t alignment);
 
 /**
  * @brief Free memory allocated from the global heap
  *
  * Frees a previously allocated block of memory. The pointer must have been
- * returned by R_CSTL_HeapAlloc, R_CSTL_HeapAllocAligned, or R_CSTL_HeapRealloc.
+ * returned by r_cstl_heap_alloc, r_cstl_heap_alloc_aligned, or r_cstl_heap_realloc.
  *
  * @param pData Pointer to memory to free. If NULL, the function does nothing.
  *
@@ -93,7 +93,7 @@ R_CSTL_API void* R_CSTL_HeapAllocAligned (size_t sizeBytes, size_t alignment);
  * @note Thread-safe: uses internal mutex for synchronization.
  * @note In debug mode, freed memory is poisoned with 0xDD.
  */
-R_CSTL_API void R_CSTL_HeapFree (void* pData);
+R_CSTL_API void r_cstl_heap_free (void* pData);
 
 /**
  * @brief Reallocate memory to a new size
@@ -106,19 +106,19 @@ R_CSTL_API void R_CSTL_HeapFree (void* pData);
  * @param newSizeBytes New desired size in bytes. If 0, equivalent to free.
  * @return Pointer to reallocated memory, or NULL on failure.
  *
- * @note If pData is NULL, behaves like R_CSTL_HeapAlloc.
- * @note If newSizeBytes is 0, behaves like R_CSTL_HeapFree and returns NULL.
+ * @note If pData is NULL, behaves like r_cstl_heap_alloc.
+ * @note If newSizeBytes is 0, behaves like r_cstl_heap_free and returns NULL.
  * @note If reallocation fails, the original block remains valid.
  * @note The C standard does not guarantee in-place reallocation.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API void* R_CSTL_HeapRealloc (void* pData, size_t newSizeBytes);
+R_CSTL_API void* r_cstl_heap_realloc (void* pData, size_t newSizeBytes);
 
 /**
  * @brief Register an allocation with an owner for leak tracking
  *
  * Associates an allocation with an owner object. When the owner is destroyed,
- * R_CSTL_HeapCheckObjectLeaks can be called to detect any remaining allocations.
+ * r_cstl_heap_check_object_leaks can be called to detect any remaining allocations.
  *
  * @param pOwner Pointer to the owner object (e.g., array, string).
  * @param pAllocation Pointer to the allocation being tracked.
@@ -131,12 +131,12 @@ R_CSTL_API void* R_CSTL_HeapRealloc (void* pData, size_t newSizeBytes);
  * @note Use R_CSTL_HEAP_NAME(MyType) macro for the pName parameter.
  */
 R_CSTL_API uint64_t
-R_CSTL_HeapRegisterAllocation (void* pOwner, void* pAllocation, size_t sizeBytes, const char* pName);
+r_cstl_heap_register_allocation (void* pOwner, void* pAllocation, size_t sizeBytes, const char* pName);
 
 /**
  * @brief Unregister a previously tracked allocation
  *
- * Removes a registration created by R_CSTL_HeapRegisterAllocation.
+ * Removes a registration created by r_cstl_heap_register_allocation.
  *
  * @param pOwner Pointer to the owner object.
  * @param pAllocation Pointer to the allocation being unregistered.
@@ -144,7 +144,7 @@ R_CSTL_HeapRegisterAllocation (void* pOwner, void* pAllocation, size_t sizeBytes
  * @note If the registration is not found, this is a no-op.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API void R_CSTL_HeapUnregisterAllocation (void* pOwner, void* pAllocation);
+R_CSTL_API void r_cstl_heap_unregister_allocation (void* pOwner, void* pAllocation);
 
 /**
  * @brief Check for memory leaks belonging to a specific owner
@@ -157,7 +157,7 @@ R_CSTL_API void R_CSTL_HeapUnregisterAllocation (void* pOwner, void* pAllocation
  * @note Call this before destroying an owner object to detect leaks.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API size_t R_CSTL_HeapCheckObjectLeaks (void* pOwner);
+R_CSTL_API size_t r_cstl_heap_check_object_leaks (void* pOwner);
 
 /**
  * @brief Log all remaining memory leaks in the global registry
@@ -170,7 +170,7 @@ R_CSTL_API size_t R_CSTL_HeapCheckObjectLeaks (void* pOwner);
  * @note Call during shutdown to detect global leaks.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API size_t R_CSTL_HeapLogLeaks (void);
+R_CSTL_API size_t r_cstl_heap_log_leaks (void);
 
 /**
  * @brief Check if a pointer is a valid live allocation
@@ -184,7 +184,7 @@ R_CSTL_API size_t R_CSTL_HeapLogLeaks (void);
  * @note This is a debug helper. Does not guarantee the pointer is safe to use.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API int R_CSTL_HeapIsValidPointer (const void* ptr);
+R_CSTL_API int r_cstl_heap_is_valid_pointer (const void* ptr);
 
 /**
  * @brief Get the total number of registered allocations
@@ -196,7 +196,7 @@ R_CSTL_API int R_CSTL_HeapIsValidPointer (const void* ptr);
  * @note This includes all registrations, not just leaks.
  * @note Thread-safe: uses internal mutex for synchronization.
  */
-R_CSTL_API size_t R_CSTL_HeapGetRegisteredCount (void);
+R_CSTL_API size_t r_cstl_heap_get_registered_count (void);
 
 /**
  * @brief Get the total heap size in bytes
@@ -208,7 +208,7 @@ R_CSTL_API size_t R_CSTL_HeapGetRegisteredCount (void);
  * @note This is the configured size, not necessarily the mapped size.
  * @note Thread-safe: reads atomic variable.
  */
-R_CSTL_API size_t R_CSTL_Heap_GetTotalSize (void);
+R_CSTL_API size_t r_cstl_heap_GetTotalSize (void);
 
 /**
  * @brief Get the number of bytes currently in use
@@ -220,7 +220,7 @@ R_CSTL_API size_t R_CSTL_Heap_GetTotalSize (void);
  * @note This is an approximation due to block size alignment.
  * @note Thread-safe: reads atomic variable.
  */
-R_CSTL_API size_t R_CSTL_Heap_GetUsedSize (void);
+R_CSTL_API size_t r_cstl_heap_GetUsedSize (void);
 
 /**
  * @brief Macro to convert a type name to a string for allocation tracking
@@ -228,10 +228,10 @@ R_CSTL_API size_t R_CSTL_Heap_GetUsedSize (void);
  * Use this macro when registering allocations to provide a human-readable
  * type name for leak reports.
  *
- * @param type The C type name (e.g., R_CSTL_Array)
+ * @param type The C type name (e.g., r_cstl_array)
  * @return String literal of the type name
  *
- * @example R_CSTL_HeapRegisterAllocation(pArray, pData, size, R_CSTL_HEAP_NAME(R_CSTL_Array));
+ * @example r_cstl_heap_register_allocation(pArray, pData, size, R_CSTL_HEAP_NAME(r_cstl_array));
  */
 #define R_CSTL_HEAP_NAME(type) #type
 
@@ -255,5 +255,5 @@ R_CSTL_API size_t R_CSTL_Heap_GetUsedSize (void);
  * @note This is a debug-only function for development.
  * @note May be slow; use sparingly in production debug builds.
  */
-R_CSTL_API int R_CSTL_HeapDebugVerify (void);
+R_CSTL_API int r_cstl_heap_debug_verify (void);
 #endif

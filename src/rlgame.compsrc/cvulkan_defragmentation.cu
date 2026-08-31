@@ -4,7 +4,7 @@
 /**
  * @brief Block metadata structure for GPU processing
  */
-struct R_CVulkan_DefragBlockMetadata
+struct r_cvulkan_defrag_block_metadata
 {
         uint32_t blockIndex;
         uint64_t totalSize;
@@ -35,8 +35,8 @@ struct R_CVulkan_DefragMove
  * @param mergeFactor Target merge factor n
  */
 __global__ void
-R_CVulkan_DefragAnalyzeBlocksKernel (
-    struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+r_cvulkan_defrag_analyze_blocks_kernel (
+    struct r_cvulkan_defrag_block_metadata* blockMetadata,
     uint32_t                              blockCount,
     uint32_t                              mergeFactor)
 {
@@ -47,7 +47,7 @@ R_CVulkan_DefragAnalyzeBlocksKernel (
         return;
     }
 
-    struct R_CVulkan_DefragBlockMetadata* metadata = &blockMetadata[blockIndex];
+    struct r_cvulkan_defrag_block_metadata* metadata = &blockMetadata[blockIndex];
     metadata->fillLevel
         = (metadata->totalSize > 0) ? ((float)metadata->usedSize / (float)metadata->totalSize) : 0.0f;
     metadata->freeSize = metadata->totalSize - metadata->usedSize;
@@ -68,8 +68,8 @@ R_CVulkan_DefragAnalyzeBlocksKernel (
  * @param maxBytesPerPass Maximum bytes to move per pass
  */
 __global__ void
-R_CVulkan_DefragCreateMovePlanKernel (
-    struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+r_cvulkan_defrag_create_move_plan_kernel (
+    struct r_cvulkan_defrag_block_metadata* blockMetadata,
     struct R_CVulkan_DefragMove*          moves,
     uint32_t*                             moveCount,
     uint32_t                              blockCount,
@@ -83,7 +83,7 @@ R_CVulkan_DefragCreateMovePlanKernel (
         return;
     }
 
-    struct R_CVulkan_DefragBlockMetadata* metadata = &blockMetadata[blockIndex];
+    struct r_cvulkan_defrag_block_metadata* metadata = &blockMetadata[blockIndex];
 
     if (!metadata->isCandidate)
     {
@@ -148,8 +148,8 @@ R_CVulkan_DefragCreateMovePlanKernel (
  * @param blockCount Number of blocks
  */
 __global__ void
-R_CVulkan_DefragUpdateMetadataKernel (
-    struct R_CVulkan_DefragBlockMetadata* blockMetadata,
+r_cvulkan_defrag_update_metadata_kernel (
+    struct r_cvulkan_defrag_block_metadata* blockMetadata,
     struct R_CVulkan_DefragMove*          moves,
     uint32_t                              moveCount,
     uint32_t                              blockCount)
@@ -183,7 +183,7 @@ R_CVulkan_DefragUpdateMetadataKernel (
  * @brief Host function to launch block analysis kernel
  */
 extern "C" cudaError_t
-R_CVulkan_DefragLaunchAnalyzeBlocks (
+r_cvulkan_defrag_launch_analyze_blocks (
     void*        blockMetadata,
     uint32_t     blockCount,
     uint32_t     mergeFactor,
@@ -192,8 +192,8 @@ R_CVulkan_DefragLaunchAnalyzeBlocks (
     int blockSize = 256;
     int gridSize = (blockCount + blockSize - 1) / blockSize;
 
-    R_CVulkan_DefragAnalyzeBlocksKernel<<<gridSize, blockSize, 0, stream>>> (
-        (struct R_CVulkan_DefragBlockMetadata*)blockMetadata,
+    r_cvulkan_defrag_analyze_blocks_kernel<<<gridSize, blockSize, 0, stream>>> (
+        (struct r_cvulkan_defrag_block_metadata*)blockMetadata,
         blockCount,
         mergeFactor);
 
@@ -204,7 +204,7 @@ R_CVulkan_DefragLaunchAnalyzeBlocks (
  * @brief Host function to launch move plan creation kernel
  */
 extern "C" cudaError_t
-R_CVulkan_DefragLaunchCreateMovePlan (
+r_cvulkan_defrag_launch_create_move_plan (
     void*        blockMetadata,
     void*        moves,
     uint32_t*    moveCount,
@@ -222,8 +222,8 @@ R_CVulkan_DefragLaunchCreateMovePlan (
         return error;
     }
 
-    R_CVulkan_DefragCreateMovePlanKernel<<<gridSize, blockSize, 0, stream>>> (
-        (struct R_CVulkan_DefragBlockMetadata*)blockMetadata,
+    r_cvulkan_defrag_create_move_plan_kernel<<<gridSize, blockSize, 0, stream>>> (
+        (struct r_cvulkan_defrag_block_metadata*)blockMetadata,
         (struct R_CVulkan_DefragMove*)moves,
         moveCount,
         blockCount,
@@ -237,7 +237,7 @@ R_CVulkan_DefragLaunchCreateMovePlan (
  * @brief Host function to launch metadata update kernel
  */
 extern "C" cudaError_t
-R_CVulkan_DefragCudaLaunchUpdateMetadata (
+r_cvulkan_defrag_cuda_launch_update_metadata (
     void*        blockMetadata,
     void*        moves,
     uint32_t     moveCount,
@@ -247,8 +247,8 @@ R_CVulkan_DefragCudaLaunchUpdateMetadata (
     int blockSize = 256;
     int gridSize = (moveCount + blockSize - 1) / blockSize;
 
-    R_CVulkan_DefragUpdateMetadataKernel<<<gridSize, blockSize, 0, stream>>> (
-        (struct R_CVulkan_DefragBlockMetadata*)blockMetadata,
+    r_cvulkan_defrag_update_metadata_kernel<<<gridSize, blockSize, 0, stream>>> (
+        (struct r_cvulkan_defrag_block_metadata*)blockMetadata,
         (struct R_CVulkan_DefragMove*)moves,
         moveCount,
         blockCount);

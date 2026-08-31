@@ -11,7 +11,7 @@ struct R_CVulkan_Device;
 /**
  * @brief Settingsuration parameters for pipeline layout creation
  */
-struct R_CVulkan_PipelineLayoutCreateInfo
+struct r_cvulkan_pipeline_layout_create_info
 {
         const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
         const VkDescriptorSetLayout*   pSetLayouts; /**< Array of descriptor set layouts */
@@ -23,7 +23,7 @@ struct R_CVulkan_PipelineLayoutCreateInfo
 /**
  * @brief Settingsuration parameters for graphics pipeline creation
  */
-struct R_CVulkan_GraphicsPipelineCreateInfo
+struct r_cvulkan_graphics_pipeline_create_info
 {
         const struct R_CVulkan_Device* pDevice; /**< R_CVulkan device wrapper */
         VkPipelineLayout               pipelineLayout; /**< Pipeline layout */
@@ -69,15 +69,15 @@ struct R_CVulkan_Pipeline
  * @param pCreateInfo Pipeline layout creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewPipelineLayout (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_pipeline_layout (
     struct R_CVulkan_PipelineLayout**                ppLayout,
-    const struct R_CVulkan_PipelineLayoutCreateInfo* pCreateInfo);
+    const struct r_cvulkan_pipeline_layout_create_info* pCreateInfo);
 
 /**
  * @brief Deletes a pipeline layout and destroy the Vulkan object
  * @param pLayout Pointer to layout to delete
  */
-R_CVULKAN_API void R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayout* pLayout);
+R_CVULKAN_API void r_cvulkan_delete_pipeline_layout (struct R_CVulkan_PipelineLayout* pLayout);
 
 /**
  * @brief Initialize a graphics pipeline
@@ -85,9 +85,9 @@ R_CVULKAN_API void R_CVulkan_DeletePipelineLayout (struct R_CVulkan_PipelineLayo
  * @param pCreateInfo Graphics pipeline creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewGraphicsPipeline (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_graphics_pipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
-    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
+    const struct r_cvulkan_graphics_pipeline_create_info* pCreateInfo);
 
 /**
  * @brief Initialize a graphics pipeline with dynamic rendering enabled
@@ -95,9 +95,9 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewGraphicsPipeline (
  * @param pCreateInfo Graphics pipeline creation parameters
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDynamicGraphicsPipeline (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_dynamic_graphics_pipeline (
     struct R_CVulkan_Pipeline*                         pPipeline,
-    const struct R_CVulkan_GraphicsPipelineCreateInfo* pCreateInfo);
+    const struct r_cvulkan_graphics_pipeline_create_info* pCreateInfo);
 
 /**
  * @brief Initialize a compute pipeline
@@ -107,7 +107,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewDynamicGraphicsPipeline (
  * @param pStage Compute shader stage
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewComputePipeline (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_compute_pipeline (
     struct R_CVulkan_Pipeline*             pPipeline,
     const struct R_CVulkan_Device*         pDevice,
     VkPipelineLayout                       pipelineLayout,
@@ -125,39 +125,39 @@ R_CVULKAN_API void R_CVulkan_DeletePipeline (struct R_CVulkan_Pipeline* pPipelin
  * @return Vulkan pipeline layout handle, or VK_NULL_HANDLE if not initialized
  */
 R_CVULKAN_API VkPipelineLayout
-R_CVulkan_PipelineLayoutGetHandle (const struct R_CVulkan_PipelineLayout* pLayout);
+r_cvulkan_pipeline_layout_get_handle (const struct R_CVulkan_PipelineLayout* pLayout);
 
 /**
  * @brief Get the associated device for layout
  * @param pLayout Pointer to layout
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_PipelineLayoutGetDevice (const struct R_CVulkan_PipelineLayout* pLayout);
+R_CVULKAN_API VkDevice r_cvulkan_pipeline_layout_get_device (const struct R_CVulkan_PipelineLayout* pLayout);
 
 /**
  * @brief Check if the layout is initialized
  * @param pLayout Pointer to layout
  * @return 1 if initialized, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_PipelineLayoutIsInitialized (const struct R_CVulkan_PipelineLayout* pLayout);
+R_CVULKAN_API int r_cvulkan_pipeline_layout_is_initialized (const struct R_CVulkan_PipelineLayout* pLayout);
 
 /**
  * @brief Get the raw Vulkan pipeline handle
  * @param pPipeline Pointer to pipeline
  * @return Vulkan pipeline handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkPipeline R_CVulkan_PipelineGetHandle (const struct R_CVulkan_Pipeline* pPipeline);
+R_CVULKAN_API VkPipeline r_cvulkan_pipeline_get_handle (const struct R_CVulkan_Pipeline* pPipeline);
 
 /**
  * @brief Get the associated device for pipeline
  * @param pPipeline Pointer to pipeline
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_PipelineGetDevice (const struct R_CVulkan_Pipeline* pPipeline);
+R_CVULKAN_API VkDevice r_cvulkan_pipeline_get_device (const struct R_CVulkan_Pipeline* pPipeline);
 
 /**
  * @brief Check if the pipeline is initialized
  * @param pPipeline Pointer to pipeline
  * @return 1 if initialized, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_PipelineIsInitialized (const struct R_CVulkan_Pipeline* pPipeline);
+R_CVULKAN_API int r_cvulkan_pipeline_is_initialized (const struct R_CVulkan_Pipeline* pPipeline);

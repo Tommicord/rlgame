@@ -8,7 +8,7 @@
 #include "rlgame.base/cstl/cstl_array.h"
 #include "rlgame.base/cstl/cstl_string.h"
 
-struct R_CSTL_Array;
+struct r_cstl_array;
 
 struct R_CVulkan_Surface;
 struct R_CVulkan_Instance;
@@ -17,7 +17,7 @@ struct R_CVulkan_Instance;
  * @brief Settingsuration parameters for device creation
  * The instance must be created separately using R_CVulkan_NewInstance before creating a device.
  */
-struct R_CVulkan_DeviceCreateInfo
+struct r_cvulkan_device_create_info
 {
         const struct R_CVulkan_Instance* pInstance; /**< Vulkan instance (required) */
         const struct R_CVulkan_Surface*
@@ -27,7 +27,7 @@ struct R_CVulkan_DeviceCreateInfo
 /**
  * @brief Queue family indices for device selection
  */
-struct R_CVulkan_QueueFamilyIndices
+struct r_cvulkan_queue_family_indices
 {
         uint32_t graphicsFamily;
         uint32_t presentFamily;
@@ -42,10 +42,10 @@ struct R_CVulkan_QueueFamilyIndices
 /**
  * @brief Swapchain support details
  */
-struct R_CVulkan_SwapChainSupport
+struct r_cvulkan_swap_chain_support
 {
-        struct R_CSTL_Array*     pFormats;
-        struct R_CSTL_Array*     pPresentModes;
+        struct r_cstl_array*     pFormats;
+        struct r_cstl_array*     pPresentModes;
         VkSurfaceCapabilitiesKHR capabilities;
 };
 
@@ -79,7 +79,7 @@ struct R_CVulkan_Device
  * - R_CVULKAN_ERROR_DEVICE_CREATE_FAILED: Failed to create logical device
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct R_CVulkan_DeviceCreateInfo* pCreateInfo);
+R_CVulkan_NewDevice (struct R_CVulkan_Device* pDevice, const struct r_cvulkan_device_create_info* pCreateInfo);
 
 /**
  * @brief Delete a Vulkan device and cleanup resources
@@ -93,21 +93,21 @@ R_CVULKAN_API void R_CVulkan_DeleteDevice (struct R_CVulkan_Device* pDevice);
  * @return Pointer to Vulkan instance, or NULL if not initialized
  */
 R_CVULKAN_API const struct R_CVulkan_Instance*
-R_CVulkan_DeviceGetInstance (const struct R_CVulkan_Device* pDevice);
+r_cvulkan_device_get_instance (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the physical device handle
  * @param pDevice Pointer to device
  * @return Vulkan physical device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkPhysicalDevice R_CVulkan_DeviceGetPhysicalDevice (const struct R_CVulkan_Device* pDevice);
+R_CVULKAN_API VkPhysicalDevice r_cvulkan_device_get_physical_device (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the logical device handle
  * @param pDevice Pointer to device
  * @return Vulkan logical device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_DeviceGetLogicalDevice (const struct R_CVulkan_Device* pDevice);
+R_CVULKAN_API VkDevice r_cvulkan_device_get_logical_device (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the graphics queue
@@ -115,7 +115,7 @@ R_CVULKAN_API VkDevice R_CVulkan_DeviceGetLogicalDevice (const struct R_CVulkan_
  * @return Pointer to graphics queue, or NULL if not initialized
  */
 R_CVULKAN_API struct R_CVulkan_Queue*
-R_CVulkan_DeviceGetGraphicsQueue (const struct R_CVulkan_Device* pDevice);
+r_cvulkan_device_get_graphics_queue (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the present queue
@@ -123,14 +123,14 @@ R_CVulkan_DeviceGetGraphicsQueue (const struct R_CVulkan_Device* pDevice);
  * @return Pointer to present queue, or NULL if not initialized
  */
 R_CVULKAN_API struct R_CVulkan_Queue*
-R_CVulkan_DeviceGetPresentQueue (const struct R_CVulkan_Device* pDevice);
+r_cvulkan_device_get_present_queue (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Get the surface handle
  * @param pDevice Pointer to device
  * @return Vulkan surface handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkSurfaceKHR R_CVulkan_DeviceGetSurface (const struct R_CVulkan_Device* pDevice);
+R_CVULKAN_API VkSurfaceKHR r_cvulkan_device_get_surface (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Find queue family indices for a physical device
@@ -140,10 +140,10 @@ R_CVULKAN_API VkSurfaceKHR R_CVulkan_DeviceGetSurface (const struct R_CVulkan_De
  * @param pOutIndices Pointer to receive queue family indices
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_device_find_queue_families (
     VkPhysicalDevice                     physicalDevice,
     VkSurfaceKHR                         surface,
-    struct R_CVulkan_QueueFamilyIndices* pOutIndices);
+    struct r_cvulkan_queue_family_indices* pOutIndices);
 
 /**
  * @brief Check if queue family indices are complete
@@ -151,14 +151,14 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceFindQueueFamilies (
  * @return 1 if complete, 0 otherwise
  */
 R_CVULKAN_API int
-R_CVulkan_QueueFamilyIndicesIsComplete (const struct R_CVulkan_QueueFamilyIndices* pIndices);
+r_cvulkan_queue_family_indices_is_complete (const struct r_cvulkan_queue_family_indices* pIndices);
 
 /**
  * @brief Check if dynamic rendering is supported
  * @param pDevice Pointer to device
  * @return 1 if supported, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CVulkan_Device* pDevice);
+R_CVULKAN_API int r_cvulkan_device_is_dynamic_rendering_supported (const struct R_CVulkan_Device* pDevice);
 
 /**
  * @brief Query if a specific extension is supported on the physical device
@@ -174,7 +174,7 @@ R_CVULKAN_API int R_CVulkan_DeviceIsDynamicRenderingSupported (const struct R_CV
  * @note This function queries the physical device's available extensions
  * @note Common extension names: VK_KHR_DYNAMIC_RENDERING, VK_KHR_SWAPCHAIN, etc.
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceQueryExtensionSupport (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_device_query_extension_support (
     const struct R_CVulkan_Device* pDevice,
     const char*                    pExtensionName,
     bool*                          pIsSupported);
@@ -193,4 +193,4 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DeviceQueryExtensionSupport (
  * @note For example, use VkPhysicalDeviceDynamicRenderingFeaturesKHR for dynamic rendering
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DeviceQueryFeatureSupport (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure);
+r_cvulkan_device_query_feature_support (const struct R_CVulkan_Device* pDevice, void* pFeatureStructure);

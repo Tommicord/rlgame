@@ -10,13 +10,13 @@
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewSampler (
     struct R_CVulkan_Sampler*                 pSampler,
-    const struct R_CVulkan_SamplerCreateInfo* pCreateInfo)
+    const struct r_cvulkan_sampler_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pSampler);
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CVULKAN_ASSERT (pCreateInfo->pDevice);
 
-    pSampler->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+    pSampler->device = r_cvulkan_device_get_logical_device (pCreateInfo->pDevice);
     VkSamplerCreateInfo samplerInfo = {0};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = pCreateInfo->magFilter;
@@ -69,7 +69,7 @@ R_CVulkan_DeleteSampler (struct R_CVulkan_Sampler* pSampler)
 }
 
 R_CVULKAN_API VkSampler
-R_CVulkan_SamplerGetHandle (const struct R_CVulkan_Sampler* pSampler)
+r_cvulkan_sampler_get_handle (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pSampler);
@@ -78,7 +78,7 @@ R_CVulkan_SamplerGetHandle (const struct R_CVulkan_Sampler* pSampler)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_SamplerGetDevice (const struct R_CVulkan_Sampler* pSampler)
+r_cvulkan_sampler_get_device (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pSampler);
@@ -87,7 +87,7 @@ R_CVulkan_SamplerGetDevice (const struct R_CVulkan_Sampler* pSampler)
 }
 
 R_CVULKAN_API int
-R_CVulkan_SamplerIsInitialized (const struct R_CVulkan_Sampler* pSampler)
+r_cvulkan_sampler_is_initialized (const struct R_CVulkan_Sampler* pSampler)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pSampler);

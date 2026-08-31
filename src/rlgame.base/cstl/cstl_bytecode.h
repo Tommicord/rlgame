@@ -6,9 +6,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct R_CSTL_Mutex;
+struct r_cstl_mutex;
 
-enum R_CSTL_BytecodeArchitecture
+enum r_cstl_bytecode_architecture
 {
     R_CSTL_BYTECODE_ARCH_X86 = 0,
     R_CSTL_BYTECODE_ARCH_X86_64,
@@ -17,7 +17,7 @@ enum R_CSTL_BytecodeArchitecture
     R_CSTL_BYTECODE_ARCH_RISC,
 };
 
-enum R_CSTL_BytecodeTokenKind
+enum r_cstl_bytecode_token_kind
 {
     R_CSTL_BYTECODE_TOKEN_OPCODE = 0,
     R_CSTL_BYTECODE_TOKEN_OPERAND,
@@ -29,17 +29,17 @@ enum R_CSTL_BytecodeTokenKind
     R_CSTL_BYTECODE_TOKEN_UNKNOWN,
 };
 
-struct R_CSTL_Bytecode;
+struct r_cstl_bytecode;
 
-struct R_CSTL_BytecodeToken
+struct r_cstl_bytecode_token
 {
-        enum R_CSTL_BytecodeTokenKind kind;
+        enum r_cstl_bytecode_token_kind kind;
         size_t                        offset;
         uint8_t                       size;
         uint64_t                      value;
 };
 
-struct R_CSTL_BytecodeInstruction
+struct r_cstl_bytecode_instruction
 {
         size_t   offset;
         uint8_t  size;
@@ -59,9 +59,9 @@ struct R_CSTL_BytecodeInstruction
         uint8_t  rexB;
 };
 
-typedef void (*R_CSTL_BytecodeFunction) (void);
+typedef void (*r_cstl_bytecode_function) (void);
 
-struct R_CSTL_BytecodeSymbol
+struct r_cstl_bytecode_symbol
 {
         uint64_t    address;
         const char* pName;
@@ -69,14 +69,14 @@ struct R_CSTL_BytecodeSymbol
         uint64_t    size;
 };
 
-struct R_CSTL_BytecodeDecoder
+struct r_cstl_bytecode_decoder
 {
         void*                            pPlatformHandle;
         bool                             initialized;
-        enum R_CSTL_BytecodeArchitecture architecture;
+        enum r_cstl_bytecode_architecture architecture;
 };
 
-struct R_CSTL_BytecodeFunctionInfo
+struct r_cstl_bytecode_function_info
 {
         uint64_t    startAddress;
         uint64_t    endAddress;
@@ -85,89 +85,89 @@ struct R_CSTL_BytecodeFunctionInfo
 };
 
 /** @brief Create a non-owning view of machine-code bytes. */
-R_CSTL_API struct R_CSTL_Bytecode*
-R_CSTL_NewBytecodeView (const void* pCode, size_t sizeBytes, enum R_CSTL_BytecodeArchitecture architecture);
+R_CSTL_API struct r_cstl_bytecode*
+r_cstl_new_bytecode_view (const void* pCode, size_t sizeBytes, enum r_cstl_bytecode_architecture architecture);
 
 /** @brief Copy machine-code bytes into an owned inspection buffer. */
-R_CSTL_API struct R_CSTL_Bytecode* R_CSTL_NewBytecodeWithData (
+R_CSTL_API struct r_cstl_bytecode* r_cstl_new_bytecode_with_data (
     const uint8_t*                   pCode,
     size_t                           sizeBytes,
-    enum R_CSTL_BytecodeArchitecture architecture);
+    enum r_cstl_bytecode_architecture architecture);
 
 /** @brief Create a non-owning view starting at a function address. */
-R_CSTL_API struct R_CSTL_Bytecode* R_CSTL_NewBytecodeFromFunction (
-    R_CSTL_BytecodeFunction          pFunction,
+R_CSTL_API struct r_cstl_bytecode* r_cstl_new_bytecode_from_function (
+    r_cstl_bytecode_function          pFunction,
     size_t                           sizeBytes,
-    enum R_CSTL_BytecodeArchitecture architecture);
+    enum r_cstl_bytecode_architecture architecture);
 
-R_CSTL_API void R_CSTL_DeleteBytecode (struct R_CSTL_Bytecode* pBytecode);
+R_CSTL_API void r_cstl_delete_bytecode (struct r_cstl_bytecode* pBytecode);
 
 /** @brief Read bytes from the bounded machine-code view. */
-R_CSTL_API int R_CSTL_BytecodeRead (
-    const struct R_CSTL_Bytecode* pBytecode,
+R_CSTL_API int r_cstl_bytecode_read (
+    const struct r_cstl_bytecode* pBytecode,
     size_t                        offset,
     uint8_t*                      pOutBytes,
     size_t                        sizeBytes);
 
 /** @brief Parse one instruction at offset. */
-R_CSTL_API int R_CSTL_BytecodeParse (
-    const struct R_CSTL_Bytecode*      pBytecode,
+R_CSTL_API int r_cstl_bytecode_parse (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOutInstruction);
+    struct r_cstl_bytecode_instruction* pOutInstruction);
 
 /** @brief Tokenize one instruction into a caller-provided token buffer. */
-R_CSTL_API int R_CSTL_BytecodeTokenize (
-    const struct R_CSTL_Bytecode* pBytecode,
+R_CSTL_API int r_cstl_bytecode_tokenize (
+    const struct r_cstl_bytecode* pBytecode,
     size_t                        offset,
-    struct R_CSTL_BytecodeToken*  pTokens,
+    struct r_cstl_bytecode_token*  pTokens,
     size_t                        tokenCapacity,
     size_t*                       pOutTokenCount);
 
-R_CSTL_API const uint8_t* R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode);
-R_CSTL_API size_t         R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode);
-R_CSTL_API enum R_CSTL_BytecodeArchitecture
-R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode);
+R_CSTL_API const uint8_t* r_cstl_bytecode_data (const struct r_cstl_bytecode* pBytecode);
+R_CSTL_API size_t         r_cstl_bytecode_length (const struct r_cstl_bytecode* pBytecode);
+R_CSTL_API enum r_cstl_bytecode_architecture
+r_cstl_bytecode_get_architecture (const struct r_cstl_bytecode* pBytecode);
 
 #if defined(R_LOG)
 
 /** @brief Create a machine code decoder for symbol resolution */
-R_CSTL_API int R_CSTL_BytecodeDecoderCreate (
-    enum R_CSTL_BytecodeArchitecture architecture,
-    struct R_CSTL_BytecodeDecoder*   pOutDecoder);
+R_CSTL_API int r_cstl_bytecode_decoder_create (
+    enum r_cstl_bytecode_architecture architecture,
+    struct r_cstl_bytecode_decoder*   pOutDecoder);
 
 /** @brief Destroy a machine code decoder and release resources */
-R_CSTL_API void R_CSTL_DeleteBytecodeDecoder (struct R_CSTL_BytecodeDecoder* pDecoder);
+R_CSTL_API void r_cstl_delete_bytecode_decoder (struct r_cstl_bytecode_decoder* pDecoder);
 
 /** @brief Resolve a symbol name from an address */
-R_CSTL_API int R_CSTL_BytecodeResolveSymbol (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
+R_CSTL_API int r_cstl_bytecode_resolve_symbol (
+    const struct r_cstl_bytecode_decoder* pDecoder,
     uint64_t                             address,
-    struct R_CSTL_BytecodeSymbol*        pOutSymbol);
+    struct r_cstl_bytecode_symbol*        pOutSymbol);
 
 /** @brief Get function information for a given address */
-R_CSTL_API int R_CSTL_BytecodeGetFunctionInfo (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
+R_CSTL_API int r_cstl_bytecode_get_function_info (
+    const struct r_cstl_bytecode_decoder* pDecoder,
     uint64_t                             address,
-    struct R_CSTL_BytecodeFunctionInfo*  pOutInfo);
+    struct r_cstl_bytecode_function_info*  pOutInfo);
 
 /** @brief Check if a function contains a call to a specific symbol */
-R_CSTL_API int R_CSTL_BytecodeFunctionContainsSymbol (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
-    R_CSTL_BytecodeFunction              pFunction,
+R_CSTL_API int r_cstl_bytecode_function_contains_symbol (
+    const struct r_cstl_bytecode_decoder* pDecoder,
+    r_cstl_bytecode_function              pFunction,
     size_t                               functionSize,
     const char*                          pSymbolName,
     int*                                 pOutFound);
 
 /** @brief Parse instruction with enhanced CALL/JMP target extraction */
-R_CSTL_API int R_CSTL_BytecodeParseEnhanced (
-    const struct R_CSTL_Bytecode*      pBytecode,
+R_CSTL_API int r_cstl_bytecode_parse_enhanced (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOutInstruction);
+    struct r_cstl_bytecode_instruction* pOutInstruction);
 
 /** @brief Get symbol name for an instruction's target address */
-R_CSTL_API int R_CSTL_BytecodeGetInstructionTargetSymbol (
-    const struct R_CSTL_BytecodeDecoder*     pDecoder,
-    const struct R_CSTL_BytecodeInstruction* pInstruction,
+R_CSTL_API int r_cstl_bytecode_get_instruction_target_symbol (
+    const struct r_cstl_bytecode_decoder*     pDecoder,
+    const struct r_cstl_bytecode_instruction* pInstruction,
     char*                                    pOutBuffer,
     size_t                                   bufferSize);
 

@@ -42,76 +42,76 @@
 #define R_CSTL_LOG_BACKTRACE_SIZE 8192
 #endif
 
-typedef struct R_CSTL_LogEntry
+typedef struct r_cstl_log_entry
 {
-        enum R_CSTL_LogLevel level;
+        enum r_cstl_log_level level;
         char                 timestamp[32];
         uint32_t             threadId;
         char                 message[R_CSTL_LOG_MESSAGE_SIZE];
         char                 backtrace[R_CSTL_LOG_BACKTRACE_SIZE];
-} R_CSTL_LogEntry;
+} r_cstl_log_entry;
 
 #if defined(_WIN32)
-typedef CRITICAL_SECTION   R_CSTL_LogMutex;
-typedef CONDITION_VARIABLE R_CSTL_LogCond;
+typedef CRITICAL_SECTION   r_cstl_log_mutex;
+typedef CONDITION_VARIABLE r_cstl_log_cond;
 
-typedef struct R_CSTL_LogAtomic
+typedef struct r_cstl_log_atomic
 {
         volatile LONG   running;
         volatile LONG   minLevel;
         volatile LONG64 dropped;
-} R_CSTL_LogAtomics;
+} r_cstl_log_atomics;
 
 static void
-R_CSTL_LogNewMutex (R_CSTL_LogMutex* m)
+r_cstl_log_new_mutex (r_cstl_log_mutex* m)
 {
     if (m) InitializeCriticalSection (m);
 }
 
 static void
-R_CSTL_LogMutexLock (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_lock (r_cstl_log_mutex* m)
 {
     if (m) EnterCriticalSection (m);
 }
 
 static void
-R_CSTL_LogMutexUnlock (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_unlock (r_cstl_log_mutex* m)
 {
     if (m) LeaveCriticalSection (m);
 }
 
 static void
-R_CSTL_LogMutexDestroy (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_destroy (r_cstl_log_mutex* m)
 {
     if (m) DeleteCriticalSection (m);
 }
 
 static void
-R_CSTL_LogCondInit (R_CSTL_LogCond* c)
+r_cstl_log_cond_init (r_cstl_log_cond* c)
 {
     if (c) InitializeConditionVariable (c);
 }
 
 static void
-R_CSTL_LogCondWait (R_CSTL_LogCond* c, R_CSTL_LogMutex* m)
+r_cstl_log_cond_wait (r_cstl_log_cond* c, r_cstl_log_mutex* m)
 {
     if (c && m) SleepConditionVariableCS (c, m, INFINITE);
 }
 
 static void
-R_CSTL_LogCondSignal (R_CSTL_LogCond* c)
+r_cstl_log_cond_signal (r_cstl_log_cond* c)
 {
     if (c) WakeConditionVariable (c);
 }
 
 static void
-R_CSTL_LogCondBroadcast (R_CSTL_LogCond* c)
+r_cstl_log_cond_broadcast (r_cstl_log_cond* c)
 {
     if (c) WakeAllConditionVariable (c);
 }
 
 static void
-R_CSTL_LogFormatTimestamp (char* buffer, size_t bufferSize)
+r_cstl_log_format_timestamp (char* buffer, size_t bufferSize)
 {
 #if defined(_WIN32)
     SYSTEMTIME st;
@@ -147,7 +147,7 @@ R_CSTL_LogFormatTimestamp (char* buffer, size_t bufferSize)
 }
 
 static uint64_t
-R_CSTL_LogMonotonicUs (void)
+r_cstl_log_monotonic_us (void)
 {
     static LARGE_INTEGER frequency = {0};
     LARGE_INTEGER        counter;
@@ -157,73 +157,73 @@ R_CSTL_LogMonotonicUs (void)
 }
 
 static uint32_t
-R_CSTL_LogCurrentThreadId (void)
+r_cstl_log_current_thread_id (void)
 {
     return GetCurrentThreadId ();
 }
 
 #else
-typedef pthread_mutex_t R_CSTL_LogMutex;
-typedef pthread_cond_t  R_CSTL_LogCond;
+typedef pthread_mutex_t r_cstl_log_mutex;
+typedef pthread_cond_t  r_cstl_log_cond;
 
 #include <stdatomic.h>
 
-typedef struct R_CSTL_LogAtomics
+typedef struct r_cstl_log_atomics
 {
         atomic_int            running;
         atomic_uint_least32_t minLevel;
         atomic_uint_least64_t dropped;
-} R_CSTL_LogAtomics;
+} r_cstl_log_atomics;
 
 static void
-R_CSTL_LogNewMutex (R_CSTL_LogMutex* m)
+r_cstl_log_new_mutex (r_cstl_log_mutex* m)
 {
     if (m) pthread_mutex_init (m, NULL);
 }
 
 static void
-R_CSTL_LogMutexLock (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_lock (r_cstl_log_mutex* m)
 {
     if (m) pthread_mutex_lock (m);
 }
 
 static void
-R_CSTL_LogMutexUnlock (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_unlock (r_cstl_log_mutex* m)
 {
     if (m) pthread_mutex_unlock (m);
 }
 
 static void
-R_CSTL_LogMutexDestroy (R_CSTL_LogMutex* m)
+r_cstl_log_mutex_destroy (r_cstl_log_mutex* m)
 {
     if (m) pthread_mutex_destroy (m);
 }
 
 static void
-R_CSTL_LogCondInit (R_CSTL_LogCond* c)
+r_cstl_log_cond_init (r_cstl_log_cond* c)
 {
     if (c) pthread_cond_init (c, NULL);
 }
 
 static void
-R_CSTL_LogCondWait (R_CSTL_LogCond* c, R_CSTL_LogMutex* m)
+r_cstl_log_cond_wait (r_cstl_log_cond* c, r_cstl_log_mutex* m)
 {
     if (c && m) pthread_cond_wait (c, m);
 }
 
 static void
-R_CSTL_LogCondSignal (R_CSTL_LogCond* c)
+r_cstl_log_cond_signal (r_cstl_log_cond* c)
 {
     if (c) pthread_cond_signal (c);
 }
 
 static void
-R_CSTL_LogCondBroadcast (R_CSTL_LogCond* c)
+r_cstl_log_cond_broadcast (r_cstl_log_cond* c)
 {
     if (c) pthread_cond_broadcast (c);
 }
 static void
-R_CSTL_LogFormatTimestamp (char* buffer, size_t bufferSize)
+r_cstl_log_format_timestamp (char* buffer, size_t bufferSize)
 {
     struct timespec ts;
     struct tm       tm;
@@ -243,7 +243,7 @@ R_CSTL_LogFormatTimestamp (char* buffer, size_t bufferSize)
 }
 
 static uint64_t
-R_CSTL_LogMonotonicUs (void)
+r_cstl_log_monotonic_us (void)
 {
     struct timespec ts;
 #if defined(CLOCK_MONOTONIC)
@@ -255,7 +255,7 @@ R_CSTL_LogMonotonicUs (void)
 }
 
 static uint32_t
-R_CSTL_LogCurrentThreadId (void)
+r_cstl_log_current_thread_id (void)
 {
 #if defined(__linux__)
     return (uint32_t)syscall (SYS_gettid);
@@ -271,7 +271,7 @@ R_CSTL_LogCurrentThreadId (void)
 #endif
 
 static void
-R_CSTL_LogAtomicStoreRunning (R_CSTL_LogAtomics* atomics, int value)
+r_cstl_log_atomic_store_running (r_cstl_log_atomics* atomics, int value)
 {
 #if defined(_WIN32)
     InterlockedExchange (&atomics->running, (LONG)value);
@@ -281,7 +281,7 @@ R_CSTL_LogAtomicStoreRunning (R_CSTL_LogAtomics* atomics, int value)
 }
 
 static int
-R_CSTL_LogAtomicLoadRunning (const R_CSTL_LogAtomics* atomics)
+r_cstl_log_atomic_load_running (const r_cstl_log_atomics* atomics)
 {
 #if defined(_WIN32)
     return (int)InterlockedCompareExchange ((volatile LONG*)&atomics->running, 0, 0);
@@ -291,7 +291,7 @@ R_CSTL_LogAtomicLoadRunning (const R_CSTL_LogAtomics* atomics)
 }
 
 static void
-R_CSTL_LogAtomicStoreMinLevel (R_CSTL_LogAtomics* atomics, enum R_CSTL_LogLevel level)
+r_cstl_log_atomic_store_min_level (r_cstl_log_atomics* atomics, enum r_cstl_log_level level)
 {
 #if defined(_WIN32)
     InterlockedExchange (&atomics->minLevel, (LONG)level);
@@ -300,18 +300,18 @@ R_CSTL_LogAtomicStoreMinLevel (R_CSTL_LogAtomics* atomics, enum R_CSTL_LogLevel 
 #endif
 }
 
-static enum R_CSTL_LogLevel
-R_CSTL_LogAtomicLoadMinLevel (const R_CSTL_LogAtomics* atomics)
+static enum r_cstl_log_level
+r_cstl_log_atomic_load_min_level (const r_cstl_log_atomics* atomics)
 {
 #if defined(_WIN32)
-    return (enum R_CSTL_LogLevel)InterlockedCompareExchange ((volatile LONG*)&atomics->minLevel, 0, 0);
+    return (enum r_cstl_log_level)InterlockedCompareExchange ((volatile LONG*)&atomics->minLevel, 0, 0);
 #else
-    return (enum R_CSTL_LogLevel)atomic_load_explicit (&atomics->minLevel, memory_order_acquire);
+    return (enum r_cstl_log_level)atomic_load_explicit (&atomics->minLevel, memory_order_acquire);
 #endif
 }
 
 static void
-R_CSTL_LogAtomicStoreDropped (R_CSTL_LogAtomics* atomics, uint64_t value)
+r_cstl_log_atomic_store_dropped (r_cstl_log_atomics* atomics, uint64_t value)
 {
 #if defined(_WIN32)
     InterlockedExchange64 (&atomics->dropped, (LONG64)value);
@@ -321,7 +321,7 @@ R_CSTL_LogAtomicStoreDropped (R_CSTL_LogAtomics* atomics, uint64_t value)
 }
 
 static uint64_t
-R_CSTL_LogAtomicLoadDropped (const R_CSTL_LogAtomics* atomics)
+r_cstl_log_atomic_load_dropped (const r_cstl_log_atomics* atomics)
 {
 #if defined(_WIN32)
     return (uint64_t)InterlockedCompareExchange64 ((volatile LONG64*)&atomics->dropped, 0, 0);
@@ -331,7 +331,7 @@ R_CSTL_LogAtomicLoadDropped (const R_CSTL_LogAtomics* atomics)
 }
 
 static void
-R_CSTL_LogAtomicFetchAddDropped (R_CSTL_LogAtomics* atomics, uint64_t value)
+r_cstl_log_atomic_fetch_add_dropped (r_cstl_log_atomics* atomics, uint64_t value)
 {
 #if defined(_WIN32)
     InterlockedExchangeAdd64 (&atomics->dropped, (LONG64)value);
@@ -340,17 +340,17 @@ R_CSTL_LogAtomicFetchAddDropped (R_CSTL_LogAtomics* atomics, uint64_t value)
 #endif
 }
 
-typedef struct R_CSTL_LogState
+typedef struct r_cstl_log_state
 {
-        R_CSTL_LogEntry** ring;
+        r_cstl_log_entry** ring;
         size_t            capacity;
         size_t            head;
         size_t            tail;
         size_t            count;
-        R_CSTL_LogMutex   mutex;
-        R_CSTL_LogCond    cond;
-        R_CSTL_LogCond    flushCond;
-        R_CSTL_LogAtomics atomics;
+        r_cstl_log_mutex   mutex;
+        r_cstl_log_cond    cond;
+        r_cstl_log_cond    flushCond;
+        r_cstl_log_atomics atomics;
         uint32_t          flags;
 #if defined(_WIN32)
         HANDLE consumerThread;
@@ -359,22 +359,22 @@ typedef struct R_CSTL_LogState
         pthread_t consumerThread;
 #endif
         bool initialized;
-} R_CSTL_LogState;
+} r_cstl_log_state;
 
-static R_CSTL_LogState g_log = {0};
+static r_cstl_log_state g_log = {0};
 
 static void
-R_CSTL_LogHeapRelease (char* buf)
+r_cstl_log_heap_release (char* buf)
 {
 #if defined(R_LOG)
     if (!buf) return;
 #endif
-    R_CSTL_HeapUnregisterAllocation (&g_log, buf);
-    R_CSTL_HeapFree (buf);
+    r_cstl_heap_unregister_allocation (&g_log, buf);
+    r_cstl_heap_free (buf);
 }
 
 static int
-R_CSTL_LogFormatMessage (char* buffer, size_t bufferSize, const char* fmt, va_list args)
+r_cstl_log_format_message (char* buffer, size_t bufferSize, const char* fmt, va_list args)
 {
 #if defined(R_LOG)
     if (!buffer || bufferSize == 0 || !fmt) return -1;
@@ -387,7 +387,7 @@ R_CSTL_LogFormatMessage (char* buffer, size_t bufferSize, const char* fmt, va_li
 
 #if defined(_WIN32)
 static void
-R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
+r_cstl_log_capture_backtrace (char* buffer, size_t bufferSize)
 {
     if (!buffer || bufferSize == 0) return;
     buffer[0] = '\0';
@@ -452,7 +452,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 
 #elif defined(__APPLE__) || defined(__linux__)
 static void
-R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
+r_cstl_log_capture_backtrace (char* buffer, size_t bufferSize)
 {
     if (!buffer || bufferSize == 0) return;
     buffer[0] = '\0';
@@ -481,7 +481,7 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 
 #else
 static void
-R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
+r_cstl_log_capture_backtrace (char* buffer, size_t bufferSize)
 {
     (void)buffer;
     (void)bufferSize;
@@ -489,38 +489,38 @@ R_CSTL_LogCaptureBacktrace (char* buffer, size_t bufferSize)
 #endif
 
 static void
-R_CSTL_LogDestroyEntry (R_CSTL_LogEntry* entry)
+r_cstl_log_destroy_entry (r_cstl_log_entry* entry)
 {
 #if defined(R_LOG)
     if (!entry) return;
 #endif
-    R_CSTL_HeapUnregisterAllocation (&g_log, entry);
-    R_CSTL_HeapFree (entry);
+    r_cstl_heap_unregister_allocation (&g_log, entry);
+    r_cstl_heap_free (entry);
 }
 
 static void
-R_CSTL_LogCleanupPartialInit (void)
+r_cstl_log_cleanup_partial_init (void)
 {
     if (g_log.ring)
     {
-        R_CSTL_HeapUnregisterAllocation (&g_log, g_log.ring);
-        R_CSTL_HeapFree (g_log.ring);
+        r_cstl_heap_unregister_allocation (&g_log, g_log.ring);
+        r_cstl_heap_free (g_log.ring);
         g_log.ring = NULL;
     }
-    R_CSTL_LogMutexDestroy (&g_log.mutex);
+    r_cstl_log_mutex_destroy (&g_log.mutex);
     memset (&g_log, 0, sizeof (g_log));
 }
 
 #if defined(_WIN32)
 static wchar_t*
-R_CSTL_LogUtf8ToWide (const char* utf8Str)
+r_cstl_log_utf8_to_wide (const char* utf8Str)
 {
     if (!utf8Str) return NULL;
 
     int wideLen = MultiByteToWideChar (CP_UTF8, 0, utf8Str, -1, NULL, 0);
     if (wideLen == 0) return NULL;
 
-    wchar_t* wideStr = (wchar_t*)R_CSTL_HeapAlloc (wideLen * sizeof (wchar_t));
+    wchar_t* wideStr = (wchar_t*)r_cstl_heap_alloc (wideLen * sizeof (wchar_t));
     if (!wideStr) return NULL;
 
     MultiByteToWideChar (CP_UTF8, 0, utf8Str, -1, wideStr, wideLen);
@@ -528,11 +528,11 @@ R_CSTL_LogUtf8ToWide (const char* utf8Str)
 }
 
 static void
-R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
+r_cstl_log_write_to_debug_buffer (const r_cstl_log_entry* entry)
 {
     char debugBuffer[8192];
 
-    const char* level = R_CSTL_LogLevelName (entry->level);
+    const char* level = r_cstl_log_level_name (entry->level);
     size_t      used = 0;
     snprintf (
         debugBuffer,
@@ -558,11 +558,11 @@ R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
         strncat (debugBuffer, entry->backtrace, sizeof (debugBuffer) - used - 1);
     }
 
-    wchar_t* wideBuffer = R_CSTL_LogUtf8ToWide (debugBuffer);
+    wchar_t* wideBuffer = r_cstl_log_utf8_to_wide (debugBuffer);
     if (wideBuffer)
     {
         OutputDebugStringW (wideBuffer);
-        R_CSTL_HeapFree (wideBuffer);
+        r_cstl_heap_free (wideBuffer);
     }
     else
     {
@@ -572,7 +572,7 @@ R_CSTL_LogWriteToDebugBuffer (const R_CSTL_LogEntry* entry)
 #endif
 
 static int
-R_CSTL_LogColorsSupported (void)
+r_cstl_log_colors_supported (void)
 {
 #if defined(_WIN32)
     HANDLE hConsole = GetStdHandle (STD_OUTPUT_HANDLE);
@@ -592,7 +592,7 @@ R_CSTL_LogColorsSupported (void)
 }
 
 static const char*
-R_CSTL_LogGetColorCode (enum R_CSTL_LogLevel level)
+r_cstl_log_get_color_code (enum r_cstl_log_level level)
 {
     switch (level)
     {
@@ -613,20 +613,20 @@ R_CSTL_LogGetColorCode (enum R_CSTL_LogLevel level)
 }
 
 static void
-R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
+r_cstl_log_write_entry_to_stderr (const r_cstl_log_entry* entry)
 {
 #if defined(R_LOG)
     if (!entry || !entry->message) return;
 #endif
-    const char* level = R_CSTL_LogLevelName (entry->level);
+    const char* level = r_cstl_log_level_name (entry->level);
 
-    uint32_t flags = R_CSTL_LogGetFlags ();
-    int      colorsEnabled = (flags & R_CSTL_LOG_FLAG_ENABLE_COLORS) && R_CSTL_LogColorsSupported ();
+    uint32_t flags = r_cstl_log_get_flags ();
+    int      colorsEnabled = (flags & R_CSTL_LOG_FLAG_ENABLE_COLORS) && r_cstl_log_colors_supported ();
     int      disableTags = flags & R_CSTL_LOG_FLAG_DISABLE_TAGS;
 
     if (colorsEnabled)
     {
-        const char* colorCode = R_CSTL_LogGetColorCode (entry->level);
+        const char* colorCode = r_cstl_log_get_color_code (entry->level);
         fprintf (stderr, "%s", colorCode);
     }
 
@@ -660,97 +660,97 @@ R_CSTL_LogWriteEntryToStderr (const R_CSTL_LogEntry* entry)
     fflush (stderr);
 
 #if defined(_WIN32)
-    R_CSTL_LogWriteToDebugBuffer (entry);
+    r_cstl_log_write_to_debug_buffer (entry);
 #endif
 }
 
 static void
-R_CSTL_LogDropOldestLocked (void)
+r_cstl_log_drop_oldest_locked (void)
 {
     if (g_log.count == 0) return;
-    R_CSTL_LogEntry* dropped = g_log.ring[g_log.head];
+    r_cstl_log_entry* dropped = g_log.ring[g_log.head];
     g_log.head = (g_log.head + 1u) % g_log.capacity;
     --g_log.count;
-    R_CSTL_LogAtomicFetchAddDropped (&g_log.atomics, 1);
-    R_CSTL_LogDestroyEntry (dropped);
+    r_cstl_log_atomic_fetch_add_dropped (&g_log.atomics, 1);
+    r_cstl_log_destroy_entry (dropped);
 }
 
 static void
-R_CSTL_LogNotifyFlushWaitersLocked (void)
+r_cstl_log_notify_flush_waiters_locked (void)
 {
-    if (g_log.count == 0) R_CSTL_LogCondBroadcast (&g_log.flushCond);
+    if (g_log.count == 0) r_cstl_log_cond_broadcast (&g_log.flushCond);
 }
 
 static int
-R_CSTL_LogEnqueueEntry (R_CSTL_LogEntry* entry)
+r_cstl_log_enqueue_entry (r_cstl_log_entry* entry)
 {
 #if defined(R_LOG)
     if (!entry) return -1;
 #endif
-    R_CSTL_LogMutexLock (&g_log.mutex);
-    if (g_log.count >= g_log.capacity) R_CSTL_LogDropOldestLocked ();
+    r_cstl_log_mutex_lock (&g_log.mutex);
+    if (g_log.count >= g_log.capacity) r_cstl_log_drop_oldest_locked ();
 
     g_log.ring[g_log.tail] = entry;
     g_log.tail = (g_log.tail + 1u) % g_log.capacity;
     ++g_log.count;
-    R_CSTL_LogCondSignal (&g_log.cond);
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_cond_signal (&g_log.cond);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
     return 0;
 }
 
-static R_CSTL_LogEntry*
-R_CSTL_LogDequeueEntryLocked (void)
+static r_cstl_log_entry*
+r_cstl_log_dequeue_entry_locked (void)
 {
     if (g_log.count == 0) return NULL;
 
-    R_CSTL_LogEntry* entry = g_log.ring[g_log.head];
+    r_cstl_log_entry* entry = g_log.ring[g_log.head];
     g_log.head = (g_log.head + 1u) % g_log.capacity;
     --g_log.count;
-    R_CSTL_LogNotifyFlushWaitersLocked ();
+    r_cstl_log_notify_flush_waiters_locked ();
     return entry;
 }
 
 #if defined(_WIN32)
 static DWORD WINAPI
-R_CSTL_LogConsumerThread (LPVOID param)
+r_cstl_log_consumer_thread (LPVOID param)
 {
     (void)param;
 #else
 static void*
-R_CSTL_LogConsumerThread (void* param)
+r_cstl_log_consumer_thread (void* param)
 {
     (void)param;
 #endif
     for (;;)
     {
-        R_CSTL_LogMutexLock (&g_log.mutex);
+        r_cstl_log_mutex_lock (&g_log.mutex);
         while (g_log.count == 0)
         {
-            if (!R_CSTL_LogAtomicLoadRunning (&g_log.atomics))
+            if (!r_cstl_log_atomic_load_running (&g_log.atomics))
             {
-                R_CSTL_LogMutexUnlock (&g_log.mutex);
+                r_cstl_log_mutex_unlock (&g_log.mutex);
 #if defined(_WIN32)
                 return 0;
 #else
                 return NULL;
 #endif
             }
-            R_CSTL_LogCondWait (&g_log.cond, &g_log.mutex);
+            r_cstl_log_cond_wait (&g_log.cond, &g_log.mutex);
         }
 
-        R_CSTL_LogEntry* entry = R_CSTL_LogDequeueEntryLocked ();
-        R_CSTL_LogMutexUnlock (&g_log.mutex);
+        r_cstl_log_entry* entry = r_cstl_log_dequeue_entry_locked ();
+        r_cstl_log_mutex_unlock (&g_log.mutex);
 
         if (entry)
         {
-            R_CSTL_LogWriteEntryToStderr (entry);
-            R_CSTL_LogDestroyEntry (entry);
+            r_cstl_log_write_entry_to_stderr (entry);
+            r_cstl_log_destroy_entry (entry);
         }
     }
 }
 
 const char*
-R_CSTL_LogLevelName (enum R_CSTL_LogLevel level)
+r_cstl_log_level_name (enum r_cstl_log_level level)
 {
     switch (level)
     {
@@ -774,30 +774,30 @@ R_CSTL_LogLevelName (enum R_CSTL_LogLevel level)
 #define R_CSTL_LOG_MAX_STACK_ENTRIES 128
 
 int
-R_CSTL_LogInit (void)
+r_cstl_log_init (void)
 {
     if (g_log.initialized) return R_CSTL_OK;
     g_log.capacity = R_CSTL_LOG_RING_CAPACITY;
-    g_log.ring = (R_CSTL_LogEntry**)R_CSTL_HeapAlloc (g_log.capacity * sizeof (R_CSTL_LogEntry*));
+    g_log.ring = (r_cstl_log_entry**)r_cstl_heap_alloc (g_log.capacity * sizeof (r_cstl_log_entry*));
     if (!g_log.ring)
     {
-        static struct R_CSTL_LogEntry* entries[R_CSTL_LOG_MAX_STACK_ENTRIES] = {0};
+        static struct r_cstl_log_entry* entries[R_CSTL_LOG_MAX_STACK_ENTRIES] = {0};
         g_log.ring = entries;
         g_log.capacity = R_CSTL_LOG_MAX_STACK_ENTRIES;
     }
-    memset (g_log.ring, 0, g_log.capacity * sizeof (R_CSTL_LogEntry*));
-    R_CSTL_HeapRegisterAllocation (
+    memset (g_log.ring, 0, g_log.capacity * sizeof (r_cstl_log_entry*));
+    r_cstl_heap_register_allocation (
         &g_log,
         g_log.ring,
-        g_log.capacity * sizeof (R_CSTL_LogEntry*),
-        R_CSTL_HEAP_NAME (R_CSTL_LogInit));
+        g_log.capacity * sizeof (r_cstl_log_entry*),
+        R_CSTL_HEAP_NAME (r_cstl_log_init));
 
-    R_CSTL_LogNewMutex (&g_log.mutex);
-    R_CSTL_LogCondInit (&g_log.cond);
-    R_CSTL_LogCondInit (&g_log.flushCond);
-    R_CSTL_LogAtomicStoreRunning (&g_log.atomics, 1);
-    R_CSTL_LogAtomicStoreMinLevel (&g_log.atomics, R_CSTL_LOG_LEVEL_TRACE);
-    R_CSTL_LogAtomicStoreDropped (&g_log.atomics, 0);
+    r_cstl_log_new_mutex (&g_log.mutex);
+    r_cstl_log_cond_init (&g_log.cond);
+    r_cstl_log_cond_init (&g_log.flushCond);
+    r_cstl_log_atomic_store_running (&g_log.atomics, 1);
+    r_cstl_log_atomic_store_min_level (&g_log.atomics, R_CSTL_LOG_LEVEL_TRACE);
+    r_cstl_log_atomic_store_dropped (&g_log.atomics, 0);
     g_log.head = 0;
     g_log.tail = 0;
     g_log.count = 0;
@@ -809,16 +809,16 @@ R_CSTL_LogInit (void)
 
 #if defined(_WIN32)
     g_log.symInitialized = false;
-    g_log.consumerThread = CreateThread (NULL, 0, R_CSTL_LogConsumerThread, NULL, 0, NULL);
+    g_log.consumerThread = CreateThread (NULL, 0, r_cstl_log_consumer_thread, NULL, 0, NULL);
     if (!g_log.consumerThread)
     {
-        R_CSTL_LogCleanupPartialInit ();
+        r_cstl_log_cleanup_partial_init ();
         return -1;
     }
 #else
-    if (pthread_create (&g_log.consumerThread, NULL, R_CSTL_LogConsumerThread, NULL) != 0)
+    if (pthread_create (&g_log.consumerThread, NULL, r_cstl_log_consumer_thread, NULL) != 0)
     {
-        R_CSTL_LogCleanupPartialInit ();
+        r_cstl_log_cleanup_partial_init ();
         return -1;
     }
 #endif
@@ -827,14 +827,14 @@ R_CSTL_LogInit (void)
 }
 
 void
-R_CSTL_LogShutdown (void)
+r_cstl_log_shutdown (void)
 {
     if (!g_log.initialized) return;
     g_log.initialized = false;
-    R_CSTL_LogAtomicStoreRunning (&g_log.atomics, 0);
-    R_CSTL_LogMutexLock (&g_log.mutex);
-    R_CSTL_LogCondBroadcast (&g_log.cond);
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_atomic_store_running (&g_log.atomics, 0);
+    r_cstl_log_mutex_lock (&g_log.mutex);
+    r_cstl_log_cond_broadcast (&g_log.cond);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
 
 #if defined(_WIN32)
     if (g_log.consumerThread)
@@ -852,140 +852,140 @@ R_CSTL_LogShutdown (void)
     pthread_join (g_log.consumerThread, NULL);
 #endif
 
-    R_CSTL_LogMutexLock (&g_log.mutex);
+    r_cstl_log_mutex_lock (&g_log.mutex);
     while (g_log.count > 0)
     {
-        R_CSTL_LogEntry* entry = R_CSTL_LogDequeueEntryLocked ();
-        R_CSTL_LogMutexUnlock (&g_log.mutex);
+        r_cstl_log_entry* entry = r_cstl_log_dequeue_entry_locked ();
+        r_cstl_log_mutex_unlock (&g_log.mutex);
         if (entry)
         {
-            R_CSTL_LogWriteEntryToStderr (entry);
-            R_CSTL_LogDestroyEntry (entry);
+            r_cstl_log_write_entry_to_stderr (entry);
+            r_cstl_log_destroy_entry (entry);
         }
-        R_CSTL_LogMutexLock (&g_log.mutex);
+        r_cstl_log_mutex_lock (&g_log.mutex);
     }
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
 
     if (g_log.ring)
     {
-        R_CSTL_HeapUnregisterAllocation (&g_log, g_log.ring);
-        R_CSTL_HeapFree (g_log.ring);
+        r_cstl_heap_unregister_allocation (&g_log, g_log.ring);
+        r_cstl_heap_free (g_log.ring);
         g_log.ring = NULL;
     }
 
-    R_CSTL_LogMutexDestroy (&g_log.mutex);
+    r_cstl_log_mutex_destroy (&g_log.mutex);
     memset (&g_log, 0, sizeof (g_log));
 }
 
 void
-R_CSTL_LogFlush (void)
+r_cstl_log_flush (void)
 {
     if (!g_log.initialized) return;
 
-    R_CSTL_LogMutexLock (&g_log.mutex);
+    r_cstl_log_mutex_lock (&g_log.mutex);
     while (g_log.count > 0)
     {
-        R_CSTL_LogCondSignal (&g_log.cond);
-        R_CSTL_LogCondWait (&g_log.flushCond, &g_log.mutex);
+        r_cstl_log_cond_signal (&g_log.cond);
+        r_cstl_log_cond_wait (&g_log.flushCond, &g_log.mutex);
     }
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
 }
 
 void
-R_CSTL_LogSetMinLevel (enum R_CSTL_LogLevel level)
+r_cstl_log_set_min_level (enum r_cstl_log_level level)
 {
 #if defined(R_LOG)
     if (level < R_CSTL_LOG_LEVEL_TRACE) goto cstl_fail;
     if (level >= _COUNT) goto cstl_fail;
 #endif
-    R_CSTL_LogAtomicStoreMinLevel (&g_log.atomics, level);
+    r_cstl_log_atomic_store_min_level (&g_log.atomics, level);
 cstl_fail:
     return;
 }
 
-enum R_CSTL_LogLevel
-R_CSTL_LogGetMinLevel (void)
+enum r_cstl_log_level
+r_cstl_log_get_min_level (void)
 {
-    return R_CSTL_LogAtomicLoadMinLevel (&g_log.atomics);
+    return r_cstl_log_atomic_load_min_level (&g_log.atomics);
 }
 
 uint64_t
-R_CSTL_LogGetDroppedCount (void)
+r_cstl_log_get_dropped_count (void)
 {
-    return R_CSTL_LogAtomicLoadDropped (&g_log.atomics);
+    return r_cstl_log_atomic_load_dropped (&g_log.atomics);
 }
 
 void
-R_CSTL_LogSetFlags (uint32_t flags)
+r_cstl_log_set_flags (uint32_t flags)
 {
-    R_CSTL_LogMutexLock (&g_log.mutex);
+    r_cstl_log_mutex_lock (&g_log.mutex);
     g_log.flags = flags;
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
 }
 
 uint32_t
-R_CSTL_LogGetFlags (void)
+r_cstl_log_get_flags (void)
 {
-    R_CSTL_LogMutexLock (&g_log.mutex);
+    r_cstl_log_mutex_lock (&g_log.mutex);
     uint32_t flags = g_log.flags;
-    R_CSTL_LogMutexUnlock (&g_log.mutex);
+    r_cstl_log_mutex_unlock (&g_log.mutex);
     return flags;
 }
 
 void
-R_CSTL_LogWriteV (enum R_CSTL_LogLevel level, const char* fmt, va_list args)
+r_cstl_log_writeV (enum r_cstl_log_level level, const char* fmt, va_list args)
 {
     if (!g_log.initialized) return;
 #if defined(R_LOG)
     if (!fmt) goto cstl_fail;
     if (level < R_CSTL_LOG_LEVEL_TRACE || level >= _COUNT) goto cstl_fail;
-    if ((int)level < (int)R_CSTL_LogGetMinLevel ()) goto cstl_fail;
+    if ((int)level < (int)r_cstl_log_get_min_level ()) goto cstl_fail;
 #endif
 
-    R_CSTL_LogEntry* entry = (R_CSTL_LogEntry*)R_CSTL_HeapAlloc (sizeof (R_CSTL_LogEntry));
+    r_cstl_log_entry* entry = (r_cstl_log_entry*)r_cstl_heap_alloc (sizeof (r_cstl_log_entry));
     if (!entry)
     {
-        R_CSTL_LogAtomicFetchAddDropped (&g_log.atomics, 1);
+        r_cstl_log_atomic_fetch_add_dropped (&g_log.atomics, 1);
         goto cstl_fail;
     }
 
     entry->message[0] = '\0';
-    if (R_CSTL_LogFormatMessage (entry->message, sizeof (entry->message), fmt, args) < 0)
+    if (r_cstl_log_format_message (entry->message, sizeof (entry->message), fmt, args) < 0)
     {
-        R_CSTL_HeapFree (entry);
-        R_CSTL_LogAtomicFetchAddDropped (&g_log.atomics, 1);
+        r_cstl_heap_free (entry);
+        r_cstl_log_atomic_fetch_add_dropped (&g_log.atomics, 1);
         goto cstl_fail;
     }
 
     entry->timestamp[0] = '\0';
-    R_CSTL_LogFormatTimestamp (entry->timestamp, sizeof (entry->timestamp));
+    r_cstl_log_format_timestamp (entry->timestamp, sizeof (entry->timestamp));
 
     entry->backtrace[0] = '\0';
     if (level == R_CSTL_LOG_LEVEL_FATAL)
-        R_CSTL_LogCaptureBacktrace (entry->backtrace, sizeof (entry->backtrace));
+        r_cstl_log_capture_backtrace (entry->backtrace, sizeof (entry->backtrace));
 
-    R_CSTL_HeapRegisterAllocation (
+    r_cstl_heap_register_allocation (
         &g_log,
         entry,
-        sizeof (R_CSTL_LogEntry),
-        R_CSTL_HEAP_NAME (R_CSTL_LogWriteV));
+        sizeof (r_cstl_log_entry),
+        R_CSTL_HEAP_NAME (r_cstl_log_writeV));
     entry->level = level;
-    entry->threadId = R_CSTL_LogCurrentThreadId ();
+    entry->threadId = r_cstl_log_current_thread_id ();
 
-    if (R_CSTL_LogEnqueueEntry (entry) != 0)
+    if (r_cstl_log_enqueue_entry (entry) != 0)
     {
-        R_CSTL_LogDestroyEntry (entry);
-        R_CSTL_LogAtomicFetchAddDropped (&g_log.atomics, 1);
+        r_cstl_log_destroy_entry (entry);
+        r_cstl_log_atomic_fetch_add_dropped (&g_log.atomics, 1);
     }
 cstl_fail:
     return;
 }
 
 void
-R_CSTL_LogWrite (enum R_CSTL_LogLevel level, const char* fmt, ...)
+r_cstl_log_write (enum r_cstl_log_level level, const char* fmt, ...)
 {
     va_list args;
     va_start (args, fmt);
-    R_CSTL_LogWriteV (level, fmt, args);
+    r_cstl_log_writeV (level, fmt, args);
     va_end (args);
 }

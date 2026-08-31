@@ -26,7 +26,7 @@ struct R_CVulkan_CommandPool
  * @param flags Command pool creation flags
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandPool (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_new_command_pool (
     struct R_CVulkan_CommandPool*  pCommandPool,
     const struct R_CVulkan_Device* pDevice,
     uint32_t                       queueFamilyIndex,
@@ -36,7 +36,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_NewCommandPool (
  * @brief Deletes a command pool and destroy the Vulkan object
  * @param commandPool Pointer to command pool to delete
  */
-R_CVULKAN_API void R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pCommandPool);
+R_CVULKAN_API void r_cvulkan_delete_command_pool (struct R_CVulkan_CommandPool* pCommandPool);
 
 /**
  * @brief Reset a command pool
@@ -45,28 +45,28 @@ R_CVULKAN_API void R_CVulkan_DeleteCommandPool (struct R_CVulkan_CommandPool* pC
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_CommandPoolReset (struct R_CVulkan_CommandPool* pCommandPool, VkCommandPoolResetFlags flags);
+r_cvulkan_command_pool_reset (struct R_CVulkan_CommandPool* pCommandPool, VkCommandPoolResetFlags flags);
 
 /**
  * @brief Trim a command pool
  * @param commandPool Pointer to command pool
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_CommandPoolTrim (struct R_CVulkan_CommandPool* pCommandPool);
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_command_pool_trim (struct R_CVulkan_CommandPool* pCommandPool);
 
 /**
  * @brief Get the raw Vulkan command pool handle
  * @param commandPool Pointer to command pool
  * @return Vulkan command pool handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkCommandPool R_CVulkan_CommandPoolGetHandle (const struct R_CVulkan_CommandPool* pCommandPool);
+R_CVULKAN_API VkCommandPool r_cvulkan_command_pool_get_handle (const struct R_CVulkan_CommandPool* pCommandPool);
 
 /**
  * @brief Get the associated device
  * @param commandPool Pointer to command pool
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_CommandPool* pCommandPool);
+R_CVULKAN_API VkDevice r_cvulkan_command_pool_get_device (const struct R_CVulkan_CommandPool* pCommandPool);
 
 /**
  * @brief Get the queue family index
@@ -74,11 +74,11 @@ R_CVULKAN_API VkDevice R_CVulkan_CommandPoolGetDevice (const struct R_CVulkan_Co
  * @return Queue family index, or 0 if not initialized
  */
 R_CVULKAN_API uint32_t
-R_CVulkan_CommandPoolGetQueueFamilyIndex (const struct R_CVulkan_CommandPool* pCommandPool);
+r_cvulkan_command_pool_get_queue_family_index (const struct R_CVulkan_CommandPool* pCommandPool);
 
 /**
  * @brief Check if the command pool is initialized
  * @param commandPool Pointer to command pool
  * @return 1 if initialized, 0 otherwise
  */
-R_CVULKAN_API int R_CVulkan_CommandPoolIsInitialized (const struct R_CVulkan_CommandPool* pCommandPool);
+R_CVULKAN_API int r_cvulkan_command_pool_is_initialized (const struct R_CVulkan_CommandPool* pCommandPool);

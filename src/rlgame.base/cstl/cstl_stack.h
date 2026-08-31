@@ -11,7 +11,7 @@
  * The internal structure is opaque to maintain ABI stability and allow
  * implementation changes without breaking client code.
  */
-struct R_CSTL_Stack;
+struct r_cstl_stack;
 
 /**
  * @brief Create an empty stack
@@ -21,10 +21,10 @@ struct R_CSTL_Stack;
  *
  * @return Pointer to new stack, or NULL on allocation failure.
  *
- * @note The stack must be freed with R_CSTL_DeleteStack when no longer needed.
+ * @note The stack must be freed with r_cstl_delete_stack when no longer needed.
  * @note Thread-safe: each stack instance is independent.
  */
-R_CSTL_API struct R_CSTL_Stack* R_CSTL_NewStack (void);
+R_CSTL_API struct r_cstl_stack* r_cstl_new_stack (void);
 
 /**
  * @brief Create a stack with pre-reserved capacity
@@ -39,7 +39,7 @@ R_CSTL_API struct R_CSTL_Stack* R_CSTL_NewStack (void);
  * @note The stack size is 0; use push to add data.
  * @note The actual capacity may be larger than requested due to alignment.
  */
-R_CSTL_API struct R_CSTL_Stack* R_CSTL_NewStackWithCapacity (size_t capacityBytes);
+R_CSTL_API struct r_cstl_stack* r_cstl_new_stack_with_capacity (size_t capacityBytes);
 
 /**
  * @brief Delete a stack and free its resources
@@ -51,7 +51,7 @@ R_CSTL_API struct R_CSTL_Stack* R_CSTL_NewStackWithCapacity (size_t capacityByte
  * @note After this call, the pointer becomes invalid and must not be used.
  * @note Thread-safe: each stack instance is independent.
  */
-R_CSTL_API void R_CSTL_DeleteStack (struct R_CSTL_Stack* pStack);
+R_CSTL_API void r_cstl_delete_stack (struct r_cstl_stack* pStack);
 
 /**
  * @brief Push a byte onto the top of the stack
@@ -65,7 +65,7 @@ R_CSTL_API void R_CSTL_DeleteStack (struct R_CSTL_Stack* pStack);
  * @note May trigger reallocation and data copying.
  * @note Uses SIMD-optimized copy when reallocating.
  */
-R_CSTL_API int R_CSTL_StackPush (struct R_CSTL_Stack* pStack, uint8_t value);
+R_CSTL_API int r_cstl_stack_push (struct r_cstl_stack* pStack, uint8_t value);
 
 /**
  * @brief Push data with size onto the top of the stack
@@ -80,7 +80,7 @@ R_CSTL_API int R_CSTL_StackPush (struct R_CSTL_Stack* pStack, uint8_t value);
  * @note May trigger reallocation and data copying.
  * @note Uses SIMD-optimized copy when reallocating.
  */
-R_CSTL_API int R_CSTL_StackPushData (struct R_CSTL_Stack* pStack, const uint8_t* pData, size_t size);
+R_CSTL_API int r_cstl_stack_push_data (struct r_cstl_stack* pStack, const uint8_t* pData, size_t size);
 
 /**
  * @brief Pop a byte from the top of the stack
@@ -94,7 +94,7 @@ R_CSTL_API int R_CSTL_StackPushData (struct R_CSTL_Stack* pStack, const uint8_t*
  * @note Decrements stack size by 1.
  * @note Does not reduce capacity.
  */
-R_CSTL_API int R_CSTL_StackPop (struct R_CSTL_Stack* pStack, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_stack_pop (struct r_cstl_stack* pStack, uint8_t* pOutValue);
 
 /**
  * @brief Pop data from the top of the stack
@@ -109,7 +109,7 @@ R_CSTL_API int R_CSTL_StackPop (struct R_CSTL_Stack* pStack, uint8_t* pOutValue)
  * @note Decrements stack size by size.
  * @note Does not reduce capacity.
  */
-R_CSTL_API int R_CSTL_StackPopData (struct R_CSTL_Stack* pStack, uint8_t* pOutData, size_t size);
+R_CSTL_API int r_cstl_stack_pop_data (struct r_cstl_stack* pStack, uint8_t* pOutData, size_t size);
 
 /**
  * @brief Peek at the byte at the top of the stack without removing it
@@ -122,7 +122,7 @@ R_CSTL_API int R_CSTL_StackPopData (struct R_CSTL_Stack* pStack, uint8_t* pOutDa
  *
  * @note Does not modify the stack.
  */
-R_CSTL_API int R_CSTL_StackPeek (struct R_CSTL_Stack* pStack, uint8_t* pOutValue);
+R_CSTL_API int r_cstl_stack_peek (struct r_cstl_stack* pStack, uint8_t* pOutValue);
 
 /**
  * @brief Peek at data from the top of the stack without removing it
@@ -136,7 +136,7 @@ R_CSTL_API int R_CSTL_StackPeek (struct R_CSTL_Stack* pStack, uint8_t* pOutValue
  *
  * @note Does not modify the stack.
  */
-R_CSTL_API int R_CSTL_StackPeekData (struct R_CSTL_Stack* pStack, uint8_t* pOutData, size_t size);
+R_CSTL_API int r_cstl_stack_peek_data (struct r_cstl_stack* pStack, uint8_t* pOutData, size_t size);
 
 /**
  * @brief Check if the stack is empty
@@ -148,7 +148,7 @@ R_CSTL_API int R_CSTL_StackPeekData (struct R_CSTL_Stack* pStack, uint8_t* pOutD
  *
  * @note Returns 1 (true) if size is 0, 0 (false) otherwise.
  */
-R_CSTL_API int R_CSTL_StackEmpty (const struct R_CSTL_Stack* pStack);
+R_CSTL_API int r_cstl_stack_empty (const struct r_cstl_stack* pStack);
 
 /**
  * @brief Get the number of elements in the stack
@@ -158,7 +158,7 @@ R_CSTL_API int R_CSTL_StackEmpty (const struct R_CSTL_Stack* pStack);
  * @param pStack Pointer to stack.
  * @return Size in bytes, or 0 if stack is NULL or invalid.
  */
-R_CSTL_API size_t R_CSTL_StackSize (const struct R_CSTL_Stack* pStack);
+R_CSTL_API size_t r_cstl_stack_size (const struct r_cstl_stack* pStack);
 
 /**
  * @brief Get the current capacity of the stack
@@ -171,7 +171,7 @@ R_CSTL_API size_t R_CSTL_StackSize (const struct R_CSTL_Stack* pStack);
  * @note Capacity is always >= size.
  * @note Capacity may be larger than size due to growth strategy.
  */
-R_CSTL_API size_t R_CSTL_StackGetCapacity (const struct R_CSTL_Stack* pStack);
+R_CSTL_API size_t r_cstl_stack_get_capacity (const struct r_cstl_stack* pStack);
 
 /**
  * @brief Search for a byte in the stack
@@ -186,7 +186,7 @@ R_CSTL_API size_t R_CSTL_StackGetCapacity (const struct R_CSTL_Stack* pStack);
  * @note Returns the position of the first occurrence from the top.
  * @note If the value is not found, returns 0.
  */
-R_CSTL_API size_t R_CSTL_StackSearch (const struct R_CSTL_Stack* pStack, uint8_t value);
+R_CSTL_API size_t r_cstl_stack_search (const struct r_cstl_stack* pStack, uint8_t value);
 
 /**
  * @brief Search for data in the stack
@@ -203,7 +203,7 @@ R_CSTL_API size_t R_CSTL_StackSearch (const struct R_CSTL_Stack* pStack, uint8_t
  * @note If the pattern is not found, returns 0.
  */
 R_CSTL_API size_t
-R_CSTL_StackSearchData (const struct R_CSTL_Stack* pStack, const uint8_t* pData, size_t size);
+r_cstl_stack_search_data (const struct r_cstl_stack* pStack, const uint8_t* pData, size_t size);
 
 /**
  * @brief Clear the stack contents
@@ -217,7 +217,7 @@ R_CSTL_StackSearchData (const struct R_CSTL_Stack* pStack, const uint8_t* pData,
  * @note Size is set to 0; capacity is unchanged.
  * @note Does not free the buffer.
  */
-R_CSTL_API int R_CSTL_StackClear (struct R_CSTL_Stack* pStack, int zeroMemory);
+R_CSTL_API int r_cstl_stack_clear (struct r_cstl_stack* pStack, int zeroMemory);
 
 /**
  * @brief Get pointer to stack data
@@ -231,7 +231,7 @@ R_CSTL_API int R_CSTL_StackClear (struct R_CSTL_Stack* pStack, int zeroMemory);
  * @note For empty stacks, returns NULL.
  * @note The data is organized with the top of the stack at the end of the buffer.
  */
-R_CSTL_API const uint8_t* R_CSTL_StackData (const struct R_CSTL_Stack* pStack);
+R_CSTL_API const uint8_t* r_cstl_stack_data (const struct r_cstl_stack* pStack);
 
 /**
  * @brief Reserve capacity without changing size
@@ -246,7 +246,7 @@ R_CSTL_API const uint8_t* R_CSTL_StackData (const struct R_CSTL_Stack* pStack);
  * @note The stack size is unchanged.
  * @note May trigger reallocation and data copying.
  */
-R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacityBytes);
+R_CSTL_API int r_cstl_stack_reserve (struct r_cstl_stack* pStack, size_t capacityBytes);
 
 /**
  * @brief Get a typed element at a specific position from the top
@@ -261,13 +261,13 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  *
  * @note This macro performs bounds checking.
  */
-#define R_CSTL_StackTypedAt(pStack, Type, position, pOutValue)                                               \
+#define r_cstl_stack_typed_at(pStack, Type, position, pOutValue)                                               \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
         size_t         _offset = (position - 1) * sizeof (Type);                                             \
-        size_t         _stackSize = R_CSTL_StackSize (pStack);                                               \
-        const uint8_t* _pData = R_CSTL_StackData (pStack);                                                   \
+        size_t         _stackSize = r_cstl_stack_size (pStack);                                               \
+        const uint8_t* _pData = r_cstl_stack_data (pStack);                                                   \
         if (_offset + sizeof (Type) <= _stackSize)                                                           \
         {                                                                                                    \
             memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));                 \
@@ -292,13 +292,13 @@ R_CSTL_API int R_CSTL_StackReserve (struct R_CSTL_Stack* pStack, size_t capacity
  *
  * @warning No bounds checking; undefined behavior if position is invalid.
  */
-#define R_CSTL_StackTypedAtUnchecked(pStack, Type, position, pOutValue)                                      \
+#define r_cstl_stack_typed_at_unchecked(pStack, Type, position, pOutValue)                                      \
     do                                                                                                       \
     {                                                                                                        \
         Type           _temp;                                                                                \
         size_t         _offset = (position - 1) * sizeof (Type);                                             \
-        size_t         _stackSize = R_CSTL_StackSize (pStack);                                               \
-        const uint8_t* _pData = R_CSTL_StackData (pStack);                                                   \
+        size_t         _stackSize = r_cstl_stack_size (pStack);                                               \
+        const uint8_t* _pData = r_cstl_stack_data (pStack);                                                   \
         memcpy (&_temp, _pData + (_stackSize - _offset - sizeof (Type)), sizeof (Type));                     \
         memcpy (pOutValue, &_temp, sizeof (Type));                                                           \
     } while (0)

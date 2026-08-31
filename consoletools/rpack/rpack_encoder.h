@@ -65,8 +65,8 @@ struct r_pack_encoder
         uint32_t                         pixelIndexTableCount;
         uint8_t*                         pAtlasData;
         uint64_t                         atlasDataSize;
-        struct R_CSTL_Mutex*             pMutex;
-        struct R_CSTL_Thread**           ppWorkerThreads;
+        struct r_cstl_mutex*             pMutex;
+        struct r_cstl_thread**           ppWorkerThreads;
         uint32_t                         actualWorkerCount;
         volatile int                     workersActive;
 };

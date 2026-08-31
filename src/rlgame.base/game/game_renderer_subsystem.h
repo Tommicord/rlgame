@@ -63,7 +63,7 @@ struct r_game_renderer_thread_pool
         R_GAME_MUTEX                         taskMutex;
         R_GAME_CONDITION_VARIABLE            taskAvailable;
         R_GAME_CONDITION_VARIABLE            taskComplete;
-        struct R_CSTL_Stack*                 pTaskQueue;
+        struct r_cstl_stack*                 pTaskQueue;
         R_GAME_ATOMIC_UINT32                 atomicPendingTasks;
         R_GAME_ATOMIC_UINT32                 atomicCompletedTasks;
         int                                  shutdownRequested;
@@ -137,11 +137,11 @@ R_GAME_API int r_game_renderer_set_layer_renderCallback (
     struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                          layerIndex,
     r_game_lifecycle_render           callback);
-R_GAME_API int r_game_renderer_set_layer_beforePassCallback (
+R_GAME_API int r_game_renderer_set_layer_before_pass_callback (
     struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                          layerIndex,
     r_game_lifecycle_before_pass      callback);
-R_GAME_API int r_game_renderer_set_layer_afterPassCallback (
+R_GAME_API int r_game_renderer_set_layer_after_pass_callback (
     struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                          layerIndex,
     r_game_lifecycle_after_pass       callback);
@@ -174,10 +174,10 @@ R_GAME_API void r_game_renderer_lifecycle_register_renderer (const void* pRender
 R_GAME_API void r_game_renderer_lifecycle_register_construct (r_game_lifecycle_construct callback);
 R_GAME_API void r_game_renderer_lifecycle_register_resume (r_game_lifecycle_resume callback);
 R_GAME_API void r_game_renderer_lifecycle_register_pause (r_game_lifecycle_pause callback);
-R_GAME_API void r_game_renderer_lifecycle_register_beforeEach (r_game_lifecycle_before_each callback);
-R_GAME_API void r_game_renderer_lifecycle_register_afterEach (r_game_lifecycle_after_each callback);
-R_GAME_API void r_game_renderer_lifecycle_register_beforePass (r_game_lifecycle_before_pass callback);
-R_GAME_API void r_game_renderer_lifecycle_register_afterPass (r_game_lifecycle_after_pass callback);
+R_GAME_API void r_game_renderer_lifecycle_register_before_each (r_game_lifecycle_before_each callback);
+R_GAME_API void r_game_renderer_lifecycle_register_after_each (r_game_lifecycle_after_each callback);
+R_GAME_API void r_game_renderer_lifecycle_register_before_pass (r_game_lifecycle_before_pass callback);
+R_GAME_API void r_game_renderer_lifecycle_register_after_pass (r_game_lifecycle_after_pass callback);
 R_GAME_API void r_game_renderer_lifecycle_register_render (r_game_lifecycle_render callback);
 R_GAME_API void r_game_renderer_lifecycle_register_stop (r_game_lifecycle_stop callback);
 R_GAME_API void r_game_renderer_lifecycle_register_over (r_game_lifecycle_over callback);

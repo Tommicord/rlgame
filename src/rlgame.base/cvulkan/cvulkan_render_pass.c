@@ -8,9 +8,9 @@
 #include <inttypes.h>
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewRenderPass (
+r_cvulkan_new_render_pass (
     struct R_CVulkan_RenderPass*                 pRenderPass,
-    const struct R_CVulkan_RenderPassCreateInfo* pCreateInfo)
+    const struct r_cvulkan_render_pass_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pRenderPass);
     R_CVULKAN_ASSERT (pCreateInfo);
@@ -20,7 +20,7 @@ R_CVulkan_NewRenderPass (
     R_CVULKAN_ASSERT (pCreateInfo->pSubpasses);
     R_CVULKAN_ASSERT (pCreateInfo->subpassCount > 0);
 
-    pRenderPass->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+    pRenderPass->device = r_cvulkan_device_get_logical_device (pCreateInfo->pDevice);
     pRenderPass->handle = VK_NULL_HANDLE;
     VkRenderPassCreateInfo renderPassInfo = {0};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -44,7 +44,7 @@ R_CVulkan_NewRenderPass (
 }
 
 R_CVULKAN_API void
-R_CVulkan_DeleteRenderPass (struct R_CVulkan_RenderPass* pRenderPass)
+r_cvulkan_delete_render_pass (struct R_CVulkan_RenderPass* pRenderPass)
 {
     R_CVULKAN_ASSERT (pRenderPass);
     vkDestroyRenderPass (pRenderPass->device, pRenderPass->handle, NULL);
@@ -55,7 +55,7 @@ R_CVulkan_DeleteRenderPass (struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API VkRenderPass
-R_CVulkan_RenderPassGetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
+r_cvulkan_render_pass_get_handle (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pRenderPass);
@@ -64,7 +64,7 @@ R_CVulkan_RenderPassGetHandle (const struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_RenderPassGetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
+r_cvulkan_render_pass_get_device (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pRenderPass);
@@ -73,7 +73,7 @@ R_CVulkan_RenderPassGetDevice (const struct R_CVulkan_RenderPass* pRenderPass)
 }
 
 R_CVULKAN_API int
-R_CVulkan_RenderPassIsInitialized (const struct R_CVulkan_RenderPass* pRenderPass)
+r_cvulkan_render_pass_is_initialized (const struct R_CVulkan_RenderPass* pRenderPass)
 {
 #if defined(R_CVULKAN_DEBUG)
     return 1;

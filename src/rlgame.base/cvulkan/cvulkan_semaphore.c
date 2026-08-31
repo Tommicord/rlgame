@@ -12,7 +12,7 @@ R_CVulkan_NewSemaphore (
     R_CVULKAN_ASSERT (pSemaphore);
     R_CVULKAN_ASSERT (pDevice);
 
-    pSemaphore->device = R_CVulkan_DeviceGetLogicalDevice (pDevice);
+    pSemaphore->device = r_cvulkan_device_get_logical_device (pDevice);
     pSemaphore->handle = VK_NULL_HANDLE;
     VkSemaphoreCreateInfo semaphoreInfo = {0};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -81,7 +81,7 @@ R_CVulkan_SemaphoreWait (struct R_CVulkan_Semaphore* pSemaphore, uint64_t value,
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue)
+r_cvulkan_semaphore_get_value (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* pOutValue)
 {
     R_CVULKAN_ASSERT (pSemaphore);
     R_CVULKAN_ASSERT (pOutValue);
@@ -95,14 +95,14 @@ R_CVulkan_SemaphoreGetValue (struct R_CVulkan_Semaphore* pSemaphore, uint64_t* p
 }
 
 R_CVULKAN_API VkSemaphore
-R_CVulkan_SemaphoreGetHandle (const struct R_CVulkan_Semaphore* pSemaphore)
+r_cvulkan_semaphore_get_handle (const struct R_CVulkan_Semaphore* pSemaphore)
 {
     R_CVULKAN_ASSERT (pSemaphore);
     return pSemaphore->handle;
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_SemaphoreGetDevice (const struct R_CVulkan_Semaphore* pSemaphore)
+r_cvulkan_semaphore_get_device (const struct R_CVulkan_Semaphore* pSemaphore)
 {
     R_CVULKAN_ASSERT (pSemaphore);
     return pSemaphore->device;

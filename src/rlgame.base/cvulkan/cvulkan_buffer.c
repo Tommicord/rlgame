@@ -11,13 +11,13 @@
 #include <inttypes.h>
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_BufferCreateInfo* pCreateInfo)
+R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct r_cvulkan_buffer_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pBuffer);
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CVULKAN_ASSERT (pCreateInfo->size == 0);
 
-    pBuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->device);
+    pBuffer->device = r_cvulkan_device_get_logical_device (pCreateInfo->device);
     pBuffer->handle = VK_NULL_HANDLE;
     pBuffer->memory = VK_NULL_HANDLE;
     pBuffer->size = pCreateInfo->size;
@@ -41,7 +41,7 @@ R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_Bu
     vkGetBufferMemoryRequirements (pBuffer->device, pBuffer->handle, &memRequirements);
 
     uint32_t             memoryTypeIndex = 0;
-    enum R_CVulkan_Error error = R_CVulkan_FindMemoryType (
+    enum R_CVulkan_Error error = r_cvulkan_find_memory_type (
         pCreateInfo->physicalDevice,
         &memRequirements,
         pCreateInfo->properties,
@@ -128,7 +128,7 @@ R_CVulkan_BufferUnmap (struct R_CVulkan_Buffer* pBuffer)
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_BufferCopyData (
+r_cvulkan_buffer_copy_data (
     struct R_CVulkan_Buffer* pBuffer,
     VkDeviceSize             offset,
     VkDeviceSize             size,
@@ -194,49 +194,49 @@ R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, const VkDeviceSize offs
 }
 
 R_CVULKAN_API VkBuffer
-R_CVulkan_BufferGetHandle (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_handle (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->handle;
 }
 
 R_CVULKAN_API VkDeviceMemory
-R_CVulkan_BufferGetMemory (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_memory (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->memory;
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_BufferGetDevice (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_device (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->device;
 }
 
 R_CVULKAN_API VkDeviceSize
-R_CVulkan_BufferGetSize (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_size (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->size;
 }
 
 R_CVULKAN_API VkBufferUsageFlags
-R_CVulkan_BufferGetUsage (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_usage (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->usage;
 }
 
 R_CVULKAN_API VkMemoryPropertyFlags
-R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_properties (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->properties;
 }
 
 R_CVULKAN_API void*
-R_CVulkan_BufferGetMapped (const struct R_CVulkan_Buffer* pBuffer)
+r_cvulkan_buffer_get_mapped (const struct R_CVulkan_Buffer* pBuffer)
 {
     R_CVULKAN_ASSERT (pBuffer);
     return pBuffer->pMapped;

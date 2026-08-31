@@ -31,7 +31,7 @@ class CvulkanDefragTest : public ::testing::Test
         struct R_CVulkan_DefragSettings        config;
         struct R_CVulkan_DefragContext       context;
         struct R_CVulkan_DefragStats         stats;
-        struct R_CVulkan_DefragBlockMetadata blockMetadata;
+        struct r_cvulkan_defrag_block_metadata blockMetadata;
         struct R_CVulkan_DefragMove          move;
 };
 
@@ -64,7 +64,7 @@ TEST_F (CvulkanDefragTest, SettingsInitialization)
 // Test default config
 TEST_F (CvulkanDefragTest, DefaultSettings)
 {
-    R_CVulkan_DefragSetDefaultSettings (&config);
+    r_cvulkan_defrag_set_default_settings (&config);
 
     // Check that default values are set to reasonable values
     EXPECT_GT (config.mergeFactor, 0);
@@ -320,7 +320,7 @@ TEST_F (CvulkanDefragTest, MaxPassesLogic)
 TEST_F (CvulkanDefragTest, GetAvailableBackend)
 {
     enum R_CVulkan_DefragBackend backend = R_CVULKAN_DEFRAG_BACKEND_NONE;
-    enum R_CVulkan_Error          result = R_CVulkan_DefragGetAvailableBackend (&backend);
+    enum R_CVulkan_Error          result = r_cvulkan_defrag_get_available_backend (&backend);
 
     // Should succeed and return a valid backend
     EXPECT_EQ (R_CVULKAN_OK, result);
@@ -341,7 +341,7 @@ TEST_F (CvulkanDefragTest, InitializeCleanup)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultSettings (&config);
+    r_cvulkan_defrag_set_default_settings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -372,7 +372,7 @@ TEST_F (CvulkanDefragTest, IsNeeded)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultSettings (&config);
+    r_cvulkan_defrag_set_default_settings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -380,7 +380,7 @@ TEST_F (CvulkanDefragTest, IsNeeded)
     if (result == R_CVULKAN_OK)
     {
         int needed = 0;
-        result = R_CVulkan_DefragIsNeeded (&context, &needed);
+        result = r_cvulkan_defrag_is_needed (&context, &needed);
 
         if (result == R_CVULKAN_OK)
         {
@@ -406,7 +406,7 @@ TEST_F (CvulkanDefragTest, GetFragmentationLevel)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultSettings (&config);
+    r_cvulkan_defrag_set_default_settings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);
@@ -414,7 +414,7 @@ TEST_F (CvulkanDefragTest, GetFragmentationLevel)
     if (result == R_CVULKAN_OK)
     {
         float fragmentation = 0.0f;
-        result = R_CVulkan_DefragGetFragmentationLevel (&context, &fragmentation);
+        result = r_cvulkan_defrag_get_fragmentation_level (&context, &fragmentation);
 
         if (result == R_CVULKAN_OK)
         {
@@ -440,7 +440,7 @@ TEST_F (CvulkanDefragTest, BeginEnd)
     allocator.blockCapacity = 0;
 
     // Set default config
-    R_CVulkan_DefragSetDefaultSettings (&config);
+    r_cvulkan_defrag_set_default_settings (&config);
 
     // Initialize defrag context
     enum R_CVulkan_Error result = R_CVulkan_DefragInitialize (&context, &allocator, &config);

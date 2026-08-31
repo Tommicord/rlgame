@@ -8,7 +8,7 @@
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewFramebuffer (
     struct R_CVulkan_Framebuffer*                 pFramebuffer,
-    const struct R_CVulkan_FramebufferCreateInfo* pCreateInfo)
+    const struct r_cvulkan_framebuffer_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pFramebuffer);
     R_CVULKAN_ASSERT (pCreateInfo);
@@ -23,7 +23,7 @@ R_CVulkan_NewFramebuffer (
         return R_CVULKAN_ERROR_INVALID_ARGUMENT;
     }
 #endif
-    pFramebuffer->device = R_CVulkan_DeviceGetLogicalDevice (pCreateInfo->pDevice);
+    pFramebuffer->device = r_cvulkan_device_get_logical_device (pCreateInfo->pDevice);
     pFramebuffer->handle = VK_NULL_HANDLE;
     pFramebuffer->renderPass = pCreateInfo->pRenderPass;
     pFramebuffer->width = pCreateInfo->width;
@@ -71,7 +71,7 @@ R_CVulkan_DeleteFramebuffer (struct R_CVulkan_Framebuffer* pFramebuffer)
 }
 
 R_CVULKAN_API VkFramebuffer
-R_CVulkan_FramebufferGetHandle (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_handle (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -80,7 +80,7 @@ R_CVulkan_FramebufferGetHandle (const struct R_CVulkan_Framebuffer* pFramebuffer
 }
 
 R_CVULKAN_API VkDevice
-R_CVulkan_FramebufferGetDevice (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_device (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -89,7 +89,7 @@ R_CVulkan_FramebufferGetDevice (const struct R_CVulkan_Framebuffer* pFramebuffer
 }
 
 R_CVULKAN_API VkRenderPass
-R_CVulkan_FramebufferGetRenderPass (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_render_pass (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -98,7 +98,7 @@ R_CVulkan_FramebufferGetRenderPass (const struct R_CVulkan_Framebuffer* pFramebu
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_FramebufferGetWidth (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_width (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -107,7 +107,7 @@ R_CVulkan_FramebufferGetWidth (const struct R_CVulkan_Framebuffer* pFramebuffer)
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_FramebufferGetHeight (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_height (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -116,7 +116,7 @@ R_CVulkan_FramebufferGetHeight (const struct R_CVulkan_Framebuffer* pFramebuffer
 }
 
 R_CVULKAN_API uint32_t
-R_CVulkan_FramebufferGetAttachmentCount (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_get_attachment_count (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);
@@ -125,7 +125,7 @@ R_CVulkan_FramebufferGetAttachmentCount (const struct R_CVulkan_Framebuffer* pFr
 }
 
 R_CVULKAN_API int
-R_CVulkan_FramebufferIsInitialized (const struct R_CVulkan_Framebuffer* pFramebuffer)
+r_cvulkan_framebuffer_is_initialized (const struct R_CVulkan_Framebuffer* pFramebuffer)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pFramebuffer);

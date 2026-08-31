@@ -27,7 +27,7 @@ protected:
 
         void
         TearDown (const ::benchmark::State& /*state*/) override
-        { R_CSTL_HeapShutdown (); }
+        { r_cstl_heap_shutdown (); }
 };
 
 } // namespace
@@ -41,7 +41,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, PushWithoutReserve) (benchmark::State& st
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray = R_CSTL_NewArray ();
+                struct r_cstl_array* pArray = r_cstl_new_array ();
                 if (!pArray)
                 {
                         state.SkipWithError ("NewArray failed");
@@ -49,10 +49,10 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, PushWithoutReserve) (benchmark::State& st
                 }
 
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                        r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
 
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);
@@ -72,7 +72,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, PushWithReserve) (benchmark::State& state
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (static_cast<size_t> (count));
+                struct r_cstl_array* pArray = r_cstl_new_array_with_capacity (static_cast<size_t> (count));
                 if (!pArray)
                 {
                         state.SkipWithError ("NewArrayWithCapacity failed");
@@ -80,10 +80,10 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, PushWithReserve) (benchmark::State& state
                 }
 
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                        r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
 
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);
@@ -100,29 +100,29 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, Pop) (benchmark::State& state)
                 return;
 
         const int64_t count = state.range (0);
-        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (static_cast<size_t> (count));
+        struct r_cstl_array* pArray = r_cstl_new_array_with_capacity (static_cast<size_t> (count));
         if (!pArray)
         {
                 state.SkipWithError ("setup failed");
                 return;
         }
         for (int64_t i = 0; i < count; ++i)
-                R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
 
         for (auto _ : state)
         {
                 state.PauseTiming ();
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                        r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
                 state.ResumeTiming ();
 
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayPop (pArray, nullptr);
+                        r_cstl_array_pop (pArray, nullptr);
 
                 benchmark::DoNotOptimize (pArray);
         }
 
-        R_CSTL_DeleteArray (pArray);
+        r_cstl_delete_array (pArray);
         state.SetItemsProcessed (state.iterations () * count);
 }
 BENCHMARK_REGISTER_F (ArrayBenchFixture, Pop)->Arg (1024)->Unit (benchmark::kMicrosecond);
@@ -136,20 +136,20 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, Shift) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (static_cast<size_t> (count));
+                struct r_cstl_array* pArray = r_cstl_new_array_with_capacity (static_cast<size_t> (count));
                 if (!pArray)
                 {
                         state.SkipWithError ("setup failed");
                         return;
                 }
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                        r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
 
                 for (int64_t i = 0; i < count; ++i)
-                        R_CSTL_ArrayShift (pArray, nullptr);
+                        r_cstl_array_shift (pArray, nullptr);
 
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);
@@ -172,17 +172,17 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU8) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray =
-                    R_CSTL_NewArrayWithData (values.data (), values.size ());
+                struct r_cstl_array* pArray =
+                    r_cstl_new_array_with_data (values.data (), values.size ());
                 if (!pArray)
                 {
                         state.SkipWithError ("NewArrayWithData failed");
                         return;
                 }
 
-                R_CSTL_ArraySort (pArray, sizeof (uint8_t), R_CSTL_ArrayCompareU8, nullptr);
+                r_cstl_array_sort (pArray, sizeof (uint8_t), r_cstl_array_compare_u8, nullptr);
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);
@@ -206,7 +206,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (
+                struct r_cstl_array* pArray = r_cstl_new_array_with_data (
                     reinterpret_cast<const uint8_t*> (values.data ()),
                     values.size () * sizeof (uint32_t));
                 if (!pArray)
@@ -215,9 +215,9 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32) (benchmark::State& state)
                         return;
                 }
 
-                R_CSTL_ArraySort (pArray, sizeof (uint32_t), R_CSTL_ArrayCompareU32, nullptr);
+                r_cstl_array_sort (pArray, sizeof (uint32_t), r_cstl_array_compare_u32, nullptr);
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);
@@ -237,7 +237,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, Slice) (benchmark::State& state)
 
         const int64_t count = state.range (0);
         std::vector<uint8_t> values (static_cast<size_t> (count), 0xAB);
-        struct R_CSTL_Array* pSource = R_CSTL_NewArrayWithData (values.data (), values.size ());
+        struct r_cstl_array* pSource = r_cstl_new_array_with_data (values.data (), values.size ());
         if (!pSource)
         {
                 state.SkipWithError ("setup failed");
@@ -246,12 +246,12 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, Slice) (benchmark::State& state)
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pSlice = R_CSTL_ArraySlice (pSource, 0, static_cast<size_t> (count));
+                struct r_cstl_array* pSlice = r_cstl_array_slice (pSource, 0, static_cast<size_t> (count));
                 benchmark::DoNotOptimize (pSlice);
-                R_CSTL_DeleteArray (pSlice);
+                r_cstl_delete_array (pSlice);
         }
 
-        R_CSTL_DeleteArray (pSource);
+        r_cstl_delete_array (pSource);
         state.SetItemsProcessed (state.iterations () * count);
 }
 BENCHMARK_REGISTER_F (ArrayBenchFixture, Slice)->Arg (4096)->Arg (65536)->Unit (benchmark::kMicrosecond);
@@ -262,14 +262,14 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, UncheckedAt) (benchmark::State& state)
                 return;
 
         const int64_t count = state.range (0);
-        struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithCapacity (static_cast<size_t> (count));
+        struct r_cstl_array* pArray = r_cstl_new_array_with_capacity (static_cast<size_t> (count));
         if (!pArray)
         {
                 state.SkipWithError ("setup failed");
                 return;
         }
         for (int64_t i = 0; i < count; ++i)
-                R_CSTL_ArrayPush (pArray, static_cast<uint8_t> (i & 0xFF));
+                r_cstl_array_push (pArray, static_cast<uint8_t> (i & 0xFF));
 
         uint64_t checksum = 0;
         for (auto _ : state)
@@ -277,13 +277,13 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, UncheckedAt) (benchmark::State& state)
                 for (int64_t i = 0; i < count; ++i)
                 {
                         uint8_t value = 0;
-                        R_CSTL_ArrayUncheckedAt (pArray, static_cast<size_t> (i), &value);
+                        r_cstl_array_unchecked_at (pArray, static_cast<size_t> (i), &value);
                         checksum += value;
                 }
                 benchmark::DoNotOptimize (checksum);
         }
 
-        R_CSTL_DeleteArray (pArray);
+        r_cstl_delete_array (pArray);
         state.SetItemsProcessed (state.iterations () * count);
 }
 BENCHMARK_REGISTER_F (ArrayBenchFixture, UncheckedAt)->Arg (1024)->Arg (8192)->Unit (benchmark::kMicrosecond);
@@ -296,7 +296,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32Aligned) (benchmark::State& state)
         const int64_t count = state.range (0);
         const size_t totalBytes = static_cast<size_t> (count) * sizeof (uint32_t);
         
-        uint32_t* pAligned = static_cast<uint32_t*> (R_CSTL_HeapAllocAligned (totalBytes, 32));
+        uint32_t* pAligned = static_cast<uint32_t*> (r_cstl_heap_alloc_aligned (totalBytes, 32));
         if (!pAligned)
         {
                 state.SkipWithError ("aligned allocation failed");
@@ -310,21 +310,21 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32Aligned) (benchmark::State& state)
         for (auto _ : state)
         {
                 memcpy (pAligned, values.data (), totalBytes);
-                struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (
+                struct r_cstl_array* pArray = r_cstl_new_array_with_data (
                     reinterpret_cast<const uint8_t*> (pAligned), totalBytes);
                 if (!pArray)
                 {
                         state.SkipWithError ("NewArrayWithData failed");
-                        R_CSTL_HeapFree (pAligned);
+                        r_cstl_heap_free (pAligned);
                         return;
                 }
                 
-                R_CSTL_ArraySort (pArray, sizeof (uint32_t), R_CSTL_ArrayCompareU32, nullptr);
+                r_cstl_array_sort (pArray, sizeof (uint32_t), r_cstl_array_compare_u32, nullptr);
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
         
-        R_CSTL_HeapFree (pAligned);
+        r_cstl_heap_free (pAligned);
         state.SetItemsProcessed (state.iterations () * count);
 }
 BENCHMARK_REGISTER_F (ArrayBenchFixture, SortU32Aligned)
@@ -347,7 +347,7 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32Unaligned) (benchmark::State& stat
 
         for (auto _ : state)
         {
-                struct R_CSTL_Array* pArray = R_CSTL_NewArrayWithData (
+                struct r_cstl_array* pArray = r_cstl_new_array_with_data (
                     reinterpret_cast<const uint8_t*> (values.data ()),
                     values.size () * sizeof (uint32_t));
                 if (!pArray)
@@ -356,9 +356,9 @@ BENCHMARK_DEFINE_F (ArrayBenchFixture, SortU32Unaligned) (benchmark::State& stat
                         return;
                 }
 
-                R_CSTL_ArraySort (pArray, sizeof (uint32_t), R_CSTL_ArrayCompareU32, nullptr);
+                r_cstl_array_sort (pArray, sizeof (uint32_t), r_cstl_array_compare_u32, nullptr);
                 benchmark::DoNotOptimize (pArray);
-                R_CSTL_DeleteArray (pArray);
+                r_cstl_delete_array (pArray);
         }
 
         state.SetItemsProcessed (state.iterations () * count);

@@ -24,19 +24,19 @@ static const char*    g_deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 static const uint32_t g_deviceExtensionCount = R_CVULKAN_VALIDATION_LAYER_SIZE (g_deviceExtensions);
 
 static enum R_CVulkan_Error
-R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures);
+r_cvulkan_build_instance_extensions (struct r_cstl_array** ppExtensions, bool hasValidationFeatures);
 
-static enum R_CVulkan_Error R_CVulkan_CheckExtensionAvailability (
+static enum R_CVulkan_Error r_cvulkan_check_extension_availability (
     const char*      pExtensionName,
     VkPhysicalDevice physicalDevice,
     bool*            pIsAvailable);
 
-static void R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions);
+static void r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions);
 
 static const char**
-R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, size_t* pOutCount);
+r_cvulkan_string_array_extensions_data (const struct r_cstl_array* pStringArray, size_t* pOutCount);
 
-static void R_CVulkan_FreeStringArrayContents (const struct R_CSTL_Array* pStringArray);
+static void r_cvulkan_free_string_array_contents (const struct r_cstl_array* pStringArray);
 
 #if defined(R_CVULKAN_DEBUG)
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -58,7 +58,7 @@ R_CVulkan_DebugCallback (
 
 #if defined(R_CVULKAN_DEBUG)
 static enum R_CVulkan_Error
-R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pDebugMessenger)
+r_cvulkan_setup_debug_messenger (VkInstance instance, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {0};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -83,8 +83,8 @@ R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pD
     VkResult result = func (instance, &createInfo, NULL, pDebugMessenger);
     if (result != VK_SUCCESS)
     {
-        enum R_CVulkan_Error error = R_CVulkan_ResultToError (result);
-        R_CSTL_LOG_ERROR ("Failed to create debug messenger: %s", R_CVulkan_ErrorToString (error));
+        enum R_CVulkan_Error error = r_cvulkan_result_to_error (result);
+        R_CSTL_LOG_ERROR ("Failed to create debug messenger: %s", r_cvulkan_error_to_string (error));
         return error;
     }
     return R_CVULKAN_OK;
@@ -93,7 +93,7 @@ R_CVulkan_SetupDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT* pD
 
 #if defined(R_CVULKAN_DEBUG)
 static void
-R_CVulkan_DestroyDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger)
+r_cvulkan_destroy_debug_messenger (VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger)
 {
     if (debugMessenger == VK_NULL_HANDLE)
     {
@@ -112,14 +112,14 @@ R_CVulkan_DestroyDebugMessenger (VkInstance instance, VkDebugUtilsMessengerEXT d
 
 #if defined(R_CVULKAN_DEBUG)
 static bool
-R_CVulkan_CheckValidationLayerSupport (void)
+r_cvulkan_check_validation_layer_support (void)
 {
     uint32_t layerCount = 0;
     vkEnumerateInstanceLayerProperties (&layerCount, NULL);
 
     if (layerCount == 0) return false;
     VkLayerProperties* availableLayers
-        = (VkLayerProperties*)R_CSTL_HeapAlloc (layerCount * sizeof (VkLayerProperties));
+        = (VkLayerProperties*)r_cstl_heap_alloc (layerCount * sizeof (VkLayerProperties));
     if (availableLayers == NULL)
     {
         R_CSTL_LOG_ERROR ("Failed to allocate memory for layer properties");
@@ -146,13 +146,13 @@ R_CVulkan_CheckValidationLayerSupport (void)
         }
     }
 
-    R_CSTL_HeapFree (availableLayers);
+    r_cstl_heap_free (availableLayers);
     return foundAll;
 }
 #endif
 
 static enum R_CVulkan_Error
-R_CVulkan_CheckExtensionAvailability (
+r_cvulkan_check_extension_availability (
     const char*      pExtensionName,
     VkPhysicalDevice physicalDevice,
     bool*            pIsAvailable)
@@ -177,7 +177,7 @@ R_CVulkan_CheckExtensionAvailability (
     }
 
     VkExtensionProperties* extensions
-        = (VkExtensionProperties*)R_CSTL_HeapAlloc (extensionCount * sizeof (VkExtensionProperties));
+        = (VkExtensionProperties*)r_cstl_heap_alloc (extensionCount * sizeof (VkExtensionProperties));
     if (extensions == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
@@ -202,25 +202,25 @@ R_CVulkan_CheckExtensionAvailability (
         }
     }
 
-    R_CSTL_HeapFree (extensions);
+    r_cstl_heap_free (extensions);
     return R_CVULKAN_OK;
 }
 
 static void
-R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
+r_cvulkan_log_extension_list (const struct r_cstl_array* pExtensions)
 {
     if (pExtensions == NULL)
     {
         return;
     }
-    size_t length = R_CSTL_ArrayLength (pExtensions);
+    size_t length = r_cstl_array_length (pExtensions);
     size_t elementCount = length / sizeof (const char*);
 
     R_CSTL_LOG_DEBUG ("Instance Extensions (%zu):", elementCount);
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* ext = NULL;
-        R_CSTL_ArrayTypedAt (pExtensions, const char*, i, &ext);
+        r_cstl_array_typed_at (pExtensions, const char*, i, &ext);
         if (ext)
         {
             R_CSTL_LOG_DEBUG ("  - %s", ext);
@@ -229,12 +229,12 @@ R_CVulkan_LogExtensionList (const struct R_CSTL_Array* pExtensions)
 }
 
 static const char**
-R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, size_t* pOutCount)
+r_cvulkan_string_array_extensions_data (const struct r_cstl_array* pStringArray, size_t* pOutCount)
 {
-    size_t length = R_CSTL_ArrayLength (pStringArray);
+    size_t length = r_cstl_array_length (pStringArray);
     size_t elementCount = length / sizeof (const char*);
 
-    const char** ppStrings = (const char**)R_CSTL_HeapAlloc (elementCount * sizeof (const char*));
+    const char** ppStrings = (const char**)r_cstl_heap_alloc (elementCount * sizeof (const char*));
     if (ppStrings == NULL)
     {
         if (pOutCount)
@@ -247,7 +247,7 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
     for (size_t i = 0; i < elementCount; ++i)
     {
         const char* pString = NULL;
-        R_CSTL_ArrayTypedAt (pStringArray, const char*, i, &pString);
+        r_cstl_array_typed_at (pStringArray, const char*, i, &pString);
         ppStrings[i] = pString;
     }
 
@@ -259,23 +259,23 @@ R_CVulkan_StringArrayExtensionsData (const struct R_CSTL_Array* pStringArray, si
 }
 
 static enum R_CVulkan_Error
-R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasValidationFeatures)
+r_cvulkan_build_instance_extensions (struct r_cstl_array** ppExtensions, bool hasValidationFeatures)
 {
     R_CVULKAN_ASSERT (ppExtensions);
 
-    struct R_CSTL_Array* pExtensions = R_CSTL_NewArray ();
+    struct r_cstl_array* pExtensions = r_cstl_new_array ();
     if (pExtensions == NULL)
     {
         return R_CVULKAN_ERROR_OUT_OF_MEMORY;
     }
     bool                 hasPortability = false;
-    enum R_CVulkan_Error err = R_CVulkan_CheckExtensionAvailability (
+    enum R_CVulkan_Error err = r_cvulkan_check_extension_availability (
         VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
         VK_NULL_HANDLE,
         &hasPortability);
     if (err != R_CVULKAN_OK)
     {
-        R_CSTL_DeleteArray (pExtensions);
+        r_cstl_delete_array (pExtensions);
         return err;
     }
 #if defined(_WIN32)
@@ -292,45 +292,45 @@ R_CVulkan_BuildInstanceExtensions (struct R_CSTL_Array** ppExtensions, bool hasV
 
 #if !defined(R_CVULKAN_HEADLESS)
     static const char* pExt1 = VK_KHR_SURFACE_EXTENSION_NAME;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt1, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt1, sizeof (const char*));
     static const char* pExt2 = RL_KHR_SURFACE;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt2, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt2, sizeof (const char*));
 #if defined(__linux__)
     static const char* pExtXlib = RL_KHR_XLIB_SURFACE;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExtXlib, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExtXlib, sizeof (const char*));
     static const char* pExtXcb = RL_KHR_XCB_SURFACE;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExtXcb, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExtXcb, sizeof (const char*));
 #endif
 #endif
 
     if (hasPortability)
     {
         static const char* pExt = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
-        R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt, sizeof (const char*));
+        r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt, sizeof (const char*));
     }
 
 #if defined(R_CVULKAN_DEBUG)
     static const char* pExt3 = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt3, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt3, sizeof (const char*));
     static const char* pExt4 = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-    R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt4, sizeof (const char*));
+    r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt4, sizeof (const char*));
 #endif
     if (hasValidationFeatures)
     {
         static const char* pExt5 = VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME;
-        R_CSTL_ArrayPushData (pExtensions, (const uint8_t*)&pExt5, sizeof (const char*));
+        r_cstl_array_push_data (pExtensions, (const uint8_t*)&pExt5, sizeof (const char*));
     }
 
 #undef RL_KHR_SURFACE
     *ppExtensions = pExtensions;
-    R_CVulkan_LogExtensionList (pExtensions);
+    r_cvulkan_log_extension_list (pExtensions);
     return R_CVULKAN_OK;
 }
 
 R_CVULKAN_API enum R_CVulkan_Error
 R_CVulkan_NewInstance (
     struct R_CVulkan_Instance*                 pInstance,
-    const struct R_CVulkan_InstanceCreateInfo* pCreateInfo)
+    const struct r_cvulkan_instance_create_info* pCreateInfo)
 {
     R_CVULKAN_ASSERT (pCreateInfo);
     R_CSTL_TRACE_SCOPE_CTX ("app=%s", pCreateInfo->pApplicationName ? pCreateInfo->pApplicationName : "NULL");
@@ -350,7 +350,7 @@ R_CVulkan_NewInstance (
 
     enum R_CVulkan_Error result = R_CVULKAN_OK;
 #if defined(R_CVULKAN_DEBUG)
-    bool validationLayersSupported = R_CVulkan_CheckValidationLayerSupport ();
+    bool validationLayersSupported = r_cvulkan_check_validation_layer_support ();
     if (!validationLayersSupported)
     {
         R_CSTL_LOG_ERROR (
@@ -363,7 +363,7 @@ R_CVulkan_NewInstance (
     bool hasValidationFeatures = false;
     bool hasGpuAssisted = false;
 #if defined(R_CVULKAN_DEBUG)
-    result = R_CVulkan_CheckExtensionAvailability (
+    result = r_cvulkan_check_extension_availability (
         VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
         VK_NULL_HANDLE,
         &hasValidationFeatures);
@@ -372,7 +372,7 @@ R_CVulkan_NewInstance (
         goto cvulkan_cleanup;
     }
 
-    result = R_CVulkan_CheckExtensionAvailability (
+    result = r_cvulkan_check_extension_availability (
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
         VK_NULL_HANDLE,
         &hasGpuAssisted);
@@ -411,11 +411,11 @@ R_CVulkan_NewInstance (
     (void)hasGpuAssisted;
 #endif
 
-    struct R_CSTL_Array* pExtensions = NULL;
-    result = R_CVulkan_BuildInstanceExtensions (&pExtensions, hasValidationFeatures);
+    struct r_cstl_array* pExtensions = NULL;
+    result = r_cvulkan_build_instance_extensions (&pExtensions, hasValidationFeatures);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to build instance extensions: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
     R_CVULKAN_ASSERT (pCreateInfo->pApplicationName);
@@ -455,7 +455,7 @@ R_CVulkan_NewInstance (
     }
 #endif
     bool hasPortability = false;
-    R_CVulkan_CheckExtensionAvailability (
+    r_cvulkan_check_extension_availability (
         VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
         VK_NULL_HANDLE,
         &hasPortability);
@@ -465,30 +465,30 @@ R_CVulkan_NewInstance (
     }
 
     size_t       extensionCount = 0;
-    const char** ppExtensionNames = R_CVulkan_StringArrayExtensionsData (pExtensions, &extensionCount);
+    const char** ppExtensionNames = r_cvulkan_string_array_extensions_data (pExtensions, &extensionCount);
 
     createInfo.enabledExtensionCount = (uint32_t)extensionCount;
     createInfo.ppEnabledExtensionNames = ppExtensionNames;
 
     VkResult result1 = vkCreateInstance (&createInfo, NULL, &pInstance->handle);
-    R_CSTL_HeapFree (ppExtensionNames);
-    R_CSTL_DeleteArray (pExtensions);
+    r_cstl_heap_free (ppExtensionNames);
+    r_cstl_delete_array (pExtensions);
 
     if (result1 != VK_SUCCESS)
     {
-        enum R_CVulkan_Error err = R_CVulkan_ResultToError (result1);
+        enum R_CVulkan_Error err = r_cvulkan_result_to_error (result1);
         R_CSTL_LOG_ERROR (
             "Failed to create Vulkan instance: %s. Check Vulkan driver installation.",
-            R_CVulkan_ErrorToString (err));
+            r_cvulkan_error_to_string (err));
         result = err;
         goto cvulkan_cleanup;
     }
 
 #if defined(R_CVULKAN_DEBUG)
-    result = R_CVulkan_SetupDebugMessenger (pInstance->handle, &pInstance->debugMessenger);
+    result = r_cvulkan_setup_debug_messenger (pInstance->handle, &pInstance->debugMessenger);
     if (result != R_CVULKAN_OK)
     {
-        R_CSTL_LOG_ERROR ("Failed to setup debug messenger: %s", R_CVulkan_ErrorToString (result));
+        R_CSTL_LOG_ERROR ("Failed to setup debug messenger: %s", r_cvulkan_error_to_string (result));
         goto cvulkan_cleanup;
     }
 #endif
@@ -502,7 +502,7 @@ R_CVulkan_NewInstance (
 cvulkan_cleanup:
 #if defined(R_CVULKAN_DEBUG)
 
-    R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
+    r_cvulkan_destroy_debug_messenger (pInstance->handle, pInstance->debugMessenger);
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
     R_CSTL_TRACE_SCOPE_EXIT ();
@@ -514,7 +514,7 @@ R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstance)
 {
     R_CVULKAN_ASSERT (pInstance);
 #if defined(R_CVULKAN_DEBUG)
-    R_CVulkan_DestroyDebugMessenger (pInstance->handle, pInstance->debugMessenger);
+    r_cvulkan_destroy_debug_messenger (pInstance->handle, pInstance->debugMessenger);
 #endif
     vkDestroyInstance (pInstance->handle, NULL);
 #if defined(R_CVULKAN_DEBUG)
@@ -523,7 +523,7 @@ R_CVulkan_DeleteInstance (struct R_CVulkan_Instance* pInstance)
 }
 
 R_CVULKAN_API VkInstance
-R_CVulkan_InstanceGetHandle (const struct R_CVulkan_Instance* pInstance)
+r_cvulkan_instance_get_handle (const struct R_CVulkan_Instance* pInstance)
 {
 #if defined(R_CVULKAN_DEBUG)
     R_CVULKAN_ASSERT (pInstance);

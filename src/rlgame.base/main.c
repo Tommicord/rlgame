@@ -88,9 +88,9 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
 #define R_APP_INIT()                                                                                         \
     do                                                                                                       \
     {                                                                                                        \
-        R_CSTL_HeapInit (R_APP_INITIAL_HEAP_SIZE);                                                           \
-        R_CSTL_LogInit ();                                                                                   \
-        R_CSTL_TraceLogEnvironmentInfo ();                                                                   \
+        r_cstl_heap_init (R_APP_INITIAL_HEAP_SIZE);                                                           \
+        r_cstl_log_init ();                                                                                   \
+        r_cstl_trace_log_environment_info ();                                                                   \
     } while (0)
 
 #define R_APP_CLEANUP_INFO(Info)                                                                             \
@@ -99,17 +99,17 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
         if ((Info).pExistingProcesses)                                                                       \
         {                                                                                                    \
             if ((Info).existingProcessCount > 0 && (Info).pExistingProcesses[0].pName)                       \
-                R_CSTL_HeapFree ((void*)(Info).pExistingProcesses[0].pName);                                 \
-            R_CSTL_HeapFree ((void*)(Info).pExistingProcesses);                                              \
+                r_cstl_heap_free ((void*)(Info).pExistingProcesses[0].pName);                                 \
+            r_cstl_heap_free ((void*)(Info).pExistingProcesses);                                              \
         }                                                                                                    \
-        if ((Info).args.pCmdLine) R_CSTL_HeapFree ((void*)(Info).args.pCmdLine);                             \
+        if ((Info).args.pCmdLine) r_cstl_heap_free ((void*)(Info).args.pCmdLine);                             \
     } while (0)
 
 #define R_APP_SHUTDOWN()                                                                                     \
     do                                                                                                       \
     {                                                                                                        \
-        R_CSTL_LogShutdown ();                                                                               \
-        R_CSTL_HeapShutdown ();                                                                              \
+        r_cstl_log_shutdown ();                                                                               \
+        r_cstl_heap_shutdown ();                                                                              \
     } while (0)
 
 #define R_APP_GB_BINARY (1024 * 1024 * 1024)
@@ -117,8 +117,8 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
 #define R_APP_LOG_HEAP_STATS()                                                                               \
     do                                                                                                       \
     {                                                                                                        \
-        size_t totalSize = R_CSTL_Heap_GetTotalSize ();                                                      \
-        size_t usedSize = R_CSTL_Heap_GetUsedSize ();                                                        \
+        size_t totalSize = r_cstl_heap_GetTotalSize ();                                                      \
+        size_t usedSize = r_cstl_heap_GetUsedSize ();                                                        \
         R_CSTL_LOG_INFO (                                                                                    \
             "Heap Stats: TotalSize=%.2f GB UsedSize=%.2f GB",                                                \
             (double)totalSize / R_APP_GB_BINARY,                                                             \
@@ -128,7 +128,7 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
 #define R_APP_LOG_INFO(Info)                                                                                 \
     do                                                                                                       \
     {                                                                                                        \
-        const char* pAppName = R_CSTL_StringData ((Info).pApplicationName);                                  \
+        const char* pAppName = r_cstl_string_data ((Info).pApplicationName);                                  \
         if (!pAppName) goto r_next;                                                                          \
         R_CSTL_LOG_INFO ("App: %s pid=%u args=%d", pAppName, (Info).pid, (Info).args.argc);                  \
         if ((Info).args.pCmdLine) R_CSTL_LOG_INFO ("Cmd: %s", (Info).args.pCmdLine);                         \
@@ -146,8 +146,8 @@ r_game_loop_is_destroyed (const struct r_main_provider* pProvider)
             for (int i = 0; i < existingProcessCount; i++)                                                   \
             {                                                                                                \
                 struct r_process_info       pProcess = (Info).pExistingProcesses[i];                         \
-                const struct R_CSTL_String* pNameString = pProcess.pName;                                    \
-                const char* pProcessName = pNameString ? R_CSTL_StringData (pNameString) : "(unknown)";      \
+                const struct r_cstl_string* pNameString = pProcess.pName;                                    \
+                const char* pProcessName = pNameString ? r_cstl_string_data (pNameString) : "(unknown)";      \
                 R_CSTL_LOG_INFO (                                                                            \
                     "Process[%d]: pid=%u name=%s mem=%.2f GB",                                               \
                     i,                                                                                       \
@@ -178,21 +178,21 @@ r_initialize_application_info (struct r_application_info* info, int argc, char**
     info->applicationVersionMinor = 0;
     info->applicationVersionPatch = 0;
 
-    static struct R_CSTL_String* pAppName;
+    static struct r_cstl_string* pAppName;
     if (pAppName == NULL)
     {
-        struct R_CSTL_StringBuilder* pBuilder = R_CSTL_NewStringBuilder ();
+        struct r_cstl_string_builder* pBuilder = r_cstl_new_string_builder ();
 
         if (pBuilder)
         {
-            R_CSTL_StringBuilderAppendf (
+            r_cstl_string_builder_appendf (
                 pBuilder,
                 "Real Game (rlgame) - v%d.%d.%d",
                 info->applicationVersionMajor,
                 info->applicationVersionMinor,
                 info->applicationVersionPatch);
-            pAppName = R_CSTL_StringBuilderToString (pBuilder);
-            R_CSTL_DeleteStringBuilder (pBuilder);
+            pAppName = r_cstl_string_builder_to_string (pBuilder);
+            r_cstl_delete_string_builder (pBuilder);
         }
     }
     info->pApplicationName = pAppName;
@@ -201,37 +201,37 @@ r_initialize_application_info (struct r_application_info* info, int argc, char**
 void
 r_build_command_line (struct r_application_info* info, int argc, char** argv)
 {
-    struct R_CSTL_StringBuilder* pBuilder = NULL;
-    struct R_CSTL_String*        pCmdString = NULL;
+    struct r_cstl_string_builder* pBuilder = NULL;
+    struct r_cstl_string*        pCmdString = NULL;
     char*                        cmd = NULL;
 
     if (!info || argc <= 0 || !argv) return;
 
-    pBuilder = R_CSTL_NewStringBuilder ();
+    pBuilder = r_cstl_new_string_builder ();
     if (!pBuilder) goto r_cleanup;
 
     for (int i = 0; i < argc; ++i)
     {
-        R_CSTL_StringBuilderEmplace (pBuilder, argv[i]);
-        if (i + 1 < argc) R_CSTL_StringBuilderAppendChar (pBuilder, ' ');
+        r_cstl_string_builder_emplace (pBuilder, argv[i]);
+        if (i + 1 < argc) r_cstl_string_builder_append_char (pBuilder, ' ');
     }
 
-    pCmdString = R_CSTL_StringBuilderToString (pBuilder);
+    pCmdString = r_cstl_string_builder_to_string (pBuilder);
     if (!pCmdString) goto r_cleanup;
 
-    size_t len = R_CSTL_StringLength (pCmdString);
-    cmd = (char*)R_CSTL_HeapAlloc (len + 1);
+    size_t len = r_cstl_string_length (pCmdString);
+    cmd = (char*)r_cstl_heap_alloc (len + 1);
     if (!cmd) goto r_cleanup;
 
-    memcpy (cmd, R_CSTL_StringData (pCmdString), len);
+    memcpy (cmd, r_cstl_string_data (pCmdString), len);
     cmd[len] = '\0';
     info->args.pCmdLine = cmd;
     cmd = NULL;
 
 r_cleanup:
-    if (pCmdString) R_CSTL_StringDelete (pCmdString);
-    if (pBuilder) R_CSTL_DeleteStringBuilder (pBuilder);
-    if (cmd) R_CSTL_HeapFree (cmd);
+    if (pCmdString) r_cstl_string_delete (pCmdString);
+    if (pBuilder) r_cstl_delete_string_builder (pBuilder);
+    if (cmd) r_cstl_heap_free (cmd);
 }
 
 void
@@ -252,14 +252,14 @@ r_populate_application_info (struct r_application_info* info, int argc, char** a
 void
 r_assign_process_name (
     struct r_process_info*      pProc,
-    const struct R_CSTL_String* pExePath,
+    const struct r_cstl_string* pExePath,
     int                         argc,
     char**                      argv)
 {
     if (!pProc) return;
     if (pExePath)
     {
-        static const struct R_CSTL_String* pExeName = NULL;
+        static const struct r_cstl_string* pExeName = NULL;
         if (pExeName == NULL)
         {
             pExeName = pExePath;
@@ -269,7 +269,7 @@ r_assign_process_name (
     else
     {
         static const char* pApplicationName = "rlgame";
-        pProc->pName = R_CSTL_NewStringWithData (pApplicationName);
+        pProc->pName = r_cstl_new_string_with_data (pApplicationName);
     }
 }
 
@@ -279,11 +279,11 @@ r_assign_process_name (
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
 
-static struct R_CSTL_String*
+static struct r_cstl_string*
 r_copyCStringToHeap (const char* src)
 {
     if (!src) return NULL;
-    return R_CSTL_NewStringWithData (src);
+    return r_cstl_new_string_with_data (src);
 }
 
 static uint32_t
@@ -316,12 +316,12 @@ r_fill_memory_info (struct r_memory_info* out)
 static char*
 r_get_executable_path ()
 {
-    char* buf = (char*)R_CSTL_HeapAlloc (MAX_PATH);
+    char* buf = (char*)r_cstl_heap_alloc (MAX_PATH);
     if (!buf) return NULL;
     DWORD len = GetModuleFileNameA (NULL, buf, MAX_PATH);
     if (len == 0 || len == MAX_PATH)
     {
-        R_CSTL_HeapFree (buf);
+        r_cstl_heap_free (buf);
         return NULL;
     }
     return buf;
@@ -336,7 +336,7 @@ r_collect_processes (size_t* outCount, int argc, char** argv)
     if (!outCount) return NULL;
 
     *outCount = 1;
-    arr = (struct r_process_info*)R_CSTL_HeapAlloc (sizeof (struct r_process_info));
+    arr = (struct r_process_info*)r_cstl_heap_alloc (sizeof (struct r_process_info));
     if (!arr)
     {
         *outCount = 0;
@@ -361,8 +361,8 @@ r_collect_processes (size_t* outCount, int argc, char** argv)
     return arr;
 
 r_cleanup:
-    if (arr) R_CSTL_HeapFree (arr);
-    if (exe) R_CSTL_HeapFree (exe);
+    if (arr) r_cstl_heap_free (arr);
+    if (exe) r_cstl_heap_free (exe);
     return NULL;
 }
 
@@ -386,7 +386,7 @@ r_game_loop_callback (const struct r_application_info* pAppInfo, void* pUserData
     if (!g_runFlag)
     {
         struct r_game_state_create_info createInfo = {0};
-        createInfo.pApplicationName = R_CSTL_StringData (pAppInfo->pApplicationName);
+        createInfo.pApplicationName = r_cstl_string_data (pAppInfo->pApplicationName);
         HINSTANCE hInstance = GetModuleHandle (NULL);
         if (hInstance == NULL)
         {
@@ -596,7 +596,7 @@ r_get_executable_path ()
     if (len <= 0) return NULL;
     buf[len] = 0x00;
     size_t allocLen = len + 1;
-    char*  copy = (char*)R_CSTL_HeapAlloc (allocLen);
+    char*  copy = (char*)r_cstl_heap_alloc (allocLen);
     if (copy)
     {
         memcpy (copy, buf, allocLen);
@@ -609,13 +609,13 @@ static struct r_process_info*
 r_collect_processes (size_t* outCount, int argc, char** argv)
 {
     struct r_process_info* arr = NULL;
-    struct R_CSTL_String*  exe = NULL;
+    struct r_cstl_string*  exe = NULL;
     FILE*                  fs = NULL;
 
     if (!outCount) return NULL;
 
     *outCount = 1;
-    arr = (struct r_process_info*)R_CSTL_HeapAlloc (sizeof (struct r_process_info));
+    arr = (struct r_process_info*)r_cstl_heap_alloc (sizeof (struct r_process_info));
     if (!arr)
     {
         *outCount = 0;
@@ -628,7 +628,7 @@ r_collect_processes (size_t* outCount, int argc, char** argv)
     arr[0].startTimeMs = 0;
     arr[0].memoryBytes = 0;
 
-    exe = R_CSTL_NewStringWithData (r_get_executable_path ());
+    exe = r_cstl_new_string_with_data (r_get_executable_path ());
     r_assign_process_name (&arr[0], exe, argc, argv);
 
     fs = fopen ("/proc/self/status", "r");
@@ -653,8 +653,8 @@ r_collect_processes (size_t* outCount, int argc, char** argv)
     return arr;
 
 r_cleanup:
-    if (arr) R_CSTL_HeapFree (arr);
-    if (exe) R_CSTL_HeapFree (exe);
+    if (arr) r_cstl_heap_free (arr);
+    if (exe) r_cstl_heap_free (exe);
     if (fs) fclose (fs);
     return NULL;
 }
@@ -670,7 +670,7 @@ r_game_loop_callback (const struct r_application_info* pAppInfo, void* pUserData
     if (!g_runFlag)
     {
         struct r_game_state_create_info createInfo = {0};
-        createInfo.pApplicationName = R_CSTL_StringData (pAppInfo->pApplicationName);
+        createInfo.pApplicationName = r_cstl_string_data (pAppInfo->pApplicationName);
         if (g_currentBackend == R_WINDOW_BACKEND_WAYLAND)
         {
             createInfo.linuxBackend = R_GAME_LINUX_BACKEND_WAYLAND;

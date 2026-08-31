@@ -109,7 +109,7 @@ r_detect_vulkan_capabilities (struct r_capabilities* pCapabilities)
         vkDestroyInstance (instance, NULL);
         return false;
     }
-    VkPhysicalDevice* devices = (VkPhysicalDevice*)R_CSTL_HeapAlloc (sizeof (VkPhysicalDevice) * deviceCount);
+    VkPhysicalDevice* devices = (VkPhysicalDevice*)r_cstl_heap_alloc (sizeof (VkPhysicalDevice) * deviceCount);
     if (!devices)
     {
         vkDestroyInstance (instance, NULL);
@@ -119,7 +119,7 @@ r_detect_vulkan_capabilities (struct r_capabilities* pCapabilities)
     result = vkEnumeratePhysicalDevices (instance, &deviceCount, devices);
     if (result != VK_SUCCESS)
     {
-        R_CSTL_HeapFree (devices);
+        r_cstl_heap_free (devices);
         vkDestroyInstance (instance, NULL);
         return false;
     }
@@ -233,7 +233,7 @@ r_detect_vulkan_capabilities (struct r_capabilities* pCapabilities)
         VK_VERSION_PATCH (vulkanVersion));
     R_CSTL_LOG_INFO ("  Looks Modern GPU: %s", pCapabilities->looksModernGpu ? "Yes" : "No");
 
-    R_CSTL_HeapFree (devices);
+    r_cstl_heap_free (devices);
     vkDestroyInstance (instance, NULL);
 
     return true;
@@ -360,7 +360,7 @@ r_init_win_main (R_WIN32_HINSTANCE hInstance, struct r_application_info* pApplic
     if (!RegisterClassA (&wc)) goto r_fail_init;
     if (!pApplicationInfo) goto r_fail_init;
 
-    const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+    const char* pAppName = r_cstl_string_data (pApplicationInfo->pApplicationName);
 
     HWND hwnd = CreateWindowExA (
         0,
@@ -785,7 +785,7 @@ r_init_wayland_window (
     }
 
     struct r_wayland_window_state* pState
-        = (struct r_wayland_window_state*)R_CSTL_HeapAlloc (sizeof (struct r_wayland_window_state));
+        = (struct r_wayland_window_state*)r_cstl_heap_alloc (sizeof (struct r_wayland_window_state));
     if (!pState)
     {
         R_CSTL_LOG_ERROR ("r_init_wayland_window: Failed to allocate state");
@@ -861,7 +861,7 @@ r_init_wayland_window (
     R_CSTL_LOG_INFO ("XDG toplevel created successfully");
     xdg_toplevel_add_listener (pState->xdgToplevel, &g_xdgTopLevelListener, pState);
 
-    const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+    const char* pAppName = r_cstl_string_data (pApplicationInfo->pApplicationName);
     if (pAppName)
     {
         xdg_toplevel_set_app_id (pState->xdgToplevel, pAppName);
@@ -914,7 +914,7 @@ r_cleanup_registry:
 r_cleanup_display:
     wl_display_disconnect (pState->display);
 r_cleanup_state:
-    R_CSTL_HeapFree (pState);
+    r_cstl_heap_free (pState);
 r_cleanup_none:
     return NULL;
 }
@@ -1023,7 +1023,7 @@ r_destroy_wayland_window (r_wayland_window window)
     if (state->compositor) wl_compositor_destroy (state->compositor);
     if (state->registry) wl_registry_destroy (state->registry);
     if (state->display) wl_display_disconnect (state->display);
-    R_CSTL_HeapFree (state);
+    r_cstl_heap_free (state);
 }
 
 R_ENTRY_API r_x11_window
@@ -1110,7 +1110,7 @@ r_init_x11_window (struct r_application_info* pApplicationInfo, const struct r_w
         g_x11State.display = NULL;
         return 0;
     }
-    const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+    const char* pAppName = r_cstl_string_data (pApplicationInfo->pApplicationName);
     if (pAppName)
     {
         XStoreName (g_x11State.display, g_x11State.window, pAppName);
@@ -1314,7 +1314,7 @@ r_initXCBWindow (struct r_application_info* pApplicationInfo, const struct r_win
         values);
 
     // Set window title
-    const char* pAppName = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+    const char* pAppName = r_cstl_string_data (pApplicationInfo->pApplicationName);
     if (pAppName)
     {
         xcb_change_property (
@@ -1928,7 +1928,7 @@ r_set_window_title (
     const char* title = pCustomTitle;
     if (!title)
     {
-        title = R_CSTL_StringData (pApplicationInfo->pApplicationName);
+        title = r_cstl_string_data (pApplicationInfo->pApplicationName);
     }
 
     if (!title) return;
@@ -1941,7 +1941,7 @@ r_set_window_title (
     }
     else if (pApplicationInfo->pApplicationName)
     {
-        titleLength = R_CSTL_StringLength (pApplicationInfo->pApplicationName);
+        titleLength = r_cstl_string_length (pApplicationInfo->pApplicationName);
     }
 
     if (titleLength == 0) return;

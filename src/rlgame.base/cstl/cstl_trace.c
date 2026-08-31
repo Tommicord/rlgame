@@ -19,21 +19,21 @@
 #define R_CSTL_THREAD_LOCAL
 #endif
 
-static struct R_CSTL_TraceSettings g_traceSettings
+static struct r_cstl_trace_settings g_traceSettings
     = {.enableFunctionEntryExit = true,
        .enablePerformanceTiming = true,
        .minDurationMicroseconds = true,
        .enableCallDepthIndentation = true};
 static R_CSTL_THREAD_LOCAL int g_traceCallDepth = 0;
 
-R_CSTL_API const struct R_CSTL_TraceSettings*
-R_CSTL_TraceGetSettings (void)
+R_CSTL_API const struct r_cstl_trace_settings*
+r_cstl_trace_get_settings (void)
 {
     return &g_traceSettings;
 }
 
 R_CSTL_API void
-R_CSTL_TraceSetMinDuration (uint64_t microseconds)
+r_cstl_trace_set_min_duration (uint64_t microseconds)
 {
     g_traceSettings.minDurationMicroseconds = microseconds;
 }
@@ -43,7 +43,7 @@ R_CSTL_TraceSetMinDuration (uint64_t microseconds)
 #define R_CSTL_TRACE_SECTIME   (1000000000)
 
 static const char*
-R_CSTL_TraceExtractFileName (const char* filePath)
+r_cstl_trace_extract_file_name (const char* filePath)
 {
     if (!filePath)
     {
@@ -56,7 +56,7 @@ R_CSTL_TraceExtractFileName (const char* filePath)
 }
 
 R_CSTL_API uint64_t
-R_CSTL_TraceGetTimestamp (void)
+r_cstl_trace_get_timestamp (void)
 {
 #if defined(R_CSTL_PLATFORM_WINDOWS)
     LARGE_INTEGER frequency;
@@ -74,13 +74,13 @@ R_CSTL_TraceGetTimestamp (void)
 }
 
 R_CSTL_API void
-R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint32_t lineNumber)
+r_cstl_trace_function_entry (const char* functionName, const char* fileName, uint32_t lineNumber)
 {
     if (!g_traceSettings.enableFunctionEntryExit)
     {
         return;
     }
-    const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
+    const char* shortFileName = r_cstl_trace_extract_file_name (fileName);
     R_CSTL_LOG_TRACE ("  Enter: %s (%s:%u)", functionName, shortFileName, lineNumber);
 
     if (g_traceSettings.enableCallDepthIndentation)
@@ -90,7 +90,7 @@ R_CSTL_TraceFunctionEntry (const char* functionName, const char* fileName, uint3
 }
 
 R_CSTL_API void
-R_CSTL_TraceFunctionExit (
+r_cstl_trace_function_exit (
     const char* functionName,
     const char* fileName,
     uint32_t    lineNumber,
@@ -112,7 +112,7 @@ R_CSTL_TraceFunctionExit (
         g_traceCallDepth--;
     }
 
-    const char* shortFileName = R_CSTL_TraceExtractFileName (fileName);
+    const char* shortFileName = r_cstl_trace_extract_file_name (fileName);
     if (g_traceSettings.enablePerformanceTiming)
     {
         if (durationMicroseconds < R_CSTL_TRACE_MICROTIME)
@@ -150,7 +150,7 @@ R_CSTL_TraceFunctionExit (
 }
 
 void
-R_CSTL_TraceLogEnvironmentInfo (void)
+r_cstl_trace_log_environment_info (void)
 {
     R_CSTL_LOG_TRACE ("=== Environment Information ===");
 

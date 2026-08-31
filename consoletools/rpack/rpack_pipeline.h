@@ -16,7 +16,7 @@ R_PACK_API int r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const c
 
 R_PACK_API uint32_t r_pack_encode_input_images (
     struct r_pack_encoder*     pEncoder,
-    const struct R_CSTL_Array* pInputPaths,
+    const struct r_cstl_array* pInputPaths,
     uint32_t                   mipmapSize);
 
 R_PACK_API int r_pack_has_extension (const char* pPath, const char* pExtension);
@@ -25,11 +25,11 @@ R_PACK_API int r_pack_make_variant_path (const char* pOutputPath, uint32_t size,
 
 R_PACK_API int r_pack_encode_mipmap_variants (
     const struct r_pack_encoder_settings* pSettings,
-    const struct R_CSTL_Array*            pInputPaths,
+    const struct r_cstl_array*            pInputPaths,
     const char*                           pOutputPath);
 
 R_PACK_API uint32_t r_pack_encode_input_images_threaded (
     struct r_pack_encoder*     pEncoder,
-    const struct R_CSTL_Array* pInputPaths,
+    const struct r_cstl_array* pInputPaths,
     uint32_t                   mipmapSize,
     uint32_t                   workerCount);

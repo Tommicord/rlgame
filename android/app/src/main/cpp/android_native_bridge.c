@@ -51,8 +51,8 @@ GameThreadFunc (void* arg)
 JNIEXPORT void JNICALL
 Java_net_rlgame_Main_nativeOnCreate (JNIEnv* env, jobject thiz)
 {
-        R_CSTL_HeapInit ();
-        R_CSTL_LogInit ();
+        r_cstl_heap_init ();
+        r_cstl_log_init ();
 
         R_CSTL_LOG_INFO ("Android native onCreate");
 
@@ -101,8 +101,8 @@ Java_net_rlgame_Main_nativeOnDestroy (JNIEnv* env, jobject thiz)
                 g_window = NULL;
         }
 
-        R_CSTL_LogShutdown ();
-        R_CSTL_HeapShutdown ();
+        r_cstl_log_shutdown ();
+        r_cstl_heap_shutdown ();
 }
 
 JNIEXPORT void JNICALL

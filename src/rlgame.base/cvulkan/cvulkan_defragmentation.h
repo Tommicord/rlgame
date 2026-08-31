@@ -22,7 +22,7 @@ enum R_CVulkan_DefragBackend
 /**
  * @brief Block metadata for defragmentation
  */
-struct R_CVulkan_DefragBlockMetadata
+struct r_cvulkan_defrag_block_metadata
 {
         uint32_t blockIndex;
         uint64_t totalSize;
@@ -49,7 +49,7 @@ struct R_CVulkan_DefragMove
 /**
  * @brief Move operation types
  */
-enum R_CVulkan_DefragMoveOperation
+enum r_cvulkan_defrag_move_operation
 {
     R_CVULKAN_DEFRAG_MOVE_OPERATION_MOVE = 0,
     R_CVULKAN_DEFRAG_MOVE_OPERATION_IGNORE,
@@ -136,7 +136,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_DefragBegin (struct R_CVulkan_Defra
  * @return R_CVULKAN_OK on success, R_CVULKAN_ERROR_INCOMPLETE if more passes needed, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragExecutePass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
+r_cvulkan_defrag_execute_pass (struct R_CVulkan_DefragContext* pContext, VkCommandBuffer commandBuffer);
 
 /**
  * @brief End defragmentation process and get statistics
@@ -155,7 +155,7 @@ R_CVulkan_DefragEnd (struct R_CVulkan_DefragContext* pContext, struct R_CVulkan_
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation);
+r_cvulkan_defrag_get_fragmentation_level (const struct R_CVulkan_DefragContext* pContext, float* pFragmentation);
 
 /**
  * @brief Check if defragmentation is needed
@@ -164,7 +164,7 @@ R_CVulkan_DefragGetFragmentationLevel (const struct R_CVulkan_DefragContext* pCo
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* pNeeded);
+r_cvulkan_defrag_is_needed (const struct R_CVulkan_DefragContext* pContext, int* pNeeded);
 
 /**
  * @brief Get available backend
@@ -172,10 +172,10 @@ R_CVulkan_DefragIsNeeded (const struct R_CVulkan_DefragContext* pContext, int* p
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_DefragGetAvailableBackend (enum R_CVulkan_DefragBackend* pBackend);
+r_cvulkan_defrag_get_available_backend (enum R_CVulkan_DefragBackend* pBackend);
 
 /**
  * @brief Set default configuration
  * @param pSettings Pointer to config to set defaults
  */
-R_CVULKAN_API void R_CVulkan_DefragSetDefaultSettings (struct R_CVulkan_DefragSettings* pSettings);
+R_CVULKAN_API void r_cvulkan_defrag_set_default_settings (struct R_CVulkan_DefragSettings* pSettings);

@@ -6,26 +6,26 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define R_CSTL_X86_OPCODE_ESCAPE          0x0F
-#define R_CSTL_X86_OPCODE_THREEBYTE_38    0x38
-#define R_CSTL_X86_OPCODE_THREEBYTE_3A    0x3A
-#define R_CSTL_X86_REX_MIN                0x40
-#define R_CSTL_X86_REX_MAX                0x4F
-#define R_CSTL_X86_PREFIX_LOCK            0xF0
-#define R_CSTL_X86_PREFIX_REPNE           0xF2
-#define R_CSTL_X86_PREFIX_REPE            0xF3
-#define R_CSTL_X86_PREFIX_DATA_SIZE       0x66
-#define R_CSTL_X86_PREFIX_ADDR_SIZE       0x67
-#define R_CSTL_X86_COND_JUMP_MIN          0x80
-#define R_CSTL_X86_COND_JUMP_MAX          0x8F
-#define R_CSTL_X86_MAX_INSTRUCTION_LENGTH 15
+#define r_cstl_x86_OPCODE_ESCAPE          0x0F
+#define r_cstl_x86_OPCODE_THREEBYTE_38    0x38
+#define r_cstl_x86_OPCODE_THREEBYTE_3A    0x3A
+#define r_cstl_x86_REX_MIN                0x40
+#define r_cstl_x86_REX_MAX                0x4F
+#define r_cstl_x86_PREFIX_LOCK            0xF0
+#define r_cstl_x86_PREFIX_REPNE           0xF2
+#define r_cstl_x86_PREFIX_REPE            0xF3
+#define r_cstl_x86_PREFIX_DATA_SIZE       0x66
+#define r_cstl_x86_PREFIX_ADDR_SIZE       0x67
+#define r_cstl_x86_COND_JUMP_MIN          0x80
+#define r_cstl_x86_COND_JUMP_MAX          0x8F
+#define r_cstl_x86_MAX_INSTRUCTION_LENGTH 15
 
 #if defined(R_SIMD_SSE) || defined(R_SIMD_AVX2)
 #include <immintrin.h>
 #endif
 
 static inline size_t
-R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
+r_cstl_scan_prefixes (const uint8_t* p, size_t remaining, size_t maxScan)
 {
     size_t i = 0;
 #if defined(R_SIMD_AVX2)
@@ -34,13 +34,13 @@ R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
         __m256i chunk = _mm256_loadu_si256 ((__m256i const*)(p + i));
 
         // Check for prefix bytes using constants
-        __m256i cmpLock = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_LOCK));
-        __m256i cmpRepne = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPNE));
-        __m256i cmpRepe = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_REPE));
-        __m256i cmpDataSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_DATA_SIZE));
-        __m256i cmpAddrSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_PREFIX_ADDR_SIZE));
-        __m256i cmpRexMin = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MIN));
-        __m256i cmpRexMax = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (R_CSTL_X86_REX_MAX));
+        __m256i cmpLock = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_PREFIX_LOCK));
+        __m256i cmpRepne = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_PREFIX_REPNE));
+        __m256i cmpRepe = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_PREFIX_REPE));
+        __m256i cmpDataSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_PREFIX_DATA_SIZE));
+        __m256i cmpAddrSize = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_PREFIX_ADDR_SIZE));
+        __m256i cmpRexMin = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_REX_MIN));
+        __m256i cmpRexMax = _mm256_cmpeq_epi8 (chunk, _mm256_set1_epi8 (r_cstl_x86_REX_MAX));
 
         __m256i isPrefix = _mm256_or_si256 (
             _mm256_or_si256 (_mm256_or_si256 (cmpLock, cmpRepne), _mm256_or_si256 (cmpRepe, cmpDataSize)),
@@ -67,13 +67,13 @@ R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
         __m128i chunk = _mm_loadu_si128 ((__m128i const*)(p + i));
 
         // Check for prefix bytes using constants
-        __m128i cmpLock = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_LOCK));
-        __m128i cmpRepne = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_REPNE));
-        __m128i cmpRepe = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_REPE));
-        __m128i cmpDataSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_DATA_SIZE));
-        __m128i cmpAddrSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_PREFIX_ADDR_SIZE));
-        __m128i cmpRexMin = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_REX_MIN));
-        __m128i cmpRexMax = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (R_CSTL_X86_REX_MAX));
+        __m128i cmpLock = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_PREFIX_LOCK));
+        __m128i cmpRepne = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_PREFIX_REPNE));
+        __m128i cmpRepe = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_PREFIX_REPE));
+        __m128i cmpDataSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_PREFIX_DATA_SIZE));
+        __m128i cmpAddrSize = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_PREFIX_ADDR_SIZE));
+        __m128i cmpRexMin = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_REX_MIN));
+        __m128i cmpRexMax = _mm_cmpeq_epi8 (chunk, _mm_set1_epi8 (r_cstl_x86_REX_MAX));
 
         __m128i isPrefix = _mm_or_si128 (
             _mm_or_si128 (_mm_or_si128 (cmpLock, cmpRepne), _mm_or_si128 (cmpRepe, cmpDataSize)),
@@ -96,17 +96,17 @@ R_CSTL_ScanPrefixes (const uint8_t* p, size_t remaining, size_t maxScan)
     }
 #endif
     while (i < remaining && i < maxScan
-           && (p[i] == R_CSTL_X86_PREFIX_LOCK || p[i] == R_CSTL_X86_PREFIX_REPNE
-               || p[i] == R_CSTL_X86_PREFIX_REPE || p[i] == R_CSTL_X86_PREFIX_DATA_SIZE
-               || p[i] == R_CSTL_X86_PREFIX_ADDR_SIZE
-               || (p[i] >= R_CSTL_X86_REX_MIN && p[i] <= R_CSTL_X86_REX_MAX)))
+           && (p[i] == r_cstl_x86_PREFIX_LOCK || p[i] == r_cstl_x86_PREFIX_REPNE
+               || p[i] == r_cstl_x86_PREFIX_REPE || p[i] == r_cstl_x86_PREFIX_DATA_SIZE
+               || p[i] == r_cstl_x86_PREFIX_ADDR_SIZE
+               || (p[i] >= r_cstl_x86_REX_MIN && p[i] <= r_cstl_x86_REX_MAX)))
         ++i;
 
     return i;
 }
 
 static inline void
-R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
+r_cstl_copy_bytes (uint8_t* dst, const uint8_t* src, size_t size)
 {
     if (size == 0) return;
     size_t i = 0;
@@ -150,32 +150,32 @@ R_CSTL_CopyBytes (uint8_t* dst, const uint8_t* src, size_t size)
 #endif
 #endif
 
-struct R_CSTL_Bytecode
+struct r_cstl_bytecode
 {
         const uint8_t*                   pCode;
         uint8_t*                         pOwnedCode;
         size_t                           size;
-        enum R_CSTL_BytecodeArchitecture architecture;
-        struct R_CSTL_Mutex*             pMutex;
+        enum r_cstl_bytecode_architecture architecture;
+        struct r_cstl_mutex*             pMutex;
         bool                             mutexInitialized;
 };
 
 static int
-R_CSTL_BytecodeArchitectureIsValid (enum R_CSTL_BytecodeArchitecture architecture)
+r_cstl_bytecode_architecture_is_valid (enum r_cstl_bytecode_architecture architecture)
 {
     return architecture >= R_CSTL_BYTECODE_ARCH_X86 && architecture <= R_CSTL_BYTECODE_ARCH_RISC;
 }
 
-static struct R_CSTL_Bytecode*
-R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_BytecodeArchitecture architecture)
+static struct r_cstl_bytecode*
+r_cstl_bytecode_create (const uint8_t* pCode, size_t sizeBytes, enum r_cstl_bytecode_architecture architecture)
 {
 #if defined(R_LOG)
-    assert (R_CSTL_BytecodeArchitectureIsValid (architecture) || "Invalid architecture");
+    assert (r_cstl_bytecode_architecture_is_valid (architecture) || "Invalid architecture");
 #endif
 
-    if ((!pCode && sizeBytes != 0) || !R_CSTL_BytecodeArchitectureIsValid (architecture)) return NULL;
+    if ((!pCode && sizeBytes != 0) || !r_cstl_bytecode_architecture_is_valid (architecture)) return NULL;
 
-    struct R_CSTL_Bytecode* pBytecode = (struct R_CSTL_Bytecode*)R_CSTL_HeapAlloc (sizeof (*pBytecode));
+    struct r_cstl_bytecode* pBytecode = (struct r_cstl_bytecode*)r_cstl_heap_alloc (sizeof (*pBytecode));
     if (!pBytecode) return NULL;
 
 #if defined(R_LOG)
@@ -189,7 +189,7 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
     pBytecode->pMutex = NULL;
     pBytecode->mutexInitialized = false;
 
-    pBytecode->pMutex = R_CSTL_NewMutex ();
+    pBytecode->pMutex = r_cstl_new_mutex ();
     if (pBytecode->pMutex) pBytecode->mutexInitialized = true;
 
 #if defined(R_LOG)
@@ -200,24 +200,24 @@ R_CSTL_BytecodeCreate (const uint8_t* pCode, size_t sizeBytes, enum R_CSTL_Bytec
     return pBytecode;
 }
 
-R_CSTL_API struct R_CSTL_Bytecode*
-R_CSTL_NewBytecodeView (const void* pCode, size_t sizeBytes, enum R_CSTL_BytecodeArchitecture architecture)
+R_CSTL_API struct r_cstl_bytecode*
+r_cstl_new_bytecode_view (const void* pCode, size_t sizeBytes, enum r_cstl_bytecode_architecture architecture)
 {
-    return R_CSTL_BytecodeCreate ((const uint8_t*)pCode, sizeBytes, architecture);
+    return r_cstl_bytecode_create ((const uint8_t*)pCode, sizeBytes, architecture);
 }
 
-R_CSTL_API struct R_CSTL_Bytecode*
-R_CSTL_NewBytecodeWithData (
+R_CSTL_API struct r_cstl_bytecode*
+r_cstl_new_bytecode_with_data (
     const uint8_t*                   pCode,
     size_t                           sizeBytes,
-    enum R_CSTL_BytecodeArchitecture architecture)
+    enum r_cstl_bytecode_architecture architecture)
 {
-    struct R_CSTL_Bytecode* pBytecode = R_CSTL_BytecodeCreate (pCode, sizeBytes, architecture);
+    struct r_cstl_bytecode* pBytecode = r_cstl_bytecode_create (pCode, sizeBytes, architecture);
     if (!pBytecode || sizeBytes == 0) return pBytecode;
-    pBytecode->pOwnedCode = (uint8_t*)R_CSTL_HeapAlloc (sizeBytes);
+    pBytecode->pOwnedCode = (uint8_t*)r_cstl_heap_alloc (sizeBytes);
     if (!pBytecode->pOwnedCode)
     {
-        R_CSTL_HeapFree (pBytecode);
+        r_cstl_heap_free (pBytecode);
         return NULL;
     }
     memcpy (pBytecode->pOwnedCode, pCode, sizeBytes);
@@ -225,28 +225,28 @@ R_CSTL_NewBytecodeWithData (
     return pBytecode;
 }
 
-R_CSTL_API struct R_CSTL_Bytecode*
-R_CSTL_NewBytecodeFromFunction (
-    R_CSTL_BytecodeFunction          pFunction,
+R_CSTL_API struct r_cstl_bytecode*
+r_cstl_new_bytecode_from_function (
+    r_cstl_bytecode_function          pFunction,
     size_t                           sizeBytes,
-    enum R_CSTL_BytecodeArchitecture architecture)
+    enum r_cstl_bytecode_architecture architecture)
 {
     if (!pFunction) return NULL;
-    return R_CSTL_NewBytecodeView ((const void*)(uintptr_t)pFunction, sizeBytes, architecture);
+    return r_cstl_new_bytecode_view ((const void*)(uintptr_t)pFunction, sizeBytes, architecture);
 }
 
 R_CSTL_API void
-R_CSTL_DeleteBytecode (struct R_CSTL_Bytecode* pBytecode)
+r_cstl_delete_bytecode (struct r_cstl_bytecode* pBytecode)
 {
     if (!pBytecode) return;
-    if (pBytecode->mutexInitialized && pBytecode->pMutex) R_CSTL_MutexDestroy (pBytecode->pMutex);
-    if (pBytecode->pOwnedCode) R_CSTL_HeapFree (pBytecode->pOwnedCode);
-    R_CSTL_HeapFree (pBytecode);
+    if (pBytecode->mutexInitialized && pBytecode->pMutex) r_cstl_mutex_destroy (pBytecode->pMutex);
+    if (pBytecode->pOwnedCode) r_cstl_heap_free (pBytecode->pOwnedCode);
+    r_cstl_heap_free (pBytecode);
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeRead (
-    const struct R_CSTL_Bytecode* pBytecode,
+r_cstl_bytecode_read (
+    const struct r_cstl_bytecode* pBytecode,
     size_t                        offset,
     uint8_t*                      pOutBytes,
     size_t                        sizeBytes)
@@ -262,35 +262,35 @@ R_CSTL_BytecodeRead (
     if (offset > pBytecode->size || sizeBytes > pBytecode->size - offset)
         return R_CSTL_ERROR_BUFFER_TOO_SMALL;
 
-    R_CSTL_MutexLock (pBytecode->pMutex);
+    r_cstl_mutex_lock (pBytecode->pMutex);
     if (sizeBytes) memcpy (pOutBytes, pBytecode->pCode + offset, sizeBytes);
-    R_CSTL_MutexUnlock (pBytecode->pMutex);
+    r_cstl_mutex_unlock (pBytecode->pMutex);
 
     return R_CSTL_OK;
 }
 
 static int
-R_CSTL_BytecodeParseX86 (
-    const struct R_CSTL_Bytecode*      pBytecode,
+r_cstl_bytecode_parse_x86 (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOut)
+    struct r_cstl_bytecode_instruction* pOut)
 {
     const uint8_t* p = pBytecode->pCode + offset;
     size_t         remaining = pBytecode->size - offset;
 
-    size_t i = R_CSTL_ScanPrefixes (p, remaining, R_CSTL_X86_MAX_INSTRUCTION_LENGTH);
+    size_t i = r_cstl_scan_prefixes (p, remaining, r_cstl_x86_MAX_INSTRUCTION_LENGTH);
     if (i >= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
 
     size_t  opcodeStart = i;
     uint8_t opcode = p[i++];
 
     // Handle multi-byte opcodes
-    if (opcode == R_CSTL_X86_OPCODE_ESCAPE)
+    if (opcode == r_cstl_x86_OPCODE_ESCAPE)
     {
         if (i >= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
         opcode = p[i++];
 
-        if (opcode == R_CSTL_X86_OPCODE_THREEBYTE_38 || opcode == R_CSTL_X86_OPCODE_THREEBYTE_3A)
+        if (opcode == r_cstl_x86_OPCODE_THREEBYTE_38 || opcode == r_cstl_x86_OPCODE_THREEBYTE_3A)
         {
             if (i >= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
             ++i;
@@ -339,7 +339,7 @@ R_CSTL_BytecodeParseX86 (
         i += 1;
     else if (opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEA) i += 4;
 
-    if (i > remaining || i == 0 || i > R_CSTL_X86_MAX_INSTRUCTION_LENGTH)
+    if (i > remaining || i == 0 || i > r_cstl_x86_MAX_INSTRUCTION_LENGTH)
         return R_CSTL_ERROR_BUFFER_TOO_SMALL;
 
     memset (pOut, 0, sizeof (*pOut));
@@ -347,7 +347,7 @@ R_CSTL_BytecodeParseX86 (
     pOut->size = (uint8_t)i;
     pOut->opcodeSize = (uint8_t)(i - opcodeStart);
     pOut->opcode = opcode;
-    R_CSTL_CopyBytes (pOut->bytes, p, i);
+    r_cstl_copy_bytes (pOut->bytes, p, i);
 
     return R_CSTL_OK;
 }
@@ -355,10 +355,10 @@ R_CSTL_BytecodeParseX86 (
 #if defined(R_LOG)
 
 static int
-R_CSTL_BytecodeParseX86Enhanced (
-    const struct R_CSTL_Bytecode*      pBytecode,
+r_cstl_bytecode_parse_x86_enhanced (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOut)
+    struct r_cstl_bytecode_instruction* pOut)
 {
     const uint8_t* p = pBytecode->pCode + offset;
     size_t         remaining = pBytecode->size - offset;
@@ -367,16 +367,16 @@ R_CSTL_BytecodeParseX86Enhanced (
     uint8_t legacyPrefixes = 0;
     size_t  i = 0;
 
-    while (i < remaining && i < R_CSTL_X86_MAX_INSTRUCTION_LENGTH)
+    while (i < remaining && i < r_cstl_x86_MAX_INSTRUCTION_LENGTH)
     {
-        if (p[i] == R_CSTL_X86_PREFIX_LOCK || p[i] == R_CSTL_X86_PREFIX_REPNE
-            || p[i] == R_CSTL_X86_PREFIX_REPE || p[i] == R_CSTL_X86_PREFIX_DATA_SIZE
-            || p[i] == R_CSTL_X86_PREFIX_ADDR_SIZE)
+        if (p[i] == r_cstl_x86_PREFIX_LOCK || p[i] == r_cstl_x86_PREFIX_REPNE
+            || p[i] == r_cstl_x86_PREFIX_REPE || p[i] == r_cstl_x86_PREFIX_DATA_SIZE
+            || p[i] == r_cstl_x86_PREFIX_ADDR_SIZE)
         {
             legacyPrefixes |= (1 << (p[i] & 0x07));
             ++i;
         }
-        else if (p[i] >= R_CSTL_X86_REX_MIN && p[i] <= R_CSTL_X86_REX_MAX)
+        else if (p[i] >= r_cstl_x86_REX_MIN && p[i] <= r_cstl_x86_REX_MAX)
         {
             rexPrefix = p[i];
             ++i;
@@ -391,13 +391,13 @@ R_CSTL_BytecodeParseX86Enhanced (
     uint8_t originalOpcode = opcode; // Store original for conditional jump detection
 
     // Handle multi-byte opcodes
-    if (opcode == R_CSTL_X86_OPCODE_ESCAPE)
+    if (opcode == r_cstl_x86_OPCODE_ESCAPE)
     {
         if (i >= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
         opcode = p[i++];
 
         // Handle 3-byte opcodes
-        if (opcode == R_CSTL_X86_OPCODE_THREEBYTE_38 || opcode == R_CSTL_X86_OPCODE_THREEBYTE_3A)
+        if (opcode == r_cstl_x86_OPCODE_THREEBYTE_38 || opcode == r_cstl_x86_OPCODE_THREEBYTE_3A)
         {
             if (i >= remaining) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
             ++i;
@@ -442,7 +442,7 @@ R_CSTL_BytecodeParseX86Enhanced (
         i += 1;
     else if (opcode == 0xE8 || opcode == 0xE9 || opcode == 0xEA) i += 4;
 
-    if (i > remaining || i == 0 || i > R_CSTL_X86_MAX_INSTRUCTION_LENGTH)
+    if (i > remaining || i == 0 || i > r_cstl_x86_MAX_INSTRUCTION_LENGTH)
         return R_CSTL_ERROR_BUFFER_TOO_SMALL;
 
     memset (pOut, 0, sizeof (*pOut));
@@ -450,7 +450,7 @@ R_CSTL_BytecodeParseX86Enhanced (
     pOut->size = (uint8_t)i;
     pOut->opcodeSize = (uint8_t)(i - opcodeStart);
     pOut->opcode = opcode;
-    R_CSTL_CopyBytes (pOut->bytes, p, i);
+    r_cstl_copy_bytes (pOut->bytes, p, i);
 
     pOut->rexPrefix = rexPrefix;
     pOut->legacyPrefixes = legacyPrefixes;
@@ -466,8 +466,8 @@ R_CSTL_BytecodeParseX86Enhanced (
         = (opcode == 0xE9 || opcode == 0xEB || opcode == 0xEA || opcode == 0xE3 || opcode == 0xE0
            || opcode == 0xE1 || opcode == 0xE2
            || (opcode == 0xFF && hasModRM && ((p[opcodeStart + 1] & 0x38) == 0x20))
-           || (originalOpcode == R_CSTL_X86_OPCODE_ESCAPE
-               && (opcode >= R_CSTL_X86_COND_JUMP_MIN && opcode <= R_CSTL_X86_COND_JUMP_MAX)));
+           || (originalOpcode == r_cstl_x86_OPCODE_ESCAPE
+               && (opcode >= r_cstl_x86_COND_JUMP_MIN && opcode <= r_cstl_x86_COND_JUMP_MAX)));
 
     // Extract CALL/JMP target addresses
     if (opcode == 0xE8 || opcode == 0xE9)
@@ -537,8 +537,8 @@ R_CSTL_BytecodeParseX86Enhanced (
     }
     // Handle conditional jumps (Jcc) with 32-bit displacement
     // These are 0x0F 0x80-0x8F followed by rel32
-    if (originalOpcode == R_CSTL_X86_OPCODE_ESCAPE
-        && (opcode >= R_CSTL_X86_COND_JUMP_MIN && opcode <= R_CSTL_X86_COND_JUMP_MAX))
+    if (originalOpcode == r_cstl_x86_OPCODE_ESCAPE
+        && (opcode >= r_cstl_x86_COND_JUMP_MIN && opcode <= r_cstl_x86_COND_JUMP_MAX))
     {
         if (i >= opcodeStart + 6)
         {
@@ -561,7 +561,7 @@ static HANDLE g_symbolHandle = NULL;
 static bool   g_symbolInitialized = false;
 
 static int
-R_CSTL_InitializeSymbolsWindows (void)
+r_cstl_initialize_symbols_windows (void)
 {
     if (g_symbolInitialized) return R_CSTL_OK;
 
@@ -582,7 +582,7 @@ R_CSTL_InitializeSymbolsWindows (void)
 }
 
 static void
-R_CSTL_CleanupSymbolsWindows (void)
+r_cstl_cleanup_symbols_windows (void)
 {
     if (g_symbolInitialized && g_symbolHandle)
     {
@@ -592,11 +592,11 @@ R_CSTL_CleanupSymbolsWindows (void)
 }
 
 static int
-R_CSTL_ResolveSymbolWindows (uint64_t address, struct R_CSTL_BytecodeSymbol* pOutSymbol)
+r_cstl_resolve_symbol_windows (uint64_t address, struct r_cstl_bytecode_symbol* pOutSymbol)
 {
     if (!g_symbolInitialized)
     {
-        int result = R_CSTL_InitializeSymbolsWindows ();
+        int result = r_cstl_initialize_symbols_windows ();
         if (result != R_CSTL_OK) return result;
     }
 
@@ -618,18 +618,18 @@ R_CSTL_ResolveSymbolWindows (uint64_t address, struct R_CSTL_BytecodeSymbol* pOu
 #elif defined(R_CSTL_PLATFORM_LINUX)
 
 static int
-R_CSTL_InitializeSymbolsLinux (void)
+r_cstl_initialize_symbols_linux (void)
 {
     return R_CSTL_OK;
 }
 
 static void
-R_CSTL_CleanupSymbolsLinux (void)
+r_cstl_cleanup_symbols_linux (void)
 {
 }
 
 static int
-R_CSTL_ResolveSymbolLinux (uint64_t address, struct R_CSTL_BytecodeSymbol* pOutSymbol)
+r_cstl_resolve_symbol_linux (uint64_t address, struct r_cstl_bytecode_symbol* pOutSymbol)
 {
     void* buffer[16];
     int   nptrs = backtrace (buffer, 16);
@@ -658,9 +658,9 @@ R_CSTL_ResolveSymbolLinux (uint64_t address, struct R_CSTL_BytecodeSymbol* pOutS
 #endif
 
 R_CSTL_API int
-R_CSTL_BytecodeDecoderCreate (
-    enum R_CSTL_BytecodeArchitecture architecture,
-    struct R_CSTL_BytecodeDecoder*   pOutDecoder)
+r_cstl_bytecode_decoder_create (
+    enum r_cstl_bytecode_architecture architecture,
+    struct r_cstl_bytecode_decoder*   pOutDecoder)
 {
     if (!pOutDecoder) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
@@ -671,11 +671,11 @@ R_CSTL_BytecodeDecoderCreate (
     pOutDecoder->architecture = architecture;
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
-    int result = R_CSTL_InitializeSymbolsWindows ();
+    int result = r_cstl_initialize_symbols_windows ();
     if (result != R_CSTL_OK) return result;
     pOutDecoder->pPlatformHandle = g_symbolHandle;
 #elif defined(R_CSTL_PLATFORM_LINUX)
-    int result = R_CSTL_InitializeSymbolsLinux ();
+    int result = r_cstl_initialize_symbols_linux ();
     if (result != R_CSTL_OK) return result;
 #endif
     pOutDecoder->initialized = true;
@@ -683,48 +683,48 @@ R_CSTL_BytecodeDecoderCreate (
 }
 
 R_CSTL_API void
-R_CSTL_DeleteBytecodeDecoder (struct R_CSTL_BytecodeDecoder* pDecoder)
+r_cstl_delete_bytecode_decoder (struct r_cstl_bytecode_decoder* pDecoder)
 {
     if (!pDecoder) return;
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
-    R_CSTL_CleanupSymbolsWindows ();
+    r_cstl_cleanup_symbols_windows ();
 #elif defined(R_CSTL_PLATFORM_LINUX)
-    R_CSTL_CleanupSymbolsLinux ();
+    r_cstl_cleanup_symbols_linux ();
 #endif
 
     memset (pDecoder, 0, sizeof (*pDecoder));
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeResolveSymbol (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
+r_cstl_bytecode_resolve_symbol (
+    const struct r_cstl_bytecode_decoder* pDecoder,
     uint64_t                             address,
-    struct R_CSTL_BytecodeSymbol*        pOutSymbol)
+    struct r_cstl_bytecode_symbol*        pOutSymbol)
 {
     if (!pDecoder || !pOutSymbol) return R_CSTL_ERROR_INVALID_ARGUMENT;
     if (!pDecoder->initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
 #if defined(R_CSTL_PLATFORM_WINDOWS)
-    return R_CSTL_ResolveSymbolWindows (address, pOutSymbol);
+    return r_cstl_resolve_symbol_windows (address, pOutSymbol);
 #elif defined(R_CSTL_PLATFORM_LINUX)
-    return R_CSTL_ResolveSymbolLinux (address, pOutSymbol);
+    return r_cstl_resolve_symbol_linux (address, pOutSymbol);
 #else
     return R_CSTL_ERROR_EXECUTABLE_TYPE_NOT_SUPPORTED;
 #endif
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeGetFunctionInfo (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
+r_cstl_bytecode_get_function_info (
+    const struct r_cstl_bytecode_decoder* pDecoder,
     uint64_t                             address,
-    struct R_CSTL_BytecodeFunctionInfo*  pOutInfo)
+    struct r_cstl_bytecode_function_info*  pOutInfo)
 {
     if (!pDecoder || !pOutInfo) return R_CSTL_ERROR_INVALID_ARGUMENT;
     if (!pDecoder->initialized) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
-    struct R_CSTL_BytecodeSymbol symbol;
-    int                          result = R_CSTL_BytecodeResolveSymbol (pDecoder, address, &symbol);
+    struct r_cstl_bytecode_symbol symbol;
+    int                          result = r_cstl_bytecode_resolve_symbol (pDecoder, address, &symbol);
     if (result != R_CSTL_OK) return result;
 
     pOutInfo->startAddress = symbol.address;
@@ -736,24 +736,24 @@ R_CSTL_BytecodeGetFunctionInfo (
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeParseEnhanced (
-    const struct R_CSTL_Bytecode*      pBytecode,
+r_cstl_bytecode_parse_enhanced (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOutInstruction)
+    struct r_cstl_bytecode_instruction* pOutInstruction)
 {
     if (!pBytecode || !pOutInstruction || offset >= pBytecode->size) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
     if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86
         || pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64)
-        return R_CSTL_BytecodeParseX86Enhanced (pBytecode, offset, pOutInstruction);
+        return r_cstl_bytecode_parse_x86_enhanced (pBytecode, offset, pOutInstruction);
 
     return R_CSTL_ERROR_ARCHITECTURE_NOT_SUPPORTED;
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeGetInstructionTargetSymbol (
-    const struct R_CSTL_BytecodeDecoder*     pDecoder,
-    const struct R_CSTL_BytecodeInstruction* pInstruction,
+r_cstl_bytecode_get_instruction_target_symbol (
+    const struct r_cstl_bytecode_decoder*     pDecoder,
+    const struct r_cstl_bytecode_instruction* pInstruction,
     char*                                    pOutBuffer,
     size_t                                   bufferSize)
 {
@@ -766,8 +766,8 @@ R_CSTL_BytecodeGetInstructionTargetSymbol (
         return R_CSTL_OK;
     }
 
-    struct R_CSTL_BytecodeSymbol symbol;
-    int result = R_CSTL_BytecodeResolveSymbol (pDecoder, pInstruction->targetAddress, &symbol);
+    struct r_cstl_bytecode_symbol symbol;
+    int result = r_cstl_bytecode_resolve_symbol (pDecoder, pInstruction->targetAddress, &symbol);
     if (result == R_CSTL_OK && symbol.pName)
     {
         snprintf (pOutBuffer, bufferSize, "%.*s", (int)symbol.nameSize, symbol.pName);
@@ -779,9 +779,9 @@ R_CSTL_BytecodeGetInstructionTargetSymbol (
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeFunctionContainsSymbol (
-    const struct R_CSTL_BytecodeDecoder* pDecoder,
-    R_CSTL_BytecodeFunction              pFunction,
+r_cstl_bytecode_function_contains_symbol (
+    const struct r_cstl_bytecode_decoder* pDecoder,
+    r_cstl_bytecode_function              pFunction,
     size_t                               functionSize,
     const char*                          pSymbolName,
     int*                                 pOutFound)
@@ -791,8 +791,8 @@ R_CSTL_BytecodeFunctionContainsSymbol (
 
     *pOutFound = 0;
 
-    struct R_CSTL_Bytecode* pBytecode
-        = R_CSTL_NewBytecodeFromFunction (pFunction, functionSize, pDecoder->architecture);
+    struct r_cstl_bytecode* pBytecode
+        = r_cstl_new_bytecode_from_function (pFunction, functionSize, pDecoder->architecture);
     if (!pBytecode) return R_CSTL_ERROR_INVALID_ARGUMENT;
 
     size_t offset = 0;
@@ -800,18 +800,18 @@ R_CSTL_BytecodeFunctionContainsSymbol (
 
     while (offset < functionSize)
     {
-        struct R_CSTL_BytecodeInstruction instruction;
-        int result = R_CSTL_BytecodeParseEnhanced (pBytecode, offset, &instruction);
+        struct r_cstl_bytecode_instruction instruction;
+        int result = r_cstl_bytecode_parse_enhanced (pBytecode, offset, &instruction);
         if (result != R_CSTL_OK)
         {
-            R_CSTL_DeleteBytecode (pBytecode);
+            r_cstl_delete_bytecode (pBytecode);
             return result;
         }
 
         if (instruction.isCall && instruction.targetAddress != 0)
         {
             char symbolBuffer[256];
-            result = R_CSTL_BytecodeGetInstructionTargetSymbol (
+            result = r_cstl_bytecode_get_instruction_target_symbol (
                 pDecoder,
                 &instruction,
                 symbolBuffer,
@@ -828,7 +828,7 @@ R_CSTL_BytecodeFunctionContainsSymbol (
         offset += instruction.size;
     }
 
-    R_CSTL_DeleteBytecode (pBytecode);
+    r_cstl_delete_bytecode (pBytecode);
     *pOutFound = found;
     return R_CSTL_OK;
 }
@@ -836,15 +836,15 @@ R_CSTL_BytecodeFunctionContainsSymbol (
 #endif
 
 R_CSTL_API int
-R_CSTL_BytecodeParse (
-    const struct R_CSTL_Bytecode*      pBytecode,
+r_cstl_bytecode_parse (
+    const struct r_cstl_bytecode*      pBytecode,
     size_t                             offset,
-    struct R_CSTL_BytecodeInstruction* pOutInstruction)
+    struct r_cstl_bytecode_instruction* pOutInstruction)
 {
     if (!pBytecode || !pOutInstruction || offset >= pBytecode->size) return R_CSTL_ERROR_INVALID_ARGUMENT;
     if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86
         || pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64)
-        return R_CSTL_BytecodeParseX86 (pBytecode, offset, pOutInstruction);
+        return r_cstl_bytecode_parse_x86 (pBytecode, offset, pOutInstruction);
     size_t width = 4;
     if (pBytecode->size - offset < width) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
     memset (pOutInstruction, 0, sizeof (*pOutInstruction));
@@ -858,35 +858,35 @@ R_CSTL_BytecodeParse (
 }
 
 static int
-R_CSTL_BytecodeAddToken (
-    struct R_CSTL_BytecodeToken*  pTokens,
+r_cstl_bytecode_add_token (
+    struct r_cstl_bytecode_token*  pTokens,
     size_t                        capacity,
     size_t*                       pCount,
-    enum R_CSTL_BytecodeTokenKind kind,
+    enum r_cstl_bytecode_token_kind kind,
     size_t                        offset,
     uint8_t                       size,
     uint64_t                      value)
 {
     if (*pCount >= capacity) return R_CSTL_ERROR_BUFFER_TOO_SMALL;
-    pTokens[*pCount] = (struct R_CSTL_BytecodeToken){kind, offset, size, value};
+    pTokens[*pCount] = (struct r_cstl_bytecode_token){kind, offset, size, value};
     ++*pCount;
     return R_CSTL_OK;
 }
 
 R_CSTL_API int
-R_CSTL_BytecodeTokenize (
-    const struct R_CSTL_Bytecode* pBytecode,
+r_cstl_bytecode_tokenize (
+    const struct r_cstl_bytecode* pBytecode,
     size_t                        offset,
-    struct R_CSTL_BytecodeToken*  pTokens,
+    struct r_cstl_bytecode_token*  pTokens,
     size_t                        tokenCapacity,
     size_t*                       pOutTokenCount)
 {
     if (!pBytecode || !pTokens || !pOutTokenCount) return R_CSTL_ERROR_INVALID_ARGUMENT;
     *pOutTokenCount = 0;
-    struct R_CSTL_BytecodeInstruction instruction;
-    int                               result = R_CSTL_BytecodeParse (pBytecode, offset, &instruction);
+    struct r_cstl_bytecode_instruction instruction;
+    int                               result = r_cstl_bytecode_parse (pBytecode, offset, &instruction);
     if (result != R_CSTL_OK) return result;
-    result = R_CSTL_BytecodeAddToken (
+    result = r_cstl_bytecode_add_token (
         pTokens,
         tokenCapacity,
         pOutTokenCount,
@@ -896,7 +896,7 @@ R_CSTL_BytecodeTokenize (
         instruction.opcode);
     if (result != R_CSTL_OK) return result;
     if (instruction.size > instruction.opcodeSize)
-        result = R_CSTL_BytecodeAddToken (
+        result = r_cstl_bytecode_add_token (
             pTokens,
             tokenCapacity,
             pOutTokenCount,
@@ -907,7 +907,7 @@ R_CSTL_BytecodeTokenize (
     if (result != R_CSTL_OK) return result;
     if (pBytecode->architecture == R_CSTL_BYTECODE_ARCH_X86_64 && instruction.size >= 6
         && instruction.bytes[instruction.opcodeSize] == 0x05)
-        result = R_CSTL_BytecodeAddToken (
+        result = r_cstl_bytecode_add_token (
             pTokens,
             tokenCapacity,
             pOutTokenCount,
@@ -919,7 +919,7 @@ R_CSTL_BytecodeTokenize (
 }
 
 R_CSTL_API const uint8_t*
-R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode)
+r_cstl_bytecode_data (const struct r_cstl_bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
     assert (pBytecode);
@@ -928,7 +928,7 @@ R_CSTL_BytecodeData (const struct R_CSTL_Bytecode* pBytecode)
 }
 
 R_CSTL_API size_t
-R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
+r_cstl_bytecode_length (const struct r_cstl_bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
     assert (pBytecode);
@@ -936,8 +936,8 @@ R_CSTL_BytecodeLength (const struct R_CSTL_Bytecode* pBytecode)
     return pBytecode->size;
 }
 
-R_CSTL_API enum R_CSTL_BytecodeArchitecture
-R_CSTL_BytecodeGetArchitecture (const struct R_CSTL_Bytecode* pBytecode)
+R_CSTL_API enum r_cstl_bytecode_architecture
+r_cstl_bytecode_get_architecture (const struct r_cstl_bytecode* pBytecode)
 {
 #if defined(R_CSTL_DEBUG)
     assert (pBytecode);

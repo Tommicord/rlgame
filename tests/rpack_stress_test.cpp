@@ -24,8 +24,8 @@ constexpr size_t kHeapSize = 64 * 1024 * 1024; // Larger heap for stress tests
 class RPackStressTest : public ::testing::Test
 {
 protected:
-    void SetUp () override { ASSERT_EQ (R_CSTL_HeapInit (kHeapSize), R_CSTL_OK); }
-    void TearDown () override { R_CSTL_HeapShutdown (); }
+    void SetUp () override { ASSERT_EQ (r_cstl_heap_init (kHeapSize), R_CSTL_OK); }
+    void TearDown () override { r_cstl_heap_shutdown (); }
 
     static r_pack_owned_image MakeRandomImage (const char* pName, uint32_t width, uint32_t height)
     {

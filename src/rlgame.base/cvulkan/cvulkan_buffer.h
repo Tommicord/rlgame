@@ -12,7 +12,7 @@ struct R_CVulkan_Device;
 /**
  * @brief Settingsuration parameters for buffer creation
  */
-struct R_CVulkan_BufferCreateInfo
+struct r_cvulkan_buffer_create_info
 {
         const struct R_CVulkan_Device* device; /**< R_CVulkan device wrapper */
         VkPhysicalDevice               physicalDevice; /**< Physical device */
@@ -42,7 +42,7 @@ struct R_CVulkan_Buffer
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_CVULKAN_API enum R_CVulkan_Error
-R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct R_CVulkan_BufferCreateInfo* pCreateInfo);
+R_CVulkan_NewBuffer (struct R_CVulkan_Buffer* pBuffer, const struct r_cvulkan_buffer_create_info* pCreateInfo);
 
 /**
  * @brief Deletes a buffer and destroy the Vulkan objects
@@ -79,7 +79,7 @@ R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferUnmap (struct R_CVulkan_Buffe
  * @param data Pointer to source data
  * @return R_CVULKAN_OK on success, error code otherwise
  */
-R_CVULKAN_API enum R_CVulkan_Error R_CVulkan_BufferCopyData (
+R_CVULKAN_API enum R_CVulkan_Error r_cvulkan_buffer_copy_data (
     struct R_CVulkan_Buffer* pBuffer,
     VkDeviceSize             offset,
     VkDeviceSize             size,
@@ -110,46 +110,46 @@ R_CVulkan_BufferFlush (struct R_CVulkan_Buffer* pBuffer, VkDeviceSize offset, Vk
  * @param pBuffer Pointer to buffer
  * @return Vulkan buffer handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkBuffer R_CVulkan_BufferGetHandle (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkBuffer r_cvulkan_buffer_get_handle (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the device memory handle
  * @param pBuffer Pointer to buffer
  * @return Device memory handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDeviceMemory R_CVulkan_BufferGetMemory (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkDeviceMemory r_cvulkan_buffer_get_memory (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the associated device
  * @param pBuffer Pointer to buffer
  * @return Vulkan device handle, or VK_NULL_HANDLE if not initialized
  */
-R_CVULKAN_API VkDevice R_CVulkan_BufferGetDevice (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkDevice r_cvulkan_buffer_get_device (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the buffer size
  * @param pBuffer Pointer to buffer
  * @return Buffer size in bytes, or 0 if not initialized
  */
-R_CVULKAN_API VkDeviceSize R_CVulkan_BufferGetSize (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkDeviceSize r_cvulkan_buffer_get_size (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the buffer usage flags
  * @param pBuffer Pointer to buffer
  * @return Buffer usage flags, or 0 if not initialized
  */
-R_CVULKAN_API VkBufferUsageFlags R_CVulkan_BufferGetUsage (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkBufferUsageFlags r_cvulkan_buffer_get_usage (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the memory property flags
  * @param pBuffer Pointer to buffer
  * @return Memory property flags, or 0 if not initialized
  */
-R_CVULKAN_API VkMemoryPropertyFlags R_CVulkan_BufferGetProperties (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API VkMemoryPropertyFlags r_cvulkan_buffer_get_properties (const struct R_CVulkan_Buffer* pBuffer);
 
 /**
  * @brief Get the mapped memory pointer
  * @param pBuffer Pointer to buffer
  * @return Mapped memory pointer, or NULL if not mapped
  */
-R_CVULKAN_API void* R_CVulkan_BufferGetMapped (const struct R_CVulkan_Buffer* pBuffer);
+R_CVULKAN_API void* r_cvulkan_buffer_get_mapped (const struct R_CVulkan_Buffer* pBuffer);
