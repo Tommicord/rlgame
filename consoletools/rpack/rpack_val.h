@@ -4,15 +4,15 @@
 
 #include <stdint.h>
 
-struct R_Pack_ValidationReport
+struct r_pack_validation_report
 {
-        enum R_Pack_Error error;
+        enum r_pack_error error;
         uint64_t          offset;
         uint32_t          textureIndex;
         uint64_t          pixelIndex;
 };
 
 R_PACK_API int
-R_Pack_ValidatePackedData (const uint8_t* pData, uint64_t dataSize, struct R_Pack_ValidationReport* pReport);
+r_pack_validate_packed_data (const uint8_t* pData, uint64_t dataSize, struct r_pack_validation_report* pReport);
 
-R_PACK_API int R_Pack_ValidatePackedFile (const char* pPath, struct R_Pack_ValidationReport* pReport);
+R_PACK_API int r_pack_validate_packed_file (const char* pPath, struct r_pack_validation_report* pReport);

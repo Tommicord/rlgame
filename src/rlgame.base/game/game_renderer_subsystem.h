@@ -8,32 +8,32 @@
 #include "rlgame.base/game/game_pipeline.h"
 #include "rlgame.base/cstl/cstl_stack.h"
 
-typedef void (*R_GameLifecycleConstruct) (
+typedef void (*r_game_lifecycle_construct) (
     void*        pDrawable,
     const char*  pName,
     const void*  pResource,
     const size_t resourceSize);
 
-typedef void (*R_GameLifecycleResume) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_resume) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleBeforeEach) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_before_each) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleAfterEach) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_after_each) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleBeforePass) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_before_pass) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecyclePause) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_pause) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleAfterPass) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_after_pass) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleRender) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_render) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleStop) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef void (*r_game_lifecycle_stop) (void* pDrawable, const void* pResource, const size_t resourceSize);
 
-typedef void (*R_GameLifecycleOver) (void* pDrawable, const void* pResource, const size_t resourceSize);
-typedef uint64_t R_GameRendererResourceHandle;
+typedef void (*r_game_lifecycle_over) (void* pDrawable, const void* pResource, const size_t resourceSize);
+typedef uint64_t r_game_renderer_resource_handle;
 
-struct R_GameRendererRenderTask
+struct r_game_renderer_render_task
 {
         uint32_t            layerIndex;
         uint32_t            commandBufferIndex;
@@ -42,19 +42,19 @@ struct R_GameRendererRenderTask
         R_GAME_ATOMIC_INT32 atomicCompleted;
 };
 
-struct R_GameRendererWorkerThread
+struct r_game_renderer_worker_thread
 {
         R_GAME_THREAD_HANDLE            threadHandle;
         R_GAME_THREAD_ID                threadId;
         uint32_t                        workerIndex;
         int                             isRunning;
         R_GAME_ATOMIC_INT32             atomicIsRunning;
-        struct R_GameRendererSubsystem* pSubsystem;
+        struct r_game_renderer_subsystem* pSubsystem;
 };
 
-struct R_GameRendererThreadPool
+struct r_game_renderer_thread_pool
 {
-        struct R_GameRendererWorkerThread workers[R_GAME_RENDERER_MAX_WORKER_THREADS];
+        struct r_game_renderer_worker_thread workers[R_GAME_RENDERER_MAX_WORKER_THREADS];
         uint32_t                          workerCount;
         R_GAME_MUTEX                      taskMutex;
         R_GAME_CONDITION_VARIABLE         taskAvailable;
@@ -66,13 +66,13 @@ struct R_GameRendererThreadPool
         R_GAME_ATOMIC_INT32               atomicShutdownRequested;
 };
 
-struct R_GameRendererFrame;
-struct R_GameRendererLayer;
-struct R_GameRendererResource;
-struct R_GameRendererLifecycle;
-struct R_GameRendererSubsystem;
+struct r_game_renderer_frame;
+struct r_game_renderer_layer;
+struct r_game_renderer_resource;
+struct r_game_renderer_lifecycle;
+struct r_game_renderer_subsystem;
 
-struct R_GameRendererRenderTarget
+struct r_game_renderer_render_target
 {
         struct R_CVulkan_Image*       pColorImage;
         struct R_CVulkan_ImageView*   pColorImageView;
@@ -84,115 +84,115 @@ struct R_GameRendererRenderTarget
         uint32_t                      format;
 };
 
-struct R_GameRendererSubsystemEntry
+struct r_game_renderer_subsystem_entry
 {
-        struct R_GameRendererSubsystem*   pSubsystem;
-        struct R_GameRendererRenderTarget renderTarget;
+        struct r_game_renderer_subsystem*   pSubsystem;
+        struct r_game_renderer_render_target renderTarget;
         uint32_t                          priority;
         uint32_t                          flags;
         int                               isVisible;
         float                             blendFactor;
 };
-struct R_Game_RendererManager;
+struct r_game_renderer_manager;
 
-R_GAME_API struct R_GameRendererSubsystem*
-                    R_GameRenderer_NewSubsystem (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int      R_GameRenderer_DeleteSubsystem (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int      R_GameRenderer_SubsystemStart (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int      R_GameRenderer_SubsystemStop (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int      R_GameRenderer_SubsystemPause (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int      R_GameRenderer_SubsystemResume (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API uint32_t R_GameRenderer_SubsystemGetState (struct R_GameRendererSubsystem* pSubsystem);
+R_GAME_API struct r_game_renderer_subsystem*
+                    r_game_renderer_new_subsystem (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int      r_game_renderer_delete_subsystem (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int      r_game_renderer_subsystem_start (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int      r_game_renderer_subsystem_stop (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int      r_game_renderer_subsystem_pause (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int      r_game_renderer_subsystem_resume (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API uint32_t r_game_renderer_subsystem_get_state (struct r_game_renderer_subsystem* pSubsystem);
 
-R_GAME_API int R_GameRenderer_SetPipelineContext (
-    struct R_GameRendererSubsystem* pSubsystem,
-    struct R_Game_PipelineContext*  pPipelineContext);
+R_GAME_API int r_game_renderer_set_pipeline_context (
+    struct r_game_renderer_subsystem* pSubsystem,
+    struct r_game_pipeline_context*  pPipelineContext);
 
-R_GAME_API int R_GameRenderer_BeginFrame (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int R_GameRenderer_RenderFrame (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int R_GameRenderer_EndFrame (struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int R_GameRenderer_WaitForFrame (struct R_GameRendererSubsystem* pSubsystem);
+R_GAME_API int r_game_renderer_begin_frame (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int r_game_renderer_render_frame (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int r_game_renderer_end_frame (struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int r_game_renderer_wait_for_frame (struct r_game_renderer_subsystem* pSubsystem);
 
-R_GAME_API int R_GameRenderer_AddLayer (
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API int r_game_renderer_add_layer (
+    struct r_game_renderer_subsystem* pSubsystem,
     const char*                     pName,
     uint32_t                        priority,
     uint32_t                        flags,
     void*                           pUserData);
-R_GAME_API int R_GameRenderer_RemoveLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex);
+R_GAME_API int r_game_renderer_remove_layer (struct r_game_renderer_subsystem* pSubsystem, uint32_t layerIndex);
 R_GAME_API int
-R_GameRenderer_SetLayerEnabled (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex, int enabled);
-R_GAME_API struct R_GameRendererLayer*
-               R_GameRenderer_GetLayer (struct R_GameRendererSubsystem* pSubsystem, uint32_t layerIndex);
-R_GAME_API int R_GameRenderer_SortLayers (struct R_GameRendererSubsystem* pSubsystem);
+r_game_renderer_set_layer_enabled (struct r_game_renderer_subsystem* pSubsystem, uint32_t layerIndex, int enabled);
+R_GAME_API struct r_game_renderer_layer*
+               r_game_renderer_get_layer (struct r_game_renderer_subsystem* pSubsystem, uint32_t layerIndex);
+R_GAME_API int r_game_renderer_sort_layers (struct r_game_renderer_subsystem* pSubsystem);
 
-R_GAME_API int R_GameRenderer_SetLayerRenderCallback (
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API int r_game_renderer_set_layer_renderCallback (
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        layerIndex,
-    R_GameLifecycleRender           callback);
-R_GAME_API int R_GameRenderer_SetLayerBeforePassCallback (
-    struct R_GameRendererSubsystem* pSubsystem,
+    r_game_lifecycle_render           callback);
+R_GAME_API int r_game_renderer_set_layer_beforePassCallback (
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        layerIndex,
-    R_GameLifecycleBeforePass       callback);
-R_GAME_API int R_GameRenderer_SetLayerAfterPassCallback (
-    struct R_GameRendererSubsystem* pSubsystem,
+    r_game_lifecycle_before_pass       callback);
+R_GAME_API int r_game_renderer_set_layer_afterPassCallback (
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        layerIndex,
-    R_GameLifecycleAfterPass        callback);
+    r_game_lifecycle_after_pass        callback);
 
-R_GAME_API R_GameRendererResourceHandle R_GameRenderer_RegisterResource (
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API r_game_renderer_resource_handle r_game_renderer_register_resource (
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        type,
     void*                           pResource,
     uint64_t                        size,
     const char*                     pName);
-R_GAME_API int R_GameRenderer_UnregisterResource (
-    struct R_GameRendererSubsystem* pSubsystem,
-    R_GameRendererResourceHandle    handle);
+R_GAME_API int r_game_renderer_unregister_resource (
+    struct r_game_renderer_subsystem* pSubsystem,
+    r_game_renderer_resource_handle    handle);
 R_GAME_API const void*
-R_GameRenderer_GetResource (struct R_GameRendererSubsystem* pSubsystem, R_GameRendererResourceHandle handle);
-R_GAME_API int R_GameRenderer_AddResourceRef (
-    struct R_GameRendererSubsystem* pSubsystem,
-    R_GameRendererResourceHandle    handle);
-R_GAME_API int R_GameRenderer_ReleaseResourceRef (
-    struct R_GameRendererSubsystem* pSubsystem,
-    R_GameRendererResourceHandle    handle);
+r_game_renderer_get_resource (struct r_game_renderer_subsystem* pSubsystem, r_game_renderer_resource_handle handle);
+R_GAME_API int r_game_renderer_add_resource_ref (
+    struct r_game_renderer_subsystem* pSubsystem,
+    r_game_renderer_resource_handle    handle);
+R_GAME_API int r_game_renderer_release_resource_ref (
+    struct r_game_renderer_subsystem* pSubsystem,
+    r_game_renderer_resource_handle    handle);
 
-R_GAME_API struct R_CVulkan_CommandBuffer* R_GameRenderer_GetCommandBuffer (
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API struct R_CVulkan_CommandBuffer* r_game_renderer_get_command_buffer (
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        frameIndex,
     uint32_t                        bufferIndex);
 
-R_GAME_API void R_GameRendererLifecycle_RegisterRenderer (const void* pRenderer);
-R_GAME_API void R_GameRendererLifecycle_RegisterConstruct (R_GameLifecycleConstruct callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterResume (R_GameLifecycleResume callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterPause (R_GameLifecyclePause callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterBeforeEach (R_GameLifecycleBeforeEach callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterAfterEach (R_GameLifecycleAfterEach callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterBeforePass (R_GameLifecycleBeforePass callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterAfterPass (R_GameLifecycleAfterPass callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterRender (R_GameLifecycleRender callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterStop (R_GameLifecycleStop callback);
-R_GAME_API void R_GameRendererLifecycle_RegisterOver (R_GameLifecycleOver callback);
+R_GAME_API void r_game_renderer_lifecycle_register_renderer (const void* pRenderer);
+R_GAME_API void r_game_renderer_lifecycle_register_construct (r_game_lifecycle_construct callback);
+R_GAME_API void r_game_renderer_lifecycle_register_resume (r_game_lifecycle_resume callback);
+R_GAME_API void r_game_renderer_lifecycle_register_pause (r_game_lifecycle_pause callback);
+R_GAME_API void r_game_renderer_lifecycle_register_beforeEach (r_game_lifecycle_before_each callback);
+R_GAME_API void r_game_renderer_lifecycle_register_afterEach (r_game_lifecycle_after_each callback);
+R_GAME_API void r_game_renderer_lifecycle_register_beforePass (r_game_lifecycle_before_pass callback);
+R_GAME_API void r_game_renderer_lifecycle_register_afterPass (r_game_lifecycle_after_pass callback);
+R_GAME_API void r_game_renderer_lifecycle_register_render (r_game_lifecycle_render callback);
+R_GAME_API void r_game_renderer_lifecycle_register_stop (r_game_lifecycle_stop callback);
+R_GAME_API void r_game_renderer_lifecycle_register_over (r_game_lifecycle_over callback);
 
-R_GAME_API struct R_Game_RendererManager*
-               R_GameRenderer_NewManager (struct R_Game_PipelineContext* pPipelineContext);
-R_GAME_API int R_GameRenderer_DeleteManager (struct R_Game_RendererManager* pManager);
-R_GAME_API int R_GameRenderer_AddSubsystem (
-    struct R_Game_RendererManager*   pManager,
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API struct r_game_renderer_manager*
+               r_game_renderer_new_manager (struct r_game_pipeline_context* pPipelineContext);
+R_GAME_API int r_game_renderer_delete_manager (struct r_game_renderer_manager* pManager);
+R_GAME_API int r_game_renderer_add_subsystem (
+    struct r_game_renderer_manager*   pManager,
+    struct r_game_renderer_subsystem* pSubsystem,
     uint32_t                        priority,
     uint32_t                        flags,
     float                           blendFactor);
-R_GAME_API int R_GameRenderer_RemoveSubsystem (
-    struct R_Game_RendererManager*   pManager,
-    struct R_GameRendererSubsystem* pSubsystem);
-R_GAME_API int R_GameRenderer_SetSubsystemVisible (
-    struct R_Game_RendererManager*   pManager,
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API int r_game_renderer_remove_subsystem (
+    struct r_game_renderer_manager*   pManager,
+    struct r_game_renderer_subsystem* pSubsystem);
+R_GAME_API int r_game_renderer_set_subsystem_visible (
+    struct r_game_renderer_manager*   pManager,
+    struct r_game_renderer_subsystem* pSubsystem,
     int                             visible);
-R_GAME_API int R_GameRenderer_SetSubsystemBlendFactor (
-    struct R_Game_RendererManager*   pManager,
-    struct R_GameRendererSubsystem* pSubsystem,
+R_GAME_API int r_game_renderer_set_subsystem_blendFactor (
+    struct r_game_renderer_manager*   pManager,
+    struct r_game_renderer_subsystem* pSubsystem,
     float                           blendFactor);
-R_GAME_API int R_GameRenderer_ComposeFrame (struct R_Game_RendererManager* pManager);
-R_GAME_API int R_GameRenderer_PresentFrame (struct R_Game_RendererManager* pManager);
+R_GAME_API int r_game_renderer_compose_frame (struct r_game_renderer_manager* pManager);
+R_GAME_API int r_game_renderer_present_frame (struct r_game_renderer_manager* pManager);

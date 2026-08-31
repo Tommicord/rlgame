@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 
-static R_MainProvider g_provider;
+static r_main_provider g_provider;
 static ANativeWindow* g_window = NULL;
 static pthread_t      g_gameThread = 0;
 static bool           g_threadRunning = false;

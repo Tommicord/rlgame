@@ -21,7 +21,7 @@
 /**
  * @brief Input image data for encoding
  */
-struct R_Pack_InputImage
+struct r_pack_input_image
 {
         const uint8_t* pPixels; /**< Raw pixel data (RGBA format) */
         uint32_t       width; /**< Image width */
@@ -33,7 +33,7 @@ struct R_Pack_InputImage
 /**
  * @brief Encoder configuration
  */
-struct R_Pack_EncoderSettings
+struct r_pack_encoder_settings
 {
         uint32_t maxAtlasWidth; /**< Maximum atlas width (default: R_PACK_DEFAULT_MAX_ATLAS_WIDTH) */
         uint32_t maxAtlasHeight; /**< Maximum atlas height (default: R_PACK_DEFAULT_MAX_ATLAS_HEIGHT) */
@@ -52,13 +52,13 @@ struct R_Pack_EncoderSettings
 /**
  * @brief Encoder state
  */
-struct R_Pack_Encoder
+struct r_pack_encoder
 {
-        struct R_Pack_EncoderSettings    config;
-        struct R_Pack_Header*          pHeader;
-        struct R_Pack_HashEntry*       pHashTable;
-        struct R_Pack_ColorEntry*      pColorTable;
-        struct R_Pack_PixelIndexEntry* pPixelIndexTable;
+        struct r_pack_encoder_settings    config;
+        struct r_pack_header*          pHeader;
+        struct r_pack_hash_entry*       pHashTable;
+        struct r_pack_color_entry*      pColorTable;
+        struct r_pack_pixel_index_entry* pPixelIndexTable;
         uint32_t                       colorTableCapacity;
         uint32_t                       colorTableCount;
         uint32_t                       pixelIndexTableCapacity;
@@ -76,13 +76,13 @@ struct R_Pack_Encoder
  * @param config Encoder configuration (NULL for defaults)
  * @return Encoder instance or NULL on failure
  */
-R_PACK_API struct R_Pack_Encoder* R_Pack_NewEncoder (const struct R_Pack_EncoderSettings* pSettings);
+R_PACK_API struct r_pack_encoder* r_pack_new_encoder (const struct r_pack_encoder_settings* pSettings);
 
 /**
  * @brief Destroy encoder instance
  * @param encoder Encoder instance to destroy
  */
-R_PACK_API void R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder);
+R_PACK_API void r_pack_delete_encoder (struct r_pack_encoder* pEncoder);
 
 /**
  * @brief Add image to encoder
@@ -90,8 +90,8 @@ R_PACK_API void R_Pack_DeleteEncoder (struct R_Pack_Encoder* pEncoder);
  * @param image Input image data
  * @return R_PACK_OK on success, error code otherwise
  */
-R_PACK_API enum R_Pack_Error
-R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_InputImage* pImage);
+R_PACK_API enum r_pack_error
+r_pack_encoder_add_image (struct r_pack_encoder* pEncoder, const struct r_pack_input_image* pImage);
 
 /**
  * @brief Encode all added images to RPACK format
@@ -101,8 +101,8 @@ R_Pack_EncoderAddImage (struct R_Pack_Encoder* pEncoder, const struct R_Pack_Inp
  * @param bytesWritten Number of bytes written to output
  * @return R_PACK_OK on success, error code otherwise
  */
-R_PACK_API enum R_Pack_Error R_Pack_EncoderEncode (
-    struct R_Pack_Encoder* pEncoder,
+R_PACK_API enum r_pack_error r_pack_encoder_encode (
+    struct r_pack_encoder* pEncoder,
     uint8_t*               pOutputBuffer,
     uint64_t               outputBufferSize,
     uint64_t*              pBytesWritten);
@@ -112,14 +112,14 @@ R_PACK_API enum R_Pack_Error R_Pack_EncoderEncode (
  * @param encoder Encoder instance
  * @return Required buffer size in bytes
  */
-R_PACK_API uint64_t R_Pack_EncoderGetRequiredSize (const struct R_Pack_Encoder* pEncoder);
+R_PACK_API uint64_t r_pack_encoder_get_required_size (const struct r_pack_encoder* pEncoder);
 
 /**
  * @brief Get number of images added to encoder
  * @param encoder Encoder instance
  * @return Number of images
  */
-R_PACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pEncoder);
+R_PACK_API uint32_t r_pack_encoder_get_image_count (const struct r_pack_encoder* pEncoder);
 
 /**
  * @brief Convert RGBA to YUV-like encoding
@@ -130,7 +130,7 @@ R_PACK_API uint32_t R_Pack_EncoderGetImageCount (const struct R_Pack_Encoder* pE
  * @param v Output chrominance V (4 bits)
  */
 R_PACK_API void
-R_Pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, uint8_t* pU, uint8_t* pV);
+r_pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, uint8_t* pU, uint8_t* pV);
 
 /**
  * @brief Convert YUV-like encoding to RGBA
@@ -143,7 +143,7 @@ R_Pack_RGBAToYUV (uint8_t r, uint8_t g, uint8_t b, uint8_t* pY, uint8_t* pYExp, 
  * @param b Output blue (8 bits)
  */
 R_PACK_API void
-R_Pack_YUVToRGBA (uint8_t y, uint8_t yExp, uint8_t u, uint8_t v, uint8_t* pR, uint8_t* pG, uint8_t* pB);
+r_pack_YUVToRGBA (uint8_t y, uint8_t yExp, uint8_t u, uint8_t v, uint8_t* pR, uint8_t* pG, uint8_t* pB);
 
 /**
  * @brief Get color similarity (rotation-based)
@@ -156,4 +156,4 @@ R_Pack_YUVToRGBA (uint8_t y, uint8_t yExp, uint8_t u, uint8_t v, uint8_t* pR, ui
  * @return Similarity score (0.0 = identical, higher = more different)
  */
 R_PACK_API float
-R_Pack_GetColorSimilarity (uint8_t y1, uint8_t u1, uint8_t v1, uint8_t y2, uint8_t u2, uint8_t v2);
+r_pack_get_color_similarity (uint8_t y1, uint8_t u1, uint8_t v1, uint8_t y2, uint8_t u2, uint8_t v2);

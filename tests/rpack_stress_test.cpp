@@ -27,7 +27,7 @@ protected:
     void SetUp () override { ASSERT_EQ (R_CSTL_HeapInit (kHeapSize), R_CSTL_OK); }
     void TearDown () override { R_CSTL_HeapShutdown (); }
 
-    static R_Pack_OwnedImage MakeRandomImage (const char* pName, uint32_t width, uint32_t height)
+    static r_pack_owned_image MakeRandomImage (const char* pName, uint32_t width, uint32_t height)
     {
         std::vector<uint8_t> pixels (width * height * 4);
         std::mt19937 gen (std::random_device{} ());
@@ -38,12 +38,12 @@ protected:
             pixel = dist (gen);
         }
         
-        R_Pack_OwnedImage image = {};
-        EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), width, height, width * 4, pName, &image), R_PACK_OK);
+        r_pack_owned_image image = {};
+        EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), width, height, width * 4, pName, &image), R_PACK_OK);
         return image;
     }
 
-    static R_Pack_OwnedImage MakeGradientImage (const char* pName, uint32_t width, uint32_t height)
+    static r_pack_owned_image MakeGradientImage (const char* pName, uint32_t width, uint32_t height)
     {
         std::vector<uint8_t> pixels (width * height * 4);
         
@@ -59,29 +59,29 @@ protected:
             }
         }
         
-        R_Pack_OwnedImage image = {};
-        EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), width, height, width * 4, pName, &image), R_PACK_OK);
+        r_pack_owned_image image = {};
+        EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), width, height, width * 4, pName, &image), R_PACK_OK);
         return image;
     }
 
-    static std::vector<uint8_t> Encode (R_Pack_OwnedImage* pImage, uint32_t maxTextures = 0)
+    static std::vector<uint8_t> Encode (r_pack_owned_image* pImage, uint32_t maxTextures = 0)
     {
-        R_Pack_EncoderSettings config = {};
+        r_pack_encoder_settings config = {};
         config.maxAtlasWidth = 4096;
         config.maxAtlasHeight = 4096;
         config.padding = 1;
         config.similarityThreshold = 0.125f;
         config.maxTextures = maxTextures;
-        R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+        r_pack_encoder* encoder = r_pack_new_encoder (&config);
         EXPECT_NE (encoder, nullptr);
-        EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &pImage->image), R_PACK_OK);
-        uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+        EXPECT_EQ (r_pack_encoder_add_image (encoder, &pImage->image), R_PACK_OK);
+        uint64_t size = r_pack_encoder_get_required_size (encoder);
         EXPECT_GT (size, 0u);
         std::vector<uint8_t> output (size);
         uint64_t written = 0;
-        EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+        EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
         EXPECT_EQ (written, size);
-        R_Pack_DeleteEncoder (encoder);
+        r_pack_delete_encoder (encoder);
         return output;
     }
 };
@@ -90,12 +90,12 @@ protected:
 
 TEST_F (RPackStressTest, HandlesLargeSingleImage)
 {
-    R_Pack_OwnedImage image = MakeRandomImage ("large-image", 1024, 1024);
+    r_pack_owned_image image = MakeRandomImage ("large-image", 1024, 1024);
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
@@ -104,44 +104,44 @@ TEST_F (RPackStressTest, HandlesManySmallImages)
     constexpr uint32_t kImageCount = 100;
     constexpr uint32_t kImageSize = 32;
     
-    R_Pack_EncoderSettings config = {};
+    r_pack_encoder_settings config = {};
     config.maxAtlasWidth = 4096;
     config.maxAtlasHeight = 4096;
     config.padding = 1;
     config.similarityThreshold = 0.125f;
-    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    r_pack_encoder* encoder = r_pack_new_encoder (&config);
     ASSERT_NE (encoder, nullptr);
 
     for (uint32_t i = 0; i < kImageCount; ++i)
     {
         char name[32];
         snprintf (name, sizeof (name), "image-%u", i);
-        R_Pack_OwnedImage image = MakeRandomImage (name, kImageSize, kImageSize);
-        EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
-        R_Pack_DeleteOwnedImage (&image);
+        r_pack_owned_image image = MakeRandomImage (name, kImageSize, kImageSize);
+        EXPECT_EQ (r_pack_encoder_add_image (encoder, &image.image), R_PACK_OK);
+        r_pack_delete_owned_image (&image);
     }
 
-    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    uint64_t size = r_pack_encoder_get_required_size (encoder);
     EXPECT_GT (size, 0u);
     std::vector<uint8_t> output (size);
     uint64_t written = 0;
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
     EXPECT_EQ (written, size);
-    R_Pack_DeleteEncoder (encoder);
+    r_pack_delete_encoder (encoder);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (output.data (), output.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, HandlesHighColorVariation)
 {
-    R_Pack_OwnedImage image = MakeGradientImage ("gradient", 512, 512);
+    r_pack_owned_image image = MakeGradientImage ("gradient", 512, 512);
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
@@ -150,14 +150,14 @@ TEST_F (RPackStressTest, HandlesSolidColorImages)
     constexpr uint32_t kSize = 256;
     std::vector<uint8_t> pixels (kSize * kSize * 4, 128); // All gray
     
-    R_Pack_OwnedImage image = {};
-    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), kSize, kSize, kSize * 4, "solid", &image), R_PACK_OK);
+    r_pack_owned_image image = {};
+    EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), kSize, kSize, kSize * 4, "solid", &image), R_PACK_OK);
     
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
@@ -179,75 +179,75 @@ TEST_F (RPackStressTest, HandlesCheckerboardPattern)
         }
     }
     
-    R_Pack_OwnedImage image = {};
-    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), kSize, kSize, kSize * 4, "checkerboard", &image), R_PACK_OK);
+    r_pack_owned_image image = {};
+    EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), kSize, kSize, kSize * 4, "checkerboard", &image), R_PACK_OK);
     
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, HandlesNonPowerOfTwoDimensions)
 {
-    R_Pack_OwnedImage image = MakeRandomImage ("npot", 123, 456);
+    r_pack_owned_image image = MakeRandomImage ("npot", 123, 456);
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, HandlesVeryWideImage)
 {
-    R_Pack_OwnedImage image = MakeRandomImage ("wide", 2048, 32);
+    r_pack_owned_image image = MakeRandomImage ("wide", 2048, 32);
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, HandlesVeryTallImage)
 {
-    R_Pack_OwnedImage image = MakeRandomImage ("tall", 32, 2048);
+    r_pack_owned_image image = MakeRandomImage ("tall", 32, 2048);
     std::vector<uint8_t> packed = Encode (&image);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (packed.data (), packed.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (packed.data (), packed.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, PerformanceLargeImageEncoding)
 {
-    R_Pack_OwnedImage image = MakeRandomImage ("perf-test", 1024, 1024);
+    r_pack_owned_image image = MakeRandomImage ("perf-test", 1024, 1024);
     
     auto start = std::chrono::high_resolution_clock::now ();
     
-    R_Pack_EncoderSettings config = {};
+    r_pack_encoder_settings config = {};
     config.maxAtlasWidth = 4096;
     config.maxAtlasHeight = 4096;
     config.padding = 1;
     config.similarityThreshold = 0.125f;
-    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    r_pack_encoder* encoder = r_pack_new_encoder (&config);
     ASSERT_NE (encoder, nullptr);
-    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_add_image (encoder, &image.image), R_PACK_OK);
     
-    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    uint64_t size = r_pack_encoder_get_required_size (encoder);
     std::vector<uint8_t> output (size);
     uint64_t written = 0;
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
     
     auto end = std::chrono::high_resolution_clock::now ();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (end - start);
     
-    R_Pack_DeleteEncoder (encoder);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_encoder (encoder);
+    r_pack_delete_owned_image (&image);
     
     // Performance test should complete in reasonable time (< 5 seconds for 1MP image)
     EXPECT_LT (duration.count (), 5000);
@@ -260,32 +260,32 @@ TEST_F (RPackStressTest, PerformanceManySmallImagesEncoding)
     
     auto start = std::chrono::high_resolution_clock::now ();
     
-    R_Pack_EncoderSettings config = {};
+    r_pack_encoder_settings config = {};
     config.maxAtlasWidth = 4096;
     config.maxAtlasHeight = 4096;
     config.padding = 1;
     config.similarityThreshold = 0.125f;
-    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    r_pack_encoder* encoder = r_pack_new_encoder (&config);
     ASSERT_NE (encoder, nullptr);
 
     for (uint32_t i = 0; i < kImageCount; ++i)
     {
         char name[32];
         snprintf (name, sizeof (name), "image-%u", i);
-        R_Pack_OwnedImage image = MakeRandomImage (name, kImageSize, kImageSize);
-        EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
-        R_Pack_DeleteOwnedImage (&image);
+        r_pack_owned_image image = MakeRandomImage (name, kImageSize, kImageSize);
+        EXPECT_EQ (r_pack_encoder_add_image (encoder, &image.image), R_PACK_OK);
+        r_pack_delete_owned_image (&image);
     }
 
-    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    uint64_t size = r_pack_encoder_get_required_size (encoder);
     std::vector<uint8_t> output (size);
     uint64_t written = 0;
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
     
     auto end = std::chrono::high_resolution_clock::now ();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (end - start);
     
-    R_Pack_DeleteEncoder (encoder);
+    r_pack_delete_encoder (encoder);
     
     // Performance test should complete in reasonable time
     EXPECT_LT (duration.count (), 10000);
@@ -293,52 +293,52 @@ TEST_F (RPackStressTest, PerformanceManySmallImagesEncoding)
 
 TEST_F (RPackStressTest, HandlesExtremeSimilarityThreshold)
 {
-    R_Pack_OwnedImage image = MakeGradientImage ("gradient", 256, 256);
+    r_pack_owned_image image = MakeGradientImage ("gradient", 256, 256);
     
-    R_Pack_EncoderSettings config = {};
+    r_pack_encoder_settings config = {};
     config.maxAtlasWidth = 4096;
     config.maxAtlasHeight = 4096;
     config.padding = 1;
     config.similarityThreshold = 0.0f; // No color merging
-    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    r_pack_encoder* encoder = r_pack_new_encoder (&config);
     ASSERT_NE (encoder, nullptr);
-    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_add_image (encoder, &image.image), R_PACK_OK);
     
-    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    uint64_t size = r_pack_encoder_get_required_size (encoder);
     std::vector<uint8_t> output (size);
     uint64_t written = 0;
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
     
-    R_Pack_DeleteEncoder (encoder);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_encoder (encoder);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (output.data (), output.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }
 
 TEST_F (RPackStressTest, HandlesVeryHighSimilarityThreshold)
 {
-    R_Pack_OwnedImage image = MakeGradientImage ("gradient", 256, 256);
+    r_pack_owned_image image = MakeGradientImage ("gradient", 256, 256);
     
-    R_Pack_EncoderSettings config = {};
+    r_pack_encoder_settings config = {};
     config.maxAtlasWidth = 4096;
     config.maxAtlasHeight = 4096;
     config.padding = 1;
     config.similarityThreshold = 1.0f; // Maximum color merging
-    R_Pack_Encoder* encoder = R_Pack_NewEncoder (&config);
+    r_pack_encoder* encoder = r_pack_new_encoder (&config);
     ASSERT_NE (encoder, nullptr);
-    EXPECT_EQ (R_Pack_EncoderAddImage (encoder, &image.image), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_add_image (encoder, &image.image), R_PACK_OK);
     
-    uint64_t size = R_Pack_EncoderGetRequiredSize (encoder);
+    uint64_t size = r_pack_encoder_get_required_size (encoder);
     std::vector<uint8_t> output (size);
     uint64_t written = 0;
-    EXPECT_EQ (R_Pack_EncoderEncode (encoder, output.data (), output.size (), &written), R_PACK_OK);
+    EXPECT_EQ (r_pack_encoder_encode (encoder, output.data (), output.size (), &written), R_PACK_OK);
     
-    R_Pack_DeleteEncoder (encoder);
-    R_Pack_DeleteOwnedImage (&image);
+    r_pack_delete_encoder (encoder);
+    r_pack_delete_owned_image (&image);
 
-    R_Pack_ValidationReport report = {};
-    EXPECT_EQ (R_Pack_ValidatePackedData (output.data (), output.size (), &report), 1);
+    r_pack_validation_report report = {};
+    EXPECT_EQ (r_pack_validate_packed_data (output.data (), output.size (), &report), 1);
     EXPECT_EQ (report.error, R_PACK_OK);
 }

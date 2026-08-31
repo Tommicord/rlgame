@@ -12,10 +12,10 @@
 #include <string.h>
 
 static void
-R_Pack_LogImageWarnings (
+r_pack_log_image_warnings (
     const char*                        pPath,
-    const struct R_Pack_InputImage*    pImage,
-    const struct R_Pack_EncoderSettings* pSettings)
+    const struct r_pack_input_image*    pImage,
+    const struct r_pack_encoder_settings* pSettings)
 {
     uint64_t imageBytes = (uint64_t)pImage->width * pImage->height * 4;
     if (imageBytes > 16ULL * 1024ULL * 1024ULL)
@@ -40,14 +40,14 @@ R_Pack_LogImageWarnings (
 }
 
 R_PACK_API uint32_t
-R_Pack_MipmapDimension (uint32_t source, uint32_t other, uint32_t limit)
+r_pack_mipmap_dimension (uint32_t source, uint32_t other, uint32_t limit)
 {
     uint32_t dimension = source > other ? limit : (uint32_t)(((uint64_t)source * limit) / other);
     return dimension == 0 ? 1 : dimension;
 }
 
 R_PACK_API uint8_t*
-R_Pack_ResizeImageBox (const struct R_Pack_InputImage* pSource, uint32_t width, uint32_t height)
+r_pack_resize_image_box (const struct r_pack_input_image* pSource, uint32_t width, uint32_t height)
 {
     uint8_t* pPixels = (uint8_t*)R_CSTL_HeapAlloc ((size_t)width * height * 4);
     if (!pPixels) return NULL;
@@ -82,9 +82,9 @@ R_Pack_ResizeImageBox (const struct R_Pack_InputImage* pSource, uint32_t width, 
 }
 
 R_PACK_API int
-R_Pack_EncodeAndWrite (struct R_Pack_Encoder* pEncoder, const char* pOutputPath)
+r_pack_encode_and_write (struct r_pack_encoder* pEncoder, const char* pOutputPath)
 {
-    uint64_t requiredSize = R_Pack_EncoderGetRequiredSize (pEncoder);
+    uint64_t requiredSize = r_pack_encoder_get_required_size (pEncoder);
     R_CSTL_LOG_INFO ("Required output size: %llu bytes", (unsigned long long)requiredSize);
 
     if (requiredSize > 32ULL * 1024ULL * 1024ULL)
@@ -102,10 +102,10 @@ R_Pack_EncodeAndWrite (struct R_Pack_Encoder* pEncoder, const char* pOutputPath)
     }
 
     uint64_t          bytesWritten = 0;
-    enum R_Pack_Error encodeErr = R_Pack_EncoderEncode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
+    enum r_pack_error encodeErr = r_pack_encoder_encode (pEncoder, pOutputBuffer, requiredSize, &bytesWritten);
     if (encodeErr != R_PACK_OK)
     {
-        R_CSTL_LOG_ERROR ("Encoding failed: %s", R_Pack_ErrorToString (encodeErr));
+        R_CSTL_LOG_ERROR ("Encoding failed: %s", r_pack_error_to_string (encodeErr));
         R_CSTL_HeapFree (pOutputBuffer);
         return -1;
     }
@@ -128,12 +128,12 @@ R_Pack_EncodeAndWrite (struct R_Pack_Encoder* pEncoder, const char* pOutputPath)
         return -1;
     }
 
-    struct R_Pack_ValidationReport report;
-    if (!R_Pack_ValidatePackedData (pOutputBuffer, bytesWritten, &report))
+    struct r_pack_validation_report report;
+    if (!r_pack_validate_packed_data (pOutputBuffer, bytesWritten, &report))
     {
         R_CSTL_LOG_ERROR (
             "RPACK validation failed: %s at byte %llu (texture %u, pixel %llu)",
-            R_Pack_ErrorToString (report.error),
+            r_pack_error_to_string (report.error),
             (unsigned long long)report.offset,
             report.textureIndex,
             (unsigned long long)report.pixelIndex);
@@ -149,16 +149,16 @@ R_Pack_EncodeAndWrite (struct R_Pack_Encoder* pEncoder, const char* pOutputPath)
     return 0;
 }
 
-struct R_Pack_ImageLoadTask
+struct r_pack_image_load_task
 {
         const char*               pPath;
-        struct R_Pack_InputImage* pImage;
+        struct r_pack_input_image* pImage;
         uint8_t**                 ppPixelBuffer;
         int*                      pResult;
-        struct R_Pack_ThreadPool* pPool;
+        struct r_pack_thread_pool* pPool;
 };
 
-struct R_Pack_ThreadPool
+struct r_pack_thread_pool
 {
         struct R_CSTL_Thread**       ppThreads;
         uint32_t                     threadCount;
@@ -168,30 +168,30 @@ struct R_Pack_ThreadPool
         struct R_CSTL_Mutex*         pTaskMutex;
         struct R_CSTL_Condition*     pTaskAvailable;
         struct R_CSTL_Condition*     pTaskComplete;
-        struct R_Pack_ImageLoadTask* pTasks;
+        struct r_pack_image_load_task* pTasks;
         uint32_t                     taskCount;
         int                          shutdown;
 };
 
-static struct R_Pack_ThreadPool* R_Pack_ThreadPoolCreate (uint32_t workerCount);
+static struct r_pack_thread_pool* r_pack_thread_pool_create (uint32_t workerCount);
 
-static void R_Pack_ThreadPoolDestroy (struct R_Pack_ThreadPool* pPool);
+static void r_pack_thread_pool_destroy (struct r_pack_thread_pool* pPool);
 
-static void R_Pack_WorkerThreadFunc (void* pData);
+static void r_pack_worker_thread_func (void* pData);
 
-static int R_Pack_ThreadPoolStart (struct R_Pack_ThreadPool* pPool);
+static int r_pack_thread_pool_start (struct r_pack_thread_pool* pPool);
 
-static int R_Pack_ThreadPoolSubmitTasks (
-    struct R_Pack_ThreadPool*    pPool,
-    struct R_Pack_ImageLoadTask* pTasks,
+static int r_pack_thread_pool_submit_tasks (
+    struct r_pack_thread_pool*    pPool,
+    struct r_pack_image_load_task* pTasks,
     uint32_t                     taskCount);
 
-static void R_Pack_ThreadPoolWaitAll (struct R_Pack_ThreadPool* pPool);
+static void r_pack_thread_pool_wait_all (struct r_pack_thread_pool* pPool);
 
-static void R_Pack_ThreadPoolShutdown (struct R_Pack_ThreadPool* pPool);
+static void r_pack_thread_pool_shutdown (struct r_pack_thread_pool* pPool);
 
 R_PACK_API int
-R_Pack_HasExtension (const char* pPath, const char* pExtension)
+r_pack_has_extension (const char* pPath, const char* pExtension)
 {
     size_t pathLength = strlen (pPath);
     size_t extensionLength = strlen (pExtension);
@@ -212,7 +212,7 @@ R_Pack_HasExtension (const char* pPath, const char* pExtension)
 }
 
 R_PACK_API int
-R_Pack_MakeVariantPath (const char* pOutputPath, uint32_t size, char** ppVariantPath)
+r_pack_make_variant_path (const char* pOutputPath, uint32_t size, char** ppVariantPath)
 {
     const char* pExtension = strrchr (pOutputPath, '.');
     size_t      stemLength = pExtension ? (size_t)(pExtension - pOutputPath) : strlen (pOutputPath);
@@ -233,8 +233,8 @@ R_Pack_MakeVariantPath (const char* pOutputPath, uint32_t size, char** ppVariant
 }
 
 R_PACK_API int
-R_Pack_EncodeMipmapVariants (
-    const struct R_Pack_EncoderSettings* pSettings,
+r_pack_encode_mipmap_variants (
+    const struct r_pack_encoder_settings* pSettings,
     const struct R_CSTL_Array*         pInputPaths,
     const char*                        pOutputPath)
 {
@@ -243,7 +243,7 @@ R_Pack_EncodeMipmapVariants (
     for (size_t i = 0; i < sizeof (mipmapSizes) / sizeof (mipmapSizes[0]); ++i)
     {
         char* pVariantPath = NULL;
-        if (R_Pack_MakeVariantPath (pOutputPath, mipmapSizes[i], &pVariantPath) != 0)
+        if (r_pack_make_variant_path (pOutputPath, mipmapSizes[i], &pVariantPath) != 0)
         {
             R_CSTL_LOG_ERROR (
                 "Failed to allocate mipmap output path for %ux%u",
@@ -252,7 +252,7 @@ R_Pack_EncodeMipmapVariants (
             return -1;
         }
 
-        struct R_Pack_Encoder* pVariantEncoder = R_Pack_NewEncoder (pSettings);
+        struct r_pack_encoder* pVariantEncoder = r_pack_new_encoder (pSettings);
         if (!pVariantEncoder)
         {
             R_CSTL_LOG_ERROR (
@@ -263,36 +263,36 @@ R_Pack_EncodeMipmapVariants (
             return -1;
         }
 
-        uint32_t successCount = R_Pack_EncodeInputImagesThreaded (
+        uint32_t successCount = r_pack_encode_input_images_threaded (
             pVariantEncoder,
             pInputPaths,
             mipmapSizes[i],
             pSettings->workerCount);
-        if (successCount == 0 || R_Pack_EncodeAndWrite (pVariantEncoder, pVariantPath) != 0)
+        if (successCount == 0 || r_pack_encode_and_write (pVariantEncoder, pVariantPath) != 0)
         {
             R_CSTL_LOG_WARN ("Mipmap level %ux%u was not generated", mipmapSizes[i], mipmapSizes[i]);
-            R_Pack_DeleteEncoder (pVariantEncoder);
+            r_pack_delete_encoder (pVariantEncoder);
             R_CSTL_HeapFree (pVariantPath);
             continue;
         }
         R_CSTL_LOG_INFO ("Generated mipmap variant %s (%u images)", pVariantPath, successCount);
         ++generated;
-        R_Pack_DeleteEncoder (pVariantEncoder);
+        r_pack_delete_encoder (pVariantEncoder);
         R_CSTL_HeapFree (pVariantPath);
     }
     return generated == 0 ? -1 : 0;
 }
 
-static struct R_Pack_ThreadPool*
-R_Pack_ThreadPoolCreate (uint32_t workerCount)
+static struct r_pack_thread_pool*
+r_pack_thread_pool_create (uint32_t workerCount)
 {
-    struct R_Pack_ThreadPool* pPool
-        = (struct R_Pack_ThreadPool*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_ThreadPool));
+    struct r_pack_thread_pool* pPool
+        = (struct r_pack_thread_pool*)R_CSTL_HeapAlloc (sizeof (struct r_pack_thread_pool));
     if (!pPool)
     {
         return NULL;
     }
-    memset (pPool, 0, sizeof (struct R_Pack_ThreadPool));
+    memset (pPool, 0, sizeof (struct r_pack_thread_pool));
 
     pPool->threadCount = workerCount;
     pPool->ppThreads
@@ -339,7 +339,7 @@ R_Pack_ThreadPoolCreate (uint32_t workerCount)
 }
 
 static void
-R_Pack_ThreadPoolDestroy (struct R_Pack_ThreadPool* pPool)
+r_pack_thread_pool_destroy (struct r_pack_thread_pool* pPool)
 {
     if (!pPool)
     {
@@ -379,7 +379,7 @@ R_Pack_ThreadPoolDestroy (struct R_Pack_ThreadPool* pPool)
 }
 
 static int
-R_Pack_LoadAsset (const char* pPath, struct R_Pack_InputImage* pImage, uint8_t** ppPixelBuffer)
+r_pack_load_asset (const char* pPath, struct r_pack_input_image* pImage, uint8_t** ppPixelBuffer)
 {
     if (!pPath || !pImage || !ppPixelBuffer)
     {
@@ -388,17 +388,17 @@ R_Pack_LoadAsset (const char* pPath, struct R_Pack_InputImage* pImage, uint8_t**
     *ppPixelBuffer = NULL;
     memset (pImage, 0, sizeof (*pImage));
 
-    if (!R_Pack_HasExtension (pPath, ".jpg") && !R_Pack_HasExtension (pPath, ".jpeg"))
+    if (!r_pack_has_extension (pPath, ".jpg") && !r_pack_has_extension (pPath, ".jpeg"))
     {
         R_CSTL_LOG_WARN ("Skipping unsupported image format: %s (JPEG expected)", pPath);
         return -1;
     }
 
-    struct R_Pack_JpegImage decoded = {0};
-    enum R_Pack_Error       error = R_Pack_JpegDecodeFile (pPath, &decoded);
+    struct r_pack_jpeg_image decoded = {0};
+    enum r_pack_error       error = r_pack_jpeg_decode_file (pPath, &decoded);
     if (error != R_PACK_OK)
     {
-        fprintf (stderr, "JPEG decode failed for %s: %s\n", pPath, R_Pack_ErrorToString (error));
+        fprintf (stderr, "JPEG decode failed for %s: %s\n", pPath, r_pack_error_to_string (error));
         return -1;
     }
 
@@ -412,9 +412,9 @@ R_Pack_LoadAsset (const char* pPath, struct R_Pack_InputImage* pImage, uint8_t**
 }
 
 static void
-R_Pack_WorkerThreadFunc (void* pData)
+r_pack_worker_thread_func (void* pData)
 {
-    struct R_Pack_ThreadPool* pPool = (struct R_Pack_ThreadPool*)pData;
+    struct r_pack_thread_pool* pPool = (struct r_pack_thread_pool*)pData;
 
     while (1)
     {
@@ -438,10 +438,10 @@ R_Pack_WorkerThreadFunc (void* pData)
         }
 
         R_CSTL_AtomicUint32Inc (&pPool->nextTaskIndex);
-        struct R_Pack_ImageLoadTask task = pPool->pTasks[taskIndex];
+        struct r_pack_image_load_task task = pPool->pTasks[taskIndex];
         R_CSTL_MutexUnlock (pPool->pTaskMutex);
 
-        int loadResult = R_Pack_LoadAsset (task.pPath, task.pImage, task.ppPixelBuffer);
+        int loadResult = r_pack_load_asset (task.pPath, task.pImage, task.ppPixelBuffer);
         *task.pResult = loadResult;
 
         uint32_t completed = R_CSTL_AtomicUint32Inc (&pPool->completedTasks);
@@ -460,11 +460,11 @@ R_Pack_WorkerThreadFunc (void* pData)
 }
 
 static int
-R_Pack_ThreadPoolStart (struct R_Pack_ThreadPool* pPool)
+r_pack_thread_pool_start (struct r_pack_thread_pool* pPool)
 {
     for (uint32_t i = 0; i < pPool->threadCount; ++i)
     {
-        pPool->ppThreads[i] = R_CSTL_NewThread (R_Pack_WorkerThreadFunc, pPool);
+        pPool->ppThreads[i] = R_CSTL_NewThread (r_pack_worker_thread_func, pPool);
         if (!pPool->ppThreads[i])
         {
             pPool->shutdown = 1;
@@ -482,9 +482,9 @@ R_Pack_ThreadPoolStart (struct R_Pack_ThreadPool* pPool)
 }
 
 static int
-R_Pack_ThreadPoolSubmitTasks (
-    struct R_Pack_ThreadPool*    pPool,
-    struct R_Pack_ImageLoadTask* pTasks,
+r_pack_thread_pool_submit_tasks (
+    struct r_pack_thread_pool*    pPool,
+    struct r_pack_image_load_task* pTasks,
     uint32_t                     taskCount)
 {
     pPool->pTasks = pTasks;
@@ -501,7 +501,7 @@ R_Pack_ThreadPoolSubmitTasks (
 }
 
 static void
-R_Pack_ThreadPoolWaitAll (struct R_Pack_ThreadPool* pPool)
+r_pack_thread_pool_wait_all (struct r_pack_thread_pool* pPool)
 {
     R_CSTL_MutexLock (pPool->pTaskMutex);
     while (R_CSTL_AtomicUint32Load (&pPool->completedTasks) < pPool->taskCount)
@@ -512,7 +512,7 @@ R_Pack_ThreadPoolWaitAll (struct R_Pack_ThreadPool* pPool)
 }
 
 static void
-R_Pack_ThreadPoolShutdown (struct R_Pack_ThreadPool* pPool)
+r_pack_thread_pool_shutdown (struct r_pack_thread_pool* pPool)
 {
     if (!pPool)
     {
@@ -525,8 +525,8 @@ R_Pack_ThreadPoolShutdown (struct R_Pack_ThreadPool* pPool)
 }
 
 R_PACK_API uint32_t
-R_Pack_EncodeInputImages (
-    struct R_Pack_Encoder*     pEncoder,
+r_pack_encode_input_images (
+    struct r_pack_encoder*     pEncoder,
     const struct R_CSTL_Array* pInputPaths,
     uint32_t                   mipmapSize)
 {
@@ -552,9 +552,9 @@ R_Pack_EncodeInputImages (
 
         R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
         uint8_t*                 pPixelBuffer = NULL;
-        struct R_Pack_InputImage image = {0};
+        struct r_pack_input_image image = {0};
 
-        int loadResult = R_Pack_LoadAsset (pPath, &image, &pPixelBuffer);
+        int loadResult = r_pack_load_asset (pPath, &image, &pPixelBuffer);
         if (loadResult < 0)
         {
             R_CSTL_LOG_WARN ("Skipping image after load failure: %s", pPath);
@@ -563,9 +563,9 @@ R_Pack_EncodeInputImages (
 
         if (mipmapSize != 0 && (image.width > mipmapSize || image.height > mipmapSize))
         {
-            uint32_t width = R_Pack_MipmapDimension (image.width, image.height, mipmapSize);
-            uint32_t height = R_Pack_MipmapDimension (image.height, image.width, mipmapSize);
-            uint8_t* pResizedPixels = R_Pack_ResizeImageBox (&image, width, height);
+            uint32_t width = r_pack_mipmap_dimension (image.width, image.height, mipmapSize);
+            uint32_t height = r_pack_mipmap_dimension (image.height, image.width, mipmapSize);
+            uint8_t* pResizedPixels = r_pack_resize_image_box (&image, width, height);
             if (!pResizedPixels)
             {
                 R_CSTL_LOG_WARN ("Skipping mipmap level for %s: resize allocation failed", pPath);
@@ -580,12 +580,12 @@ R_Pack_EncodeInputImages (
             image.stride = width * 4;
         }
 
-        R_Pack_LogImageWarnings (pPath, &image, &pEncoder->config);
+        r_pack_log_image_warnings (pPath, &image, &pEncoder->config);
 
-        enum R_Pack_Error err = R_Pack_EncoderAddImage (pEncoder, &image);
+        enum r_pack_error err = r_pack_encoder_add_image (pEncoder, &image);
         if (err != R_PACK_OK)
         {
-            R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, R_Pack_ErrorToString (err));
+            R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, r_pack_error_to_string (err));
             if (pPixelBuffer)
             {
                 R_CSTL_HeapFree (pPixelBuffer);
@@ -603,8 +603,8 @@ R_Pack_EncodeInputImages (
 }
 
 R_PACK_API uint32_t
-R_Pack_EncodeInputImagesThreaded (
-    struct R_Pack_Encoder*     pEncoder,
+r_pack_encode_input_images_threaded (
+    struct r_pack_encoder*     pEncoder,
     const struct R_CSTL_Array* pInputPaths,
     uint32_t                   mipmapSize,
     uint32_t                   workerCount)
@@ -628,26 +628,26 @@ R_Pack_EncodeInputImagesThreaded (
     }
     if (workerCount == 0 || workerCount == 1 || inputCount < 2)
     {
-        return R_Pack_EncodeInputImages (pEncoder, pInputPaths, mipmapSize);
+        return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
-    struct R_Pack_ThreadPool* pPool = R_Pack_ThreadPoolCreate (workerCount);
+    struct r_pack_thread_pool* pPool = r_pack_thread_pool_create (workerCount);
     if (!pPool)
     {
         R_CSTL_LOG_WARN ("Failed to create thread pool, falling back to serial processing");
-        return R_Pack_EncodeInputImages (pEncoder, pInputPaths, mipmapSize);
+        return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
 
-    if (R_Pack_ThreadPoolStart (pPool) != 0)
+    if (r_pack_thread_pool_start (pPool) != 0)
     {
         R_CSTL_LOG_WARN ("Failed to start thread pool, falling back to serial processing");
-        R_Pack_ThreadPoolDestroy (pPool);
-        return R_Pack_EncodeInputImages (pEncoder, pInputPaths, mipmapSize);
+        r_pack_thread_pool_destroy (pPool);
+        return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
 
-    struct R_Pack_ImageLoadTask* pTasks
-        = (struct R_Pack_ImageLoadTask*)R_CSTL_HeapAlloc (inputCount * sizeof (struct R_Pack_ImageLoadTask));
-    struct R_Pack_InputImage* pImages
-        = (struct R_Pack_InputImage*)R_CSTL_HeapAlloc (inputCount * sizeof (struct R_Pack_InputImage));
+    struct r_pack_image_load_task* pTasks
+        = (struct r_pack_image_load_task*)R_CSTL_HeapAlloc (inputCount * sizeof (struct r_pack_image_load_task));
+    struct r_pack_input_image* pImages
+        = (struct r_pack_input_image*)R_CSTL_HeapAlloc (inputCount * sizeof (struct r_pack_input_image));
     uint8_t** ppPixelBuffers = (uint8_t**)R_CSTL_HeapAlloc (inputCount * sizeof (uint8_t*));
     int*      pResults = (int*)R_CSTL_HeapAlloc (inputCount * sizeof (int));
 
@@ -658,9 +658,9 @@ R_Pack_EncodeInputImagesThreaded (
         if (pImages) R_CSTL_HeapFree (pImages);
         if (ppPixelBuffers) R_CSTL_HeapFree (ppPixelBuffers);
         if (pResults) R_CSTL_HeapFree (pResults);
-        R_Pack_ThreadPoolShutdown (pPool);
-        R_Pack_ThreadPoolDestroy (pPool);
-        return R_Pack_EncodeInputImages (pEncoder, pInputPaths, mipmapSize);
+        r_pack_thread_pool_shutdown (pPool);
+        r_pack_thread_pool_destroy (pPool);
+        return r_pack_encode_input_images (pEncoder, pInputPaths, mipmapSize);
     }
     memset (ppPixelBuffers, 0, inputCount * sizeof (uint8_t*));
     memset (pResults, 0, inputCount * sizeof (int));
@@ -677,17 +677,17 @@ R_Pack_EncodeInputImagesThreaded (
         pTasks[i].pPool = pPool;
     }
 
-    R_Pack_ThreadPoolSubmitTasks (pPool, pTasks, (uint32_t)inputCount);
-    R_Pack_ThreadPoolWaitAll (pPool);
-    R_Pack_ThreadPoolShutdown (pPool);
+    r_pack_thread_pool_submit_tasks (pPool, pTasks, (uint32_t)inputCount);
+    r_pack_thread_pool_wait_all (pPool);
+    r_pack_thread_pool_shutdown (pPool);
 
     for (size_t i = 0; i < inputCount; ++i)
     {
-        struct R_Pack_InputImage* pImage = &pImages[i];
+        struct r_pack_input_image* pImage = &pImages[i];
         uint8_t*                  pPixelBuffer = ppPixelBuffers[i];
         int                       loadResult = pResults[i];
 
-        const struct R_Pack_ImageLoadTask* pTask = &pTasks[i];
+        const struct r_pack_image_load_task* pTask = &pTasks[i];
         const char*                        pPath = pTask->pPath;
         R_CSTL_LOG_INFO ("Processing input %zu: %s", i + 1, pPath);
 
@@ -699,9 +699,9 @@ R_Pack_EncodeInputImagesThreaded (
 
         if (mipmapSize != 0 && (pImage->width > mipmapSize || pImage->height > mipmapSize))
         {
-            uint32_t width = R_Pack_MipmapDimension (pImage->width, pImage->height, mipmapSize);
-            uint32_t height = R_Pack_MipmapDimension (pImage->height, pImage->width, mipmapSize);
-            uint8_t* pResizedPixels = R_Pack_ResizeImageBox (pImage, width, height);
+            uint32_t width = r_pack_mipmap_dimension (pImage->width, pImage->height, mipmapSize);
+            uint32_t height = r_pack_mipmap_dimension (pImage->height, pImage->width, mipmapSize);
+            uint8_t* pResizedPixels = r_pack_resize_image_box (pImage, width, height);
             if (!pResizedPixels)
             {
                 R_CSTL_LOG_WARN ("Skipping mipmap level for %s: resize allocation failed", pPath);
@@ -715,12 +715,12 @@ R_Pack_EncodeInputImagesThreaded (
             pImage->height = height;
             pImage->stride = width * 4;
         }
-        R_Pack_LogImageWarnings (pPath, pImage, &pEncoder->config);
+        r_pack_log_image_warnings (pPath, pImage, &pEncoder->config);
 
-        enum R_Pack_Error err = R_Pack_EncoderAddImage (pEncoder, pImage);
+        enum r_pack_error err = r_pack_encoder_add_image (pEncoder, pImage);
         if (err != R_PACK_OK)
         {
-            R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, R_Pack_ErrorToString (err));
+            R_CSTL_LOG_WARN ("Skipping image '%s': %s", pPath, r_pack_error_to_string (err));
             if (pPixelBuffer)
             {
                 R_CSTL_HeapFree (pPixelBuffer);
@@ -739,7 +739,7 @@ R_Pack_EncodeInputImagesThreaded (
     R_CSTL_HeapFree (pImages);
     R_CSTL_HeapFree (ppPixelBuffers);
     R_CSTL_HeapFree (pResults);
-    R_Pack_ThreadPoolDestroy (pPool);
+    r_pack_thread_pool_destroy (pPool);
 
     return successCount;
 }

@@ -12,7 +12,7 @@
  * These flags are used in combination to represent the current state of the game loop.
  * Multiple flags can be set simultaneously using bitwise operations.
  */
-enum R_GameLoopStateFlags
+enum r_game_loop_state_flags
 {
     R_GAMELOOP_STATE_NONE = 0x00, ///< No state flags set
     R_GAMELOOP_STATE_RUNNING = 0x01, ///< Loop is actively running and processing frames
@@ -31,7 +31,7 @@ enum R_GameLoopStateFlags
  * Contains process identification and resource usage information.
  * Used for monitoring and debugging purposes.
  */
-struct R_ProcessInfo
+struct r_process_info
 {
         uint32_t                    pid; ///< Process ID
         const struct R_CSTL_String* pName; ///< Process/executable name (UTF-8 string)
@@ -46,7 +46,7 @@ struct R_ProcessInfo
  * Contains information about system-wide and application-specific memory usage.
  * Values are snapshots at the time of collection and may change over time.
  */
-struct R_MemoryInfo
+struct r_memory_info
 {
         uint64_t totalPhysicalBytes; ///< Total physical RAM in bytes
         uint64_t availablePhysicalBytes; ///< Available RAM in bytes
@@ -62,7 +62,7 @@ struct R_MemoryInfo
  * Contains the parsed command-line arguments passed to the application.
  * The argv pointer is not owned by this structure, but pCmdLine is.
  */
-struct R_ApplicationArgs
+struct r_application_args
 {
         int                argc; ///< Argument count
         const char* const* argv; ///< Pointer to argv array (not owned by this struct)
@@ -76,18 +76,18 @@ struct R_ApplicationArgs
  * version, process ID, command-line arguments, memory usage, and related processes.
  * This structure is populated during application initialization.
  */
-struct R_ApplicationInfo
+struct r_application_info
 {
         const struct R_CSTL_String* pApplicationName; /**< Short application name (UTF-8 string) */
         uint32_t                    applicationVersionMajor; /**< Major version number */
         uint32_t                    applicationVersionMinor; /**< Minor version number */
         uint32_t                    applicationVersionPatch; /**< Patch version number */
         uint32_t                    pid; /**< Current process ID */
-        const struct R_ProcessInfo*
+        const struct r_process_info*
                                  pExistingProcesses; /**< Optional array of related processes (not owned) */
         size_t                   existingProcessCount; /**< Number of entries in pExistingProcesses */
-        struct R_ApplicationArgs args; /**< Startup arguments */
-        struct R_MemoryInfo      memory; /**< Snapshot of memory usage at init */
+        struct r_application_args args; /**< Startup arguments */
+        struct r_memory_info      memory; /**< Snapshot of memory usage at init */
 };
 
 /**
@@ -99,7 +99,7 @@ struct R_ApplicationInfo
  * @param pUserData Optional user data pointer (can be NULL)
  * @return true to continue the game loop, false to request shutdown
  */
-typedef bool (*const R_GameCallback) (const struct R_ApplicationInfo* pAppInfo, void* pUserData);
+typedef bool (*const r_game_callback) (const struct r_application_info* pAppInfo, void* pUserData);
 
 /**
  * @brief Main game loop provider
@@ -108,12 +108,12 @@ typedef bool (*const R_GameCallback) (const struct R_ApplicationInfo* pAppInfo, 
  * The stateFlags field is atomic and should be accessed using the provided
  * state management functions for thread safety.
  */
-struct R_MainProvider
+struct r_main_provider
 {
-        R_GameCallback                  pExecCallback; /**< Pointer to game loop function */
-        const struct R_ApplicationInfo* pAppInfo; /**< Pointer to application info (not owned) */
+        r_game_callback                  pExecCallback; /**< Pointer to game loop function */
+        const struct r_application_info* pAppInfo; /**< Pointer to application info (not owned) */
         void*                           pUserData; /**< Optional user data pointer (not owned) */
-        volatile uint8_t                stateFlags; /**< Atomic state flags (R_GameLoopStateFlags) */
+        volatile uint8_t                stateFlags; /**< Atomic state flags (r_game_loop_state_flags) */
 };
 
 /**
@@ -122,9 +122,9 @@ struct R_MainProvider
  * Thread-safe operation to set specific state flags on the provider.
  *
  * @param pProvider Pointer to the main provider
- * @param flags State flags to set (bitwise OR of R_GameLoopStateFlags)
+ * @param flags State flags to set (bitwise OR of r_game_loop_state_flags)
  */
-void R_GameLoop_SetState (struct R_MainProvider* pProvider, uint8_t flags);
+void r_game_loop_set_state (struct r_main_provider* pProvider, uint8_t flags);
 
 /**
  * @brief Clears game loop state flags using atomic operations
@@ -132,9 +132,9 @@ void R_GameLoop_SetState (struct R_MainProvider* pProvider, uint8_t flags);
  * Thread-safe operation to clear specific state flags from the provider.
  *
  * @param pProvider Pointer to the main provider
- * @param flags State flags to clear (bitwise OR of R_GameLoopStateFlags)
+ * @param flags State flags to clear (bitwise OR of r_game_loop_state_flags)
  */
-void R_GameLoop_ClearState (struct R_MainProvider* pProvider, uint8_t flags);
+void r_game_loop_clear_state (struct r_main_provider* pProvider, uint8_t flags);
 
 /**
  * @brief Gets the current game loop state flags
@@ -142,9 +142,9 @@ void R_GameLoop_ClearState (struct R_MainProvider* pProvider, uint8_t flags);
  * Thread-safe operation to retrieve all current state flags.
  *
  * @param pProvider Pointer to the main provider
- * @return Current state flags (bitwise combination of R_GameLoopStateFlags)
+ * @return Current state flags (bitwise combination of r_game_loop_state_flags)
  */
-uint8_t R_GameLoop_GetState (const struct R_MainProvider* pProvider);
+uint8_t r_game_loop_get_state (const struct r_main_provider* pProvider);
 
 /**
  * @brief Checks if specific state flags are set
@@ -152,10 +152,10 @@ uint8_t R_GameLoop_GetState (const struct R_MainProvider* pProvider);
  * Thread-safe operation to check if all specified flags are currently set.
  *
  * @param pProvider Pointer to the main provider
- * @param flags State flags to check (bitwise OR of R_GameLoopStateFlags)
+ * @param flags State flags to check (bitwise OR of r_game_loop_state_flags)
  * @return true if all specified flags are set, false otherwise
  */
-bool R_GameLoop_HasState (const struct R_MainProvider* pProvider, uint8_t flags);
+bool r_game_loop_has_state (const struct r_main_provider* pProvider, uint8_t flags);
 
 /**
  * @brief Checks if the game loop is currently running
@@ -165,7 +165,7 @@ bool R_GameLoop_HasState (const struct R_MainProvider* pProvider, uint8_t flags)
  * @param pProvider Pointer to the main provider
  * @return true if the loop is running, false otherwise
  */
-bool R_GameLoop_IsRunning (const struct R_MainProvider* pProvider);
+bool r_game_loop_is_running (const struct r_main_provider* pProvider);
 
 /**
  * @brief Checks if the game loop is currently paused
@@ -175,7 +175,7 @@ bool R_GameLoop_IsRunning (const struct R_MainProvider* pProvider);
  * @param pProvider Pointer to the main provider
  * @return true if the loop is paused, false otherwise
  */
-bool R_GameLoop_IsPaused (const struct R_MainProvider* pProvider);
+bool r_game_loop_is_paused (const struct r_main_provider* pProvider);
 
 /**
  * @brief Checks if the game loop is being destroyed
@@ -185,7 +185,7 @@ bool R_GameLoop_IsPaused (const struct R_MainProvider* pProvider);
  * @param pProvider Pointer to the main provider
  * @return true if the loop is being destroyed, false otherwise
  */
-bool R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider);
+bool r_game_loop_is_destroyed (const struct r_main_provider* pProvider);
 
 /**
  * @brief Runs the main game loop
@@ -196,7 +196,7 @@ bool R_GameLoop_IsDestroyed (const struct R_MainProvider* pProvider);
  *
  * @param pProvider Pointer to the main provider with configured callback and app info
  */
-void R_MainProvider_Run (struct R_MainProvider* pProvider);
+void r_main_provider_Run (struct r_main_provider* pProvider);
 
 /**
  * @brief Stops the main game loop
@@ -206,7 +206,7 @@ void R_MainProvider_Run (struct R_MainProvider* pProvider);
  *
  * @param pProvider Pointer to the main provider
  */
-void R_MainProvider_Stop (struct R_MainProvider* pProvider);
+void r_main_provider_Stop (struct r_main_provider* pProvider);
 
 /**
  * @brief Launches the main provider with a game callback
@@ -215,9 +215,9 @@ void R_MainProvider_Stop (struct R_MainProvider* pProvider);
  * This is a convenience function that wraps provider creation and execution.
  *
  * @param pExecCallback Game loop callback function to invoke each frame
- * @param pUserData User data pointer (typically R_ApplicationInfo*)
+ * @param pUserData User data pointer (typically r_application_info*)
  */
-void R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData);
+void r_launch_main_provider (r_game_callback pExecCallback, const void* pUserData);
 
 /**
  * @brief Populates application information from command-line arguments
@@ -229,7 +229,7 @@ void R_LaunchMainProvider (R_GameCallback pExecCallback, const void* pUserData);
  * @param argc Argument count from main()
  * @param argv Argument array from main()
  */
-void R_PopulateApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv);
+void r_populate_application_info (struct r_application_info* info, int argc, char** argv);
 
 /**
  * @brief Initializes basic application information fields
@@ -241,7 +241,7 @@ void R_PopulateApplicationInfo (struct R_ApplicationInfo* info, int argc, char**
  * @param argc Argument count from main()
  * @param argv Argument array from main()
  */
-void R_InitializeApplicationInfo (struct R_ApplicationInfo* info, int argc, char** argv);
+void r_initialize_application_info (struct r_application_info* info, int argc, char** argv);
 
 /**
  * @brief Builds a command-line string from argc/argv
@@ -253,7 +253,7 @@ void R_InitializeApplicationInfo (struct R_ApplicationInfo* info, int argc, char
  * @param argc Argument count from main()
  * @param argv Argument array from main()
  */
-void R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv);
+void r_build_command_line (struct r_application_info* info, int argc, char** argv);
 
 /**
  * @brief Fills memory information structure with current system stats
@@ -263,7 +263,7 @@ void R_BuildCommandLine (struct R_ApplicationInfo* info, int argc, char** argv);
  *
  * @param out Pointer to MemoryInfo structure to populate
  */
-void R_FillMemoryInfo (struct R_MemoryInfo* out);
+void r_fill_memory_info (struct r_memory_info* out);
 
 /**
  * @brief Assigns a process name to a ProcessInfo structure
@@ -277,4 +277,4 @@ void R_FillMemoryInfo (struct R_MemoryInfo* out);
  * @param argv Argument array from main()
  */
 void
-R_AssignProcessName (struct R_ProcessInfo* pProc, const struct R_CSTL_String* pExePath, int argc, char** argv);
+r_assign_process_name (struct r_process_info* pProc, const struct R_CSTL_String* pExePath, int argc, char** argv);

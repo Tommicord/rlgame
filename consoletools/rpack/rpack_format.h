@@ -11,7 +11,7 @@
 /**
  * @brief RPACK file header
  */
-struct R_Pack_Header
+struct r_pack_header
 {
         union
         {
@@ -34,7 +34,7 @@ struct R_Pack_Header
 /**
  * @brief Hash table entry for texture lookup
  */
-struct R_Pack_HashEntry
+struct r_pack_hash_entry
 {
         uint64_t nameHash; /**< xxHash64 of texture name */
         uint32_t atlasOffsetX; /**< X offset in atlas */
@@ -48,7 +48,7 @@ struct R_Pack_HashEntry
 /**
  * @brief Color table entry (YUV-like encoding)
  */
-struct R_Pack_ColorEntry
+struct r_pack_color_entry
 {
         uint8_t luminance; /**< Luminance (Y) 8 bits */
         uint8_t luminanceExp; /**< Luminance exponent 8 bits */
@@ -59,7 +59,7 @@ struct R_Pack_ColorEntry
 /**
  * @brief Pixel index table entry for run-length encoding
  */
-struct R_Pack_PixelIndexEntry
+struct r_pack_pixel_index_entry
 {
         uint8_t  exponent; /**< Exponent multiplier (8 bits) */
         uint16_t colorIndex; /**< Index into color table (12 bits) */
@@ -75,7 +75,7 @@ struct R_Pack_PixelIndexEntry
  * @param seed Seed value (use 0 for default)
  * @return 64-bit hash value
  */
-uint64_t R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed);
+uint64_t r_pack_hash64 (const void* pData, size_t length, uint64_t seed);
 
 /**
  * @brief Compute xxHash64 of a null-terminated string
@@ -83,18 +83,18 @@ uint64_t R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed);
  * @param seed Seed value (use 0 for default)
  * @return 64-bit hash value
  */
-uint64_t R_Pack_Hash64String (const char* pStr, uint64_t seed);
+uint64_t r_pack_hash64_string (const char* pStr, uint64_t seed);
 
 /**
  * @brief Validate RPACK header
  * @param header Pointer to header to validate
  * @return 1 if valid, 0 otherwise
  */
-int R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader);
+int r_pack_validate_header (const struct r_pack_header* pHeader);
 
 /**
  * @brief Get total expected file size from header
  * @param header Pointer to valid header
  * @return Expected file size in bytes
  */
-uint64_t R_Pack_GetExpectedFileSize (const struct R_Pack_Header* pHeader);
+uint64_t r_pack_get_expected_file_size (const struct r_pack_header* pHeader);

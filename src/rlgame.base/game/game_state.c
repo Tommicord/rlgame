@@ -7,7 +7,7 @@
 #include <string.h>
 
 R_GAME_API enum R_CVulkan_Error
-R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo)
+r_game_state_Initialize (struct r_game_state* pState, const struct r_game_state_create_info* pCreateInfo)
 {
     if (!pState || !pCreateInfo)
     {
@@ -15,7 +15,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
     }
     memset (pState, 0, sizeof (*pState));
 
-    struct R_Game_PipelineContextCreateInfo pipelineCreateInfo = {0};
+    struct r_game_pipeline_context_create_info pipelineCreateInfo = {0};
     pipelineCreateInfo.pApplicationName = pCreateInfo->pApplicationName;
     pipelineCreateInfo.windowWidth = pCreateInfo->windowWidth;
     pipelineCreateInfo.windowHeight = pCreateInfo->windowHeight;
@@ -37,63 +37,63 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
     pipelineCreateInfo.pNSWindow = pCreateInfo->pNSWindow;
 #endif
 
-    enum R_GameError result = R_Game_NewPipelineContext (&pState->context, &pipelineCreateInfo);
+    enum r_game_error result = r_game_new_pipeline_context (&pState->context, &pipelineCreateInfo);
     if (result != R_GAME_OK)
     {
         R_CSTL_LOG_ERROR (
             "GameState: Failed to initialize Vulkan pipeline context (error: %s)",
-            R_GameErrorToString (result));
+            r_game_error_to_string (result));
         return R_CVULKAN_ERROR_FAILED;
     }
 
-    pState->pRendererManager = R_GameRenderer_NewManager (&pState->context);
+    pState->pRendererManager = r_game_renderer_new_manager (&pState->context);
     if (pState->pRendererManager == NULL)
     {
         R_CSTL_LOG_ERROR ("GameState: Failed to create renderer manager");
-        R_Game_PipelineContextDelete (&pState->context);
+        r_game_pipeline_context_delete (&pState->context);
         return R_CVULKAN_ERROR_FAILED;
     }
     R_CSTL_LOG_INFO ("GameState: Initialized");
     return R_CVULKAN_OK;
 }
 R_GAME_API void
-R_GameState_Cleanup (struct R_GameState* pState)
+r_game_state_Cleanup (struct r_game_state* pState)
 {
     if (pState->pRendererManager)
     {
-        R_GameRenderer_DeleteManager (pState->pRendererManager);
+        r_game_renderer_delete_manager (pState->pRendererManager);
         pState->pRendererManager = NULL;
     }
-    R_Game_PipelineContextDelete (&pState->context);
+    r_game_pipeline_context_delete (&pState->context);
     memset (pState, 0, sizeof (*pState));
 }
 
-R_GAME_API struct R_Game_PipelineContext*
-R_GameState_GetVulkanContext (struct R_GameState* pState)
+R_GAME_API struct r_game_pipeline_context*
+r_game_state_get_vulkan_context (struct r_game_state* pState)
 {
     return &pState->context;
 }
 
-R_GAME_API struct R_Game_RendererManager*
-R_GameState_GetRendererManager (struct R_GameState* pState)
+R_GAME_API struct r_game_renderer_manager*
+r_game_state_get_renderer_manager (struct r_game_state* pState)
 {
     return pState->pRendererManager;
 }
 
 R_GAME_API int
-R_GameState_RenderFrame (struct R_GameState* pState)
+r_game_state_render_frame (struct r_game_state* pState)
 {
     if (pState->pRendererManager == NULL)
     {
         return R_GAME_ERROR_NOT_INITIALIZED;
     }
 
-    if (R_GameRenderer_ComposeFrame (pState->pRendererManager) != R_GAME_OK)
+    if (r_game_renderer_compose_frame (pState->pRendererManager) != R_GAME_OK)
     {
         return R_GAME_ERROR_FAILED;
     }
 
-    if (R_GameRenderer_PresentFrame (pState->pRendererManager) != R_GAME_OK)
+    if (r_game_renderer_present_frame (pState->pRendererManager) != R_GAME_OK)
     {
         return R_GAME_ERROR_FAILED;
     }

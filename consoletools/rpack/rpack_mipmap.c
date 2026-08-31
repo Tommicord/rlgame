@@ -12,7 +12,7 @@
 #ifdef R_CUDA
 #include <cuda_runtime.h>
 
-extern cudaError_t R_Pack_MipmapLaunchBoxFilter (
+extern cudaError_t r_pack_mipmap_launch_box_filter (
     const void*  pSource,
     void*        pDestination,
     uint32_t     sourceWidth,
@@ -21,7 +21,7 @@ extern cudaError_t R_Pack_MipmapLaunchBoxFilter (
     uint32_t     destinationHeight,
     cudaStream_t stream);
 
-extern cudaError_t R_Pack_MipmapLaunchGaussianFilter (
+extern cudaError_t r_pack_mipmap_launch_gaussian_filter (
     const void*  pSource,
     void*        pDestination,
     uint32_t     sourceWidth,
@@ -39,10 +39,10 @@ extern const uint32_t rpackMipmap_size;
 extern const uint32_t rpackMipmap_data[];
 #endif
 
-#define R_PACK_MIPMAP_BOX_FILTER_NAME      "R_Pack_MipmapBoxFilterKernel"
-#define R_PACK_MIPMAP_GAUSSIAN_FILTER_NAME "R_Pack_MipmapGaussianFilterKernel"
+#define R_PACK_MIPMAP_BOX_FILTER_NAME      "r_pack_mipmap_box_filter_kernel"
+#define R_PACK_MIPMAP_GAUSSIAN_FILTER_NAME "r_pack_mipmap_gaussian_filter_kernel"
 
-enum R_Pack_MipmapBackend
+enum r_pack_mipmap_backend
 {
     R_PACK_MIPMAP_BACKEND_CPU = 0,
     R_PACK_MIPMAP_BACKEND_CUDA = 1,
@@ -50,9 +50,9 @@ enum R_Pack_MipmapBackend
     R_PACK_MIPMAP_BACKEND_NONE = 3
 };
 
-struct R_Pack_MipmapContext
+struct r_pack_mipmap_context
 {
-        enum R_Pack_MipmapBackend backend;
+        enum r_pack_mipmap_backend backend;
 
 #ifdef R_CUDA
         cudaStream_t cudaStream;
@@ -68,27 +68,27 @@ struct R_Pack_MipmapContext
 #endif
 };
 
-static int R_Pack_MipmapResizeCPU (
-    const struct R_Pack_InputImage* pSource,
+static int r_pack_mipmap_resizeCPU (
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma);
 
 #ifdef R_CUDA
-static int R_Pack_MipmapResizeCUDA (
-    struct R_Pack_MipmapContext*    pContext,
-    const struct R_Pack_InputImage* pSource,
+static int r_pack_mipmap_resizeCUDA (
+    struct r_pack_mipmap_context*    pContext,
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma);
 #endif
 
 #ifdef R_OPENCL
-static int R_Pack_MipmapExecuteKernel (
+static int r_pack_mipmap_execute_kernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -102,23 +102,23 @@ static int R_Pack_MipmapExecuteKernel (
     size_t        globalWorkSize[2],
     size_t        localWorkSize[2]);
 
-static int R_Pack_MipmapResizeOpenCL (
-    struct R_Pack_MipmapContext*    pContext,
-    const struct R_Pack_InputImage* pSource,
+static int r_pack_mipmap_resize_openCL (
+    struct r_pack_mipmap_context*    pContext,
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma);
 #endif
 
 static int
-R_Pack_MipmapResizeCPU (
-    const struct R_Pack_InputImage* pSource,
+r_pack_mipmap_resizeCPU (
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -197,13 +197,13 @@ R_Pack_MipmapResizeCPU (
 
 #ifdef R_CUDA
 static int
-R_Pack_MipmapResizeCUDA (
-    struct R_Pack_MipmapContext*    pContext,
-    const struct R_Pack_InputImage* pSource,
+r_pack_mipmap_resizeCUDA (
+    struct r_pack_mipmap_context*    pContext,
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -249,7 +249,7 @@ R_Pack_MipmapResizeCUDA (
     }
 
     if (filter == R_PACK_MIPMAP_FILTER_GAUSSIAN)
-        cudaError = R_Pack_MipmapLaunchGaussianFilter (
+        cudaError = r_pack_mipmap_launch_gaussian_filter (
             dSource,
             dDestination,
             pSource->width,
@@ -259,7 +259,7 @@ R_Pack_MipmapResizeCUDA (
             sigma,
             pContext->cudaStream);
     else
-        cudaError = R_Pack_MipmapLaunchBoxFilter (
+        cudaError = r_pack_mipmap_launch_box_filter (
             dSource,
             dDestination,
             pSource->width,
@@ -302,7 +302,7 @@ r_cleanup_source:
 
 #ifdef R_OPENCL
 static int
-R_Pack_MipmapExecuteKernel (
+r_pack_mipmap_execute_kernel (
     cl_context    context,
     cl_device_id  device,
     const char*   kernelName,
@@ -397,13 +397,13 @@ r_cleanup:
 }
 
 static int
-R_Pack_MipmapResizeOpenCL (
-    struct R_Pack_MipmapContext*    pContext,
-    const struct R_Pack_InputImage* pSource,
+r_pack_mipmap_resize_openCL (
+    struct r_pack_mipmap_context*    pContext,
+    const struct r_pack_input_image* pSource,
     uint8_t*                        pDestination,
     uint32_t                        destWidth,
     uint32_t                        destHeight,
-    enum R_Pack_MipmapFilter        filter,
+    enum r_pack_mipmap_filter        filter,
     float                           sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
@@ -491,7 +491,7 @@ R_Pack_MipmapResizeOpenCL (
         argCount = 7;
     }
 
-    result = R_Pack_MipmapExecuteKernel (
+    result = r_pack_mipmap_execute_kernel (
         pContext->openclContext,
         pContext->openclDevice,
         kernelName,
@@ -533,8 +533,8 @@ r_cleanup:
 }
 #endif
 
-static enum R_Pack_MipmapBackend
-R_Pack_MipmapSelectBackend (void)
+static enum r_pack_mipmap_backend
+r_pack_mipmap_select_backend (void)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -566,18 +566,18 @@ R_Pack_MipmapSelectBackend (void)
 }
 
 R_PACK_API int
-R_Pack_MipmapInitialize (
+r_pack_mipmap_initialize (
     void*                         pContext,
     void*                         pDevice,
     void*                         pQueue,
     const char*                   pKernelSource,
     size_t                        kernelSourceSize,
-    struct R_Pack_MipmapContext** ppOutContext)
+    struct r_pack_mipmap_context** ppOutContext)
 {
     R_CSTL_TRACE_FUNCTION ();
 
     int                          result = R_PACK_MIPMAP_OK;
-    struct R_Pack_MipmapContext* pMipmap = NULL;
+    struct r_pack_mipmap_context* pMipmap = NULL;
     (void)pContext;
     (void)pDevice;
     (void)pQueue;
@@ -590,7 +590,7 @@ R_Pack_MipmapInitialize (
         return R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT;
     }
 
-    pMipmap = (struct R_Pack_MipmapContext*)R_CSTL_HeapAlloc (sizeof (*pMipmap));
+    pMipmap = (struct r_pack_mipmap_context*)R_CSTL_HeapAlloc (sizeof (*pMipmap));
     if (!pMipmap)
     {
         R_CSTL_TRACE_RETURN ();
@@ -598,7 +598,7 @@ R_Pack_MipmapInitialize (
     }
 
     memset (pMipmap, 0, sizeof (*pMipmap));
-    pMipmap->backend = R_Pack_MipmapSelectBackend ();
+    pMipmap->backend = r_pack_mipmap_select_backend ();
 
     if (pMipmap->backend == R_PACK_MIPMAP_BACKEND_CUDA)
     {
@@ -715,7 +715,7 @@ r_exit:
 }
 
 R_PACK_API void
-R_Pack_MipmapShutdown (struct R_Pack_MipmapContext* pContext)
+r_pack_mipmap_shutdown (struct r_pack_mipmap_context* pContext)
 {
     R_CSTL_TRACE_FUNCTION ();
 
@@ -746,27 +746,27 @@ R_Pack_MipmapShutdown (struct R_Pack_MipmapContext* pContext)
 }
 
 R_PACK_API int
-R_Pack_MipmapDispatch (
-    struct R_Pack_MipmapContext* pContext,
+r_pack_mipmap_dispatch (
+    struct r_pack_mipmap_context* pContext,
     void*                        pSource,
     void*                        pDestination,
     uint32_t                     sourceWidth,
     uint32_t                     sourceHeight,
     uint32_t                     destinationWidth,
     uint32_t                     destinationHeight,
-    enum R_Pack_MipmapFilter     filter,
+    enum r_pack_mipmap_filter     filter,
     float                        sigma)
 {
     R_CSTL_TRACE_FUNCTION ();
 
-    struct R_Pack_InputImage sourceImage
+    struct r_pack_input_image sourceImage
         = {.pPixels = (const uint8_t*)pSource,
            .width = sourceWidth,
            .height = sourceHeight,
            .stride = sourceWidth * 4,
            .pName = NULL};
 #if defined(R_CUDA)
-    return R_Pack_MipmapResizeCUDA (
+    return r_pack_mipmap_resizeCUDA (
         pContext,
         &sourceImage,
         (uint8_t*)pDestination,
@@ -775,7 +775,7 @@ R_Pack_MipmapDispatch (
         filter,
         sigma);
 #elif defined(R_OPENCL)
-    return R_Pack_MipmapResizeOpenCL (
+    return r_pack_mipmap_resize_openCL (
         pContext,
         &sourceImage,
         (uint8_t*)pDestination,
@@ -784,7 +784,7 @@ R_Pack_MipmapDispatch (
         filter,
         sigma);
 #endif
-    return R_Pack_MipmapResizeCPU (
+    return r_pack_mipmap_resizeCPU (
         &sourceImage,
         (uint8_t*)pDestination,
         destinationWidth,

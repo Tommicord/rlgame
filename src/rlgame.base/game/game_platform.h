@@ -101,9 +101,9 @@
 #endif
 
 /**
- * @brief R_Game wrapper error codes
+ * @brief r_game wrapper error codes
  */
-enum R_GameError
+enum r_game_error
 {
     R_GAME_OK = 0, /**< Success */
     R_GAME_ERROR_FAILED = -1, /**< General failure */
@@ -130,7 +130,7 @@ enum R_GameError
     R_GAME_ERROR_UNKNOWN = -99 /**< Unknown error */
 };
 
-R_GAME_API const char* R_GameErrorToString (enum R_GameError error);
+R_GAME_API const char* r_game_error_to_string (enum r_game_error error);
 
 #define R_GAME_RENDERER_MAX_FRAMES_IN_FLIGHT          3
 #define R_GAME_RENDERER_MAX_LAYERS                    16

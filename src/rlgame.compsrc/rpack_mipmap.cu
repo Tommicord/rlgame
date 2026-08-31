@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 
-struct R_Pack_MipmapContext
+struct r_pack_mipmap_context
 {
     cudaStream_t stream;
 };
@@ -14,7 +14,7 @@ struct R_Pack_MipmapContext
 #include <math.h>
 #include <stdlib.h>
 
-struct R_Pack_MipmapContext
+struct r_pack_mipmap_context
 {
     cudaStream_t stream;
 };
@@ -29,7 +29,7 @@ struct R_Pack_MipmapContext
  * @param dstHeight Destination height
  */
 __global__ void
-R_Pack_MipmapBoxFilterKernel (
+r_pack_mipmap_box_filter_kernel (
     const uchar4* srcPixels,
     uchar4*       dstPixels,
     uint32_t      srcWidth,
@@ -93,7 +93,7 @@ R_Pack_MipmapBoxFilterKernel (
  * @param sigma Gaussian sigma value
  */
 __global__ void
-R_Pack_MipmapGaussianFilterKernel (
+r_pack_mipmap_gaussian_filter_kernel (
     const uchar4* srcPixels,
     uchar4*       dstPixels,
     uint32_t      srcWidth,
@@ -158,33 +158,33 @@ R_Pack_MipmapGaussianFilterKernel (
 }
 
 extern "C" cudaError_t
-R_Pack_MipmapLaunchBoxFilter (const void* pSource, void* pDestination, uint32_t sourceWidth,
+r_pack_mipmap_launch_box_filter (const void* pSource, void* pDestination, uint32_t sourceWidth,
                               uint32_t sourceHeight, uint32_t destinationWidth, uint32_t destinationHeight,
                               cudaStream_t stream)
 {
     dim3 block (16, 16);
     dim3 grid ((destinationWidth + block.x - 1) / block.x, (destinationHeight + block.y - 1) / block.y);
-    R_Pack_MipmapBoxFilterKernel<<<grid, block, 0, stream>>> (
+    r_pack_mipmap_box_filter_kernel<<<grid, block, 0, stream>>> (
         (const uchar4*)pSource, (uchar4*)pDestination, sourceWidth, sourceHeight, destinationWidth, destinationHeight);
     return cudaGetLastError ();
 }
 
 extern "C" cudaError_t
-R_Pack_MipmapLaunchGaussianFilter (const void* pSource, void* pDestination, uint32_t sourceWidth,
+r_pack_mipmap_launch_gaussian_filter (const void* pSource, void* pDestination, uint32_t sourceWidth,
                                    uint32_t sourceHeight, uint32_t destinationWidth, uint32_t destinationHeight,
                                    float sigma, cudaStream_t stream)
 {
     if (!(sigma > 0.0f) || !isfinite (sigma)) return cudaErrorInvalidValue;
     dim3 block (16, 16);
     dim3 grid ((destinationWidth + block.x - 1) / block.x, (destinationHeight + block.y - 1) / block.y);
-    R_Pack_MipmapGaussianFilterKernel<<<grid, block, 0, stream>>> (
+    r_pack_mipmap_gaussian_filter_kernel<<<grid, block, 0, stream>>> (
         (const uchar4*)pSource, (uchar4*)pDestination, sourceWidth, sourceHeight, destinationWidth, destinationHeight, sigma);
     return cudaGetLastError ();
 }
 
 extern "C" int
-R_Pack_MipmapInitialize (void* pContext, void* pDevice, void* pQueue, const char* pKernelSource,
-                         size_t kernelSourceSize, struct R_Pack_MipmapContext** ppOutContext)
+r_pack_mipmap_initialize (void* pContext, void* pDevice, void* pQueue, const char* pKernelSource,
+                         size_t kernelSourceSize, struct r_pack_mipmap_context** ppOutContext)
 {
     (void)pContext;
     (void)pDevice;
@@ -193,7 +193,7 @@ R_Pack_MipmapInitialize (void* pContext, void* pDevice, void* pQueue, const char
     R_PACK_ASSERT (pQueue != NULL, R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
     R_PACK_ASSERT (ppOutContext != NULL, R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
 
-    struct R_Pack_MipmapContext* pMipmap = calloc (1, sizeof (*pMipmap));
+    struct r_pack_mipmap_context* pMipmap = calloc (1, sizeof (*pMipmap));
     if (!pMipmap) return R_PACK_MIPMAP_ERROR_INITIALIZATION;
     pMipmap->stream = (cudaStream_t)pQueue;
     *ppOutContext = pMipmap;
@@ -201,15 +201,15 @@ R_Pack_MipmapInitialize (void* pContext, void* pDevice, void* pQueue, const char
 }
 
 extern "C" void
-R_Pack_MipmapShutdown (struct R_Pack_MipmapContext* pContext)
+r_pack_mipmap_shutdown (struct r_pack_mipmap_context* pContext)
 {
     free (pContext);
 }
 
 extern "C" int
-R_Pack_MipmapDispatch (struct R_Pack_MipmapContext* pContext, void* pSource, void* pDestination,
+r_pack_mipmap_dispatch (struct r_pack_mipmap_context* pContext, void* pSource, void* pDestination,
                        uint32_t sourceWidth, uint32_t sourceHeight, uint32_t destinationWidth,
-                       uint32_t destinationHeight, enum R_Pack_MipmapFilter filter, float sigma)
+                       uint32_t destinationHeight, enum r_pack_mipmap_filter filter, float sigma)
 {
     R_PACK_ASSERT (pContext != NULL && pSource != NULL && pDestination != NULL,
                              R_PACK_MIPMAP_ERROR_INVALID_ARGUMENT);
@@ -220,12 +220,12 @@ R_Pack_MipmapDispatch (struct R_Pack_MipmapContext* pContext, void* pSource, voi
     cudaError_t error;
     if (filter == R_PACK_MIPMAP_FILTER_GAUSSIAN)
     {
-        error = R_Pack_MipmapLaunchGaussianFilter (pSource, pDestination, sourceWidth, sourceHeight,
+        error = r_pack_mipmap_launch_gaussian_filter (pSource, pDestination, sourceWidth, sourceHeight,
                                                    destinationWidth, destinationHeight, sigma, pContext->stream);
     }
     else
     {
-        error = R_Pack_MipmapLaunchBoxFilter (pSource, pDestination, sourceWidth, sourceHeight,
+        error = r_pack_mipmap_launch_box_filter (pSource, pDestination, sourceWidth, sourceHeight,
                                               destinationWidth, destinationHeight, pContext->stream);
     }
     return error == cudaSuccess ? R_PACK_MIPMAP_OK : R_PACK_MIPMAP_ERROR_DISPATCH;

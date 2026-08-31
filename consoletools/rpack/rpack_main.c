@@ -15,7 +15,7 @@
 #include <math.h>
 
 static void
-R_Pack_LogSettingsurationWarnings (const struct R_Pack_EncoderSettings* pSettings)
+r_pack_log_settingsuration_warnings (const struct r_pack_encoder_settings* pSettings)
 {
     uint64_t atlasBytes = (uint64_t)pSettings->maxAtlasWidth * pSettings->maxAtlasHeight * 2;
     if (atlasBytes > 32ULL * 1024ULL * 1024ULL)
@@ -29,7 +29,7 @@ R_Pack_LogSettingsurationWarnings (const struct R_Pack_EncoderSettings* pSetting
 }
 
 static void
-R_Pack_PrintHelp ()
+r_pack_print_help ()
 {
     printf ("Usage\n");
     printf ("  [options] -o OUTPUT.rpack INPUT1 [INPUT2 ...]\n\n");
@@ -52,10 +52,10 @@ R_Pack_PrintHelp ()
 }
 
 static int
-R_Pack_ParseArguments (
+r_pack_parse_arguments (
     int                            argc,
     char**                         argv,
-    struct R_Pack_EncoderSettings* pSettings,
+    struct r_pack_encoder_settings* pSettings,
     char**                         ppOutputPath,
     struct R_CSTL_Array**          ppInputPaths,
     int*                           pVerbose,
@@ -87,7 +87,7 @@ R_Pack_ParseArguments (
     {
         if (strcmp (argv[i], "--help") == 0 || strcmp (argv[i], "-h") == 0)
         {
-            R_Pack_PrintHelp ();
+            r_pack_print_help ();
             return 1;
         }
         else if (strcmp (argv[i], "-o") == 0 || strcmp (argv[i], "--output") == 0)
@@ -234,21 +234,21 @@ main (int argc, char** argv)
     }
     if (argc == 1)
     {
-        R_Pack_PrintHelp ();
+        r_pack_print_help ();
         R_CSTL_HeapShutdown ();
         return EXIT_SUCCESS;
     }
-    struct R_Pack_EncoderSettings config = {0};
+    struct r_pack_encoder_settings config = {0};
     char*                         pOutputPath = NULL;
     struct R_CSTL_Array*          pInputPaths = NULL;
-    struct R_Pack_Encoder*        pEncoder = NULL;
+    struct r_pack_encoder*        pEncoder = NULL;
     int                           verbose = 0;
     int                           quiet = 0;
     int                           mipmap = 0;
     int                           result = EXIT_FAILURE;
 
     int parseResult
-        = R_Pack_ParseArguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
+        = r_pack_parse_arguments (argc, argv, &config, &pOutputPath, &pInputPaths, &verbose, &quiet, &mipmap);
     if (parseResult == 1)
     {
         R_CSTL_DeleteArray (pInputPaths);
@@ -270,7 +270,7 @@ main (int argc, char** argv)
         R_CSTL_LogSetMinLevel (R_CSTL_LOG_LEVEL_ERROR);
     }
     R_CSTL_LOG_INFO ("Packing assets as RPACK");
-    R_Pack_LogSettingsurationWarnings (&config);
+    r_pack_log_settingsuration_warnings (&config);
 
     size_t      inputCount = 0;
     size_t      inputOffset = 0;
@@ -283,25 +283,25 @@ main (int argc, char** argv)
         ++inputCount;
         inputOffset += pathLength + 1;
     }
-    pEncoder = R_Pack_NewEncoder (&config);
+    pEncoder = r_pack_new_encoder (&config);
     if (!pEncoder)
     {
         goto r_cleanup_logging;
     }
 
     R_CSTL_LOG_INFO ("Encoding %zu image(s)", inputCount);
-    uint32_t successCount = R_Pack_EncodeInputImagesThreaded (pEncoder, pInputPaths, 0, config.workerCount);
+    uint32_t successCount = r_pack_encode_input_images_threaded (pEncoder, pInputPaths, 0, config.workerCount);
 
     if (successCount == 0)
     {
         R_CSTL_LOG_ERROR ("No images were processed");
         goto r_cleanup_encoder;
     }
-    if (R_Pack_EncodeAndWrite (pEncoder, pOutputPath) != 0)
+    if (r_pack_encode_and_write (pEncoder, pOutputPath) != 0)
     {
         goto r_cleanup_encoder;
     }
-    if (mipmap && R_Pack_EncodeMipmapVariants (&config, pInputPaths, pOutputPath) != 0)
+    if (mipmap && r_pack_encode_mipmap_variants (&config, pInputPaths, pOutputPath) != 0)
     {
         R_CSTL_LOG_ERROR ("Mipmap generation failed for every requested level");
         goto r_cleanup_encoder;
@@ -309,7 +309,7 @@ main (int argc, char** argv)
     R_CSTL_LOG_INFO ("Packing completed");
     result = EXIT_SUCCESS;
 r_cleanup_encoder:
-    R_Pack_DeleteEncoder (pEncoder);
+    r_pack_delete_encoder (pEncoder);
 r_cleanup_logging:
     R_CSTL_LogShutdown ();
 r_cleanup_input_paths:

@@ -24,7 +24,7 @@
 /**
  * @brief R_RPACK wrapper error codes
  */
-enum R_Pack_Error
+enum r_pack_error
 {
     R_PACK_OK = 0,
     R_PACK_ERROR_FAILED = -1,
@@ -44,4 +44,4 @@ enum R_Pack_Error
     R_PACK_ERROR_UNKNOWN = -99
 };
 
-R_PACK_API const char* R_Pack_ErrorToString (enum R_Pack_Error error);
+R_PACK_API const char* r_pack_error_to_string (enum r_pack_error error);

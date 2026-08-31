@@ -21,34 +21,34 @@ protected:
 TEST_F (RPackInputTest, CopiesRawRgbaWithStride)
 {
     std::array<uint8_t, 16> pixels = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    R_Pack_OwnedImage output = {};
-    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 1, 2, 8, "raw", &output), R_PACK_OK);
+    r_pack_owned_image output = {};
+    EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), 1, 2, 8, "raw", &output), R_PACK_OK);
     ASSERT_NE (output.pPixels, nullptr);
     EXPECT_EQ (output.image.width, 1u);
     EXPECT_EQ (output.image.height, 2u);
     EXPECT_EQ (output.image.stride, 8u);
     EXPECT_EQ (output.pPixels[15], 16);
-    R_Pack_DeleteOwnedImage (&output);
+    r_pack_delete_owned_image (&output);
 }
 
 TEST_F (RPackInputTest, RejectsShortRawBuffer)
 {
     std::array<uint8_t, 3> pixels = {};
-    R_Pack_OwnedImage output = {};
-    EXPECT_EQ (R_Pack_InputFromRawRGBA (pixels.data (), pixels.size (), 1, 1, 4, "raw", &output),
+    r_pack_owned_image output = {};
+    EXPECT_EQ (r_pack_input_from_rawRGBA (pixels.data (), pixels.size (), 1, 1, 4, "raw", &output),
                R_PACK_ERROR_INVALID_ARGUMENT);
 }
 
 TEST_F (RPackInputTest, RejectsMalformedBase64)
 {
-    R_Pack_OwnedImage output = {};
-    EXPECT_EQ (R_Pack_InputFromBase64 ("!!!!", 4, "bad", &output), R_PACK_ERROR_INVALID_FORMAT);
+    r_pack_owned_image output = {};
+    EXPECT_EQ (r_pack_input_from_base64 ("!!!!", 4, "bad", &output), R_PACK_ERROR_INVALID_FORMAT);
     EXPECT_EQ (output.pPixels, nullptr);
 }
 
 TEST_F (RPackInputTest, RejectsInvalidEncodedBytes)
 {
     const std::array<uint8_t, 4> bytes = {0, 1, 2, 3};
-    R_Pack_OwnedImage output = {};
-    EXPECT_EQ (R_Pack_InputFromBytes (bytes.data (), bytes.size (), "bad", &output), R_PACK_ERROR_INVALID_FORMAT);
+    r_pack_owned_image output = {};
+    EXPECT_EQ (r_pack_input_from_bytes (bytes.data (), bytes.size (), "bad", &output), R_PACK_ERROR_INVALID_FORMAT);
 }

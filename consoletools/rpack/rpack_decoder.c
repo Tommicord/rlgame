@@ -5,52 +5,52 @@
 #include "rlgame.base/cstl/cstl_log.h"
 #include <string.h>
 
-struct R_Pack_Decoder*
-R_Pack_NewDecoder (const uint8_t* pData, uint64_t dataSize)
+struct r_pack_decoder*
+r_pack_new_decoder (const uint8_t* pData, uint64_t dataSize)
 {
     if (!pData || dataSize < R_PACK_HEADER_SIZE)
     {
         return NULL;
     }
-    if (!R_Pack_DecoderValidateFile (pData, dataSize))
+    if (!r_pack_decoder_validate_file (pData, dataSize))
     {
         return NULL;
     }
 
-    struct R_Pack_Decoder* pDecoder
-        = (struct R_Pack_Decoder*)R_CSTL_HeapAlloc (sizeof (struct R_Pack_Decoder));
+    struct r_pack_decoder* pDecoder
+        = (struct r_pack_decoder*)R_CSTL_HeapAlloc (sizeof (struct r_pack_decoder));
     if (!pDecoder)
     {
         return NULL;
     }
 
-    memset (pDecoder, 0, sizeof (struct R_Pack_Decoder));
+    memset (pDecoder, 0, sizeof (struct r_pack_decoder));
     pDecoder->pData = pData;
     pDecoder->dataSize = dataSize;
 
-    pDecoder->pHeader = (struct R_Pack_Header*)pData;
+    pDecoder->pHeader = (struct r_pack_header*)pData;
 
     if (pDecoder->pHeader->textureCount > 0)
     {
-        pDecoder->pHashTable = (struct R_Pack_HashEntry*)(pData + pDecoder->pHeader->hashTableOffset);
+        pDecoder->pHashTable = (struct r_pack_hash_entry*)(pData + pDecoder->pHeader->hashTableOffset);
     }
 
     if (pDecoder->pHeader->colorTableSize > 0)
     {
-        pDecoder->pColorTable = (struct R_Pack_ColorEntry*)(pData + pDecoder->pHeader->colorTableOffset);
+        pDecoder->pColorTable = (struct r_pack_color_entry*)(pData + pDecoder->pHeader->colorTableOffset);
     }
 
     if (pDecoder->pHeader->pixelIndexTableSize > 0)
     {
         pDecoder->pPixelIndexTable
-            = (struct R_Pack_PixelIndexEntry*)(pData + pDecoder->pHeader->pixelIndexTableOffset);
+            = (struct r_pack_pixel_index_entry*)(pData + pDecoder->pHeader->pixelIndexTableOffset);
     }
 
     return pDecoder;
 }
 
 void
-R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder)
+r_pack_delete_decoder (struct r_pack_decoder* pDecoder)
 {
     if (!pDecoder)
     {
@@ -61,27 +61,27 @@ R_Pack_DeleteDecoder (struct R_Pack_Decoder* pDecoder)
 }
 
 int
-R_Pack_DecoderValidateFile (const uint8_t* pData, uint64_t dataSize)
+r_pack_decoder_validate_file (const uint8_t* pData, uint64_t dataSize)
 {
     if (!pData || dataSize < R_PACK_HEADER_SIZE)
     {
         return 0;
     }
 
-    const struct R_Pack_Header* pHeader = (const struct R_Pack_Header*)pData;
-    uint64_t                    expectedSize = R_Pack_GetExpectedFileSize (pHeader);
+    const struct r_pack_header* pHeader = (const struct r_pack_header*)pData;
+    uint64_t                    expectedSize = r_pack_get_expected_file_size (pHeader);
     return expectedSize != 0 && expectedSize <= dataSize;
 }
 
-const struct R_Pack_HashEntry*
-R_Pack_DecoderFindTexture (const struct R_Pack_Decoder* pDecoder, const char* pName)
+const struct r_pack_hash_entry*
+r_pack_decoder_find_texture (const struct r_pack_decoder* pDecoder, const char* pName)
 {
     if (!pDecoder || !pDecoder->pHeader || !pName)
     {
         return NULL;
     }
 
-    uint64_t nameHash = R_Pack_Hash64String (pName, 0);
+    uint64_t nameHash = r_pack_hash64_string (pName, 0);
 
     for (uint32_t i = 0; i < pDecoder->pHeader->textureCount; ++i)
     {
@@ -95,7 +95,7 @@ R_Pack_DecoderFindTexture (const struct R_Pack_Decoder* pDecoder, const char* pN
 }
 
 uint32_t
-R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder* pDecoder)
+r_pack_decoder_get_texture_count (const struct r_pack_decoder* pDecoder)
 {
     if (!pDecoder || !pDecoder->pHeader)
     {
@@ -104,9 +104,9 @@ R_Pack_DecoderGetTextureCount (const struct R_Pack_Decoder* pDecoder)
     return pDecoder->pHeader->textureCount;
 }
 
-enum R_Pack_Error
-R_Pack_DecoderGetTextureDimensions (
-    const struct R_Pack_Decoder* pDecoder,
+enum r_pack_error
+r_pack_decoder_get_texture_dimensions (
+    const struct r_pack_decoder* pDecoder,
     const char*                  pName,
     uint32_t*                    pWidth,
     uint32_t*                    pHeight)
@@ -116,7 +116,7 @@ R_Pack_DecoderGetTextureDimensions (
         return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct R_Pack_HashEntry* pEntry = R_Pack_DecoderFindTexture (pDecoder, pName);
+    const struct r_pack_hash_entry* pEntry = r_pack_decoder_find_texture (pDecoder, pName);
     if (!pEntry)
     {
         return R_PACK_ERROR_TEXTURE_NOT_FOUND;
@@ -129,10 +129,10 @@ R_Pack_DecoderGetTextureDimensions (
 }
 
 uint64_t
-R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* pDecoder, const char* pName)
+r_pack_decoder_get_texture_size (const struct r_pack_decoder* pDecoder, const char* pName)
 {
     uint32_t width = 0, height = 0;
-    if (R_Pack_DecoderGetTextureDimensions (pDecoder, pName, &width, &height) != R_PACK_OK)
+    if (r_pack_decoder_get_texture_dimensions (pDecoder, pName, &width, &height) != R_PACK_OK)
     {
         return 0;
     }
@@ -140,7 +140,7 @@ R_Pack_DecoderGetTextureSize (const struct R_Pack_Decoder* pDecoder, const char*
 }
 
 uint64_t
-R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char** pNames, uint32_t nameCount)
+r_pack_decoder_get_textures_size (const struct r_pack_decoder* pDecoder, const char** pNames, uint32_t nameCount)
 {
     if (!pDecoder || !pNames || nameCount == 0)
     {
@@ -150,14 +150,14 @@ R_Pack_DecoderGetTexturesSize (const struct R_Pack_Decoder* pDecoder, const char
     uint64_t totalSize = 0;
     for (uint32_t i = 0; i < nameCount; ++i)
     {
-        totalSize += R_Pack_DecoderGetTextureSize (pDecoder, pNames[i]);
+        totalSize += r_pack_decoder_get_texture_size (pDecoder, pNames[i]);
     }
     return totalSize;
 }
 
-enum R_Pack_Error
-R_Pack_DecoderDecodeTexture (
-    const struct R_Pack_Decoder* pDecoder,
+enum r_pack_error
+r_pack_decoder_decode_texture (
+    const struct r_pack_decoder* pDecoder,
     const char*                  pName,
     uint8_t*                     pOutputBuffer,
     uint64_t                     outputBufferSize,
@@ -168,7 +168,7 @@ R_Pack_DecoderDecodeTexture (
         return R_PACK_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct R_Pack_HashEntry* pEntry = R_Pack_DecoderFindTexture (pDecoder, pName);
+    const struct r_pack_hash_entry* pEntry = r_pack_decoder_find_texture (pDecoder, pName);
     if (!pEntry)
     {
         return R_PACK_ERROR_TEXTURE_NOT_FOUND;
@@ -184,8 +184,8 @@ R_Pack_DecoderDecodeTexture (
     uint32_t startIndex = pEntry->pixelIndexTableOffset;
 
     // Prefetch color table for better cache locality
-    const struct R_Pack_ColorEntry* pColorTable = pDecoder->pColorTable;
-    const struct R_Pack_PixelIndexEntry* pPixelIndexTable = pDecoder->pPixelIndexTable;
+    const struct r_pack_color_entry* pColorTable = pDecoder->pColorTable;
+    const struct r_pack_pixel_index_entry* pPixelIndexTable = pDecoder->pPixelIndexTable;
 
     // Process RLE-encoded pixel index table (horizontal-only RLE)
     uint32_t currentX = 0;
@@ -199,16 +199,16 @@ R_Pack_DecoderDecodeTexture (
             return R_PACK_ERROR_INVALID_DATA;
         }
 
-        const struct R_Pack_PixelIndexEntry* pPixelEntry = &pPixelIndexTable[startIndex + tableIndex];
+        const struct r_pack_pixel_index_entry* pPixelEntry = &pPixelIndexTable[startIndex + tableIndex];
         if (pPixelEntry->colorIndex >= pDecoder->pHeader->colorTableSize)
         {
             return R_PACK_ERROR_INVALID_DATA;
         }
 
-        const struct R_Pack_ColorEntry* pColorEntry = &pColorTable[pPixelEntry->colorIndex];
+        const struct r_pack_color_entry* pColorEntry = &pColorTable[pPixelEntry->colorIndex];
 
         uint8_t r, g, b;
-        R_Pack_YUVToRGBA (
+        r_pack_YUVToRGBA (
             pColorEntry->luminance,
             pColorEntry->luminanceExp,
             pColorEntry->chrominanceU,
@@ -252,9 +252,9 @@ R_Pack_DecoderDecodeTexture (
     return R_PACK_OK;
 }
 
-enum R_Pack_Error
-R_Pack_DecoderDecodeTextures (
-    const struct R_Pack_Decoder* pDecoder,
+enum r_pack_error
+r_pack_decoder_decode_textures (
+    const struct r_pack_decoder* pDecoder,
     const char**                 pNames,
     uint32_t                     nameCount,
     uint8_t*                     pOutputBuffer,
@@ -268,7 +268,7 @@ R_Pack_DecoderDecodeTextures (
     uint64_t offset = 0;
     for (uint32_t i = 0; i < nameCount; ++i)
     {
-        uint64_t textureSize = R_Pack_DecoderGetTextureSize (pDecoder, pNames[i]);
+        uint64_t textureSize = r_pack_decoder_get_texture_size (pDecoder, pNames[i]);
         if (textureSize == 0)
         {
             return R_PACK_ERROR_TEXTURE_NOT_FOUND;
@@ -279,7 +279,7 @@ R_Pack_DecoderDecodeTextures (
             return R_PACK_ERROR_BUFFER_TOO_SMALL;
         }
         uint64_t          written = 0;
-        enum R_Pack_Error err = R_Pack_DecoderDecodeTexture (
+        enum r_pack_error err = r_pack_decoder_decode_texture (
             pDecoder,
             pNames[i],
             pOutputBuffer + offset,

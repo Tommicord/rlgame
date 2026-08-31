@@ -28,7 +28,7 @@
 /**
  * @brief Linux window backend type
  */
-enum R_Game_LinuxBackend
+enum r_game_linux_backend
 {
     R_GAME_LINUX_BACKEND_WAYLAND = 0,
     R_GAME_LINUX_BACKEND_X11 = 1,
@@ -38,7 +38,7 @@ enum R_Game_LinuxBackend
 /**
  * @brief Settingsuration parameters for pipeline context creation
  */
-struct R_Game_PipelineContextCreateInfo
+struct r_game_pipeline_context_create_info
 {
         const char* pApplicationName;
         int         windowWidth;
@@ -47,7 +47,7 @@ struct R_Game_PipelineContextCreateInfo
         HINSTANCE hInstance;
         HWND      hWnd;
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        enum R_Game_LinuxBackend linuxBackend;
+        enum r_game_linux_backend linuxBackend;
         struct wl_display*       pDisplay;
         struct wl_surface*       pSurface;
         Display*                 pX11Display;
@@ -67,7 +67,7 @@ struct R_Game_PipelineContextCreateInfo
  * This structure holds all the Vulkan objects needed for rendering
  * and compute operations.
  */
-struct R_Game_PipelineContext
+struct r_game_pipeline_context
 {
         struct R_CVulkan_Instance     instance;
         struct R_CVulkan_Device       device;
@@ -96,16 +96,16 @@ struct R_Game_PipelineContext
  * @param pCreateInfo create info
  * @return CVULKAN_API R_CVULKAN_OK on success, error code otherwise
  */
-R_GAME_API enum R_GameError R_Game_NewPipelineContext (
-    struct R_Game_PipelineContext*                 pContext,
-    const struct R_Game_PipelineContextCreateInfo* pCreateInfo);
+R_GAME_API enum r_game_error r_game_new_pipeline_context (
+    struct r_game_pipeline_context*                 pContext,
+    const struct r_game_pipeline_context_create_info* pCreateInfo);
 
 /**
  * @brief Deletes the Vulkan pipeline context
  *
  * @param pContext Pointer to the pipeline context to delete
  */
-R_GAME_API void R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pContext);
+R_GAME_API void r_game_pipeline_context_delete (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the graphics queue
@@ -114,7 +114,7 @@ R_GAME_API void R_Game_PipelineContextDelete (struct R_Game_PipelineContext* pCo
  * @return Pointer to the graphics queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_Game_PipelineContextGetGraphicsQueue (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_graphics_queue (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the compute queue
@@ -123,7 +123,7 @@ R_Game_PipelineContextGetGraphicsQueue (struct R_Game_PipelineContext* pContext)
  * @return Pointer to the compute queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_Game_PipelineContextGetComputeQueue (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_compute_queue (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the transfer queue
@@ -132,7 +132,7 @@ R_Game_PipelineContextGetComputeQueue (struct R_Game_PipelineContext* pContext);
  * @return Pointer to the transfer queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_Game_PipelineContextGetTransferQueue (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_transfer_queue (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the present queue
@@ -141,7 +141,7 @@ R_Game_PipelineContextGetTransferQueue (struct R_Game_PipelineContext* pContext)
  * @return Pointer to the present queue
  */
 R_GAME_API struct R_CVulkan_Queue*
-R_Game_PipelineContextGetPresentQueue (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_present_queue (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the graphics command pool
@@ -150,7 +150,7 @@ R_Game_PipelineContextGetPresentQueue (struct R_Game_PipelineContext* pContext);
  * @return Pointer to the graphics command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_Game_PipelineContextGetGraphicsCommandPool (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_graphics_command_pool (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the compute command pool
@@ -159,7 +159,7 @@ R_Game_PipelineContextGetGraphicsCommandPool (struct R_Game_PipelineContext* pCo
  * @return Pointer to the compute command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_Game_PipelineContextGetComputeCommandPool (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_compute_command_pool (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the transfer command pool
@@ -168,7 +168,7 @@ R_Game_PipelineContextGetComputeCommandPool (struct R_Game_PipelineContext* pCon
  * @return Pointer to the transfer command pool
  */
 R_GAME_API struct R_CVulkan_CommandPool*
-R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_transfer_command_pool (struct r_game_pipeline_context* pContext);
 
 /**
  * @brief Get the device
@@ -176,15 +176,15 @@ R_Game_PipelineContextGetTransferCommandPool (struct R_Game_PipelineContext* pCo
  * @param pContext Pointer to the pipeline context
  * @return Pointer to the device
  */
-R_GAME_API struct R_CVulkan_Device* R_Game_PipelineContextGetDevice (struct R_Game_PipelineContext* pContext);
+R_GAME_API struct R_CVulkan_Device* r_game_pipeline_context_get_device (struct r_game_pipeline_context* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
-R_Game_PipelineContextGetImageAvailableSemaphore (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_image_available_semaphore (struct r_game_pipeline_context* pContext);
 
 R_GAME_API struct R_CVulkan_Semaphore*
-R_Game_PipelineContextGetRenderFinishedSemaphore (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_render_finished_semaphore (struct r_game_pipeline_context* pContext);
 
 R_GAME_API struct R_CVulkan_Fence*
-R_Game_PipelineContextGetInFlightFence (struct R_Game_PipelineContext* pContext);
+r_game_pipeline_context_get_in_flight_fence (struct r_game_pipeline_context* pContext);
 
-R_GAME_API uint32_t* R_Game_PipelineContextGetCurrentFrameIndex (struct R_Game_PipelineContext* pContext);
+R_GAME_API uint32_t* r_game_pipeline_context_get_current_frame_index (struct r_game_pipeline_context* pContext);

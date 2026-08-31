@@ -29,16 +29,16 @@
  * rendering pipeline, renderer manager, and game-specific data. It is designed to be
  * managed by the main game loop with clear initialization/cleanup phases.
  */
-struct R_GameState
+struct r_game_state
 {
-        struct R_Game_PipelineContext context; /**< Vulkan rendering pipeline context */
-        struct R_Game_RendererManager* pRendererManager; /**< Multi-renderer manager */
+        struct r_game_pipeline_context context; /**< Vulkan rendering pipeline context */
+        struct r_game_renderer_manager* pRendererManager; /**< Multi-renderer manager */
 };
 
 /**
  * @brief Linux window backend type
  */
-enum R_Game_LinuxBackend
+enum r_game_linux_backend
 {
     R_GAME_LINUX_BACKEND_WAYLAND = 0,
     R_GAME_LINUX_BACKEND_X11 = 1,
@@ -48,7 +48,7 @@ enum R_Game_LinuxBackend
 /**
  * @brief Settingsuration parameters for game state initialization
  */
-struct R_GameStateCreateInfo
+struct r_game_state_create_info
 {
         const char* pApplicationName; /**< Application name */
         int         windowWidth; /**< Initial window width */
@@ -57,7 +57,7 @@ struct R_GameStateCreateInfo
         HINSTANCE hInstance; /**< Windows instance handle (required if not headless) */
         HWND      hWnd; /**< Windows window handle (required if not headless) */
 #elif defined(R_CVULKAN_PLATFORM_LINUX)
-        enum R_Game_LinuxBackend linuxBackend; /**< Linux window backend */
+        enum r_game_linux_backend linuxBackend; /**< Linux window backend */
         struct wl_display*       pDisplay; /**< Wayland display connection (required if not headless) */
         struct wl_surface*       pSurface; /**< Wayland surface (required if not headless) */
         Display*                 pX11Display; /**< X11 display connection (required if not headless) */
@@ -83,7 +83,7 @@ struct R_GameStateCreateInfo
  * @return R_CVULKAN_OK on success, error code otherwise
  */
 R_GAME_API enum R_CVulkan_Error
-R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCreateInfo* pCreateInfo);
+r_game_state_Initialize (struct r_game_state* pState, const struct r_game_state_create_info* pCreateInfo);
 
 /**
  * @brief Cleanup the game state
@@ -93,7 +93,7 @@ R_GameState_Initialize (struct R_GameState* pState, const struct R_GameStateCrea
  *
  * @param pState Pointer to game state to cleanup
  */
-R_GAME_API void R_GameState_Cleanup (struct R_GameState* pState);
+R_GAME_API void r_game_state_Cleanup (struct r_game_state* pState);
 
 /**
  * @brief Get the Vulkan pipeline context
@@ -101,7 +101,7 @@ R_GAME_API void R_GameState_Cleanup (struct R_GameState* pState);
  * @param pState Pointer to game state
  * @return Pointer to Vulkan pipeline context, or NULL if not initialized
  */
-R_GAME_API struct R_Game_PipelineContext* R_GameState_GetVulkanContext (struct R_GameState* pState);
+R_GAME_API struct r_game_pipeline_context* r_game_state_get_vulkan_context (struct r_game_state* pState);
 
 /**
  * @brief Get the renderer manager
@@ -109,7 +109,7 @@ R_GAME_API struct R_Game_PipelineContext* R_GameState_GetVulkanContext (struct R
  * @param pState Pointer to game state
  * @return Pointer to renderer manager, or NULL if not initialized
  */
-R_GAME_API struct R_Game_RendererManager* R_GameState_GetRendererManager (struct R_GameState* pState);
+R_GAME_API struct r_game_renderer_manager* r_game_state_get_renderer_manager (struct r_game_state* pState);
 
 /**
  * @brief Render a frame using the renderer manager
@@ -120,4 +120,4 @@ R_GAME_API struct R_Game_RendererManager* R_GameState_GetRendererManager (struct
  * @param pState Pointer to game state
  * @return 0 on success, -1 on error
  */
-R_GAME_API int R_GameState_RenderFrame (struct R_GameState* pState);
+R_GAME_API int r_game_state_render_frame (struct r_game_state* pState);

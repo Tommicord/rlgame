@@ -1,7 +1,7 @@
 #include "rlgame.base/game/game_platform.h"
 
 R_GAME_API const char*
-R_GameErrorToString (enum R_GameError error)
+r_game_error_to_string (enum r_game_error error)
 {
     switch (error)
     {

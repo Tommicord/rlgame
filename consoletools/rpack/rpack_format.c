@@ -12,13 +12,13 @@
 #define R_PACK_PRIME64_5 0x27D4EB2F165667C5ULL
 
 static inline uint64_t
-R_Pack_Rotl64 (uint64_t value, int count)
+r_pack_rotl64 (uint64_t value, int count)
 {
     return (value << count) | (value >> (64 - count));
 }
 
 uint64_t
-R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed)
+r_pack_hash64 (const void* pData, size_t length, uint64_t seed)
 {
     const uint8_t* p = (const uint8_t*)pData;
     const uint8_t* end = p + length;
@@ -35,48 +35,48 @@ R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed)
         do
         {
             v1 += *(const uint64_t*)p * R_PACK_PRIME64_2;
-            v1 = R_Pack_Rotl64 (v1, 31);
+            v1 = r_pack_rotl64 (v1, 31);
             v1 *= R_PACK_PRIME64_1;
             p += 8;
 
             v2 += *(const uint64_t*)p * R_PACK_PRIME64_2;
-            v2 = R_Pack_Rotl64 (v2, 31);
+            v2 = r_pack_rotl64 (v2, 31);
             v2 *= R_PACK_PRIME64_1;
             p += 8;
 
             v3 += *(const uint64_t*)p * R_PACK_PRIME64_2;
-            v3 = R_Pack_Rotl64 (v3, 31);
+            v3 = r_pack_rotl64 (v3, 31);
             v3 *= R_PACK_PRIME64_1;
             p += 8;
 
             v4 += *(const uint64_t*)p * R_PACK_PRIME64_2;
-            v4 = R_Pack_Rotl64 (v4, 31);
+            v4 = r_pack_rotl64 (v4, 31);
             v4 *= R_PACK_PRIME64_1;
             p += 8;
         } while (p <= limit);
 
-        h64 = R_Pack_Rotl64 (v1, 1) + R_Pack_Rotl64 (v2, 7) + R_Pack_Rotl64 (v3, 12) + R_Pack_Rotl64 (v4, 18);
+        h64 = r_pack_rotl64 (v1, 1) + r_pack_rotl64 (v2, 7) + r_pack_rotl64 (v3, 12) + r_pack_rotl64 (v4, 18);
 
         v1 *= R_PACK_PRIME64_2;
-        v1 = R_Pack_Rotl64 (v1, 31);
+        v1 = r_pack_rotl64 (v1, 31);
         v1 *= R_PACK_PRIME64_1;
         h64 ^= v1;
         h64 = h64 * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
 
         v2 *= R_PACK_PRIME64_2;
-        v2 = R_Pack_Rotl64 (v2, 31);
+        v2 = r_pack_rotl64 (v2, 31);
         v2 *= R_PACK_PRIME64_1;
         h64 ^= v2;
         h64 = h64 * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
 
         v3 *= R_PACK_PRIME64_2;
-        v3 = R_Pack_Rotl64 (v3, 31);
+        v3 = r_pack_rotl64 (v3, 31);
         v3 *= R_PACK_PRIME64_1;
         h64 ^= v3;
         h64 = h64 * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
 
         v4 *= R_PACK_PRIME64_2;
-        v4 = R_Pack_Rotl64 (v4, 31);
+        v4 = r_pack_rotl64 (v4, 31);
         v4 *= R_PACK_PRIME64_1;
         h64 ^= v4;
         h64 = h64 * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
@@ -86,24 +86,24 @@ R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed)
     {
         uint64_t k1 = *(const uint64_t*)p;
         k1 *= R_PACK_PRIME64_2;
-        k1 = R_Pack_Rotl64 (k1, 31);
+        k1 = r_pack_rotl64 (k1, 31);
         k1 *= R_PACK_PRIME64_1;
         h64 ^= k1;
-        h64 = R_Pack_Rotl64 (h64, 27) * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
+        h64 = r_pack_rotl64 (h64, 27) * R_PACK_PRIME64_1 + R_PACK_PRIME64_4;
         p += 8;
     }
 
     if (p + 4 <= end)
     {
         h64 ^= *(const uint32_t*)p * R_PACK_PRIME64_1;
-        h64 = R_Pack_Rotl64 (h64, 23) * R_PACK_PRIME64_2 + R_PACK_PRIME64_3;
+        h64 = r_pack_rotl64 (h64, 23) * R_PACK_PRIME64_2 + R_PACK_PRIME64_3;
         p += 4;
     }
 
     while (p < end)
     {
         h64 ^= (*p) * R_PACK_PRIME64_5;
-        h64 = R_Pack_Rotl64 (h64, 11) * R_PACK_PRIME64_1;
+        h64 = r_pack_rotl64 (h64, 11) * R_PACK_PRIME64_1;
         p++;
     }
 
@@ -117,14 +117,14 @@ R_Pack_Hash64 (const void* pData, size_t length, uint64_t seed)
 }
 
 uint64_t
-R_Pack_Hash64String (const char* pStr, uint64_t seed)
+r_pack_hash64_string (const char* pStr, uint64_t seed)
 {
     if (pStr == NULL) return 0;
-    return R_Pack_Hash64 (pStr, strlen (pStr), seed);
+    return r_pack_hash64 (pStr, strlen (pStr), seed);
 }
 
 int
-R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader)
+r_pack_validate_header (const struct r_pack_header* pHeader)
 {
     if (!pHeader)
     {
@@ -144,17 +144,17 @@ R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader)
         return 0;
     }
 
-    uint64_t hashTableSize = (uint64_t)pHeader->textureCount * sizeof (struct R_Pack_HashEntry);
-    uint64_t colorTableSize = (uint64_t)pHeader->colorTableSize * sizeof (struct R_Pack_ColorEntry);
+    uint64_t hashTableSize = (uint64_t)pHeader->textureCount * sizeof (struct r_pack_hash_entry);
+    uint64_t colorTableSize = (uint64_t)pHeader->colorTableSize * sizeof (struct r_pack_color_entry);
     uint64_t pixelIndexTableSize
-        = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct R_Pack_PixelIndexEntry);
+        = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct r_pack_pixel_index_entry);
     uint64_t atlasDataSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
     if (pHeader->textureCount != 0
-            && hashTableSize / sizeof (struct R_Pack_HashEntry) != pHeader->textureCount
+            && hashTableSize / sizeof (struct r_pack_hash_entry) != pHeader->textureCount
         || pHeader->colorTableSize != 0
-               && colorTableSize / sizeof (struct R_Pack_ColorEntry) != pHeader->colorTableSize
+               && colorTableSize / sizeof (struct r_pack_color_entry) != pHeader->colorTableSize
         || pHeader->pixelIndexTableSize != 0
-               && pixelIndexTableSize / sizeof (struct R_Pack_PixelIndexEntry) != pHeader->pixelIndexTableSize
+               && pixelIndexTableSize / sizeof (struct r_pack_pixel_index_entry) != pHeader->pixelIndexTableSize
         || atlasDataSize / 2 != (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight
         || pHeader->dataOffset > UINT64_MAX - atlasDataSize)
     {
@@ -173,17 +173,17 @@ R_Pack_ValidateHeader (const struct R_Pack_Header* pHeader)
 }
 
 uint64_t
-R_Pack_GetExpectedFileSize (const struct R_Pack_Header* pHeader)
+r_pack_get_expected_file_size (const struct r_pack_header* pHeader)
 {
-    if (!R_Pack_ValidateHeader (pHeader))
+    if (!r_pack_validate_header (pHeader))
     {
         return 0;
     }
 
-    uint64_t hashTableSize = (uint64_t)pHeader->textureCount * sizeof (struct R_Pack_HashEntry);
-    uint64_t colorTableSize = (uint64_t)pHeader->colorTableSize * sizeof (struct R_Pack_ColorEntry);
+    uint64_t hashTableSize = (uint64_t)pHeader->textureCount * sizeof (struct r_pack_hash_entry);
+    uint64_t colorTableSize = (uint64_t)pHeader->colorTableSize * sizeof (struct r_pack_color_entry);
     uint64_t pixelIndexTableSize
-        = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct R_Pack_PixelIndexEntry);
+        = (uint64_t)pHeader->pixelIndexTableSize * sizeof (struct r_pack_pixel_index_entry);
     uint64_t atlasDataSize = (uint64_t)pHeader->atlasWidth * pHeader->atlasHeight * 2;
 
     if (R_PACK_HEADER_SIZE > UINT64_MAX - hashTableSize
